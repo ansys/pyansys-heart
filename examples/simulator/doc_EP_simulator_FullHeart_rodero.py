@@ -55,7 +55,7 @@ path_to_model = str(workdir / "heart_model.vtu")
 ###############################################################################
 # Load the full-heart model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
-# Load the four-chamber heart model.
+# Load the full-heart model.
 model: models.FullHeart = models.FullHeart(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 
@@ -110,7 +110,8 @@ simulator.settings.load_defaults()
 
 ###############################################################################
 # .. warning::
-#    The atrial fiber orientation is approximated by the apex-base direction in this model.
+#    The atrial fiber orientation is approximated by the apex-base direction.
+#    Development is ongoing.
 
 # Compute ventricular fibers.
 simulator.compute_fibers()
@@ -132,7 +133,7 @@ simulator.model.plot_fibers(n_seed_points=2000)
 ###############################################################################
 # Compute the conduction system
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Compute the conduction system and Purkinje network, and then visualize them.
+# Compute the conduction system and Purkinje network, and then visualize the results.
 # The action potential propagates faster through this system compared to the rest of the model.
 
 simulator.compute_purkinje()

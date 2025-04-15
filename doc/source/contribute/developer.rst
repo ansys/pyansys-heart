@@ -15,7 +15,7 @@ Contribute as a developer
         :link: clone-the-repository
         :link-type: ref
 
-        Clone the repository to download the copy to your local machine.``
+        Clone the repository to download the copy to your local machine.
 
     .. grid-item-card:: :fa:`download` Install for developers
         :padding: 2 2 2 2
@@ -93,19 +93,19 @@ and see these changes reflected in your environment without having to reinstall
 the library every time you make a change.
 
 Set up a virtual environment
------------------------------
+----------------------------
 
 #. Navigate to the project's root directory :
 
 .. code-block::
 
-       c#t. py#t.nsys-#t.ear#t.
+       cd pyansys-heart
 
 #. Create a virtual environment named ``.venv`` to isolate your Python environment:
 
-.. code-block:: text#v.
+.. code-block:: text
 
-    pyt#v.on -m venv#v..ven#v.
+    python -m venv .venv
 
 #. Activate the virtual environment:
 

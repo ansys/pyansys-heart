@@ -23,7 +23,7 @@
 """
 
 Postprocess the mechanical simulation folder
------------------------------------------
+--------------------------------------------
 This example shows how to use the postprocess script after a mechanical simulation.
 """
 
@@ -65,7 +65,7 @@ meca_folder = pathlib.Path(r"D:\pyansys-heart\test_case\test_lv\main-mechanics")
 ###############################################################################
 # Create PV loop
 # ~~~~~~~~~~~~~~
-# A PV (Pressure-Volume) loop figure is an important metric for heart function.
+# A PV (Pressure-Volume) loop is an important metric for heart function.
 system = SystemModelPost(meca_folder)
 fig = system.plot_pv_loop()
 plt.show()
@@ -75,7 +75,7 @@ plt.show()
 #   :width: 300pt
 #   :align: center
 
-# You can generate a series of PNG files by setting start and end times (in seconds)
+# You can generate a series of PNG files by setting start and end times (in seconds).
 for it, tt in enumerate(np.linspace(0.001, 3, 60)):
     # assume heart beat once per 1s
     fig = system.plot_pv_loop(t_start=0, t_end=tt)
@@ -97,7 +97,7 @@ for it, tt in enumerate(np.linspace(0.001, 3, 60)):
 
 ###############################################################################
 # Compute myocardium wall strain
-# ~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Compute left ventricle strain in longitudinal, radial, circumferential directions.
 
 aha_evaluator = AhaStrainCalculator(model, d3plot_file=meca_folder / "d3plot")

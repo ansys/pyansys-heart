@@ -26,8 +26,8 @@ Run a full-heart mechanics simulation
 -------------------------------------
 This example shows how to consume a preprocessed full-heart model and
 set it up for the main mechanical simulation. It loads a pre-computed heart model
-and computes the fiber orientation and stress-free configuration. It then runs the main
-mechanical simulation.
+and computes the fiber orientation and stress-free configuration. It then runs the
+simulation.
 """
 
 ###############################################################################

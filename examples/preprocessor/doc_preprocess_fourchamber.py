@@ -80,9 +80,9 @@ path_to_part_definitions = os.path.join(workdir, "part_definitions.json")
 #    to download a CASE file for the Rodero 2021 database in an IPYNB, PY, or ZIP format.
 
 ###############################################################################
-
 # Convert the VTK file to a compatible input format
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Convert the VTK file to a compatible input format, such as a JSON file.
 input_geom, part_definitions = get_compatible_input(
     case_file, model_type="FourChamber", database="Strocchi2020"
 )
@@ -98,7 +98,7 @@ with open(path_to_part_definitions, "w") as f:
 # ~~~~~~~~~~~~~~~~~~~~
 # Create the desired heart model by giving a working directory.
 
-# Initialize a four chamber heart model
+# Initialize a four-chamber heart model
 model = models.FourChamber(working_directory=workdir)
 
 # Load input model generated in an earlier step.
@@ -110,10 +110,10 @@ model.mesh_volume(use_wrapper=True, global_mesh_size=1.5)
 # Update the model and extract the required anatomical features.
 model._update_parts()
 
-# dump the model to disk
+# Dump the model to disk.
 model.save_model(path_to_model)
 
-# Optionally save the simulation mesh as a VTK object for "offline" inspection
+# Optionally save the simulation mesh as a VTK object for "offline" inspection.
 model.mesh.save(os.path.join(model.workdir, "simulation-mesh.vtu"))
 model.save_model(os.path.join(model.workdir, "heart_model.vtu"))
 

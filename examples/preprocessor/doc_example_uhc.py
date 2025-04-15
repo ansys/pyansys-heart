@@ -22,9 +22,9 @@
 
 """
 
-Compute UHC for the ventricles
-------------------------------
-This example shows how to compute universal heart coordinates (UHC) for
+Compute UHCs for the ventricles
+-------------------------------
+This example shows how to compute UHCs (universal heart coordinates) for
 the ventricles.
 """
 
@@ -61,8 +61,8 @@ model: models.FourChamber = models.FourChamber(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 
 ###############################################################################
-# Instantiate the simulator object
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Instantiate the simulator
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Instantiate the simulator and modify options as needed.
 
 # Instantiate DYNA settings of choice
@@ -79,9 +79,9 @@ simulator = BaseSimulator(
 )
 
 ###############################################################################
-# Compute UHC
-# ~~~~~~~~~~~
-# Compute UHC using the Laplace-Dirichlet method.
+# Compute UHCs
+# ~~~~~~~~~~~~
+# Compute UHCs using the Laplace-Dirichlet Rule-Based (LDRB) method.
 
 simulator.compute_uhc()
 
@@ -100,7 +100,7 @@ simulator.compute_uhc()
 ###############################################################################
 # Visualize UHCs
 # ~~~~~~~~~~~~~~
-# The simulator automatically assigns UHC back to the full model.
+# The simulator automatically assigns UHCs back to the full model.
 # Atrial points are padded with NaNs.
 
 plotter = pv.Plotter(shape=(1, 3))

@@ -22,8 +22,8 @@
 
 """
 
-Run a four-chamber heat EP simulation
--------------------------------------
+Run a four-chamber heart EP simulation
+--------------------------------------
 This example shows how to consume a four-chamber heart model and
 set it up for the main EP (electropysiology) simulation. It loads a pre-computed
 heart model and computes the fiber direction, Purkinje network, and conduction system.
@@ -114,7 +114,7 @@ simulator.settings.load_defaults()
 
 ###############################################################################
 # Compute UVCs
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~
 # Compute UNCs (Universal Ventricular Coordinates). The transmural coordinate
 # is used to define the endo, mid, and epi layers.
 
@@ -143,7 +143,7 @@ simulator.model.left_atrium.fiber = True
 
 # Strocchi/Rodero data has a marked left atrium appendage point.
 simulator.compute_left_atrial_fiber()
-# Manually select the right atrium appendage point.
+# Select the right atrium appendage point.
 simulator.compute_right_atrial_fiber(appendage=[-33, 82, 417])
 
 simulator.model.plot_fibers(n_seed_points=2000)
@@ -154,9 +154,9 @@ simulator.model.plot_fibers(n_seed_points=2000)
 #   :align: center
 
 ###############################################################################
-# Compute conduction system
-# ~~~~~~~~~~~~~~~~~~~~~~~~~
-# Compute the conduction system and Purkinje network, and then visualize them.
+# Compute the conduction system
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Compute the conduction system and Purkinje network, and then visualize the results.
 # The action potential propagates faster through this system compared to the rest of the model.
 
 simulator.compute_purkinje()
@@ -174,7 +174,7 @@ simulator.model.plot_purkinje()
 
 ###############################################################################
 # Start the main simulation
-# ~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Start the main EP simulation. This uses the previously computed fiber orientation
 # and Purkinje network to set up and run the LS-DYNA model with different solver
 # options.

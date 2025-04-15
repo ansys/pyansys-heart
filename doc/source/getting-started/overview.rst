@@ -14,7 +14,7 @@ PyAnsys Heart supports generating electrophysiology, electro-mechanical, and mec
 .. note::
    Input CASE and VTK files for both repositories are available in these publications on the Zenodo website:
 
-   * `A Publicly Available Virtual Cohort of Four-chamber Heart Meshes for Cardiac Electro-mechanics Simulations <https://zenodo.org/records/3890034>`_`
+   * `A Publicly Available Virtual Cohort of Four-chamber Heart Meshes for Cardiac Electro-mechanics Simulations <https://zenodo.org/records/3890034>`_
    * `Virtual cohort of adult healthy four-chamber heart meshes from CT images <https://zenodo.org/records/4590294>`_
 
 These VTK and CASE files are processed into a compatible input format where the naming and IDs of the surfaces are inferred from the part IDs and consequently written to an input VTP file and JSON file. These input files are then further processed into a HeartModel that contains the various relevant anatomical features (left ventricle, right ventricle, endo- and epicardium, and cavities). This HeartModel is a Python object that then has physics added processed before being exported as an LS-DYNA model.
@@ -33,9 +33,9 @@ Electrophysiology
 PyAnsys Heart provides three options for cardiac electrophysiology modeling (electrical propagation) in the
 ``simulator.settings.settings.epanalysis.solvertype`` API:
 
-- `Monodomain` (``*EM_CONTROL`` with EMSOL=11 in LS-DYNA)
-- `Eikonal` (``*EM_CONTROL`` with EMSOL=14 in LS-DYNA) and
-- `ReactionEikonal` model (``*EM_CONTROL`` with EMSOL=15 in LS-DYNA)
+- ``Monodomain`` (``*EM_CONTROL`` with EMSOL=11 in LS-DYNA)
+- ``Eikonal` (``*EM_CONTROL`` with EMSOL=14 in LS-DYNA)
+- ``ReactionEikonal`` model (``*EM_CONTROL`` with EMSOL=15 in LS-DYNA)
 
 General descriptions follow for these and other models:
 
@@ -58,7 +58,7 @@ General descriptions follow for these and other models:
    When UHCs are computed, the transmural coordinate is used to distinguish between endo-, epi-, and mid- myocardium layers using the corresponding version of the TenTusscher model.
 
    .. Note::
-      LS-DYNA supports other cell models and user-defined models. For more information, see the `*EM_EP` collection of keywords in the `LS-DYNA manuals <https://lsdyna.ansys.com/manuals/>`_.
+      LS-DYNA supports other cell models and user-defined models. For more information, see the ``*EM_EP`` collection of keywords in the `LS-DYNA manuals <https://lsdyna.ansys.com/manuals/>`_.
 
 - **Stimulation**
    Tissue stimulation is set by default on the SA node in a four-chamber model and in the left and right apex in case of a left ventricle or biventricular model. However, you can define your own stimulation origin and profile. For more information, see :ref:`stimulation_definition_example`.

@@ -23,9 +23,9 @@
 """
 
 Postprocess a zero pressure folder
--------------------------_--------
-This example shows you how to use the postprocess script after stress-free configuration simulation
-and visualize them in Paraview.
+----------------------------------
+This example shows how to use the postprocess script after stress-free configuration simulation
+and view results in Paraview.
 """
 
 ###############################################################################
@@ -60,7 +60,7 @@ zerop_folder = r"your-simulation_folder"
 # Run default process scripts
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # A folder named ``post`` is created with key simulation results in various
-# file formats, including JSON, PNG, or VTK.
+# file formats, such as JSON, PNG, or VTK.
 
 zerop_post(zerop_folder, model)
 
@@ -114,8 +114,8 @@ zerop_post(zerop_folder, model)
 }
 
 ###############################################################################
-# Visualize in Paraview
-# ~~~~~~~~~~~~~~~~~~~~~
+# View results in Paraview
+# ~~~~~~~~~~~~~~~~~~~~~~~~
 # Open Paraview, load the state file
 # :download:`post_zerop2.pvsm <../../_static/others/post_zerop2.pvsm>`,
 # and specify the directory.
@@ -126,7 +126,7 @@ zerop_post(zerop_folder, model)
 #   :align: center
 
 ###############################################################################
-# You can compare the end-of-diastolic geometry between input and after inflation
+# You can compare the end-of-diastolic geometry between input and after inflation.
 
 ###############################################################################
 # .. image:: /_static/images/EDcavity_simu_real.png

@@ -5,7 +5,7 @@ Operating system
 ----------------
 
 - Windows 10
-- Linux Ubuntu
+- Linux
 
 
 Ansys tools
@@ -37,9 +37,9 @@ Software
     - `Ansys Customer Portal`_
 
   * - Ansys LS-DYNA
-    - 16.0
+    - 16.0.0 IntelMPI double precision, 16.0.0 MSMPI double precision
     - Simulator
-    - Contact the `PyAnsys Core team <pyansys_core_>`_ to get more information.
+    - `Ansys LSDYNA Product Space`_ or contact the `PyAnsys Core team <pyansys_core_>`_ to get more information.
 
 .. note::
 

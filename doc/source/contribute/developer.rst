@@ -103,7 +103,7 @@ Set up a virtual environment
 
 #. Create a virtual environment named ``.venv`` to isolate your Python environment:
 
-.. code-block:: text.
+.. code-block:: text
 
     python -m venv .venv
 

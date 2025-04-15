@@ -32,17 +32,17 @@ from ansys.dyna.core.keywords import keywords
 
 
 def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:
-    """Create node keyword from numpy array of nodes.
+    """Create node keyword from a NumPy array of nodes.
 
     Parameters
     ----------
     nodes : np.array
-        Numpy array containing the node coordinates
+        NumPy array containing the node coordinates.
 
     Returns
     -------
     keywords.Node
-        Formatted node keyword
+        Formatted node keyword.
     """
     # create array with node ids
     nids = np.arange(0, nodes.shape[0], 1) + 1
@@ -60,20 +60,20 @@ def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) ->
 
     Notes
     -----
-    If nodes are already defined, this adds both the nodes in the previous
-    keyword and the specified array of nodes. Automatically computes
-    the index offset in case node_kw.nodes is not empty.
+    If nodes are already defined, this method adds both the nodes in the previous
+    keyword and the specified array of nodes. It automatically computes
+    the index offset in case ``node_kw.nodes`` is not empty.
 
     Parameters
     ----------
     nodes : np.array
-        Numpy array of node coordinates to add
-        If (n,3), node ID will be continuous by offset.
-        If (n,4), first column will be node ID.
+        NumPy array of node coordinates to add.
+        If (n,3), the node ID is continuous by offset.
+        If (n,4), the first column is the node ID.
     node_kw : keywords.Node
-        Node keyword
+        Node keyword.
     offset : int
-        Node id offset
+        Node ID offset.
     """
     if nodes.shape[1] == 4:
         df = pd.DataFrame(data=nodes, columns=node_kw.nodes.columns[0:4])
@@ -83,7 +83,7 @@ def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) ->
             last_nid = node_kw.nodes.iloc[-1, 0]
             offset = last_nid
 
-        # create array with node ids
+        # create array with node IDs
         nids = np.arange(0, nodes.shape[0], 1) + offset + 1
 
         # create dataframe
@@ -105,18 +105,18 @@ def add_beams_to_kw(
 
     Notes
     -----
-    If beams are already defined, this adds both the beams in the previous
-    keyword and the specified array of beams. Automatically computes
-    the index offset in case beam_kw.elements is not empty.
+    If beams are already defined, this method adds both the beams in the previous
+    keyword and the specified array of beams. It automatically computes
+    the index offset in case ``beam_kw.elements`` is not empty.
 
     Parameters
     ----------
     beams : np.array
-        Numpy array of beam coordinates to add
+        NumPy array of beam coordinates to add.
     beam_kw : keywords.beam
-        beam keyword
+        Beam keyword.
     offset : int
-        beam id offset
+        Beam ID offset.
     """
     # get beam id of last beam:
     if not beam_kw.elements.empty and offset == 0:
@@ -150,20 +150,20 @@ def create_segment_set_keyword(
     Parameters
     ----------
     segments : np.array
-        Array of node-indices that make up the segment. If three columns are provided
+        Array of node indices that make up the segment. If three columns are provided,
         it is assumed that the segments are triangular
-    segid : int, optional
-        Segment set ID, by default 1
-    title : str, optional
-        Title of the segment set
+    segid : int, default: 1
+        Segment set ID.
+    title : str, default: ""
+        Title of the segment set.
 
     Returns
     -------
     keywords.SetSegment
-        Formatted segment set keyword
+        Formatted segment set keyword.
     """
     if segments.shape[1] < 3 or segments.shape[1] > 4:
-        raise ValueError("expecting segments to have 3 or 4 columns")
+        raise ValueError("Expecting segments to have 3 or 4 columns.")
 
     if segments.shape[1] == 3:
         # segtype = "triangle"
@@ -186,24 +186,24 @@ def create_segment_set_keyword(
 def create_node_set_keyword(
     node_ids: np.ndarray, node_set_id: int = 1, title: str = "nodeset-title"
 ) -> keywords.SetNodeList:
-    """Create node set.
+    """Create a nodeset.
 
     Parameters
     ----------
     node_ids : np.array
-        List of node ids to include in the node set
-    node_set_id : int, optional
-        Id of the node set, by default 1
-    title : str, optional
-        Title of the node set, by default 'nodeset-title'
+        List of node IDs to include in the nodeset.
+    node_set_id : int, default: 1
+        ID of the nodeset.
+    title : str, default: ``'nodeset-title'``
+        Title of the nodeset
 
     Returns
     -------
     keywords.SetNodeList
-        Formatted node set
+        Formatted nodeset.
     """
     if not isinstance(node_ids, (np.ndarray, int, np.int32, np.int64, list)):
-        raise TypeError("Expecting node ids to be array of ints, list of ints or single int")
+        raise TypeError("Expecting node IDs to be array or list of integers or a single integer.")
     if isinstance(node_ids, (int, np.int32, np.int64)):
         node_ids = [node_ids]
 
@@ -220,11 +220,12 @@ def create_node_set_keyword(
 def create_element_shell_keyword(
     shells: np.array, part_id: int = 1, id_offset: int = 0
 ) -> keywords.ElementShell:
-    """Create element shell keyword.
+    """Create an element shell keyword.
 
     Notes
     -----
-    From a numpy array of elements. Each row corresponds to an element.
+    This method creates an element shell keyword from a NumPy array of elements.
+    Each row corresponds to an element.
 
     """
     num_shells = shells.shape[0]
@@ -238,7 +239,7 @@ def create_element_shell_keyword(
         # element_type = "quad"
         columns = kw.elements.columns[0:6]
     else:
-        raise ValueError("Unknown type. Check size of shell array")
+        raise ValueError("Type is unknown. Check size of shell array.")
 
     # create element id array
     element_ids = np.arange(0, num_shells, 1) + 1 + id_offset
@@ -261,18 +262,18 @@ def create_elemetn_solid_keyword(
     Parameters
     ----------
     elements : np.array
-        Numpy array of ints with element definition
+        NumPy array of integers with element definition.
     part_id : np.array
-        Part ids of each element
+        Part IDs of each element.
     e_id : np.array
-        Element ID
-    element_type : str, optional
-        Type of element to write, by default "tetra"
+        Element ID.
+    element_type : str, default: ``'tetra'``
+        Type of element to write
 
     Returns
     -------
     keywords.ElementSolid
-        Formatted *ELEMENT_SOLID keyword
+        Formatted *ELEMENT_SOLID keyword.
     """
     kw = keywords.ElementSolid()
     df = pd.DataFrame(columns=kw.elements)
@@ -308,22 +309,22 @@ def create_element_solid_ortho_keyword(
     Parameters
     ----------
     elements : np.array
-        Numpy array of ints with element definition
+        NumPy array of integers with element definition
     a_vec : np.array
-        Vector specifying the A direction
+        Vector specifying the A direction.
     d_vec : np.array
-        Vector specifying the D direction
+        Vector specifying the D direction.
     part_id : np.array
-        Part ids of each element
+        Part IDs of each element.
     e_id : np.array
-        Element ID
-    element_type : str, optional
-        Type of element to write, by default "tetra"
+        Element ID.
+    element_type : str, default: ``'tetra'``
+        Type of element to write.
 
     Returns
     -------
     keywords.ElementSolidOrtho
-        Formatted *ELEMENT_SOLID_ORTHO keyword
+        Formatted *ELEMENT_SOLID_ORTHO keyword.
     """
     kw = keywords.ElementSolidOrtho()
 
@@ -385,11 +386,11 @@ def create_define_sd_orientation_kw(
     Parameters
     ----------
     vectors : np.array
-        Array of shape Nx3 with the defined vector
-    vector_id_offset : int, optional
-        Offset for the vector id, by default 0
-    iop : int, optional
-        Option, by default 0
+        Array of shape Nx3 with the defined vector.
+    vector_id_offset : int, default: 0
+        Offset for the vector ID.
+    iop : int, default: 0
+        Option.
     """
     kw = keywords.DefineSdOrientation()
     if len(vectors.shape) == 2:
@@ -416,23 +417,24 @@ def create_discrete_elements_kw(
     scale_factor: Union[np.array, float],
     element_id_offset: int = 0,
 ) -> keywords.ElementDiscrete:
-    """Create discrete elements based on the input arguments.
+    """Create discrete elements based on input arguments.
 
     Parameters
     ----------
     nodes : np.array
-        Nx2 Array with node ids used for the discrete element
+        Nx2 array with node IDs used for the discrete element.
     part_id : int
-        Part id of the discrete elements given
+        Part ID of the discrete elements given.
     vector_ids : Union[np.array, int]
-        Orientation ids (vector ids) along which the spring acts.
-        Can be either an array of length N, or a scalar integer
+        Orientation IDs (vector IDs) that the spring acts on.
+        You can provide either an array of length N or a scalar integer.
     scale_factor : Union[np.array, float]
-        Scale factor on forces, either an array of length N or scalar value
-    element_id_offset : int, optional
-        Offset value for the element ids, by default 0
-    init_offset : float, optional
-        Initial offset: initial displacement or rotation at t=0, by default 0.0
+        Scale factor on forces. You can provide either an array of length N
+        or a scalar value.
+    element_id_offset : int, default: 0
+        Offset value for the element IDs.
+    init_offset : float, default: 0.0
+        Initial offset, which is the initial displacement or rotation at t=0.
     """
     num_elements = nodes.shape[0]
 
@@ -462,23 +464,23 @@ def create_discrete_elements_kw(
 
 
 def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.ndarray:
-    """Get array of used ids in the database.
+    """Get array of used IDs in the database.
 
     Notes
     -----
-    E.g. for *SECTION, *PART and *MAT ids
+    For example, for *SECTION, you would get *PART and *MAT IDs.
 
     Parameters
     ----------
     database : Deck
-        Database of keywords
+        Database of keywords.
     keyword : str
-        Keyword which to find
+        Keyword to find.
 
     Returns
     -------
     np.ndarray
-        Array of ids (ints) which are already used
+        Array of IDs (integers) that are already used
     """
     ids = np.empty(0, dtype=int)
 
@@ -513,13 +515,13 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.ndarray:
             if "SEGMENT" in kw.subkeyword:
                 ids = np.append(ids, kw.sid)
 
-    # special treatment for node sets
+    # special treatment for nodesets
     if keyword_str == valid_kws[4]:
         for kw in keyword_db.get_kwds_by_type("SET"):
             if "NODE" in kw.subkeyword:
                 ids = np.append(ids, kw.sid)
 
-    # special treatment for node sets
+    # special treatment for nodesets
     if keyword_str == valid_kws[6]:
         for kw in keyword_db.get_kwds_by_type("SET"):
             if "PART" in kw.subkeyword:
@@ -542,7 +544,7 @@ def fast_element_writer(
 
     Notes
     -----
-    Use this as an alternative to the dynalib writer
+    Use this method as an alternative to the dynalib writer.
 
     """
     # TODO: generalize this writer

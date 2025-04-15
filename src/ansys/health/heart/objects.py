@@ -135,7 +135,7 @@ class Feature:
         self.type = None
         """Type of feature."""
         self._node_set_id: int = None
-        """Node set ID associated with feature."""
+        """Nodeset ID associated with feature."""
         self._seg_set_id: int = None
         """Segment set ID associated with feature."""
         self.pid: int = None
@@ -257,7 +257,7 @@ class SurfaceMesh(pv.PolyData):
         self._seg_set_id: int = None
         """Segment set ID."""
         self._node_set_id: int = None
-        """Node set ID."""
+        """Nodeset ID."""
 
     @property
     def node_ids_triangles(self) -> np.ndarray:

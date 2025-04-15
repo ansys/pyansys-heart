@@ -293,6 +293,10 @@ class HeartModel:
 
     def add_conduction_beam(self, beams: ConductionBeams | list[ConductionBeams]):
         """Add conduction beam to the model."""
+        if len(self._conduction_beams) > 0:
+            LOGGER.error("You must clean conduction beams before new assignment.")
+            return
+
         if isinstance(beams, ConductionBeams):
             beams = [beams]
 
@@ -300,21 +304,49 @@ class HeartModel:
             self._conduction_beams.append(beam)
 
             registered_name = [c.name for c in self._conduction_beams]
-            ids = []
+            merge_ids = []
             if beam._up is not None:
                 if beam._up in registered_name:
                     target = next(i for i in self._conduction_beams if i.name == beam._up)
                     LOGGER.info(
                         f"merging first node of {beam.name.value} in to {target.name.value}"
                     )
-                    ids.append(0)
+                    merge_ids.append(0)
             if beam._down is not None:
                 if beam._down in registered_name:
                     target = next(i for i in self._conduction_beams if i.name == beam._down)
                     LOGGER.info(f"merging last node of {beam.name.value} in to {target.name.value}")
-                    ids.append(-1)
+                    merge_ids.append(-1)
 
-            self._conduction_system = self._safe_line_merge(self._conduction_system, beam.mesh, ids)
+            self._conduction_system = self._safe_line_merge(
+                self._conduction_system, beam.mesh, merge_ids
+            )
+
+        shift_ids = self._shifted_id()
+        self._conduction_system.point_data["_shifted_id"] = shift_ids
+
+    def _shifted_id(self) -> np.ndarray:
+        """Deduce node IDs after merging to solid mesh."""
+        from scipy import spatial
+
+        kdtree = spatial.cKDTree(self.mesh.points)
+
+        is_connected = self._conduction_system["_is-connected"].astype(bool)
+        querry_points = self._conduction_system.points[is_connected]
+        dst, solid_id = kdtree.query(querry_points)
+        LOGGER.info(f"Maximal distance from solid-beam connected node:{np.max(dst)}")
+
+        shifted_ids = np.linspace(
+            0, self._conduction_system.n_points - 1, num=self._conduction_system.n_points, dtype=int
+        )
+        # for connected nodes, replace by solid mesh ID
+        shifted_ids[is_connected] = solid_id
+        # for beam-only nodes, shift their IDs
+        for i in range(self._conduction_system.n_points):
+            if not is_connected[i]:
+                shifted_ids[i] += self.mesh.n_points - np.sum(is_connected[:i])
+
+        return shifted_ids
 
     @staticmethod
     def _safe_line_merge(base: Mesh, add_mesh: Mesh, mereged_id: list) -> Mesh:

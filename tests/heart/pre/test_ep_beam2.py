@@ -87,6 +87,9 @@ def test_conduction():
     assert np.array_equal(res["_line-id"], ref["_line-id"])
     assert np.array_equal(res["_is-connected"], ref["_is-connected"])
 
+    # test ID shift with merging to solid
+    assert np.sum(model._shifted_id()) == 587209415
+
 
 def test_conductionbeams_init():
     model = get_fullheart()

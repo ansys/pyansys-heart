@@ -327,6 +327,7 @@ def add_conduction_beams(writer):
         isinstance(writer.model, models.FullHeart)
         and type(writer) is writers.ElectrophysiologyDynaWriter
     ):
+        # old method
         from ansys.health.heart.objects import _ConductionType
         from ansys.health.heart.pre.conduction_beam import _compute_heart_conductionsystem
 
@@ -339,6 +340,14 @@ def add_conduction_beams(writer):
         writer.model.add_purkinje_from_kfile(f1, _ConductionType.LEFT_PURKINJE.value)
         writer.model.add_purkinje_from_kfile(f2, _ConductionType.RIGHT_PURKINJE.value)
         _compute_heart_conductionsystem(writer.model, 1.5)
+
+        # new method
+        from ansys.health.heart.models_utils import HeartModelUtils
+
+        beam_list = HeartModelUtils.define_default_conduction_system(
+            writer.model, purkinje_folder=folder
+        )
+        writer.model.add_conduction_beam(beam_list)
 
 
 @pytest.mark.parametrize(

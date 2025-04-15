@@ -100,7 +100,7 @@ def test_conductionbeams_init():
         name=ConductionBeamType.LEFT_PURKINJE,
         mesh=left_purkjinje,
         id=1,
-        is_connceted=left_purkjinje["_is-connected"],
+        is_connected=left_purkjinje["_is-connected"],
         relying_surface=model.left_ventricle.endocardium,
     )
 

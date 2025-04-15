@@ -8,7 +8,8 @@ $#   smmod       dfx       dfy       dfz
 $#     sid       da1       da2       da3       da4    solver
          1       0.0       0.0       0.0       0.0MECH      
          1         2         7         3         4         5         6         8
-         9        10        11        12        13        14
+         9        10        11        12        13        14        15        16
+
 *EM_CONTROL_EP
 $#olvetype  numsplit   actusig  ionsolvr
          4         1 100000000          

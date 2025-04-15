@@ -264,21 +264,21 @@ class HeartModelUtils:
         his_left = ConductionBeams.create_from_keypoints(
             name=ConductionBeamType.HIS_LEFT,
             keypoints=[his_bif.xyz, his_left_point.xyz],
-            id=4,
+            id=5,
             base_mesh=model.mesh,
             connection="none",
         )
         his_right = ConductionBeams.create_from_keypoints(
             name=ConductionBeamType.HIS_RIGHT,
             keypoints=[his_bif.xyz, his_right_point.xyz],
-            id=4,
+            id=6,
             base_mesh=model.mesh,
             connection="none",
         )
         left_bundle = ConductionBeams.create_from_keypoints(
             name=ConductionBeamType.LEFT_BUNDLE_BRANCH,
             keypoints=[his_left_point.xyz, model.left_ventricle.apex_points[0].xyz],
-            id=5,
+            id=7,
             base_mesh=model.left_ventricle.endocardium,
             connection="none",  # TODO: change to 'last'?
             refine_length=None,
@@ -290,7 +290,7 @@ class HeartModelUtils:
         right_bundle = ConductionBeams.create_from_keypoints(
             name=ConductionBeamType.RIGHT_BUNDLE_BRANCH,
             keypoints=[his_right_point.xyz, model.right_ventricle.apex_points[0].xyz],
-            id=6,
+            id=8,
             base_mesh=endo_surface,
             connection="none",  # TODO: change to 'last'?
             refine_length=None,

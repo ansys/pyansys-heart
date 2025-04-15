@@ -84,7 +84,8 @@ def test_conduction():
     assert res.n_cells == ref.n_cells
     assert res.n_points == ref.n_points
     assert np.allclose(res.points, ref.points, atol=1e-3)
-    assert np.array_equal(res["_line-id"], ref["_line-id"])
+    # old method has HIS together but new method split it into 3 part
+    # assert np.array_equal(res["_line-id"], ref["_line-id"])
     assert np.array_equal(res["_is-connected"], ref["_is-connected"])
 
     # test ID shift with merging to solid

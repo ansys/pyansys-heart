@@ -3263,20 +3263,15 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
             stim_nodes = [node_apex_left, node_apex_right]
 
-            if LandMarker.SA_NODE.xyz is not None:
+            if ConductionBeamType.SAN_AVN in [beam.name for beam in self.model._conduction_beams]:
                 # Active SA node (belong to both solid and beam)
                 stim_nodes = list(self.model.mesh.find_closest_point(LandMarker.SA_NODE.xyz, n=5))
 
-                if ConductionBeamType.SAN_AVN in [
-                    beam.name for beam in self.model._conduction_beams
-                ]:
-                    # add 1 more beam node to initiate wave propagation
-                    p = self.model._conduction_system.find_closest_point(
-                        LandMarker.SA_NODE.xyz, n=2
-                    )
-                    # take the second point, the first point is SA node itself
-                    pointid = self.model._conduction_system["_shifted_id"][p[1]]
-                    stim_nodes.append(pointid)
+                # add 1 more beam node to initiate wave propagation
+                p = self.model._conduction_system.find_closest_point(LandMarker.SA_NODE.xyz, n=2)
+                # take the second point, the first point is SA node itself
+                pointid = self.model._conduction_system["_shifted_id"][p[1]]
+                stim_nodes.append(pointid)
 
         # stimulate entire elements for Eikonal
         if self.settings.electrophysiology.analysis.solvertype in [

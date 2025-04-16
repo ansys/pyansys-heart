@@ -40,7 +40,7 @@ class CVInteraction:
     parameters: dict
 
     def _define_function_keyword(self):
-        if self.flow_name == "closeloop":
+        if self.flow_name == "closed-loop":
             return ""
         else:
             return _define_function_0d_system(self.lcid, self.flow_name, self.parameters)
@@ -212,7 +212,7 @@ def _create_closed_loop(model: HeartModel) -> list[ControlVolume]:
     list[ControlVolume]
         list of control volumes
     """
-    iteraction_id = [-1, -2, -3, -4]
+    interaction_id = [-1, -2, -3, -4]
 
     if isinstance(model, LeftVentricle):
         control_volumes = [model.left_ventricle]
@@ -237,8 +237,8 @@ def _create_closed_loop(model: HeartModel) -> list[ControlVolume]:
                         id=i + 1,
                         cvid1=i + 1,
                         cvid2=0,
-                        lcid=iteraction_id[i],
-                        flow_name="closeloop",
+                        lcid=interaction_id[i],
+                        flow_name="closed-loop",
                         parameters={},
                     )
                 ],

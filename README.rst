@@ -14,8 +14,8 @@ PyAnsys Heart
    :target: https://pypi.org/project/pyansys-heart
    :alt: PyPI
 
-.. |GH-CI| image:: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd.yml/badge.svg
-   :target: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd.yml
+.. |GH-CI| image:: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd_night.yml/badge.svg
+   :target: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd_night.yml
    :alt: GH-CI
 
 .. |MIT| image:: https://img.shields.io/badge/license-MIT-yellow
@@ -78,5 +78,5 @@ legally licensed copies of the involved Ansys products.
 .. _Python: https://www.python.org/
 .. _PyAnsys Developer's guide: https://dev.docs.pyansys.com/
 .. _Discussion: https://discuss.ansys.com
-.. _documentation: https://heart.docs.pyansys.com/
+.. _documentation: https://heart.health.docs.pyansys.com/
 .. _LICENSE: https://github.com/ansys/pyansys-heart/blob/main/LICENSE

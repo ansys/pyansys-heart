@@ -27,7 +27,7 @@ import tempfile
 
 import pytest
 
-from ansys.heart.core.writer.dynawriter import LaplaceWriter
+from ansys.health.heart.writer.dynawriter import LaplaceWriter
 from tests.heart.conftest import get_assets_folder, get_fourchamber
 from tests.heart.end2end.compare_k import read_file
 

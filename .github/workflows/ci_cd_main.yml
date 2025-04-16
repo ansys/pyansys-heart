@@ -13,8 +13,8 @@ env:
   ANSYS_VERSION: '241'
   ANSYS_DPF_ACCEPT_LA: 'Y'
   MAIN_PYTHON_VERSION: '3.11'
-  DOCUMENTATION_CNAME: 'heart.docs.pyansys.com'
-  LIBRARY_NAME: 'ansys-heart'
+  DOCUMENTATION_CNAME: 'heart.health.docs.pyansys.com'
+  LIBRARY_NAME: 'ansys-health-heart'
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
   PYFLUENT_START_INSTANCE: 0
   PYFLUENT_LAUNCH_CONTAINER: 1
@@ -22,39 +22,16 @@ env:
 
 jobs:
 
-  wheelhouse:
-    name: "Wheelhouse / ${{ matrix.os}} / ${{ matrix.python-version }}"
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: ['3.11', '3.12']
-    steps:
-      - uses: ansys/actions/build-wheelhouse@v8
-        with:
-          library-name: ${{ env.LIBRARY_NAME }}
-          operating-system: ${{ matrix.os }}
-          python-version: ${{ matrix.python-version }}
-          check-licenses: true
-
   doc-build:
     name: "Build documentation"
     runs-on: [self-hosted, pyhealth]
-    needs: wheelhouse
     steps:
 
       - name: "Checkout the project"
-        uses: actions/checkout@v4
-
-      - name: "Download wheelhouse into static path"
-        uses: actions/download-artifact@v4
-        with:
-          path: "doc/source/_static/wheelhouse"
-          pattern: "*-wheelhouse-*"
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: "Install Python ${{ env.MAIN_PYTHON_VERSION }}"
-        uses: astral-sh/setup-uv@22695119d769bdb6f7032ad67b9bca0ef8c4a174 # v5.4.0
+        uses: astral-sh/setup-uv@0c5e2b8115b80b4c7c5ddf6ffdd634974642d182 # v5.4.1
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
@@ -67,14 +44,14 @@ jobs:
           tox -e doc-links,doc-html,doc-pdf
 
       - name: Upload HTML documentation artifact
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: documentation-html
           path: doc/_build/html
           retention-days: 7
 
       - name: Upload PDF documentation artifact
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: documentation-pdf
           path: doc/_build/latex/*.pdf
@@ -85,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: doc-build
     steps:
-      - uses: ansys/actions/doc-deploy-dev@v8
+      - uses: ansys/actions/doc-deploy-dev@4f15ff3ab1183912ce862d51b8c66ea124b052a1 # v9.0.2
         with:
           doc-artifact-name: "documentation-html"
           cname: ${{ env.DOCUMENTATION_CNAME }}

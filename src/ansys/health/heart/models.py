@@ -48,7 +48,6 @@ from ansys.health.heart.objects import (
 )
 from ansys.health.heart.pre.conduction_beam2 import (
     ConductionBeams,
-    _read_purkinje_from_kfile,
 )
 from ansys.health.heart.pre.input import _InputModel
 import ansys.health.heart.pre.mesher as mesher
@@ -265,11 +264,11 @@ class HeartModel:
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
 
-        self.conduction_system: _BeamsMesh = _BeamsMesh()
-        """Mesh defining the conduction system."""
         self._conduction_beams: list[ConductionBeams] = []
-        # TODO: tempo structure before refactor of Mesh
+        """Conduction beams list."""
+
         self._conduction_system: _BeamsMesh = _BeamsMesh()
+        """Mesh defining the conduction system."""
 
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
@@ -490,43 +489,6 @@ class HeartModel:
         new_part.element_ids = eids
 
         return new_part
-
-    def add_purkinje_from_kfile(self, filename: pathlib.Path, name: str) -> None:
-        """Read an LS-DYNA file containing purkinje beams and nodes.
-
-        Parameters
-        ----------
-        filename : pathlib.Path
-
-        name : str
-            beamnet name
-        """
-        beam_nodes, edges, mask, pid = _read_purkinje_from_kfile(filename)
-
-        # build tree: beam_nodes and solid_points
-        original_points_order = np.unique(edges[np.invert(mask)])
-        solid_points = self.mesh.points[original_points_order]
-        connectivity = np.empty_like(edges)
-        np.copyto(connectivity, edges)
-
-        # create ids of solid points and fill connectivity
-        _, _, inverse_indices = np.unique(
-            connectivity[np.logical_not(mask)], return_index=True, return_inverse=True
-        )
-        connectivity[np.logical_not(mask)] = inverse_indices + max(connectivity[mask]) + 1
-        celltypes = np.full((connectivity.shape[0], 1), 2)
-        connectivity = np.hstack((celltypes, connectivity))
-        beam_points = np.vstack([beam_nodes, solid_points])
-        is_connected = np.concatenate(
-            [np.zeros(len(beam_nodes)), np.ones(len(solid_points))]
-        ).astype(np.int64)
-
-        beam_net = pv.PolyData(beam_points, lines=connectivity)
-        beam_net.point_data["_is-connected"] = is_connected
-        id = self.conduction_system.get_unique_lines_id()
-        self.conduction_system.add_lines(lines=beam_net, id=id, name=name)
-
-        return beam_net
 
     def load_input(self, input_vtp: pv.PolyData, part_definitions: dict, scalar: str):
         """Load an input model.

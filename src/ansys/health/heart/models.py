@@ -294,8 +294,9 @@ class HeartModel:
     def add_conduction_beam(self, beams: ConductionBeams | list[ConductionBeams]):
         """Add conduction beam to the model."""
         if len(self._conduction_beams) > 0:
-            LOGGER.error("You must clean conduction beams before new assignment.")
-            return
+            LOGGER.warning("Removing previously defined conduction beams.")
+            self._conduction_beams: list[ConductionBeams] = []
+            self._conduction_system: _BeamsMesh = _BeamsMesh()
 
         if isinstance(beams, ConductionBeams):
             beams = [beams]

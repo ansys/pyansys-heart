@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""D3plot parser using Ansys-dpf."""
+"""D3plot parser using Ansys DPF."""
 
 import os
 from pathlib import Path
@@ -36,7 +36,7 @@ from ansys.health.heart.exceptions import SupportedDPFServerNotFoundError
 from ansys.health.heart.models import HeartModel
 
 _SUPPORTED_DPF_SERVERS = ["2024.1", "2024.1rc1", "2024.2rc0"]
-"""List of supported DPF Servers."""
+"""List of supported DPF servers."""
 #! NOTE:
 #! 2024.1rc0: not supported due to missing ::tf operator
 #! => 2024.2rc1: not supported due to bug in dpf server when reading d3plots mixed with EM results
@@ -48,14 +48,14 @@ def _check_accept_dpf():
     else:
         LOGGER.error(
             """DPF requires you to accept the license agreement.
-            Please set the environment variable "ANSYS_DPF_ACCEPT_LA" to "Y"."""
+            Set the environment variable "ANSYS_DPF_ACCEPT_LA" to "Y"."""
         )
         exit()
     return
 
 
 class D3plotReader:
-    """Use DPF to parse d3plot."""
+    """Use DPF to parse the d3plot."""
 
     def __init__(self, path: Path):
         """
@@ -64,7 +64,7 @@ class D3plotReader:
         Parameters
         ----------
         path : Path
-            d3plot file path.
+            Path to the d3plot file.
         """
         _check_accept_dpf()
 
@@ -77,13 +77,13 @@ class D3plotReader:
 
         for version, server in available_dpf_servers.items():
             if version in _SUPPORTED_DPF_SERVERS:
-                LOGGER.info(f"Trying to launch DPF Server {version}")
+                LOGGER.info(f"Trying to launch DPF server {version}.")
                 self._server = server()
                 break
 
         if self._server is None:
-            mess = f"""Failed to launch supported DPF Server:
-                        Please make sure one of {_SUPPORTED_DPF_SERVERS} is installed."""
+            mess = f"""Failed to launch supported DPF server:
+                        Make sure one of {_SUPPORTED_DPF_SERVERS} is installed."""
             LOGGER.error(mess)
             raise SupportedDPFServerNotFoundError(mess)
 
@@ -113,7 +113,7 @@ class D3plotReader:
         # NOTE: to get time steps:
         # self.model.metadata.time_freq_support.time_frequencies.data_as_list
 
-        op = dpf.Operator("lsdyna::ms::results")  # ls dyna EP operator
+        op = dpf.Operator("lsdyna::ms::results")  # LS-DYNA EP operator
         op.inputs.data_sources(self.ds)
         op.inputs.time_scoping(time_scoping)
         fields = op.eval()
@@ -175,24 +175,24 @@ class D3plotReader:
         return
 
     def get_displacement_at(self, time: float) -> np.ndarray:
-        """Get displacement field.
+        """Get the displacement field.
 
         Parameters
         ----------
         time : float
-            at which time
+            Time at which to get the displacement field.
 
         Returns
         -------
         np.ndarray
-            displacement
+            Displacement array.
         """
         if time not in self.time:
-            LOGGER.warning("No data at given time, results are from interpolation.")
+            LOGGER.warning("No data available at given time. Results are from interpolation.")
         return self.model.results.displacement.on_time_scoping(float(time)).eval()[0].data
 
     def get_material_ids(self) -> np.ndarray:
-        """Get list of material id."""
+        """Get a list of the material IDs."""
         return self.model.metadata.meshed_region.elements.materials_field.data
 
     def get_history_variable(
@@ -201,14 +201,14 @@ class D3plotReader:
         at_step: int = 0,
     ) -> np.ndarray:
         """
-        Get history variables in d3plot.
+        Get history variables in the d3plot.
 
         Parameters
         ----------
         hv_index: List[int]
             History variables index.
-        at_step: int, optional
-            At this frame, by default 0.
+        at_step: int, default: 0
+            Step at which to get the history variables.
 
         Returns
         -------
@@ -217,8 +217,8 @@ class D3plotReader:
 
         Notes
         -----
-        d3plot.get_history_variable(hv_index=list(range(9)), at_frame=at_frame) to
-        get Deformation gradient (column-wise storage),see MAT_295 in LS-DYNA manual.
+        d3plot.get_history_variable(hv_index=list(range(9)), at_frame=at_frame). To
+        get the deformation gradient (column-wise storage), see MAT_295 in the LS-DYNA manuals.
 
         """
         if at_step > self.model.metadata.time_freq_support.n_sets:
@@ -238,17 +238,17 @@ class D3plotReader:
         return np.array(res)
 
     def get_heatflux(self, step: int = 2) -> np.ndarray:
-        """Get nodal heat flux vector from d3plot.
+        """Get nodal heat flux vector from the d3plot.
 
         Parameters
         ----------
-        step : int, optional
-            time step, by default 2
+        step : int, default: 2
+            Time step
 
         Returns
         -------
         np.ndarray
-            heat flux
+            Heat flux.
         """
         op = dpf.Operator("lsdyna::d3plot::TF")
         op.inputs.data_sources(self.ds)
@@ -258,15 +258,15 @@ class D3plotReader:
 
 
 class ICVoutReader:
-    """Read control volume data from binout."""
+    """Read control volume data from the binout file."""
 
     def __init__(self, fn: str) -> None:
-        """Init reader.
+        """Initialize reader.
 
         Parameters
         ----------
         fn : str
-            binout file path
+            Path to the binout file.
         """
         _check_accept_dpf()
         self._ds = dpf.DataSources()
@@ -278,7 +278,7 @@ class ICVoutReader:
             exit()
 
     def _get_available_ids(self) -> np.ndarray:
-        """Get available CV ids and CVI ids."""
+        """Get available CV IDs and CVI IDs."""
         icvout_op = dpf.Operator("lsdyna::binout::ICV_ICVIID")
         icvout_op.inputs.data_sources(self._ds)
         fields1 = icvout_op.outputs.results()
@@ -317,15 +317,15 @@ class ICVoutReader:
         Parameters
         ----------
         icv_id : int
-            control volume id
+            Control volume ID.
 
         Returns
         -------
         np.ndarray
-            pressure array
+            Pressure array.
         """
         if icv_id not in self._icv_ids:
-            raise ValueError("icv_id not found.")
+            raise ValueError("'icv_id' is not found.")
 
         return self._get_field(icv_id, "ICV_P")
 
@@ -335,15 +335,15 @@ class ICVoutReader:
         Parameters
         ----------
         icv_id : int
-            control volume id
+            Control volume ID.
 
         Returns
         -------
         np.ndarray
-            volume array
+            Volume array.
         """
         if icv_id not in self._icv_ids:
-            raise ValueError("icv_id not found.")
+            raise ValueError("'icv_id' not found.")
 
         v = self._get_field(icv_id, "ICV_V")
         # MPP bug: volume is zero at t0
@@ -358,15 +358,15 @@ class ICVoutReader:
         Parameters
         ----------
         icvi_id : int
-            control volume interaction id
+            Control volume interaction ID.
 
         Returns
         -------
         np.ndarray
-            flowrate array
+            Flow rate array.
         """
         if icvi_id not in self._icvi_ids:
-            raise ValueError("icvi_id not found.")
+            raise ValueError("'icvi_id' is not found.")
         # area is obtained by 'ICVI_A'
         return self._get_field(icvi_id, "ICVI_FR")
 
@@ -384,7 +384,7 @@ class ICVoutReader:
 
 
 class EPpostprocessor:
-    """Postprocess Electrophysiology results."""
+    """Postprocess EP (Electrophysiology) results."""
 
     def __init__(self, results_path: Path, model: HeartModel = None):
         """Postprocess EP results.
@@ -406,7 +406,7 @@ class EPpostprocessor:
             self.fields = self.reader.get_ep_fields()
 
     def get_activation_times(self, at_step: int = None):
-        """Get activation times field."""
+        """Get the field with activation times."""
         step = (
             self.reader.model.metadata.time_freq_support.time_frequencies.scoping.ids[-1]
             if at_step is None
@@ -456,7 +456,7 @@ class EPpostprocessor:
         return phi, times
 
     def read_ep_nodout(self):
-        """Read Electrophysiology results."""
+        """Read EP results."""
         em_nodout_path = os.path.join(self.results_path, "em_nodout_EP_001.dat")
         with open(em_nodout_path, "r") as f:
             lines = f.readlines()
@@ -490,7 +490,7 @@ class EPpostprocessor:
         self._assign_pointdata(pointdata=self.activation_time, node_ids=self.node_ids)
 
     def create_post_folder(self, path: Path = None):
-        """Create Postprocessing folder."""
+        """Create postprocessing folder."""
         if path is None:
             post_path = os.path.join(os.path.dirname(self.reader.ds.result_files[0]), "post")
         else:
@@ -502,7 +502,7 @@ class EPpostprocessor:
         return post_path
 
     def animate_transmembrane(self):
-        """Animate transmembrane potentials and export to vtk."""
+        """Animate transmembrane potentials and export to VTK."""
         vm, times = self.get_transmembrane_potential()
         # Creating scene and loading the mesh
         post_path = self.create_post_folder()
@@ -520,7 +520,7 @@ class EPpostprocessor:
         return
 
     def export_transmembrane_to_vtk(self):
-        """Export transmembrane potentials to vtk."""
+        """Export transmembrane potentials to VTK."""
         vm, times = self.get_transmembrane_potential()
         post_path = self.create_post_folder()
         grid = self.reader.meshgrid.copy()
@@ -567,7 +567,7 @@ class EPpostprocessor:
         return ecgs, times
 
     def read_ECGs(self, path: Path):  # noqa: N802
-        """Read ECG text file produced by LS-DYNA simulation."""
+        """Read ECG text file produced by the LS-DYNA simulation."""
         data = np.loadtxt(path, skiprows=4)
         times = data[:, 0]
         ecgs = data[:, 1:11]
@@ -586,16 +586,16 @@ class EPpostprocessor:
         ----------
         ECGs : np.ndarray
             mxn array containing ECGs, where m is the number of time steps
-            and n the 10 electrodes in this order:
-            "V1" "V2" "V3" "V4" "V5" "V6" "RA" "LA" "RL" "LL"
-        plot : bool, optional
-            plot option, by default True
+            and n is 10 electrodes in this order:
+            ''V1'' ''V2'' ''V3'' ''V4'' ''V5'' ''V6'' ''RA'' ''LA'' ''RL'' ''LL''
+        plot : bool, default: True
+            Whether to plot.
 
         Returns
         -------
         np.ndarray
-            12-Lead ECGs in this order:
-            "I" "II" "III" "aVR" "aVL" "aVF" "V1" "V2" "V3" "V4" "V5" "V6"
+            12-lead ECGs in this order:
+            ``I`` ``II`` ``III`` ``aVR`` ``aVL`` ``aVF`` ``V1`` ``V2`` ``V3`` ``V4`` ``V5`` ``V6``
         """
         right_arm = ECGs[:, 6]
         left_arm = ECGs[:, 7]
@@ -682,42 +682,42 @@ class EPpostprocessor:
         return ecg_12lead
 
     def _assign_pointdata(self, pointdata: np.ndarray, node_ids: np.ndarray):
-        """Assign point data to mesh."""
+        """Assign point data to the mesh."""
         result = np.zeros(self.mesh.n_points)
         result[node_ids - 1] = pointdata
         self.mesh.point_data["activation_time"] = result
 
 
 class D3plotToVTKExporter:
-    """Read d3plot and save deformed mesh."""
+    """Read d3plot and save the deformed mesh."""
 
     def __init__(self, d3plot_file: str, t_to_keep: float = 10.0e10) -> None:
-        """Init.
+        """Initialize.
 
         Parameters
         ----------
         d3plot_file : str
-            d3plot file path
-        t_to_keep : float, optional
-            time to be converted, by default 10.0e10
+            Path to the d3plot file.
+        t_to_keep : float, default: 10.0e10
+            Time to convert.
         """
         self.data = D3plotReader(d3plot_file)
         self.save_time = self.data.time[self.data.time >= self.data.time[-1] - t_to_keep]
 
     def convert_to_pvgrid_at_t(self, time: float, fname: str = None) -> pv.UnstructuredGrid:
-        """Convert d3plot data into pyvista UnstructuredGrid.
+        """Convert d3plot data into a PyVista ``UnstructuredGrid`` object.
 
         Parameters
         ----------
         time : float
-            time to convert
-        fname : str
-            filename to be save save data, default is None
+            Time to convert.
+        fname : str, default: None
+            Name of file to be save data to.
 
         Returns
         -------
         pv.UnstructuredGrid
-            result in pyvista object
+            Result in PyVista object.
         """
         mesh = self.data.meshgrid.copy()
         i_frame = np.where(self.data.time == time)[0][0]

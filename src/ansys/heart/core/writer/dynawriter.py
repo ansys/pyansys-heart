@@ -63,7 +63,7 @@ from ansys.heart.core.utils.vtk_utils import compute_surface_nodal_area_pyvista
 from ansys.heart.core.writer import custom_keywords as custom_keywords
 from ansys.heart.core.writer._control_volume import (
     ControlVolume,
-    _create_close_loop,
+    _create_closed_loop,
     _create_open_loop,
 )
 from ansys.heart.core.writer.heart_decks import (
@@ -825,7 +825,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             system_map = _create_open_loop(lcid, self.model, system_settings)
         elif system_settings.name == "closeloop":
             LOGGER.warning("Close loop use recompiled version of LS-DYNA!")
-            system_map = _create_close_loop(self.model)
+            system_map = _create_closed_loop(self.model)
         else:
             msg = r"System name must be `openloop` or `closeloop`"
             LOGGER.error(msg)

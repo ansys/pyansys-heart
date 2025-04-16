@@ -199,7 +199,7 @@ def _create_open_loop(id_offset: int, model: HeartModel, settings) -> list[Contr
     return system_map
 
 
-def _create_close_loop(model: HeartModel) -> list[ControlVolume]:
+def _create_closed_loop(model: HeartModel) -> list[ControlVolume]:
     """Create close loop system model.
 
     Parameters

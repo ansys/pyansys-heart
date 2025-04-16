@@ -824,14 +824,14 @@ class MechanicsDynaWriter(BaseDynaWriter):
         system_settings = copy.deepcopy(self.settings.mechanics.system)
         system_settings._remove_units()
 
-        if system_settings.name == "openloop":
+        if system_settings.name == "open-loop":
             lcid = self.get_unique_curve_id()
             system_map = _create_open_loop(lcid, self.model, system_settings)
-        elif system_settings.name == "closeloop":
-            LOGGER.warning("Close loop use recompiled version of LS-DYNA!")
+        elif system_settings.name == "closed-loop":
+            LOGGER.warning("Closed loop uses a recompiled version of LS-DYNA!")
             system_map = _create_closed_loop(self.model)
         else:
-            msg = r"System name must be `openloop` or `closeloop`"
+            msg = r"System name must be `open-loop` or `closed-loop`"
             LOGGER.error(msg)
             raise TypeError(msg)
 

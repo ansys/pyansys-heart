@@ -173,7 +173,7 @@ ra = 0.03 * rp
 rv = ra
 
 system_model = {
-    "name": "openloop",
+    "name": "open-loop",
     "left_ventricle": {
         "constants": {
             # preload resistance

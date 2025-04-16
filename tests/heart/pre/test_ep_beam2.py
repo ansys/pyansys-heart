@@ -26,7 +26,6 @@ import numpy as np
 import pyvista as pv
 
 from ansys.health.heart.models_utils import HeartModelUtils
-from ansys.health.heart.objects import _ConductionType
 from ansys.health.heart.pre.conduction_beam2 import ConductionBeams, ConductionBeamType
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 from tests.heart.conftest import get_assets_folder, get_fullheart
@@ -92,22 +91,21 @@ def test_conduction():
     assert np.sum(model._shifted_id()) == 587209415
 
 
-def test_conductionbeams_init():
+def test_conductionbeams_from_k():
+    """Test conductionbeams can be initialized correctly from a k file."""
     model = get_fullheart()
     folder = os.path.join(
         get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
     )
     f1 = os.path.join(folder, "purkinjeNetwork_001.k")
-    left_purkjinje = model.add_purkinje_from_kfile(f1, _ConductionType.LEFT_PURKINJE.value)
 
-    l_pj = ConductionBeams(
+    l_pj = ConductionBeams.create_from_k_file(
         name=ConductionBeamType.LEFT_PURKINJE,
-        mesh=left_purkjinje,
+        k_file=f1,
         id=1,
-        is_connected=left_purkjinje["_is-connected"],
-        relying_surface=model.left_ventricle.endocardium,
+        base_mesh=model.left_ventricle.endocardium,
+        model=model,
     )
-
     assert l_pj.name == ConductionBeamType.LEFT_PURKINJE
     assert l_pj.ep_material == EPMaterial.DummyMaterial()
     ref0 = pv.read(os.path.join(folder, "left_purkinje.vtp"))

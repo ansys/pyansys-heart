@@ -974,25 +974,6 @@ class Mesh(pv.UnstructuredGrid):
         return self.remove_cells(mask, inplace=True)
 
 
-class _ConductionType(Enum):
-    """Enum containing type of conduction system."""
-
-    LEFT_PURKINJE = "Left-purkinje"
-    """Left Purkinje network."""
-    RIGHT_PURKINJE = "Right-purkinje"
-    """Right Purkinje network."""
-    SAN_AVN = "SAN_to_AVN"
-    """Sino-atrial node to atrio-ventricular node."""
-    LEFT_BUNDLE_BRANCH = "Left bundle branch"
-    """Left bundle branch."""
-    RIGHT_BUNDLE_BRANCH = "Right bundle branch"
-    """Right bundle branch."""
-    HIS = "His"
-    """His segment."""
-    BACHMANN_BUNDLE = "Bachman bundle"
-    """Bachmann bundle."""
-
-
 class _BeamsMesh(Mesh):
     """Mesh class: inherits from Mesh.
 

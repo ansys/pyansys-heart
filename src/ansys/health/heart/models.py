@@ -44,7 +44,6 @@ from ansys.health.heart.objects import (
     PartType,
     Point,
     SurfaceMesh,
-    _BeamsMesh,
 )
 from ansys.health.heart.pre.conduction_beam2 import (
     ConductionBeams,
@@ -267,7 +266,7 @@ class HeartModel:
         self._conduction_beams: list[ConductionBeams] = []
         """Conduction beams list."""
 
-        self._conduction_system: _BeamsMesh = _BeamsMesh()
+        self._conduction_system: Mesh = Mesh()
         """Mesh defining the conduction system."""
 
         self.electrodes: List[Point] = []
@@ -295,7 +294,7 @@ class HeartModel:
         if len(self._conduction_beams) > 0:
             LOGGER.warning("Removing previously defined conduction beams.")
             self._conduction_beams: list[ConductionBeams] = []
-            self._conduction_system: _BeamsMesh = _BeamsMesh()
+            self._conduction_system: Mesh = Mesh()
 
         if isinstance(beams, ConductionBeams):
             beams = [beams]

@@ -6,6 +6,8 @@ from pathlib import Path
 import subprocess
 
 from ansys_sphinx_theme import ansys_favicon, get_version_match
+import pyvista
+from pyvista.plotting.utilities.sphinx_gallery import DynamicScraper
 
 from ansys.health.heart import __version__
 
@@ -47,11 +49,11 @@ html_theme_options = {
         "ignore": [
             "*writer*",
             "*misc*",
-            "*custom_dynalib_keywords*",
+            "*custom_keywords*",
             "*system_models.py",
-            "*define_function_strings.py",
+            "*define_function_templates.py",
             "*heart_decks.py",
-            "*keyword_module.py",
+            "*keyword_utils.py",
             "*material_keywords.py",
         ],
     },
@@ -122,9 +124,40 @@ numpydoc_validation_checks = {
 
 # Configuration for Sphinx gallery
 # -----------------------------------------------------------------------------
+pyvista.BUILDING_GALLERY = True
+
+# use this environment variable to build nightly docs
+nightly_docs = bool(int(os.getenv("NIGHTLY_DOC_BUILD", False)))
+print(f"skip long examples: {nightly_docs}")
+
+if nightly_docs:
+    # executes all examples, including the time-intensive ones.
+    gallery_filename_pattern = r".*\.py"
+else:
+    # only executes examples with suffix _pr.py
+    gallery_filename_pattern = r".*(_pr\.py)"
+
 sphinx_gallery_conf = {
+    # convert rst to md for ipynb
+    "pypandoc": True,
+    # path to your examples scripts
     "examples_dirs": "../../examples",
+    # path where to save gallery generated examples
     "gallery_dirs": "examples",
+    # Pattern to search for example files to execute.
+    # The following will try to execute files prefixed with "inc-pr_"
+    "filename_pattern": gallery_filename_pattern,
+    # Remove the "Download all examples" button from the top level gallery
+    "download_all_examples": False,
+    # Sort gallery example by filename instead of number of lines (default)
+    "within_subsection_order": "FileNameSortKey",
+    # directory where function granular galleries are stored
+    "backreferences_dir": "api/_gallery_backreferences",
+    # Modules for which function level galleries are created.
+    "image_scrapers": (DynamicScraper(), "matplotlib"),
+    "ignore_pattern": r"__init__\.py",
+    "thumbnail_size": (320, 240),
+    "remove_config_comments": True,
 }
 
 # Configuration for Sphinx autoapi

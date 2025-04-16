@@ -27,6 +27,10 @@ import pytest
 
 from ansys.health.heart.settings.settings import DynaSettings
 
+if os.getenv("GITHUB_ACTIONS"):
+    is_gh_action = True
+else:
+    is_gh_action = False
 if "win" in sys.platform:
     is_windows = True
 else:
@@ -74,7 +78,7 @@ def test_get_dyna_commands_001(dynatype, platform):
         if dynatype == "smp":
             expected = ["my-dyna-path.exe", "i=path-to-input.k", "ncpu=2"]
         elif dynatype in ["intelmpi", "platformmpi"]:
-            expected = ["mpiexec", "-np", "2", "my-dyna-path.exe", "i=path-to-input.k"]
+            expected = ["mpirun", "-np", "2", "my-dyna-path.exe", "i=path-to-input.k"]
         elif dynatype == "msmpi":
             expected = ["mpiexec", "-np", "2", "my-dyna-path.exe", "i=path-to-input.k"]
 
@@ -124,7 +128,7 @@ def test_get_dyna_commands_002(dynatype, platform):
             expected = ["my-dyna-path.exe", "i=path-to-input.k", "ncpu=2", "memory=1000"]
         elif dynatype in ["intelmpi", "platformmpi"]:
             expected = [
-                "mpiexec",
+                "mpirun",
                 "-np",
                 "2",
                 "my-dyna-path.exe",
@@ -188,7 +192,7 @@ def test_get_dyna_commands_003(dynatype, platform):
             expected = ["my-dyna-path.exe", "i=path-to-input.k", "ncpu=2", "memory=1000"]
         elif dynatype in ["intelmpi", "platformmpi"]:
             expected = [
-                "mpiexec",
+                "mpirun",
                 "-hostfile myhostfile",
                 "-np",
                 "2",
@@ -258,7 +262,7 @@ def test_get_dyna_commands_004(dynatype, platform):
             expected = ["my-dyna-path.exe", "i=path-to-input.k", "ncpu=2", "memory=1000"]
         elif dynatype in ["intelmpi", "platformmpi"]:
             expected = [
-                "mpiexec",
+                "mpirun",
                 "-hostfile /some/tmp/directory/",
                 "-np",
                 "2",

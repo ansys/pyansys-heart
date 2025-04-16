@@ -28,9 +28,9 @@ $#      id     cvid1     cvid2     lcid      area
          1         1         0         5          
 *DEFINE_FUNCTION
 $#     fid                                                               heading
-         5constant_preload_windkessel_afterload_left                            
+         5afterload_windkessel_left                                             
 $#                                                                      function
-float constant_preload_windkessel_afterload_left(float t, float dp)
+float afterload_windkessel_left(float t, float dp)
 {
 $   numerical constant
     int Implicit=1;
@@ -126,33 +126,12 @@ $   Update valve indicator functions
         chi_av = 1.e-16;
     }
 $   compute flow: In - Out
-    qven = chi_mv * ( ( pven - pk ) / Rv );
+    qven = 0.0;
     qart = chi_av * ( ( pk  - part) / Ra );
     qk  = qven - qart;
-$   used to debug
-$   Note: we write at every call of t, write states for time t
-    char fn_bug[] = "circulation_model_debug.csv";
-    FILE *f_bug;
-    if (icall == 0){
-        f_bug=fopen(fn_bug, "w");
-        fprintf(f_bug, "icall,is_new_dt,time,dp,pk,part,pven");
-        fprintf(f_bug, ",qart,qp,qven,qk,vart\n");      
-        fprintf(f_bug, "%d,%d,%.6e,%.6e,",icall,is_new_dt,t,dp);
-        fprintf(f_bug, "%.6e,%.6e,%.6e,",pk,part,pven);
-        fprintf(f_bug, "%.6e,%.6e,%.6e,%.6e,",qart,qp,qven,qk);
-        fprintf(f_bug, "%.6e\n",vart);
-      }
-    else {
-        f_bug=fopen(fn_bug, "a");
-        fprintf(f_bug, "%d,%d,%.6e,%.6e,",icall,is_new_dt,t,dp);
-        fprintf(f_bug, "%.6e,%.6e,%.6e,",pk,part,pven);
-        fprintf(f_bug, "%.6e,%.6e,%.6e,%.6e,",qart,qp,qven,qk);
-        fprintf(f_bug, "%.6e\n",vart);
-    }
-    fclose(f_bug);
 $   write data to file
 $   Note: we write at the first call of t, write the states for time t_old
-    char fn_data[] = "constant_preload_windkessel_afterload_left.csv";
+    char fn_data[] = "afterload_windkessel_left.csv";
     FILE *f_data;
     if (icall == 0){
         f_data=fopen(fn_data, "w");
@@ -194,9 +173,9 @@ $#      id     cvid1     cvid2     lcid      area
          2         2         0         6          
 *DEFINE_FUNCTION
 $#     fid                                                               heading
-         6constant_preload_windkessel_afterload_right                           
+         6afterload_windkessel_right                                            
 $#                                                                      function
-float constant_preload_windkessel_afterload_right(float t, float dp)
+float afterload_windkessel_right(float t, float dp)
 {
 $   numerical constant
     int Implicit=1;
@@ -292,33 +271,12 @@ $   Update valve indicator functions
         chi_av = 1.e-16;
     }
 $   compute flow: In - Out
-    qven = chi_mv * ( ( pven - pk ) / Rv );
+    qven = 0.0;
     qart = chi_av * ( ( pk  - part) / Ra );
     qk  = qven - qart;
-$   used to debug
-$   Note: we write at every call of t, write states for time t
-    char fn_bug[] = "circulation_model_debug.csv";
-    FILE *f_bug;
-    if (icall == 0){
-        f_bug=fopen(fn_bug, "w");
-        fprintf(f_bug, "icall,is_new_dt,time,dp,pk,part,pven");
-        fprintf(f_bug, ",qart,qp,qven,qk,vart\n");      
-        fprintf(f_bug, "%d,%d,%.6e,%.6e,",icall,is_new_dt,t,dp);
-        fprintf(f_bug, "%.6e,%.6e,%.6e,",pk,part,pven);
-        fprintf(f_bug, "%.6e,%.6e,%.6e,%.6e,",qart,qp,qven,qk);
-        fprintf(f_bug, "%.6e\n",vart);
-      }
-    else {
-        f_bug=fopen(fn_bug, "a");
-        fprintf(f_bug, "%d,%d,%.6e,%.6e,",icall,is_new_dt,t,dp);
-        fprintf(f_bug, "%.6e,%.6e,%.6e,",pk,part,pven);
-        fprintf(f_bug, "%.6e,%.6e,%.6e,%.6e,",qart,qp,qven,qk);
-        fprintf(f_bug, "%.6e\n",vart);
-    }
-    fclose(f_bug);
 $   write data to file
 $   Note: we write at the first call of t, write the states for time t_old
-    char fn_data[] = "constant_preload_windkessel_afterload_right.csv";
+    char fn_data[] = "afterload_windkessel_right.csv";
     FILE *f_data;
     if (icall == 0){
         f_data=fopen(fn_data, "w");
@@ -343,5 +301,89 @@ $   Update counters
     
 $   LSDYNA defines outflow as positive
     return -qk;
+}
+*DEFINE_CONTROL_VOLUME
+$#      id       sid        p0
+         3         3          
+*SET_SEGMENT_ADD
+$#     sid
+        31
+$#    sets      sets      sets      sets      sets      sets
+        20        21        22        23        24        25
+*DEFINE_CONTROL_VOLUME_FLOW_AREA
+$#    FAID     FCIID     FASID   FASTYPE       PID
+         3         3        31         2        26
+*DEFINE_CONTROL_VOLUME_INTERACTION
+$#      id     cvid1     cvid2     lcid      area 
+         3         3         0         7          
+*DEFINE_FUNCTION
+$#     fid                                                               heading
+         7constant_flow_left_atrium                                             
+$#                                                                      function
+float constant_flow_left_atrium(float t, float dp, float area) 
+{
+return -83.0;
+}
+*DEFINE_CONTROL_VOLUME_INTERACTION
+$#      id     cvid1     cvid2     lcid      area 
+         4         3         1         8          
+*DEFINE_FUNCTION
+$#     fid                                                               heading
+         8valve_mitral                                                          
+$#                                                                      function
+float valve_mitral(float t, float dp)
+{
+   float Rv, qven;
+   Rv = 1e-06;
+   if (dp >= 0.0 )
+   {
+       qven =  dp  / Rv ;
+   }
+   else{
+       qven=0.0;
+   }
+   return qven;
+}
+*DEFINE_CONTROL_VOLUME
+$#      id       sid        p0
+         4         4          
+*SET_SEGMENT_ADD
+$#     sid
+        32
+$#    sets      sets      sets
+        26        27        28
+*DEFINE_CONTROL_VOLUME_FLOW_AREA
+$#    FAID     FCIID     FASID   FASTYPE       PID
+         4         5        32         2        26
+*DEFINE_CONTROL_VOLUME_INTERACTION
+$#      id     cvid1     cvid2     lcid      area 
+         5         4         0         9          
+*DEFINE_FUNCTION
+$#     fid                                                               heading
+         9constant_flow_right_atrium                                            
+$#                                                                      function
+float constant_flow_right_atrium(float t, float dp, float area) 
+{
+return -83.0;
+}
+*DEFINE_CONTROL_VOLUME_INTERACTION
+$#      id     cvid1     cvid2     lcid      area 
+         6         4         2        10          
+*DEFINE_FUNCTION
+$#     fid                                                               heading
+        10valve_tricuspid                                                       
+$#                                                                      function
+float valve_tricuspid(float t, float dp)
+{
+   float Rv, qven;
+   Rv = 1e-06;
+   if (dp >= 0.0 )
+   {
+       qven =  dp  / Rv ;
+   }
+   else{
+       qven=0.0;
+   }
+   return qven;
 }
 *END

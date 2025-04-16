@@ -303,30 +303,56 @@ class HeartModel:
         for beam in beams:
             self._conduction_beams.append(beam)
 
-            registered_name = [c.name for c in self._conduction_beams]
-            merge_ids = []
-            if beam._up is not None:
-                if beam._up in registered_name:
-                    target = next(i for i in self._conduction_beams if i.name == beam._up)
-                    LOGGER.info(
-                        f"merging first node of {beam.name.value} in to {target.name.value}"
-                    )
-                    merge_ids.append(0)
-            if beam._down is not None:
-                if beam._down in registered_name:
-                    target = next(i for i in self._conduction_beams if i.name == beam._down)
-                    LOGGER.info(f"merging last node of {beam.name.value} in to {target.name.value}")
-                    merge_ids.append(-1)
-
+            # merge beam into conduction_system
+            merge_ids, target_ids = self._find_merge_points(beam)
             self._conduction_system = self._safe_line_merge(
-                self._conduction_system, beam.mesh, merge_ids
+                self._conduction_system, beam.mesh, merge_ids, target_ids
             )
 
-        shift_ids = self._shifted_id()
-        self._conduction_system.point_data["_shifted_id"] = shift_ids
+        self._conduction_system.point_data["_shifted_id"] = self._shifted_id()
+
+    def _find_merge_points(self, beam: ConductionBeams):
+        registered_name = [c.name for c in self._conduction_beams]
+
+        merge_ids = []
+        target_ids = []
+
+        if beam._up is not None and beam._up in registered_name:
+            target = next(i for i in self._conduction_beams if i.name == beam._up)
+
+            LOGGER.info(
+                f"merge first node of {beam.name.value} into closet point of {target.name.value}"
+            )
+            merge_ids.append(0)
+
+            target_mesh = self._conduction_system.extract_cells(
+                self._conduction_system["_line-id"] == target.id
+            )
+            sub_id = target_mesh.find_closest_point(beam.mesh.points[0])
+            id2 = target_mesh["vtkOriginalPointIds"][sub_id]
+            target_ids.append(id2)
+
+        if beam._down is not None and beam._down in registered_name:
+            target = next(i for i in self._conduction_beams if i.name == beam._down)
+            LOGGER.info(
+                f"merge last node of {beam.name.value} into closet point of {target.name.value}"
+            )
+            merge_ids.append(-1)
+            target_mesh = self._conduction_system.extract_cells(
+                self._conduction_system["_line-id"] == target.id
+            )
+            sub_id = target_mesh.find_closest_point(beam.mesh.points[-1])
+            id2 = target_mesh["vtkOriginalPointIds"][sub_id]
+            target_ids.append(id2)
+
+        return merge_ids, target_ids
 
     def _shifted_id(self) -> np.ndarray:
-        """Deduce node IDs after merging to solid mesh."""
+        """
+        Deduce node IDs after merging to solid mesh.
+
+        TODO: move it to Mesh.
+        """
         from scipy import spatial
 
         kdtree = spatial.cKDTree(self.mesh.points)
@@ -349,7 +375,7 @@ class HeartModel:
         return shifted_ids
 
     @staticmethod
-    def _safe_line_merge(base: Mesh, add_mesh: Mesh, mereged_id: list) -> Mesh:
+    def _safe_line_merge(base: Mesh, add_mesh: Mesh, mereged_id: list, target_id: list) -> Mesh:
         """
         Merge lines by explicitly define IDs to be merged.
 
@@ -363,12 +389,6 @@ class HeartModel:
                 return m.cells.reshape(-1, 3)[:, 1:]
             elif isinstance(m, pv.PolyData):
                 return m.lines.reshape(-1, 3)[:, 1:]
-
-        def get_merge_point(m: Mesh, coord: np.ndarray):
-            id = m.find_closest_point(coord)
-            dst = np.linalg.norm(m.points[id] - coord)
-            LOGGER.info(f"Distance between two merging points is {dst}")
-            return id
 
         base_points = base.points
         base_lines = get_lines(base)
@@ -390,8 +410,9 @@ class HeartModel:
             new_points = add_mesh.points[1:]
             # first node is merged, lead to an offset of all lines
             new_lines = get_lines(add_mesh) + len(base_points) - 1
-            # replace first node by the closet point
-            new_lines[0, 0] = get_merge_point(base, add_mesh.points[0])
+            # replace first node
+            new_lines[0, 0] = target_id[0]
+
             # point data
             new_point_data = add_mesh.point_data["_is-connected"][1:]
 
@@ -400,16 +421,15 @@ class HeartModel:
             # last node is just dropped
             new_points = add_mesh.points[1:-1]
             new_lines = get_lines(add_mesh) + len(base_points) - 1
-            # replace first node by the closet point
-            new_lines[0, 0] = get_merge_point(base, add_mesh.points[0])
-            # replace last node by the loset point
-            new_lines[-1, 1] = get_merge_point(base, add_mesh.points[-1])
+            # replace first node
+            new_lines[0, 0] = target_id[0]
+            # replace last node
+            new_lines[-1, 1] = target_id[1]
+
             # point data
             new_point_data = add_mesh.point_data["_is-connected"][1:-1]
-        elif mereged_id == [-1]:
-            NotImplementedError("Do not handle this merge lines.")
         else:
-            NotImplementedError("Do not handle merge lines at random point.")
+            NotImplementedError("Do not handle this merge lines.")
 
         merged = pv.PolyData()
         merged.points = np.vstack((base_points, new_points))

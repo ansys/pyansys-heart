@@ -29,7 +29,6 @@ import os
 import pathlib
 from typing import List, Literal, Union
 
-from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 
@@ -299,77 +298,6 @@ class SurfaceMesh(pv.PolyData):
 
         self.compute_normals(inplace=True, auto_orient_normals=True, flip_normals=True)
         return self
-
-
-# TODO: Refactor BeamMesh: why is this different from "Mesh"?
-@deprecated(reason="BeamMesh is replaced by new class.")
-class _BeamMesh(pv.UnstructuredGrid, Feature):
-    """Beam class."""
-
-    all_beam_nodes = []
-    # beam nodes array
-
-    @property
-    def nodes(self):
-        """Node coordinates."""
-        return np.array(self.points)
-
-    @nodes.setter
-    def nodes(self, array: np.ndarray):
-        if isinstance(array, type(None)):
-            return
-        try:
-            self.points = array
-        except Exception as e:
-            LOGGER.error(f"Failed to set nodes. {e}")
-            return
-
-    @property
-    def edges(self):
-        """Tetrahedrons num_tetra x 4."""
-        return self.cells_dict[pv.CellType.LINE]
-
-    @edges.setter
-    def edges(self, value: np.ndarray):
-        # sets lines of UnstructuredGrid
-        try:
-            points = self.points
-            celltypes = np.full(value.shape[0], pv.CellType.LINE, dtype=np.int8)
-            lines = np.hstack([np.full(len(celltypes), 2)[:, None], value])
-            super().__init__(lines, celltypes, points)
-        except Exception as e:
-            LOGGER.error(f"Failed to set lines. {e}")
-            return
-
-    def __init__(
-        self,
-        name: str = None,
-        edges: np.ndarray = None,
-        nodes: np.ndarray = None,
-        beam_nodes_mask: np.ndarray = None,
-        pid: int = None,
-        nsid: int = -1,
-    ) -> None:
-        super().__init__(self)
-        Feature.__init__(self, name)
-
-        self.edges = edges
-        """Beams edges."""
-
-        self.nodes = nodes
-        """Node coordinates."""
-
-        self.pid = pid
-        """Part id associated with the network."""
-
-        self.nsid: int = nsid
-        """Surface id associated with the network."""
-
-        self._all_beam_nodes: np.ndarray = np.empty((0, 3))
-        """Temporary attribute to save all previously created beam nodes."""
-
-        self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
-        """Initialize dummy ep material model."""
 
 
 class Cavity(Feature):

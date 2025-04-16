@@ -250,7 +250,7 @@ def create_element_shell_keyword(
     return kw
 
 
-def create_elemetn_solid_keyword(
+def create_element_solid_keyword(
     elements: np.array,
     e_id: np.array,
     part_id: np.array,

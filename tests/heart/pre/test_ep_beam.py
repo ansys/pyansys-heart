@@ -22,14 +22,18 @@
 
 """Test for reading purkinje network as a beam mesh. Uses a mock Mesh object."""
 
+import os
+
 import numpy as np
+import pyvista as pv
 
 from ansys.health.heart.models_utils import HeartModelUtils
 from ansys.health.heart.pre.conduction_beams import ConductionBeams, ConductionBeamType
-from tests.heart.conftest import get_fourchamber
+from ansys.health.heart.settings.material.ep_material import EPMaterial
+from tests.heart.conftest import get_assets_folder, get_fourchamber, get_fullheart
 
 
-def test_compute_sa_node2():
+def test_compute_sa_node():
     fourchamber = get_fourchamber()
 
     sa_node = HeartModelUtils.define_sino_atrial_node(fourchamber)
@@ -38,7 +42,7 @@ def test_compute_sa_node2():
     assert sa_node.node_id == 105021
 
 
-def test_compute_av_node2():
+def test_compute_av_node():
     fourchamber = get_fourchamber()
     av_node = HeartModelUtils.define_atrio_ventricular_node(fourchamber)
     assert np.allclose(av_node.xyz, np.array([-10.16353107, 108.95410155, 371.9505145]))
@@ -101,3 +105,84 @@ def test_create_conductionbeams_in_solid():
     )
     assert np.isclose(his_top.length, 14.276232139149878)
     assert his_top.relying_surface.n_cells == 9
+
+
+def meshes_equal(mesh1: pv.DataSet, mesh2: pv.DataSet) -> bool:
+    if isinstance(mesh1, pv.PolyData):
+        mesh1 = mesh1.cast_to_unstructured_grid()
+    if isinstance(mesh2, pv.PolyData):
+        mesh2 = mesh2.cast_to_unstructured_grid()
+
+    if not np.array_equal(mesh1.points, mesh2.points):
+        return False
+    if not np.array_equal(mesh1.cells, mesh2.cells):
+        return False
+    if mesh1.point_data.keys() != mesh2.point_data.keys():
+        return False
+    for key in mesh1.point_data.keys():
+        if not np.array_equal(mesh1.point_data[key], mesh2.point_data[key]):
+            return False
+    if mesh1.cell_data.keys() != mesh2.cell_data.keys():
+        return False
+    for key in mesh1.cell_data.keys():
+        if not np.array_equal(mesh1.cell_data[key], mesh2.cell_data[key]):
+            return False
+    return True
+
+
+def test_conduction():
+    model = get_fullheart()
+    folder = os.path.join(
+        get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
+    )
+    # f1 = os.path.join(folder, "purkinjeNetwork_001.k")
+    # left_purkjinje = model.add_purkinje_from_kfile(f1, _ConductionType.LEFT_PURKINJE.value)
+    # ref0 = pv.read(os.path.join(folder, "left_purkinje.vtp"))
+    # assert meshes_equal(ref0, left_purkjinje)
+
+    # new method
+    beam_list = HeartModelUtils.define_default_conduction_system(model, purkinje_folder=folder)
+    model.add_conduction_beam(beam_list)
+    res = model._conduction_system
+
+    # old method
+    # from ansys.health.heart.pre.conduction_beam import _compute_heart_conductionsystem
+
+    # f1 = os.path.join(folder, "purkinjeNetwork_001.k")
+    # f2 = os.path.join(folder, "purkinjeNetwork_002.k")
+    # model.add_purkinje_from_kfile(f1, _ConductionType.LEFT_PURKINJE.value)
+    # model.add_purkinje_from_kfile(f2, _ConductionType.RIGHT_PURKINJE.value)
+    # _compute_heart_conductionsystem(model, 1.5)
+
+    ref = pv.read(os.path.join(folder, "conduction.vtu"))
+
+    assert res.n_cells == ref.n_cells
+    assert res.n_points == ref.n_points
+    assert np.allclose(res.points, ref.points, atol=1e-3)
+    # old method has HIS together but new method split it into 3 part
+    # assert np.array_equal(res["_line-id"], ref["_line-id"])
+    assert np.array_equal(res["_is-connected"], ref["_is-connected"])
+
+    # test ID shift with merging to solid
+    assert np.sum(model._shifted_id()) == 587209415
+
+
+def test_conductionbeams_from_k():
+    """Test conductionbeams can be initialized correctly from a k file."""
+    model = get_fullheart()
+    folder = os.path.join(
+        get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
+    )
+    f1 = os.path.join(folder, "purkinjeNetwork_001.k")
+
+    l_pj = ConductionBeams.create_from_k_file(
+        name=ConductionBeamType.LEFT_PURKINJE,
+        k_file=f1,
+        id=1,
+        base_mesh=model.left_ventricle.endocardium,
+        model=model,
+    )
+    assert l_pj.name == ConductionBeamType.LEFT_PURKINJE
+    assert l_pj.ep_material == EPMaterial.DummyMaterial()
+    ref0 = pv.read(os.path.join(folder, "left_purkinje.vtp"))
+    assert meshes_equal(l_pj.mesh, ref0)

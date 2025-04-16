@@ -3263,7 +3263,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
             stim_nodes = [node_apex_left, node_apex_right]
 
-            if LandMarker.SA_NODE is not None:
+            if LandMarker.SA_NODE.xyz is not None:
                 # Active SA node (belong to both solid and beam)
                 stim_nodes = list(self.model.mesh.find_closest_point(LandMarker.SA_NODE.xyz, n=5))
 

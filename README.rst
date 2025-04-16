@@ -78,5 +78,5 @@ legally licensed copies of the involved Ansys products.
 .. _Python: https://www.python.org/
 .. _PyAnsys Developer's guide: https://dev.docs.pyansys.com/
 .. _Discussion: https://discuss.ansys.com
-.. _documentation: https://heart.docs.pyansys.com/
+.. _documentation: https://heart.health.docs.pyansys.com/
 .. _LICENSE: https://github.com/ansys/pyansys-heart/blob/main/LICENSE

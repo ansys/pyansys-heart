@@ -18,7 +18,6 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Information Analysis",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
@@ -65,10 +64,10 @@ tests = [
 ]
 
 [project.urls]
-Source = "https://github.com/ansys/pyansys-heart"
-Issues = "https://github.com/ansys/pyansys-heart/issues"
-Documentation = "https://heart.docs.pyansys.com/"
-Releases = "https://github.com/ansys/pyansys-heart/releases"
+source = "https://github.com/ansys/pyansys-heart"
+issues = "https://github.com/ansys/pyansys-heart/issues"
+documentation = "https://heart.docs.pyansys.com/"
+releases = "https://github.com/ansys/pyansys-heart/releases"
 
 [tool.flit.module]
 name = "ansys.health.heart"

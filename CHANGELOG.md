@@ -4,4 +4,4 @@ This project uses [towncrier](https://towncrier.readthedocs.io/) to generate cha
 
 Refer to the [raw release notes](doc/source/changelog.rst) for more information.
 
-[Published release notes](https://heart.docs.pyansys.com/version/stable/changelog.html) can be found in the online documentation
+[Published release notes](https://heart.health.docs.pyansys.com/version/stable/changelog.html) can be found in the online documentation

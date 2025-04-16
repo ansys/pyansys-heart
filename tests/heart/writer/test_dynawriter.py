@@ -35,7 +35,7 @@ from ansys.health.heart.objects import (
     PartType,
     Point,
 )
-from ansys.health.heart.pre.conduction_beam2 import ConductionBeams, ConductionBeamType
+from ansys.health.heart.pre.conduction_beams import ConductionBeams, ConductionBeamType
 from ansys.health.heart.settings.settings import Mechanics, SimulationSettings, Stimulation
 import ansys.health.heart.writer.dynawriter as writers
 

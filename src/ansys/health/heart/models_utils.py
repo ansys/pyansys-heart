@@ -32,7 +32,7 @@ import pyvista as pv
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import HeartModel
 from ansys.health.heart.objects import CapType, Point
-from ansys.health.heart.pre.conduction_beam2 import ConductionBeams, ConductionBeamType
+from ansys.health.heart.pre.conduction_beams import ConductionBeams, ConductionBeamType
 
 
 @dataclass

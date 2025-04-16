@@ -26,7 +26,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.health.heart.models_utils import HeartModelUtils
-from ansys.health.heart.pre.conduction_beam2 import ConductionBeams, ConductionBeamType
+from ansys.health.heart.pre.conduction_beams import ConductionBeams, ConductionBeamType
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 from tests.heart.conftest import get_assets_folder, get_fullheart
 

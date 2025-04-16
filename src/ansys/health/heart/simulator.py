@@ -314,7 +314,7 @@ class BaseSimulator:
         The method is described in `Modeling cardiac muscle fibers in ventricular and atrial
         electrophysiology simulations <https://doi.org/10.1016/j.cma.2020.113468>`.
         """
-        LOGGER.info("Computing left atribum fiber...")
+        LOGGER.info("Computing left atrium fiber...")
         export_directory = os.path.join(self.root_directory, "la_fiber")
 
         target = self.run_laplace_problem(export_directory, "la_fiber", laa=appendage)

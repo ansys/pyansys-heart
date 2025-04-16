@@ -21,19 +21,20 @@
 # SOFTWARE.
 
 """
-Atrial fiber
-------------
-This examples shows how to generate fibers with the Laplace-Dirichlet-Rule-Based-Method.
+Generate atrial fibers
+----------------------
+This example shows how to generate atrial fibers using the Laplace-Dirichlet Rule-Based
+(LDRB) method.
 """
 
 ###############################################################################
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
-# directory, model, and ls-dyna executable (uses DEV-104373-g6d20c20aee).
+# directory, model, and LS-DYNA executable file. This example uses DEV-104373-g6d20c20aee.
 
 # sphinx_gallery_start_ignore
-# Note that we need to put the thumbnail here to avoid weird rendering in the html page.
+# Note that we need to put the thumbnail here to avoid weird rendering on the HTML page.
 # sphinx_gallery_thumbnail_path = '_static/images/thumbnails/atrial_fiber.png'
 # sphinx_gallery_end_ignore
 
@@ -47,30 +48,30 @@ from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models
 from ansys.health.heart.simulator import BaseSimulator, DynaSettings
 
-# specify the path to the working directory and heart model. The following path assumes
+# Specify the path to the working directory and heart model. The following path assumes
 # that a preprocessed model is already available
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
 
 path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart()
 
-# specify LS-DYNA path
+# Specify LS-DYNA path
 lsdyna_path = r"ls-dyna_smp"
 
-# load heart model.
+# Load heart model
 model: models.FourChamber = models.FourChamber(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 
 
 ###############################################################################
-# Instantiate the simulator object
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# instantiate simulator. Change options where necessary.
+# Instantiate the simulator
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# Instantiate the simulator and modify options as needed.
 
 ###############################################################################
 # .. note::
-#    The DynaSettings object supports several LS-DYNA versions and platforms.
-#    Including: "smp", "intelmpi", "msmpi", "windows", "linux", or "wsl" Choose
-#    the one that is appropriate for you.
+#    The ``DynaSettings`` object supports several LS-DYNA versions and platforms,
+#    including ``smp``, ``intempi``, ``msmpi``, ``windows``, ``linux``, and ``wsl``.
+#    Choose the one that works for your setup.
 
 # instantiate LS-DYNA settings of choice
 dyna_settings = DynaSettings(
@@ -85,7 +86,7 @@ simulator = BaseSimulator(
 
 simulator.settings.load_defaults()
 
-# remove fiber/sheet information if already exists
+# remove fiber/sheet information if it already exists
 model.mesh.cell_data["fiber"] = np.zeros((model.mesh.n_cells, 3))
 model.mesh.cell_data["sheet"] = np.zeros((model.mesh.n_cells, 3))
 
@@ -93,7 +94,7 @@ model.mesh.cell_data["sheet"] = np.zeros((model.mesh.n_cells, 3))
 # Compute atrial fibers
 # ~~~~~~~~~~~~~~~~~~~~~
 
-# Compute left atrium fiber
+# compute left atrium fiber
 la = simulator.compute_left_atrial_fiber()
 
 # Appendage apex point should be manually given to compute right atrium fiber
@@ -102,8 +103,8 @@ ra = simulator.compute_right_atrial_fiber(appendage_apex)
 
 ###############################################################################
 # .. note::
-#    You may need to define an appropriate point for the right atrial appendage
-#    the list defines the x, y, and z coordinates close to the appendage.
+#    You might need to define an appropriate point for the right atrial appendage.
+#    The list specifies the x, y, and z coordinates close to the appendage.
 
 ###############################################################################
 # Plot bundle selection results

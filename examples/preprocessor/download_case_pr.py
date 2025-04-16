@@ -22,19 +22,20 @@
 
 """
 
-Download a PyAnsys - Heart compatible case from Zenodo.
--------------------------------------------------------
-This example shows you how to download a Strocchi 2020 or Rodero 2021 case from the Zenodo
+Download a PyAnsys Heart-compatible case from Zenodo
+----------------------------------------------------
+This example shows how to download a Strocchi 2020 or Rodero 2021 case from the Zenodo
 database.
 """
 
 ###############################################################################
 # .. note::
-#    You can also manually download the .case or .vtk files from the Strocchi2020
-#    and Rodero2021 databases first. See:
+#    You can also manually download the CASE or VTK files from the Strocchi 2020
+#    and Rodero 2021 databases. For more information, see:
 #
-#    - https://zenodo.org/records/3890034
-#    - https://zenodo.org/records/4590294
+#    - `A Publicly Available Virtual Cohort of Four-chamber Heart Meshes for
+#      Cardiac Electro-mechanics Simulations <https://zenodo.org/records/3890034>`_
+#    - `Virtual cohort of adult healthy four-chamber heart meshes from CT images <https://zenodo.org/records/4590294>`_
 #
 #    Alternatively you can make use of the download
 #    module instead. See the example below.

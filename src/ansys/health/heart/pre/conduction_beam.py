@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module containing class for creating conduxtion system."""
+"""Module containing class for creating conduction system."""
 
 import networkx as nx
 import numpy as np
@@ -80,7 +80,7 @@ class ConductionSystem:
         Compute SinoAtrial node.
 
         SinoAtrial node is defined on the endocardium of the right atrium and
-        between sup vena cava and inf vena cave.
+        between the sup vena cava and inf vena cava.
         """
         if target_coord is None:
             sup_vcava_centroid = next(
@@ -118,12 +118,12 @@ class ConductionSystem:
         """
         Compute Atrio-Ventricular node.
 
-        AtrioVentricular node is on right artrium endocardium surface and closest to septum.
+        Atrio-Ventricular node is on the right atrium endocardium surface and closest to the septum.
 
         Returns
         -------
         Point
-            returns the AV node.
+            AV node.
         """
         right_atrium_endo = self.m.mesh.get_surface(self.m.right_atrium.endocardium.id)
 
@@ -152,19 +152,19 @@ class ConductionSystem:
         return atrioventricular_point
 
     def compute_av_conduction(self) -> pv.PolyData:
-        """Compute Atrio-Ventricular conduction by means of beams following a geodesic path."""
+        """Compute atrio-ventricular conduction by means of beams following a geodesic path."""
         right_atrium_endo = self.m.mesh.get_surface(self.m.right_atrium.endocardium.id)
 
         try:
             sino_atrial_id = self.m.right_atrium.get_point("SA_node").node_id
         except AttributeError:
-            LOGGER.info("SA node is not defined, creating with default options.")
+            LOGGER.info("SA node is not defined. Creating with default options.")
             sino_atrial_id = self.m.compute_sa_node().node_id
 
         try:
             atrio_ventricular_id = self.m.right_atrium.get_point("AV_node").node_id
         except AttributeError:
-            LOGGER.info("AV node is not defined, creating with default options.")
+            LOGGER.info("AV node is not defined. Creating with default options.")
             atrio_ventricular_id = self.m.compute_av_node().node_id
 
         #! get local SA/AV ids.
@@ -188,7 +188,7 @@ class ConductionSystem:
         """
         Define start points of the bundle of His.
 
-        End point: create a point inside of septum part and close to AV node .
+        End point: Create a point inside of the septum part and close to the AV node.
         """
         atrio_ventricular_node = self.m.right_atrium.get_point("AV_node")
 
@@ -285,22 +285,22 @@ class ConductionSystem:
     def find_path(
         mesh: pv.UnstructuredGrid, start: np.ndarray, end: np.ndarray, return_segment=True
     ) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
-        """Find shortest path between two nodes.
+        """Find the shortest path between two nodes.
 
         Notes
         -----
-        Unlike geodesic, this method searches a path inside of a 3D mesh.
+        Unlike the geodesic method, this method searches a path inside of a 3D mesh.
 
         Parameters
         ----------
         mesh : pv.UnstructuredGrid
-            Must be with tetra cells.
+            Mesh that must be with tetra cells.
         start : np.ndarray
             Start point coordinates.
         end : np.ndarray
             End point coordinates
-        return_segment : bool, optional
-            Return a segment set (list of triangles) on which the path relies, by default True
+        return_segment : bool, default: True
+            Whether to return the segment set (list of triangles) that the path relies on.
         """
         #! mesh can now have multiple element types: TETRA, TRIANGLE, etc.
         mesh = mesh.extract_cells_by_type(pv.CellType.TETRA)
@@ -391,7 +391,7 @@ class ConductionSystem:
         return (side_his[-1], side_his, sgmt)
 
     def compute_left_right_bundle(self, start_coord, end_coord, side: str):
-        """Bundle branch."""
+        """Compute the bundle branch."""
         if side == _ConductionType.LEFT_BUNDLE_BRANCH.value:
             ventricle = self.m.left_ventricle
             endo_surface = self.m.mesh.get_surface(self.m.left_ventricle.endocardium.id)
@@ -457,12 +457,12 @@ class ConductionSystem:
         return beam_net
 
     def _connect_to_solid(self, component_id: int, local_point_ids: np.ndarray) -> None:
-        """Connect conduction system component to solid through the "_is-connected" pointdata.
+        """Connect conduction system component to solid through the ``_is-connected`` pointdata.
 
         Parameters
         ----------
         component_id : int
-            id of the beam mesh component
+            ID of the beam mesh component,
         local_point_ids : np.array
             _description_
         """

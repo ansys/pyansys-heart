@@ -41,14 +41,16 @@ def read_laplace_solution(
     Parameters
     ----------
     directory : str
-        directory of d3plot files
+        Directory of d3plot files.
     field_list : list[str]
-        name of each d3plot file/field
+        Name of each d3plot file/field.
+    read_heatflux : bool, default: False
+        Whether to read heatflux.
 
     Returns
     -------
     pv.UnstructuredGrid
-        grid with point data of each field
+        Grid with point data of each field.
     """
     data = D3plotReader(os.path.join(directory, field_list[0] + ".d3plot"))
     grid: pv.UnstructuredGrid = data.model.metadata.meshed_region.grid
@@ -60,7 +62,7 @@ def read_laplace_solution(
             t = t
         elif len(t) == 3 * grid.n_points:
             LOGGER.warning(
-                "DPF reads temperature as a vector field, but expecting a scalar field.\
+                "DPF reads temperature as a vector field but is expecting a scalar field.\
                 Consider updating the DPF server."
             )
             t = t[::3]
@@ -77,26 +79,26 @@ def read_laplace_solution(
     return grid.copy()
 
 
-@deprecated(reason="transmural direction can be automatically read by d3plot heat flux.")
+@deprecated(reason="Transmural direction can be automatically read by d3plot heat flux.")
 def update_transmural_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData) -> np.ndarray:
     """Use surface normal for transmural direction.
 
     Note
     ----
-    Assume mesh is coarse compared to the thinkness, solid cell normal
-    is interpolated from closest surface normal
+    Assume mesh is coarse compared to the thickness. Solid cell normal
+    is interpolated from closest surface normal.
 
     Parameters
     ----------
     grid : pv.UnstructuredGrid
-        atrium grid
+        Atrium grid.
     surface : pv.PolyData
-        atrium endocardium surface
+        Atrium endocardium surface.
 
     Returns
     -------
     np.ndarray
-        cell transmural direction vector
+        Cell transmural direction vector.
     """
     surface_normals = surface.clean().compute_normals()
 
@@ -120,21 +122,21 @@ def orthogonalization(
     Parameters
     ----------
     grad_trans : np.ndarray
-        transmural vector
+        Transmural vector.
     k : np.ndarray
-        Bundle selection vector
+        Bundle selection vector.
 
     Returns
     -------
     tuple[np.ndarray, np.ndarray, np.ndarray]
-        local coordinate system e_l,e_n,e_t
+        Local coordinate system ``e_l, e_n, e_t``.
     """
     norm = np.linalg.norm(grad_trans, axis=1)
     bad_cells = np.argwhere(norm == 0).ravel()
 
     LOGGER.debug(
         f"{len(bad_cells)} cells have null gradient in transmural direction."
-        f" This should only be at valve regions and can be checked from the vtk file."
+        f" This should only be at valve regions and can be checked from the VTK file."
     )
 
     norm = np.where(norm != 0, norm, 1)
@@ -159,29 +161,30 @@ def compute_la_fiber_cs(
     Parameters
     ----------
     directory : str
-        directory of d3plot files.
+        Directory of d3plot files.
     settings : AtrialFiber
         Atrial fiber settings.
-    endo_surface : pv.PolyData, optional
-        _description_, by default None
-        If given, normal direction will be updated by surface normal instead of Laplace solution.
+    endo_surface : pv.PolyData, default: None
+        _description_. If given, normal direction is updated by the surface
+        normal instead of the Laplace solution.
 
     Notes
     -----
-    Method descrbed in https://doi.org/10.1016/j.cma.2020.113468
+    This method is described in `Modeling cardiac muscle fibers in ventricular and
+    atrial electrophysiology simulations <https://doi.org/10.1016/j.cma.2020.113468>`_.
 
     Returns
     -------
     pv.UnstructuredGrid
-        pv object with fiber coordinates system.
+        PV object with fiber coordinates system.
     """
 
     def bundle_selection(grid):
         """Left atrium bundle selection.
 
-        Add two cell data to grid.
-        - 'k' is unit vector from different gradient fields.
-        - 'bundle' labels regions of selection.
+        Add two-cell data to grid.
+        - 'k' is the unit vector from different gradient fields.
+        - 'bundle' labels the regions of selection.
 
         """
         # bundle selection
@@ -237,29 +240,30 @@ def compute_ra_fiber_cs(
     Parameters
     ----------
     directory : str
-        directory of d3plot files.
+        Directory of d3plot files.
     settings : AtrialFiber
         Atrial fiber settings.
-    endo_surface : pv.PolyData, optional
-        _description_, by default None
-        If given, normal direction will be updated by surface normal instead of Laplace solution.
+    endo_surface : pv.PolyData, default: None
+        _description_. If given, normal direction is updated by the surface normal
+        instead of the Laplace solution.
 
     Notes
     -----
-    Method descrbed in https://doi.org/10.1016/j.cma.2020.113468
+    This method is described in `Modeling cardiac muscle fibers in ventricular and
+    atrial electrophysiology simulations <https://doi.org/10.1016/j.cma.2020.113468>`_.
 
     Returns
     -------
     pv.UnstructuredGrid
-        pv object with fiber coordinates system.
+        PV object with the fiber coordinates system.
     """
 
     def bundle_selection(grid):
         """Right atrium bundle selection.
 
-        Add two cell data to grid.
-        - 'k' is unit vector from different gradient fields.
-        - 'bundle' labels regions of selection.
+        Add two-cell data to grid.
+        - 'k' is the unit vector from different gradient fields.
+        - 'bundle' labels the regions of selection.
 
         """
         tao_tv = settings.tau_tv  # 0.9
@@ -376,18 +380,18 @@ def set_rotation_bounds(
     Parameters
     ----------
     w : np.ndarray
-        intra-ventricular interpolation weight if outflow_tracts is not None
+        Intra-ventricular interpolation weight if ``outflow_tracts`` is not ``None``.
     endo : float
-        rotation angle at endocardium
+        Rotation angle at endocardium.
     epi : float
-        rotation angle at epicardium
-    outflow_tracts : list[float, float], optional
-        rotation angle of enendocardium do and epicardium on outflow tract, by default None
+        Rotation angle at epicardium.
+    outflow_tracts : list[float, float], default: None
+        Rotation angle of enendocardium do and epicardium on outflow tract.
 
     Returns
     -------
     tuple[np.ndarray, np.ndarray]
-        cell-wise rotation bounds for endocardium and epicardium
+        Cell-wise rotation bounds for endocardium and epicardium.
     """
 
     def _sigmoid(z):
@@ -420,22 +424,22 @@ def compute_rotation_angle(
     Parameters
     ----------
     grid : pv.UnstructuredGrid
-        mesh grid
+        Mesh grid.
     w : np.ndarray
-        intral ventricular interpolation weight
+        Intral ventricular interpolation weight.
     rotation : list[float, float]
-        rotation angles in degree at endocardium and epicardium
-    outflow_tracts : list[float, float], optional
-        rotation angle of enendocardium do and epicardium on outflow tract, by default None
+        Rotation angles in degree at endocardium and epicardium.
+    outflow_tracts : list[float, float], default: None
+        Rotation angle of enendocardium do and epicardium on outflow tract.
 
     Returns
     -------
     np.ndarray
-        cell-wise rotation angles
+        Cell-wise rotation angles.
 
     Note
     ----
-    Compute for all cells, but filtered by left/right mask outside of this function.
+    Compute for all cells, but filter by left/right mask outside of this function.
     """
     rot_endo, rot_epi = set_rotation_bounds(w, rotation[0], rotation[1], outflow_tracts)
 
@@ -457,23 +461,27 @@ def compute_ventricle_fiber_by_drbm(
     },
     left_only: bool = False,
 ) -> pv.UnstructuredGrid:
-    """D-RBM method described in https://doi.org/10.1016/j.cma.2020.113468.
+    """Compute the fiber coordinate system from Laplace solving.
 
     Parameters
     ----------
     directory : str
-        directory of d3plot/tprint files.
+        Directory of d3plot/tprint files.
     settings : dict, optional
-        rotation angles, by default { "alpha_left": [-60, 60], "alpha_right": [-60, 60],
-        "alpha_ot": None, "beta_left": [-65, 25], "beta_right": [-65, 25], "beta_ot": None, }
+        Rotation angles. By default: ``{ "alpha_left": [-60, 60], "alpha_right": [-60, 60],
+        "alpha_ot": None, "beta_left": [-65, 25], "beta_right": [-65, 25], "beta_ot": None, }``.
+    left_only : bool, default: False
+        Whether to only compute fibers on the left ventricle.
 
-    left_only : bool, optional
-        only compute fibers on left ventricle, by default False
+    Notes
+    -----
+    The D-RBM method is described in `Modeling cardiac muscle fibers in ventricular and
+    atrial electrophysiology simulations <https://doi.org/10.1016/j.cma.2020.113468>`_.
 
     Returns
     -------
     pv.UnstructuredGrid
-        grid contains `fiber`,`cross-fiber`,`sheet` vectors
+        Grid contains ``fiber``, ``cross-fiber``, and ``sheet`` vectors.
     """
     solutions = ["trans", "ab_l", "ot_l", "w_l"]
     if not left_only:

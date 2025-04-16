@@ -21,15 +21,14 @@
 # SOFTWARE.
 
 """
-Post process EP simulation
---------------------------
-This example shows you how to post process an EP simulation.
+Postprocess an EP simulation
+----------------------------
+This example shows how to postprocess an EP simulation.
 """
 
 ###############################################################################
-# Perform the required imports
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Import the required modules
+# Perform required imports
+# ~~~~~~~~~~~~~~~~~~~~~~~~
 
 # sphinx_gallery_start_ignore
 # sphinx_gallery_thumbnail_path = '_static/images/ep_post_activationtime.png'
@@ -52,17 +51,15 @@ ep_folder = (
     / "d3plot"
 )
 ###############################################################################
-# Instantiate the Postprocessor
+# Instantiate the postprocessor
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# instantiate Postprocessor
 
 postproc = EPpostprocessor(results_path=ep_folder)
 
 
 ###############################################################################
-# 12-LEAD ECGs
-# ~~~~~~~~~~~~~~~~
-# Plot 12-Lead ECGs
+# Plot 12-LEAD ECGs
+# ~~~~~~~~~~~~~~~~~
 
 path_to_ecg_file = ep_folder.parent / "em_EKG_001.dat"
 
@@ -77,9 +74,9 @@ ECGs12 = postproc.compute_12_lead_ECGs(ECGs=ECGs, times=times, plot=True)
 #   :align: center
 
 ###############################################################################
-# Activation times
-# ~~~~~~~~~~~~~~~~
-# Get activation times and plot the field
+# Plot activation times
+# ~~~~~~~~~~~~~~~~~~~~~
+# Get the field with activation times and plot them.
 
 activation_time_field = postproc.get_activation_times()
 activation_time_field.plot(show_edges=False)
@@ -88,21 +85,26 @@ activation_time_field.plot(show_edges=False)
 #   :width: 300pt
 #   :align: center
 
+###############################################################################
 # Compute total activation time
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Compute the total activation time.
+
 activation_time_data = activation_time_field.data_as_list
 total_acctivation_time = max(activation_time_data) - min(activation_time_data)
 print("Total activation time: " + str(total_acctivation_time) + " ms")
 
 ###############################################################################
-# Transmembrane potentials
-# ~~~~~~~~~~~~~~~~~~~~~~~~
-# Get transmembrane potentials on list of nodes and plot
+# Get transmembrane potentials
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Get transmembrane potentials on a list of nodes and plot.
+
 vm, times = postproc.get_transmembrane_potential(node_id=[0, 1, 100], plot=True)
 ###############################################################################
 # .. image:: /_static/images/ep_tm.png
 #   :width: 300pt
 #   :align: center
 
-# Animate and export in vtk format
+# Animate and export in VTK format
 postproc.export_transmembrane_to_vtk()
 postproc.animate_transmembrane()

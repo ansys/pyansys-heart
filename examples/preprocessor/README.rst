@@ -1,5 +1,5 @@
 Preprocessor examples
 =====================
-These examples show you how you can use the preprocessor module
-to generate different kinds of heart models. For instance, a
-biventricular, four chamber, or full heart model.
+These examples show how to use the Preprocessor module
+to generate different kinds of heart models, including a
+biventricular, four-chamber heart model and a full-heart model.

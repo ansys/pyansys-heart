@@ -22,19 +22,18 @@
 
 """
 
-Post process Zero pressure folder
----------------------------------
-This example shows you how to use post process script after Stress free configuration simulation,
-and visualize them in Paraview.
+Postprocess a zero pressure folder
+----------------------------------
+This example shows how to use the postprocess script after stress-free configuration simulation
+and view results in Paraview.
 """
 
 ###############################################################################
-# Perform the required imports
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Import the required modules
+# Perform required imports
+# ~~~~~~~~~~~~~~~~~~~~~~~~
 
 # sphinx_gallery_start_ignore
-# Note that we need to put the thumbnail here to avoid weird rendering in the html page.
+# Note that we must put the thumbnail here to avoid weird rendering on the HTML page.
 # sphinx_gallery_thumbnail_path = '_static/images/thumbnails/klotz.png'
 # sphinx_gallery_end_ignore
 import os
@@ -60,22 +59,24 @@ zerop_folder = r"your-simulation_folder"
 ###############################################################################
 # Run default process scripts
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# a folder "post" will be created with key simulation results (json, png, vtk...)
+# A folder named ``post`` is created with key simulation results in various
+# file formats, such as JSON, PNG, or VTK.
+
 zerop_post(zerop_folder, model)
 
 ###############################################################################
-# In this folder, you will be able to find
+# Files in this folder include the Klotz curve and iteration information.
 
 ###############################################################################
 # Klotz curve
-# ~~~~~~~~~~~
+# ^^^^^^^^^^^
 # .. image:: /_static/images/klotz.png
 #   :width: 400pt
 #   :align: center
 
 ###############################################################################
-# Iteration info
-# ~~~~~~~~~~~~~~
+# Iteration information
+# ^^^^^^^^^^^^^^^^^^^^^
 {
     "Simulation output time (ms)": [
         0.0,
@@ -113,11 +114,11 @@ zerop_post(zerop_folder, model)
 }
 
 ###############################################################################
-# Visualization in Paraview
-# ~~~~~~~~~~~~~~~~~~~~~~~~~
-# Open Paraview and load the state file
+# View results in Paraview
+# ~~~~~~~~~~~~~~~~~~~~~~~~
+# Open Paraview, load the state file
 # :download:`post_zerop2.pvsm <../../_static/others/post_zerop2.pvsm>`,
-# and specify the folder
+# and specify the directory.
 
 ###############################################################################
 # .. image:: /_static/images/load_zerop.png
@@ -125,7 +126,7 @@ zerop_post(zerop_folder, model)
 #   :align: center
 
 ###############################################################################
-# You can compare the end-of-diastolic geometry between input and after inflation
+# You can compare the end-of-diastolic geometry between input and after inflation.
 
 ###############################################################################
 # .. image:: /_static/images/EDcavity_simu_real.png
@@ -133,7 +134,7 @@ zerop_post(zerop_folder, model)
 #   :align: center
 
 ###############################################################################
-# You can show and export inflation animation
+# You can show and export inflation animation.
 
 ###############################################################################
 # .. only:: html

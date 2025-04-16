@@ -40,21 +40,21 @@ from ansys.health.heart.settings.settings import SimulationSettings
 
 
 def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.ndarray]:
-    """Post-process zeropressure folder.
+    """Postprocess the zero-pressure folder.
 
     Parameters
     ----------
     directory : str
-        Path to simulation folder
+        Path to the simulation folder.
     model : HeartModel
-        model to post-process
+        Model to postprocess.
 
     Returns
     -------
     tuple[dict, np.ndarray, np.ndarray]
-        dictionary with convergence information
-        stress free configuration
-        computed end-of-diastolic configuration
+        Dictionary with convergence information,
+        stress free configuration, and
+        computed end-of-diastolic configuration.
     """
     folder = "post"
     os.makedirs(os.path.join(directory, folder), exist_ok=True)
@@ -124,7 +124,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     # save left ventricle in json
     dct["Left ventricle EOD pressure (mmHg)"] = lv_pr_mmhg
     dct["True left ventricle volume (mm3)"] = true_lv_ed_volume
-    dct["Simulation Left ventricle volume (mm3)"] = lv_volumes
+    dct["Simulation left ventricle volume (mm3)"] = lv_volumes
 
     # Klotz curve information
     klotz = EDPVR(true_lv_ed_volume / 1000, lv_pr_mmhg)
@@ -144,14 +144,14 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
 
 
 def mech_post(directory: str, model: HeartModel) -> None:
-    """Post-process mechanical simulation folder.
+    """Postprocess the mechanical simulation folder.
 
     Parameters
     ----------
     directory : str
-        d3plot folder
+        Path to the d3plot folder.
     model : HeartModel
-        heart model
+        Heart model.
     """
     last_cycle_duration = 800
     folder = "post"

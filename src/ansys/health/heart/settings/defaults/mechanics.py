@@ -110,7 +110,7 @@ material = {
             "k1f": Quantity(0.00049, "MPa"),
             "k2f": Quantity(9.01, "dimensionless"),
         },
-        # Note: Mechanical simulation use actype=1, EP-Mechanical simulation use actype=3
+        # Note: Mechanical simulation uses actype=1, EP-Mechanical simulation uses actype=3
         # related parameters are hard coded
         # For more advanced control, use Material class
         "active": {

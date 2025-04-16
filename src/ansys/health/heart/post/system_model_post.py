@@ -65,11 +65,11 @@ class Volume:
 @dataclass
 class SystemState:
     """
-    System state including pressure, flow, volume.
+    System state including pressure, flow, and volume.
 
     Notes
     -----
-    future development
+    Future development.
     """
 
     pressure: Pressure
@@ -86,11 +86,11 @@ class ZeroDSystem:
         Parameters
         ----------
         csv_path : str
-            CSV file path
+            Path to the CSV file.
         ed_state : list[float,float]
-            End of Diastole pressure and volume
-        name : str, optional
-            Cavity name, by default ""
+            End of diastole pressure and volume.
+        name : str, default: ""
+            Cavity name.
         """
         self.name = name
         self.ed = ed_state
@@ -119,15 +119,14 @@ class ZeroDSystem:
 
     @staticmethod
     def _integrate_volume(v0: float, t: np.ndarray, q: np.ndarray) -> np.ndarray:
-        """Integrate cavity's volume.
+        """Integrate the cavity's volume.
 
         Notes
         -----
-        Cavity's volume is not evaluated/saved in csv file, this is to ensure
-        volume is consistent with what's in icvout.
+        Cavity's volume is not evaluated/saved in the CSV file. This is to ensure
+        that volume is consistent with what's in the ICVOUT file.
 
-        This assumes that the implicit solver with gamma=0.6 was used.
-
+        This assumes that the implicit solver with ``gamma=0.6`` was used.
 
         Parameters
         ----------
@@ -141,7 +140,7 @@ class ZeroDSystem:
         Returns
         -------
         np.ndarray
-            Cavity volume
+            Cavity volume.
         """
         gamma = 0.6
 
@@ -155,20 +154,20 @@ class ZeroDSystem:
 
 class SystemModelPost:
     """
-    Class for post-processing system model.
+    Postprocessing system model.
 
     Notes
     -----
-    unit: ms, kPa, mL
+    The units are ms, kPa, and mL.
     """
 
     def __init__(self, dir: str):
-        """Initialize SystemModelPost.
+        """Initialize ``SystemModelPost``.
 
         Parameters
         ----------
         dir : str
-            Simulation directory
+            Simulation directory.
         """
         self.dir = dir
         self.model_type = "LV"
@@ -212,19 +211,19 @@ class SystemModelPost:
             )
 
     def get_ejection_fraction(self, t_start: float = 0, t_end: float = 10e10) -> float:
-        """Compute ejection fraction on given time interval.
+        """Compute ejection fraction on a given time interval.
 
         Parameters
         ----------
-        t_start : float, optional
-            Start time, by default 0
-        t_end : float, optional
-            End time, by default 10e10
+        t_start : float, default: 0
+            Start time.
+        t_end : float, default: 10e10
+            End time.
 
         Returns
         -------
         float
-            Ejection fraction
+            Ejection fraction.
         """
         ef = [None, None]
         start = np.where(self.lv_system.time >= t_start)[0][0]
@@ -252,19 +251,19 @@ class SystemModelPost:
 
         Parameters
         ----------
-        t_start : float, optional
-            Start time to plot, by default 0
-        t_end : float, optional
-            End time to plot, by default 10e10
-        show_ed : bool, optional
-            Whether to show the end of diastole state in zeroppressure, by default True
-        ef : list[float, float], optional
-            Show the ejection fraction in the legend, by default [None, None]
+        t_start : float, default: 0
+            Start time to plot.
+        t_end : float, default: 10e10
+            End time to plot.
+        show_ed : bool, default: True
+            Whether to show the end of the diastole state in zeroppressure.
+        ef : list[float, float], default: [None, None]
+            Ejection fraction to show in the legend.
 
         Returns
         -------
         plt.Figure
-            Figrue handle
+            Figure handle.
         """
         start = np.where(self.lv_system.time >= t_start)[0][0]
         end = np.where(self.lv_system.time <= t_end)[0][-1]

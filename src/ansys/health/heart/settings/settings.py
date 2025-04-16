@@ -907,7 +907,8 @@ class DynaSettings:
 
     @staticmethod
     def _get_available_mpi_exe():
-        """Find available mpiexec or mpirun are available."""
+        """Find whether mpiexec or mpirun are available."""
+        # preference for mpirun if it is added to PATH. mpiexec is the fallback option.
         if shutil.which("mpirun"):
             return "mpirun"
         elif shutil.which("mpiexec"):

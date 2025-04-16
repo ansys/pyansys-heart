@@ -50,7 +50,6 @@ Ensure you have all the necessary `prerequisites`_ before installing this
 software. Then, refer to the `installation guidelines`_ for detailed instructions
 on how to install PyAnsys Heart in your system.
 
-
 Documentation
 =============
 
@@ -109,7 +108,5 @@ categorized by version, along with brief descriptions of each change.
 .. _API reference: https://heart.docs.pyansys.com/version/stable/api/index.html
 .. _examples: https://heart.docs.pyansys.com/version/stable/examples/index.html
 .. _contribute: https://heart.docs.pyansys.com/version/stable/contributing/index.html
-
-.. Repository links
 .. _LICENSE: https://github.com/ansys/pyansys-heart/blob/main/LICENSE
 .. _CHANGELOG: https://heart.health.docs.pyansys.com/version/stable/changelog.html

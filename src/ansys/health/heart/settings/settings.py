@@ -27,12 +27,15 @@ from dataclasses import asdict, dataclass, field
 import json
 import os
 import pathlib
+import shutil
+import subprocess
 from typing import List, Literal
 
 from pint import Quantity, UnitRegistry
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.exceptions import MPIProgamNotFoundError
 from ansys.health.heart.settings.defaults import (
     electrophysiology as ep_defaults,
     fibers as fibers_defaults,
@@ -902,6 +905,17 @@ def _get_consistent_units_str(dimensions: set):
 class DynaSettings:
     """Class for collecting, managing and validating LS-DYNA settings."""
 
+    @staticmethod
+    def _get_available_mpi_exe():
+        """Find available mpiexec or mpirun are available."""
+        if shutil.which("mpirun"):
+            return "mpirun"
+        elif shutil.which("mpiexec"):
+            LOGGER.debug("mpirun not found. Using mpiexec.")
+            return "mpiexec"
+        else:
+            raise MPIProgamNotFoundError("mpirun or mpiexec not found. Please configure MPI.")
+
     def __init__(
         self,
         lsdyna_path: pathlib.Path = "lsdyna.exe",
@@ -967,14 +981,17 @@ class DynaSettings:
         List[str]
             List of strings of each of the commands.
         """
-        import subprocess
+        if self.platform == "wsl":
+            mpi_exe = "mpirun"
+        elif self.dynatype in ["msmpi", "intelmpi", "platformmpi"]:
+            mpi_exe = self._get_available_mpi_exe()
 
         lsdyna_path = self.lsdyna_path
 
         if self.platform == "windows" or self.platform == "linux":
             if self.dynatype in ["intelmpi", "platformmpi"]:
                 commands = [
-                    "mpirun",
+                    mpi_exe,
                     self.mpi_options,
                     "-np",
                     str(self.num_cpus),
@@ -1021,7 +1038,7 @@ class DynaSettings:
 
             if self.dynatype in ["intelmpi", "platformmpi", "msmpi"]:
                 commands = [
-                    "mpirun",
+                    mpi_exe,
                     self.mpi_options,
                     "-np",
                     str(self.num_cpus),

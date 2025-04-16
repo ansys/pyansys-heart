@@ -58,3 +58,7 @@ class InvalidHeartModelError(Exception):
 
 class LSDYNANotFoundError(FileNotFoundError):
     """LSDYNA executable not found."""
+
+
+class MPIProgamNotFoundError(FileNotFoundError):
+    """MPI program not found."""

@@ -125,7 +125,6 @@ numpydoc_validation_checks = {
 # Configuration for Sphinx gallery
 # -----------------------------------------------------------------------------
 pyvista.BUILDING_GALLERY = True
-pyvista.OFF_SCREEN = True
 
 # use this environment variable to build nightly docs
 nightly_docs = bool(int(os.getenv("NIGHTLY_DOC_BUILD", False)))

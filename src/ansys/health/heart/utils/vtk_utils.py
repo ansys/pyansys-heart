@@ -445,15 +445,15 @@ def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> Non
 
 
 def find_corresponding_points(
-    master_surface: pv.PolyData, slave_surface: pv.PolyData, distance: float = 20
+    first_surface: pv.PolyData, second_surface: pv.PolyData, distance: float = 20
 ) -> np.ndarray:
     """Find corresponding points between two surfaces.
 
     Parameters
     ----------
-    master_surface : pv.PolyData
+    first_surface : pv.PolyData
         first surface
-    slave_surface : pv.PolyData
+    second_surface : pv.PolyData
         second surface
     distance : float
         approximate largest distance between two surfaces
@@ -462,8 +462,8 @@ def find_corresponding_points(
     -------
     np.ndarray
         2*N array
-        first row is node IDs of master surface,
-        second row is corresponding node IDs on the slave surface
+        first row is node IDs of first_surface,
+        second row is corresponding node IDs on the second_surface
         None if no corresponding node is found
 
     Notes
@@ -477,22 +477,22 @@ def find_corresponding_points(
     # NOTE: using UVC coordinates leads to a shift in
     # longitudinal direction from epicardium to endocardium and is thus not an option.
 
-    # Compute normal of master surface
-    master_surface.compute_normals(inplace=True)
+    # Compute normal of the first surface
+    first_surface.compute_normals(inplace=True)
 
-    points_m = master_surface.points
-    normals_m = master_surface.point_data["Normals"]
+    points_m = first_surface.points
+    normals_m = first_surface.point_data["Normals"]
 
     # corresponding points
     corresp_points = []
-    tree_s = slave_surface.find_closest_point
+    tree_s = second_surface.find_closest_point
 
     # Find intersections
     for i in range(len(points_m)):
         start_point = points_m[i]
         direction = normals_m[i]
         # Cast a ray along the normal direction
-        intersection, _ = slave_surface.ray_trace(
+        intersection, _ = second_surface.ray_trace(
             start_point - direction * distance, start_point + direction * distance
         )
 
@@ -505,7 +505,7 @@ def find_corresponding_points(
         else:
             corresp_points.append(None)  # fill None for no corresponding point
 
-    return np.vstack((range(0, master_surface.n_points), corresp_points))
+    return np.vstack((range(0, first_surface.n_points), corresp_points))
 
 
 def generate_thickness_lines(
@@ -517,16 +517,16 @@ def generate_thickness_lines(
     Parameters
     ----------
     surface1 : pv.PolyData
-        master surface
+        first surface
     surface2 : pv.PolyData
-        slave surface
+        second surface
     res : np.ndarray, optional
         corresponding points array, default None
 
     Returns
     -------
     pv.PolyData
-        it contains cell data named 'thickenss'.
+        it contains cell data named 'thickness'.
     """
     if corresponding_points is None:
         corresponding_points = find_corresponding_points(surface1, surface2)

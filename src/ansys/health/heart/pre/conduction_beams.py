@@ -164,7 +164,7 @@ class ConductionPath:
         id: int,
         base_mesh: pv.PolyData | pv.UnstructuredGrid,
         connection: Literal["none", "first", "last", "all"] = "none",
-        refine_length: float | None = 1.5,
+        line_length: float | None = 1.5,
     ) -> ConductionPath:
         """Create a conduction beam on a base mesh through a set of keypoints.
 
@@ -183,8 +183,8 @@ class ConductionPath:
         connection : Literal[&quot;none&quot;, &quot;first&quot;, &quot;last&quot;, &quot;all&quot;]
         , default: "none"
             Describes how the beam is connected to the solid mesh.
-        refine_length : float | None, default: 1.5
-            Beam length.
+        line_length : float | None, default: 1.5
+            Length of line element.
 
         Returns
         -------
@@ -193,9 +193,9 @@ class ConductionPath:
         """
         if isinstance(base_mesh, pv.PolyData):
             under_surface = base_mesh
-            beam_mesh = _create_path_on_surface(keypoints, under_surface, refine_length)
+            beam_mesh = _create_path_on_surface(keypoints, under_surface, line_length)
         else:
-            beam_mesh, under_surface = _create_path_in_solid(keypoints, base_mesh, refine_length)
+            beam_mesh, under_surface = _create_path_in_solid(keypoints, base_mesh, line_length)
 
         is_connceted = np.zeros(beam_mesh.n_points)
         if connection == "first":
@@ -298,7 +298,7 @@ def _refine_points(nodes: np.array, beam_length: float) -> np.ndarray:
 
 
 def _create_path_on_surface(
-    key_points: list[np.ndarray], surface: pv.PolyData, refine_length: float
+    key_points: list[np.ndarray], surface: pv.PolyData, line_length: float
 ) -> pv.PolyData:
     """Create a geodesic path between key points.
 
@@ -309,7 +309,7 @@ def _create_path_on_surface(
     surface : pv.PolyData
         Surface on which the path is created.
     refine_length : float
-        Refine beam length.
+        Length of the line element.
 
     Returns
     -------
@@ -325,15 +325,30 @@ def _create_path_on_surface(
         for point in path.points:
             path_points.append(point)
 
-    path_points = _refine_points(np.array(path_points), beam_length=refine_length)
+    path_points = _refine_points(np.array(path_points), beam_length=line_length)
 
     return pv.lines_from_points(path_points)
 
 
 def _create_path_in_solid(
-    key_points: list[np.ndarray], volume: pv.UnstructuredGrid, refine_length: float
+    key_points: list[np.ndarray], volume: pv.UnstructuredGrid, line_length: float
 ) -> tuple[pv.PolyData, pv.PolyData]:
-    """TODO."""
+    """Create a path in the solid mesh.
+
+    Parameters
+    ----------
+    key_points : list[np.ndarray]
+        Key points to be connected by the path, 2 points are required.
+    volume : pv.UnstructuredGrid
+        Solid mesh where the path is created.
+    line_length : float
+        Length of the line element.
+
+    Returns
+    -------
+    tuple[pv.PolyData, pv.PolyData]
+        Path mesh and surface mesh where the path is created.
+    """
     if len(key_points) != 2:
         TypeError("Can only define 2 keypoints.")
         return
@@ -363,7 +378,7 @@ def _create_path_in_solid(
     coords = sub_mesh.points[ids]
 
     #
-    new_nodes = _refine_points(coords, beam_length=refine_length)
+    new_nodes = _refine_points(coords, beam_length=line_length)
     beamnet = pv.lines_from_points(new_nodes)
 
     # seg

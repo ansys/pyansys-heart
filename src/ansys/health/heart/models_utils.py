@@ -255,7 +255,7 @@ class HeartModelUtils:
             id=3,
             base_mesh=model.right_atrium.endocardium,
             connection="first",
-            refine_length=None,
+            line_length=None,
         )
 
         his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model)
@@ -289,7 +289,7 @@ class HeartModelUtils:
             id=7,
             base_mesh=model.left_ventricle.endocardium,
             connection="none",  # TODO: change to 'last'?
-            refine_length=None,
+            line_length=None,
         )
 
         surface_ids = [model.right_ventricle.endocardium.id, model.right_ventricle.septum.id]
@@ -301,7 +301,7 @@ class HeartModelUtils:
             id=8,
             base_mesh=endo_surface,
             connection="none",  # TODO: change to 'last'?
-            refine_length=None,
+            line_length=None,
         )
         return [
             left_pirkinje,

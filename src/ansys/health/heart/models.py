@@ -288,6 +288,11 @@ class HeartModel:
         """Return the list of conduction path."""
         return self._conduction_paths
 
+    @property
+    def conduction_mesh(self):
+        """Return the conduction mesh."""
+        return self._conduction_mesh
+
     def add_conduction_beam(self, beams: ConductionBeams | list[ConductionBeams]):
         """Add conduction beam to the model."""
         if len(self._conduction_paths) > 0:

@@ -30,7 +30,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.models import HeartModel
+import ansys.health.heart.models as models
 from ansys.health.heart.objects import CapType, Point
 from ansys.health.heart.pre.conduction_beams import ConductionBeams, ConductionBeamType
 
@@ -55,7 +55,9 @@ class HeartModelUtils:
     """Stateless methods for HeartModel."""
 
     @staticmethod
-    def define_sino_atrial_node(model: HeartModel, target_coord=None) -> LandMarker | None:
+    def define_sino_atrial_node(
+        model: models.FullHeart | models.FourChamber, target_coord=None
+    ) -> LandMarker | None:
         """
         Compute SinoAtrial node.
 
@@ -95,7 +97,9 @@ class HeartModelUtils:
         return LandMarker.SA_NODE
 
     @staticmethod
-    def define_atrio_ventricular_node(model: HeartModel, target_coord=None) -> LandMarker | None:
+    def define_atrio_ventricular_node(
+        model: models.FullHeart | models.FourChamber, target_coord=None
+    ) -> LandMarker | None:
         """
         Compute Atrio-Ventricular node.
 
@@ -135,7 +139,7 @@ class HeartModelUtils:
 
     @staticmethod
     def define_his_bundle_bifurcation_node(
-        model: HeartModel, target_coord=None
+        model: models.FourChamber | models.FullHeart, target_coord=None
     ) -> LandMarker | None:
         """TODO."""
         if target_coord is None:
@@ -170,7 +174,7 @@ class HeartModelUtils:
 
     @staticmethod
     def define_his_bundle_end_node(
-        model: HeartModel,
+        model: models.FullHeart | models.FourChamber,
         target_coord=None,
         side: Literal["left", "right"] = "left",
         n_close: int = 20,
@@ -208,18 +212,22 @@ class HeartModelUtils:
             return LandMarker.LEFT_APEX
 
     @staticmethod
-    def define_bachman_bundle_end_node(model: HeartModel, target_coord=None) -> LandMarker | None:
+    def define_bachman_bundle_end_node(
+        model: models.FullHeart | models.FourChamber, target_coord=None
+    ) -> LandMarker | None:
         """TODO."""
         NotImplementedError
 
     @staticmethod
-    def define_fascile_bundle_end_node(model: HeartModel, target_coord=None) -> LandMarker | None:
+    def define_fascile_bundle_end_node(
+        model: models.FullHeart | models.FourChamber, target_coord=None
+    ) -> LandMarker | None:
         """TODO."""
         NotImplementedError
 
     @staticmethod
     def define_default_conduction_system(
-        model: HeartModel, purkinje_folder: str
+        model: models.FullHeart | models.FourChamber, purkinje_folder: str
     ) -> list[ConductionBeams]:
         """TODO: define for LV BV and 4C."""
         left_pirkinje = ConductionBeams.create_from_k_file(

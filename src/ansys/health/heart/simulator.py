@@ -49,6 +49,7 @@ from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import LSDYNANotFoundError, LSDYNATerminationError
 from ansys.health.heart.models import FourChamber, HeartModel, LeftVentricle
 from ansys.health.heart.models_utils import HeartModelUtils
+from ansys.health.heart.objects import SurfaceMesh
 from ansys.health.heart.post.auto_process import mech_post, zerop_post
 from ansys.health.heart.post.laplace_post import (
     compute_la_fiber_cs,
@@ -680,12 +681,12 @@ class MechanicsSimulator(BaseSimulator):
 
         self.model.mesh.points = guess_ed_coord
 
-        #! Note that it is not always clear if the contents of the retrieved
-        #! surface is actually properly copied to the object that the surface
-        #! is an attribute (part.surface) of. That is, is `=` actually working here?
+        # Update surfaces of all parts
+        # TODO: move it into Part or Model
         for part in self.model.parts:
-            for surface in part.surfaces:
-                surface = self.model.mesh.get_surface(surface.id)
+            for key, value in part.__dict__.items():
+                if isinstance(value, SurfaceMesh):
+                    part.__setattr__(key, self.model.mesh.get_surface(value.id))
 
         return
 

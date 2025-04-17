@@ -211,12 +211,31 @@ class ConductionPath:
     def create_from_k_file(
         name: ConductionPathType, k_file: str, id: int, base_mesh: pv.PolyData, model
     ) -> ConductionPath:
-        """TODO."""
+        """Build conduction path from LS-DYNA k-file.
+
+        Parameters
+        ----------
+        name : ConductionPathType
+            Conduction path name.
+        k_file : str
+            Path to LS-DYNA k-file.
+        id : int
+            ID of the conduction path.
+        base_mesh : pv.PolyData
+            Surface mesh where the conduction path is relying on.
+        model : HeartModel
+            HeartModel object.
+
+        Returns
+        -------
+        ConductionPath
+            Conduction path object.
+        """
         beam_nodes, edges, mask, _ = _read_purkinje_from_kfile(k_file)
 
         # build tree: beam_nodes and solid_points
         original_points_order = np.unique(edges[np.invert(mask)])
-        """TODO: only use points from model."""
+        """TODO: remove model from input, read points from k files."""
         solid_points = model.mesh.points[original_points_order]
         connectivity = np.empty_like(edges)
         np.copyto(connectivity, edges)
@@ -433,12 +452,6 @@ def _read_purkinje_from_kfile(filename: str):
     )
     edges = beam_data[:, 2:4] - 1
     pid = beam_data[0, 1]
-
-    # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
-    # TODO: origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
-    # TODO: the EP wave will not be triggered.
-    # TODO: so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
-    # TODO: is another point on the same location.
 
     mask = np.isin(edges, new_ids)  # True for new created nodes
     edges[mask] -= new_ids[0]  # beam nodes id start from 0

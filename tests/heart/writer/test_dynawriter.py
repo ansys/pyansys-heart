@@ -35,7 +35,7 @@ from ansys.health.heart.objects import (
     PartType,
     Point,
 )
-from ansys.health.heart.pre.conduction_beams import ConductionBeams, ConductionBeamType
+from ansys.health.heart.pre.conduction_beams import ConductionBeams, ConductionPathType
 from ansys.health.heart.settings.settings import Mechanics, SimulationSettings, Stimulation
 import ansys.health.heart.writer.dynawriter as writers
 
@@ -65,7 +65,7 @@ def _mock_model():
 
     lines = pv.line_segments_from_points([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
     model.conduction_beams = [
-        ConductionBeams(ConductionBeamType.LEFT_PURKINJE, lines, 1, [False, False], pv.Sphere())
+        ConductionBeams(ConductionPathType.LEFT_PURKINJE, lines, 1, [False, False], pv.Sphere())
     ]
 
     model._conduction_system = _get_mock_conduction_system()

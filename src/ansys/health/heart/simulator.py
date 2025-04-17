@@ -57,7 +57,7 @@ from ansys.health.heart.post.laplace_post import (
     compute_ventricle_fiber_by_drbm,
     read_laplace_solution,
 )
-from ansys.health.heart.pre.conduction_beams import ConductionBeams, ConductionBeamType
+from ansys.health.heart.pre.conduction_beams import ConductionBeams, ConductionPathType
 from ansys.health.heart.settings.settings import DynaSettings, SimulationSettings
 from ansys.health.heart.utils.misc import _read_orth_element_kfile
 import ansys.health.heart.writer.dynawriter as writers
@@ -477,7 +477,7 @@ class EPSimulator(BaseSimulator):
         LOGGER.info("Assign the Purkinje network to the model...")
 
         left_pirkinje = ConductionBeams.create_from_k_file(
-            ConductionBeamType.LEFT_PURKINJE,
+            ConductionPathType.LEFT_PURKINJE,
             k_file=os.path.join(directory, "purkinjeNetwork_001.k"),
             id=1,
             base_mesh=self.model.left_ventricle.endocardium,
@@ -489,7 +489,7 @@ class EPSimulator(BaseSimulator):
             return left_pirkinje
         else:
             right_pirkinje = ConductionBeams.create_from_k_file(
-                ConductionBeamType.RIGHT_PURKINJE,
+                ConductionPathType.RIGHT_PURKINJE,
                 k_file=os.path.join(directory, "purkinjeNetwork_002.k"),
                 id=2,
                 base_mesh=self.model.right_ventricle.endocardium,

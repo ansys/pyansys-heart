@@ -35,7 +35,7 @@ from ansys.health.heart.objects import Mesh, SurfaceMesh
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 
 
-class ConductionBeamType(Enum):
+class ConductionPathType(Enum):
     """Conduction beam types."""
 
     LEFT_PURKINJE = "Left-purkinje"
@@ -64,32 +64,32 @@ class ConductionBeamType(Enum):
 
 
 connections = {
-    ConductionBeamType.LEFT_PURKINJE: [ConductionBeamType.HIS_LEFT, None],
-    ConductionBeamType.RIGHT_PURKINJE: [ConductionBeamType.HIS_RIGHT, None],
-    ConductionBeamType.SAN_AVN: [None, ConductionBeamType.HIS_TOP],
-    ConductionBeamType.MID_SAN_AVN: [ConductionBeamType.SAN_AVN, ConductionBeamType.HIS_TOP],
-    ConductionBeamType.POST_SAN_AVN: [ConductionBeamType.SAN_AVN, ConductionBeamType.HIS_TOP],
-    ConductionBeamType.HIS_TOP: [
-        ConductionBeamType.SAN_AVN,
+    ConductionPathType.LEFT_PURKINJE: [ConductionPathType.HIS_LEFT, None],
+    ConductionPathType.RIGHT_PURKINJE: [ConductionPathType.HIS_RIGHT, None],
+    ConductionPathType.SAN_AVN: [None, ConductionPathType.HIS_TOP],
+    ConductionPathType.MID_SAN_AVN: [ConductionPathType.SAN_AVN, ConductionPathType.HIS_TOP],
+    ConductionPathType.POST_SAN_AVN: [ConductionPathType.SAN_AVN, ConductionPathType.HIS_TOP],
+    ConductionPathType.HIS_TOP: [
+        ConductionPathType.SAN_AVN,
         None,  # [ConductionBeamType.HIS_LEFT, ConductionBeamType.HIS_RIGHT],
     ],
-    ConductionBeamType.HIS_LEFT: [
-        ConductionBeamType.HIS_TOP,
-        ConductionBeamType.LEFT_BUNDLE_BRANCH,
+    ConductionPathType.HIS_LEFT: [
+        ConductionPathType.HIS_TOP,
+        ConductionPathType.LEFT_BUNDLE_BRANCH,
     ],
-    ConductionBeamType.HIS_RIGHT: [
-        ConductionBeamType.HIS_TOP,
-        ConductionBeamType.RIGHT_BUNDLE_BRANCH,
+    ConductionPathType.HIS_RIGHT: [
+        ConductionPathType.HIS_TOP,
+        ConductionPathType.RIGHT_BUNDLE_BRANCH,
     ],
-    ConductionBeamType.LEFT_BUNDLE_BRANCH: [
-        ConductionBeamType.HIS_LEFT,
-        ConductionBeamType.LEFT_PURKINJE,
+    ConductionPathType.LEFT_BUNDLE_BRANCH: [
+        ConductionPathType.HIS_LEFT,
+        ConductionPathType.LEFT_PURKINJE,
     ],
-    ConductionBeamType.RIGHT_BUNDLE_BRANCH: [
-        ConductionBeamType.HIS_RIGHT,
-        ConductionBeamType.RIGHT_PURKINJE,
+    ConductionPathType.RIGHT_BUNDLE_BRANCH: [
+        ConductionPathType.HIS_RIGHT,
+        ConductionPathType.RIGHT_PURKINJE,
     ],
-    ConductionBeamType.BACHMANN_BUNDLE: [ConductionBeamType.SAN_AVN, None],
+    ConductionPathType.BACHMANN_BUNDLE: [ConductionPathType.SAN_AVN, None],
 }
 
 
@@ -98,7 +98,7 @@ class ConductionBeams:
 
     def __init__(
         self,
-        name: ConductionBeamType,
+        name: ConductionPathType,
         mesh: Mesh,
         id: int,
         is_connected: np.ndarray,
@@ -159,7 +159,7 @@ class ConductionBeams:
 
     @staticmethod
     def create_from_keypoints(
-        name: ConductionBeamType,
+        name: ConductionPathType,
         keypoints: list[np.ndarray],
         id: int,
         base_mesh: pv.PolyData | pv.UnstructuredGrid,
@@ -209,7 +209,7 @@ class ConductionBeams:
 
     @staticmethod
     def create_from_k_file(
-        name: ConductionBeamType, k_file: str, id: int, base_mesh: pv.PolyData, model
+        name: ConductionPathType, k_file: str, id: int, base_mesh: pv.PolyData, model
     ) -> ConductionBeams:
         """TODO."""
         beam_nodes, edges, mask, _ = _read_purkinje_from_kfile(k_file)

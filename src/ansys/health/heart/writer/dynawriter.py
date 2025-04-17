@@ -53,7 +53,7 @@ from ansys.health.heart.models import (
 )
 from ansys.health.heart.models_utils import LandMarker
 from ansys.health.heart.objects import Cap, CapType, PartType, SurfaceMesh
-from ansys.health.heart.pre.conduction_beams import ConductionBeamType
+from ansys.health.heart.pre.conduction_beams import ConductionPathType
 from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
 from ansys.health.heart.settings.material.material import (
     Mat295,
@@ -3079,7 +3079,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
             stim_nodes = [node_apex_left, node_apex_right]
 
-            if ConductionBeamType.SAN_AVN in [beam.name for beam in self.model.conduction_paths]:
+            if ConductionPathType.SAN_AVN in [beam.name for beam in self.model.conduction_paths]:
                 # Active SA node (belong to both solid and beam)
                 stim_nodes = list(self.model.mesh.find_closest_point(LandMarker.SA_NODE.xyz, n=5))
 

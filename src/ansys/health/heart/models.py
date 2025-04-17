@@ -262,7 +262,7 @@ class HeartModel:
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
 
-        self._conduction_beams: list[ConductionBeams] = []
+        self._conduction_paths: list[ConductionBeams] = []
         """Conduction beams list."""
 
         self._conduction_system: Mesh = Mesh()
@@ -284,22 +284,22 @@ class HeartModel:
         return
 
     @property
-    def conduction_beams(self):
-        """Return conduction beams."""
-        return self._conduction_beams
+    def conduction_paths(self):
+        """Return the list of conduction path."""
+        return self._conduction_paths
 
     def add_conduction_beam(self, beams: ConductionBeams | list[ConductionBeams]):
         """Add conduction beam to the model."""
-        if len(self._conduction_beams) > 0:
+        if len(self._conduction_paths) > 0:
             LOGGER.warning("Removing previously defined conduction beams.")
-            self._conduction_beams: list[ConductionBeams] = []
+            self._conduction_paths: list[ConductionBeams] = []
             self._conduction_system: Mesh = Mesh()
 
         if isinstance(beams, ConductionBeams):
             beams = [beams]
 
         for beam in beams:
-            self._conduction_beams.append(beam)
+            self._conduction_paths.append(beam)
 
             # merge beam into conduction_system
             merge_ids, target_ids = self._find_merge_points(beam)
@@ -310,13 +310,13 @@ class HeartModel:
         self._conduction_system.point_data["_shifted_id"] = self._shifted_id()
 
     def _find_merge_points(self, beam: ConductionBeams):
-        registered_name = [c.name for c in self._conduction_beams]
+        registered_name = [c.name for c in self._conduction_paths]
 
         merge_ids = []
         target_ids = []
 
         if beam._up is not None and beam._up in registered_name:
-            target = next(i for i in self._conduction_beams if i.name == beam._up)
+            target = next(i for i in self._conduction_paths if i.name == beam._up)
 
             LOGGER.info(
                 f"merge first node of {beam.name.value} into closet point of {target.name.value}"
@@ -331,7 +331,7 @@ class HeartModel:
             target_ids.append(id2)
 
         if beam._down is not None and beam._down in registered_name:
-            target = next(i for i in self._conduction_beams if i.name == beam._down)
+            target = next(i for i in self._conduction_paths if i.name == beam._down)
             LOGGER.info(
                 f"merge last node of {beam.name.value} into closet point of {target.name.value}"
             )

@@ -3079,7 +3079,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
             stim_nodes = [node_apex_left, node_apex_right]
 
-            if ConductionBeamType.SAN_AVN in [beam.name for beam in self.model.conduction_beams]:
+            if ConductionBeamType.SAN_AVN in [beam.name for beam in self.model.conduction_paths]:
                 # Active SA node (belong to both solid and beam)
                 stim_nodes = list(self.model.mesh.find_closest_point(LandMarker.SA_NODE.xyz, n=5))
 
@@ -3215,7 +3215,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # loop for each beam
         beam_pid = []
         registered_surfaces = [surf for part in self.model.parts for surf in part.surfaces]
-        for beam in self.model.conduction_beams:
+        for beam in self.model.conduction_paths:
             if isinstance(beam.ep_material, EPMaterial.DummyMaterial):
                 epmat = self._get_default_beam_ep_material()
             else:

@@ -293,8 +293,18 @@ class HeartModel:
         """Return the conduction mesh."""
         return self._conduction_mesh
 
-    def add_conduction_beam(self, beams: ConductionBeams | list[ConductionBeams]):
-        """Add conduction beam to the model."""
+    def assign_conduction_paths(self, beams: ConductionBeams | list[ConductionBeams]):
+        """Assign conduction paths to the model.
+
+        Parameters
+        ----------
+        beams : ConductionBeams | list[ConductionBeams]
+            list of conduction beams.
+
+        Notes
+        -----
+        If conduction paths are already defined, they will be removed.
+        """
         if len(self._conduction_paths) > 0:
             LOGGER.warning("Removing previously defined conduction beams.")
             self._conduction_paths: list[ConductionBeams] = []
@@ -312,6 +322,7 @@ class HeartModel:
                 self._conduction_mesh, beam.mesh, merge_ids, target_ids
             )
 
+        # deduce the IDs of the conduction mesh in final mesh
         self._conduction_mesh.point_data["_shifted_id"] = self._shifted_id()
 
     def _find_merge_points(self, beam: ConductionBeams):

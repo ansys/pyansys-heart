@@ -347,7 +347,7 @@ def add_conduction_beams(writer):
         beam_list = HeartModelUtils.define_default_conduction_system(
             writer.model, purkinje_folder=folder
         )
-        writer.model.add_conduction_beam(beam_list)
+        writer.model.assign_conduction_paths(beam_list)
 
 
 @pytest.mark.parametrize(

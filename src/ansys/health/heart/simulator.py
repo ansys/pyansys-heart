@@ -485,7 +485,7 @@ class EPSimulator(BaseSimulator):
         )
 
         if isinstance(self.model, LeftVentricle):
-            self.model.add_conduction_beam([left_pirkinje])
+            self.model.assign_conduction_paths([left_pirkinje])
             return left_pirkinje
         else:
             right_pirkinje = ConductionBeams.create_from_k_file(
@@ -495,7 +495,7 @@ class EPSimulator(BaseSimulator):
                 base_mesh=self.model.right_ventricle.endocardium,
                 model=self.model,
             )
-            self.model.add_conduction_beam([left_pirkinje, right_pirkinje])
+            self.model.assign_conduction_paths([left_pirkinje, right_pirkinje])
             return [left_pirkinje, right_pirkinje]
 
     def compute_conduction_system(self):
@@ -507,7 +507,7 @@ class EPSimulator(BaseSimulator):
             beam_list = HeartModelUtils.define_default_conduction_system(
                 self.model, os.path.join(self.root_directory, "purkinjegeneration")
             )
-            self.model.add_conduction_beam(beam_list)
+            self.model.assign_conduction_paths(beam_list)
         else:
             LOGGER.info("Computation is only implemented for other than FourChamber models.")
 

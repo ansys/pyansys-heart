@@ -142,7 +142,7 @@ def test_conduction():
 
     # new method
     beam_list = HeartModelUtils.define_default_conduction_system(model, purkinje_folder=folder)
-    model.add_conduction_beam(beam_list)
+    model.assign_conduction_paths(beam_list)
     res = model.conduction_mesh
 
     # old method

@@ -108,24 +108,24 @@ class ConductionBeams:
         Parameters
         ----------
         name : ConductionBeamType
-            name of the conduction beam.
+            Name of the conduction beam.
         mesh : Mesh
             Beam mesh.
         id : int
-            id of the conduction beam.
+            ID of the conduction beam.
         is_connected : np.ndarray
-            mask array of points connected to solid mesh.
+            Mask array of points connected to solid mesh.
         relying_surface : pv.PolyData
-            surface mesh where the conduction beam is relying on.
-        material : EPMaterial, optional
-            EP material property, by default EPMaterial.DummyMaterial()
+            Surface mesh where the conduction beam is relying on.
+        material : EPMaterial, default: EPMaterial.DummyMaterial()
+            EP Material property.
         """
         self.name = name
         self.mesh = mesh.copy()
         self.id = id
         self.is_connected = is_connected
 
-        # TODO: check if mesh are on relying_surface
+        # TODO: check if the mesh lays on the relying_surface
         self.relying_surface = relying_surface
         self.ep_material = material
 
@@ -164,30 +164,30 @@ class ConductionBeams:
         connection: Literal["none", "first", "last", "all"] = "none",
         refine_length: float | None = 1.5,
     ) -> ConductionBeams:
-        """Create a conduction beam on a base mesh through keypoints.
+        """Create a conduction beam on a base mesh through a set of keypoints.
 
         Parameters
         ----------
         name : ConductionBeamType
-             name of the conduction beam.
+            Name of the conduction beam.
         keypoints : list[np.ndarray]
-            keypoints are used to create a path on the base mesh.
+            Keypoints used to construct the path on the base mesh.
         id : int
-            id of the conduction beam.
+            ID of the conduction beam.
         base_mesh : pv.PolyData | pv.UnstructuredGrid
-            base mesh where the conduction beam is created.
-            If PolyData, results are geodesic line on the surface.
-            If UnstructuredGrid, results are lines in the solid.
+            Base mesh where the conductionn beam is created. If PolyData, then the
+            result is a geodesic path on the surface. If an pv.UnstructuredGrid, then the
+            result can be a path in the solid.
         connection : Literal[&quot;none&quot;, &quot;first&quot;, &quot;last&quot;, &quot;all&quot;]
-        , optional
-            describe how beam is connected to solid mesh, by default "none"
-        refine_length : float, optional
-            beam length, by default 1.5
+        , default: "none"
+            Describes how the beam is connected to the solid mesh.
+        refine_length : float | None, default: 1.5
+            Beam length.
 
         Returns
         -------
         ConductionBeams
-            ConductionBeams
+            ConductionBeams.
         """
         if isinstance(base_mesh, pv.PolyData):
             under_surface = base_mesh
@@ -239,12 +239,12 @@ class ConductionBeams:
 
 
 def _fill_points(point_start: np.array, point_end: np.array, beam_length: float) -> np.ndarray:
-    """Create points in a line defined by a start point and an end point.
+    """Create points in a line defined by a start and an end point.
 
     Parameters
     ----------
     point_start : np.array
-        Start Point.
+        Start point.
     point_end : np.array
         End point.
     beam_length : float
@@ -252,7 +252,7 @@ def _fill_points(point_start: np.array, point_end: np.array, beam_length: float)
 
     Returns
     -------
-    np.ndarray:
+    np.ndarray
         List of created points.
     """
     line_vector = point_end - point_start
@@ -279,21 +279,21 @@ def _refine_points(nodes: np.array, beam_length: float) -> np.ndarray:
 def _create_path_on_surface(
     key_points: list[np.ndarray], surface: pv.PolyData, refine_length: float
 ) -> pv.PolyData:
-    """Create a path by geodesic line between key points.
+    """Create a geodesic path between key points.
 
     Parameters
     ----------
     key_points : list[np.ndarray]
-        points to be connected by geodesic lines.
+        Points to be connected by the geodesic path.
     surface : pv.PolyData
-        surface where the path is created.
+        Surface on which the path is created.
     refine_length : float
-        refine beam length.
+        Refine beam length.
 
     Returns
     -------
     pv.PolyData
-        lines created by geodesic lines.
+        Lines created by the geodesic path.
     """
     path_points = []
     for i in range(len(key_points) - 1):
@@ -401,7 +401,7 @@ def _read_purkinje_from_kfile(filename: str):
     Parameters
     ----------
     filename : pathlib.Path
-        Purkinje filename.
+        Filename of the LS-DYNA keyword file that contains the Purkinje network.
 
     Returns
     -------

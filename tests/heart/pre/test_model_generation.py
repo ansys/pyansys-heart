@@ -330,18 +330,6 @@ def add_conduction_beams(writer):
         folder = os.path.join(
             get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
         )
-        # # old method
-        # from ansys.health.heart.objects import _ConductionType
-        # from ansys.health.heart.pre.conduction_beam import _compute_heart_conductionsystem
-
-        # f1 = os.path.join(folder, "purkinjeNetwork_001.k")
-        # f2 = os.path.join(folder, "purkinjeNetwork_002.k")
-
-        # writer.model.add_purkinje_from_kfile(f1, _ConductionType.LEFT_PURKINJE.value)
-        # writer.model.add_purkinje_from_kfile(f2, _ConductionType.RIGHT_PURKINJE.value)
-        # _compute_heart_conductionsystem(writer.model, 1.5)
-
-        # new method
         from ansys.health.heart.models_utils import HeartModelUtils
 
         beam_list = HeartModelUtils.define_default_conduction_system(

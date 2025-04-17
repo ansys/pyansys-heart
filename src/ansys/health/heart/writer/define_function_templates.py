@@ -26,7 +26,7 @@ from ansys.dyna.core.keywords import keywords
 
 
 def _function_alpha(alpha_endo: float = -60, alpha_epi: float = 60):
-    """Define the alpha angle for fiber definition."""
+    """Define the alpha angle for the fiber definition."""
     return "\n".join(
         [
             "float alpha(",
@@ -48,7 +48,7 @@ def _function_alpha(alpha_endo: float = -60, alpha_epi: float = 60):
 
 
 def _function_beta(beta_endo: float = 25, beta_epi: float = -65):
-    """Define the beta angle for fiber definition in ventricles."""
+    """Define the beta angle for the fiber definition in ventricles."""
     return "\n".join(
         [
             "    float beta(",
@@ -70,7 +70,7 @@ def _function_beta(beta_endo: float = 25, beta_epi: float = -65):
 
 
 def _function_beta_septum(beta_endo: float = -65, beta_epi: float = 25):
-    """Define the beta angle for fiber definition in the septum."""
+    """Define the beta angle for the fiber definition in the septum."""
     return "\n".join(
         [
             "    float betaW(",
@@ -488,11 +488,11 @@ def _define_function_0d_system(
     Parameters
     ----------
     function_id : int
-        Function ID that defines the interaction between control volumes
+        Function ID that defines the interaction between control volumes.
     function_name : str
-        Name of the function
+        Function name.
     parameters : dict
-        Parameters of the system model
+        Parameters of the system model.
 
     Returns
     -------

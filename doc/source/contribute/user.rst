@@ -1,9 +1,14 @@
-Contributing as a user
-######################
+Contribute as a user
+####################
 
 Users can contribute in a variety of ways, such as reporting bugs, requesting
 new features, testing in-development features, starting discussions, answering
 questions, and sharing their work with the community.
+
+.. warning::
+
+    Do not include any proprietary or sensitive information when reporting bugs
+    or showcasing your work.
 
 .. grid:: 1 2 3 3
     :padding: 2 2 2 2
@@ -33,7 +38,7 @@ questions, and sharing their work with the community.
         :link: start-a-discussion
         :link-type: ref
 
-        Want to discuss something? Start a discussion here.
+        Want to discuss something? Start or contribute to a discussion.
 
     .. grid-item-card:: :fa:`comment-dots` Answer questions
         :padding: 2 2 2 2
@@ -61,14 +66,14 @@ questions, and sharing their work with the community.
 Report bugs
 ===========
 
-If you encounter a bug or an issue while using the project, please report it.
-Your feedback helps to identify problems.
+If you encounter a bug or an issue while using the project, report it.
+Your feedback helps to identify problems and get them resolved.
 
-- Search the `PyAnsys Heart issues`_ to see if the issue has already been reported.
+- Search the `PyAnsys Heart Issues`_ page to see if the issue has already been reported.
 
-- Create a new issue if it hasn’t been reported.
+- Create an issue if one doesn't already exist.
 
-  - Include a clear description of the problem.
+  - Include a clear description of the issue.
   - Provide steps to reproduce the issue.
   - Mention the version of the project you're using.
   - Include screenshots or logs if possible.
@@ -79,21 +84,22 @@ Request a new feature
 =====================
 
 Do you have an idea for a new feature or an improvement? Your suggestions are
-welcome. You can request a new feature by creating an issue in the `PyAnsys Heart issues`_
-board.
+welcome. You can request a new feature by creating an issue on the `PyAnsys Heart Issues`_
+page.
 
 .. _test-a-new-feature:
 
 Test a new feature
 ==================
 
-It is possible to test a new feature before it is officially released. To do
-so, you can install PyAnsys Heart from the source code by following the steps below.
+You can test a new feature before it is officially released. To do
+so, you can install PyAnsys Heart from the source code by performing the
+steps in the following child topics.
 
 Clone the repository
 --------------------
 
-Clone and install the latest version of PyAnsys Heart by running this code:
+Clone and install the repository:
 
 .. code-block:: bash
 
@@ -102,85 +108,84 @@ Clone and install the latest version of PyAnsys Heart by running this code:
 Install for users
 -----------------
 
-Installing the latest version of PyAnsys Heart allows you to test latest features as
-they are being developed without having to wait for releases.
+Install the latest version of PyAnsys Heart to test the latest features as
+they are being developed, without having to wait for releases.
 
-Virtual environment
-~~~~~~~~~~~~~~~~~~~
+Set up a virtual environment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Start by navigating to the project's root directory by running:
+#. Navigate to the project's root directory:
 
-.. code-block::
+   .. code-block::
 
-    cd pyansys-heart
+       cd pyansys-heart
 
-Then, create a new virtual environment named ``.venv`` to isolate your system's
-Python environment by running:
+#. Create a new virtual environment named ``.venv`` to isolate your system's
+   Python environment:
 
-.. code-block:: text
+   .. code-block:: text
 
-    python -m venv .venv
+       python -m venv .venv
 
-Finally, activate this environment by running:
+3. Activate this environment:
 
-.. tab-set::
+   .. tab-set::
 
-    .. tab-item:: Windows
+       .. tab-item:: Windows
 
-        .. tab-set::
+           .. tab-set::
 
-            .. tab-item:: CMD
+               .. tab-item:: CMD
 
-                .. code-block:: text
+                   .. code-block:: text
 
-                    .venv\Scripts\activate.bat
+                       .venv\Scripts\activate.bat
 
-            .. tab-item:: PowerShell
+               .. tab-item:: PowerShell
 
-                .. code-block:: text
+                   .. code-block:: text
 
-                    .venv\Scripts\Activate.ps1
+                       .venv\Scripts\Activate.ps1
 
-    .. tab-item:: macOS/Linux/UNIX
+       .. tab-item:: macOS/Linux/UNIX
 
-        .. code-block:: text
+           .. code-block:: text
 
-            source .venv/bin/activate
+               source .venv/bin/activate
 
-Latest version installation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Install the latest version
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now, install PyAnsys Heart in editable mode by running:
+#. Install PyAnsys Heart in editable mode:
 
-.. code-block:: text
+   .. code-block:: text
 
-    python -m pip install .
+       python -m pip install .
 
-Verify the installation by checking the version of the library:
+2. Verify the installation by checking the version of the library:
+
+   .. code-block:: python
+
+       from ansys.heart import __version__
 
 
-.. code-block:: python
+       print(f"PyAnsys Heart version is {__version__}.")
 
-    from ansys.heart import __version__
+   .. jinja::
 
+       .. code-block:: text
 
-    print(f"PyAnsys Heart version is {__version__}")
-
-.. jinja::
-
-    .. code-block:: text
-
-       >>> PyAnsys Heart version is {{ PYANSYS_HEART_VERSION }}
+       >>> PyAnsys Heart version is {{ PYANSYS_HEART_VERSION }}.
 
 .. _start-a-discussion:
 
 Start a discussion
 ==================
 
-Complex topics may require a discussion. Whether you want to know how to use
+Complex topics might require a discussion. Whether you want to know how to use
 PyAnsys Heart for solving your specific problem or you have a suggestion for a new
 feature, a discussion is a good place to start. You can open a new discussion
-in the `PyAnsys Heart discussions`_ section.
+on the `PyAnsys Heart Discussions`_ page.
 
 .. _answer-questions:
 
@@ -198,8 +203,8 @@ Share your work
 ===============
 
 If you have used PyAnsys Heart to create something interesting, share it with the rest
-of the community. You can share your work in the `PyAnsys Heart discussions`_. Include
-a brief description of your work and any relevant links that others may find
+of the community. You can share your work on the `PyAnsys Heart discussions`_ page. Include
+a brief description of your work and any relevant links that others might find
 useful.
 
 .. _view-documentation:

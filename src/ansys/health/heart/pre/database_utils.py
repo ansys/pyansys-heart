@@ -42,17 +42,17 @@ def _read_input_mesh(mesh_path: str, database: str) -> pv.UnstructuredGrid:
     mesh_path : str
         Path to the mesh file.
     database : str
-        Database name
+        Database name.
 
     Returns
     -------
     pv.UnstructuredGrid
-        Unstructured grid
+        Unstructured grid.
 
     Raises
     ------
     TypeError
-        If the mesh fails to be imported as an UnstructuredGrid
+        If the mesh fails to be imported as an UnstructuredGrid.
     """
     mesh: pv.UnstructuredGrid = pv.read(mesh_path)
     if isinstance(mesh, pv.MultiBlock):
@@ -71,17 +71,17 @@ def _read_input_mesh(mesh_path: str, database: str) -> pv.UnstructuredGrid:
 
 
 def _get_original_labels(database: str, case_num: int = None) -> dict:
-    """Import the original labels based on database name.
+    """Import the original labels based on a database name.
 
     Parameters
     ----------
     database : str
-        Name of the database.
+        Database name.
 
     Returns
     -------
     dict
-        Dictionary representing the label to id map.
+        Dictionary representing the label to ID map.
     """
     match database:
         case "Strocchi2020":
@@ -108,9 +108,9 @@ def _get_interface_surfaces(
     Parameters
     ----------
     mesh : pv.UnstructuredGrid
-        Volume mesh
+        Volume mesh.
     labels : dict
-        Label dict to which to add the interface labels
+        Label dictionary to add the interface labels to.
     """
     tetras = np.reshape(mesh.cells, (mesh.n_cells, 5))[:, 1:]
     faces, c0, c1 = face_tetra_connectivity(tetras)
@@ -160,9 +160,9 @@ def _find_endo_epicardial_regions(
     Parameters
     ----------
     geom_all : pv.PolyData
-        Entire heart model
+        Entire heart model.
     tag_to_label : dict
-        Dictionary that maps the tags to the corresponding labels
+        Dictionary that maps the tags to the corresponding labels.
     """
     geom_all.cell_data["orig_ids"] = np.arange(0, geom_all.n_cells)
 
@@ -228,15 +228,15 @@ def _get_part_definitions(original_labels: dict, boundary_label_to_boundary_id: 
     Parameters
     ----------
     original_labels : dict
-        Dictionary with the original labels
+        Dictionary with the original labels.
     boundary_label_to_boundary_id : dict
-        Dictionary of the boundary label to boundary id map
+        Dictionary of the boundary label to boundary ID map.
 
     Returns
     -------
     dict
-        Dictionary with the part definitions. That is part id and corresponding
-    boundaries that enclose that part.
+        Dictionary with the part definitions, which is the part ID and corresponding
+        boundaries that enclose that part.
     """
     part_definitions = {}
     for original_label, original_tag in original_labels.items():
@@ -343,18 +343,18 @@ def _smooth_boundary_edges(
     Parameters
     ----------
     surface_mesh : pv.PolyData
-        Input surface mesh
+        Input surface mesh.
     id_to_label_map : dict
-        ID to label map
-    sub_label_to_smooth : str, optional
-        Sub label to smooth, by default "endocardium"
-    window_size : int, optional
-        Window size of the smoothing method, by default 5
+        ID to label map.
+    sub_label_to_smooth : str, default: ``'endocardium'``
+        Sublabel to smooth.
+    window_size : int, default: 5
+        Window size of the smoothing method.
 
     Returns
     -------
     Tuple[pv.PolyData, dict]
-        Preprocessor compatible polydata object and dictionary with part definitions
+        Preprocessor-compatible polydata object and dictionary with part definitions.
     """
     surfaces_to_smooth = [
         id for id, label in id_to_label_map.items() if sub_label_to_smooth in label
@@ -432,21 +432,22 @@ def get_compatible_input(
     model_type: Literal["FullHeart", "FourChamber", "BiVentricle", "LeftVentricle"] = "FullHeart",
     database: str = "Rodero2021",
 ) -> tuple[pv.PolyData, dict]:
-    """Extract a preprocessor compatible input surface.
+    """Extract a preprocessor-compatible input surface.
 
     Parameters
     ----------
     mesh_path : str
-        Path to the input mesh (UnstructuredGrid or MultiBlock)
-    model_type : str, optional
-        Type of model to extract, by default "FullHeart"
-    database : str, optional
-        Database name, by default "Rodero2021"
+        Path to the input mesh (UnstructuredGrid or MultiBlock).
+    model_type : str, default: ``'FullHeart'``
+        Type of model to extract. Options are ``'FullHeart'``, ``'FourChamber'``,
+        ``'BiVentricle'``, and ``'LeftVentricle'``.
+    database : str, default: ``'Rodero2021'``
+        Database name. Options are ``'Rodero2021'`` and ``'Strocchi2020'``.
 
     Returns
     -------
     Tuple[pv.PolyData, dict]
-        Preprocessor compatible polydata object and dictionary with part definitions
+        Preprocessor-compatible polydata object and dictionary with part definitions.
     """
     case_num = os.path.basename(mesh_path)
     case_num = int(case_num.replace(".case", "").replace(".vtk", ""))

@@ -24,10 +24,10 @@
 
 Notes
 -----
-This module manages the different types of input that can be handled and include:
-1. User specified boundary mesh. This will require remeshing.
+This module manages the different types of input that can be handled and includes
+user-specified boundary meshes. This require remeshing.
 
-Methods are provided to validate the volume and boundary mesh objects (pyvista objects),
+Methods are provided to validate the volume and boundary mesh objects (PyVista objects),
 and to get the necessary parts or boundaries for each respective model.
 """
 
@@ -99,7 +99,7 @@ _BOUNDARIES_PER_HEART_PART = {
     "Pulmonary artery wall": {"id": 7, "enclosed_by_boundaries": {"pulmonary-artery-wall": 25}},
 }
 
-# the different types of "base" models supported
+# different types of "base" models supported
 _HEART_MODELS = {
     "LeftVentricle": ["Left ventricle myocardium"],
     "BiVentricle": ["Left ventricle myocardium", "Right ventricle myocardium", "Septum"],
@@ -142,9 +142,9 @@ class _InputBoundary(pv.PolyData):
             var_inp, faces, n_faces, lines, n_lines, strips, n_strips, deep, force_ext, force_float
         )
         self.id = id
-        """ID of boundary."""
+        """Boundary ID."""
         self.name = name
-        """Name of boundary."""
+        """Boundary name."""
 
     def __repr__(self):
         return f"Name:{self.name}\nid:{self.id}\n{super().__repr__()}"
@@ -155,9 +155,9 @@ class _InputPart:
         if not isinstance(boundaries, list):
             raise TypeError("Boundaries should be a list.")
         self.name = name
-        """Name of part."""
+        """Part name."""
         self.id = id
-        """id of part."""
+        """Part ID."""
         self.boundaries: list[_InputBoundary] = boundaries
         """list of boundaries that enclose the part."""
         pass
@@ -202,10 +202,10 @@ class _InputModel:
     Notes
     -----
     Supported inputs include:
-    1. [NotImplemented] Unstructured grid file or object with part-ids
+    1. [NotImplemented] Unstructured grid file or object with part IDs
     2. [NotImplemented] Multiblock VTK file or object with a single UnstructuredGrid block or
     with multiple PolyData objects
-    3. PolyData file or object with boundary-ids
+    3. PolyData file or object with boundary ID
     """
 
     def __init__(
@@ -225,7 +225,7 @@ class _InputModel:
         if isinstance(input, (Path, str)):
             LOGGER.info(f"Reading {input}...")
             if not os.path.isfile(input):
-                raise FileNotFoundError(f"File {input} not found.")
+                raise FileNotFoundError(f"File {input} is not found.")
 
         try:
             self.input_polydata = pv.PolyData(input)
@@ -233,12 +233,10 @@ class _InputModel:
             raise NotImplementedError(f"Failed to load file {input}. {e}")
 
         if part_definitions is None:
-            LOGGER.error("Please specify part definitions.")
+            LOGGER.error("Specify part definitions.")
             return None
         if scalar is None:
-            LOGGER.error(
-                "Please specify a scalar that is used to identify the enclosing boundaries."
-            )
+            LOGGER.error("Specify a scalar that is used to identify the enclosing boundaries.")
             return None
 
         if scalar != "boundary-id":
@@ -262,7 +260,7 @@ class _InputModel:
 
     @property
     def part_ids(self):
-        """List of part ids."""
+        """List of part IDs."""
         return [p.id for p in self._parts]
 
     @property
@@ -282,7 +280,7 @@ class _InputModel:
 
     @property
     def boundary_ids(self):
-        """List of boundary ids."""
+        """List of boundary IDs."""
         return [b.id for b in self.boundaries]
 
     @property
@@ -314,8 +312,8 @@ class _InputModel:
 
         Notes
         -----
-        The part definitions only change if multiple ids are given for a single surface.
-        The first item in the list defines the new boundary id, and the others are merged.
+        The part definitions only change if multiple IDs are given for a single surface.
+        The first item in the list defines the new boundary ID, and the others are merged.
 
         """
         is_visited = np.full(self.input_polydata.n_cells, False)
@@ -359,7 +357,7 @@ class _InputModel:
         return True
 
     def _validate_uniqueness(self):
-        """Validate whether there are any boundaries with duplicate ids or names."""
+        """Validate whether there are any boundaries with duplicate IDs or names."""
         is_valid = True
         # check id to name map
         mapper = {}
@@ -369,7 +367,7 @@ class _InputModel:
             else:
                 if b.name != mapper[b.id]:
                     LOGGER.error(
-                        "Boundary with id {0} has name {1} but expecting name {2}".format(
+                        "Boundary with ID {0} has name {1} but expecting name {2}".format(
                             b.id, b.name, mapper[b.id]
                         )
                     )
@@ -382,19 +380,19 @@ class _InputModel:
             else:
                 if b.id != mapper[b.name]:
                     LOGGER.error(
-                        "Boundary with name {0} has id {1} but expecting id {2}".format(
+                        "Boundary with name {0} has ID {1} but expecting ID {2}".format(
                             b.name, b.id, mapper[b.name]
                         )
                     )
                     is_valid = False
         if not is_valid:
-            LOGGER.warning("Please specify unique boundary name/id combination.")
+            LOGGER.warning("Specify unique boundary name/ID combination.")
         return is_valid
 
     def _validate_input(self):
         """Validate whether the provided scalars or list of scalars yield non-empty meshes."""
         if len(self.parts) == 0:
-            LOGGER.warning("No parts defined, nothing to validate.")
+            LOGGER.warning("No parts are defined. There is nothing to validate.")
             return None
         for part in self.parts:
             for b in part.boundaries:
@@ -408,7 +406,7 @@ class _InputModel:
             import matplotlib as mpl
         except ImportError as error:
             LOGGER.error(
-                f"Failed to import matplotlib. Install with pip install matplotlib. {error}"
+                f"Failed to import Matplotlib. Install with 'pip install matplotlib'. {error}"
             )
             return
         import matplotlib as mpl
@@ -463,7 +461,7 @@ def _invert_dict(d: dict) -> dict:
 
 
 def _get_required_parts(model_type: str) -> dict:
-    """Get a dict of required parts for the given model."""
+    """Get a dictionary of required parts for the given model."""
     try:
         part_names = _HEART_MODELS[model_type]
     except KeyError:
@@ -479,7 +477,7 @@ def _get_required_parts(model_type: str) -> dict:
 
 
 def _get_part_name_to_part_id_map() -> dict:
-    """Get map that maps the part names to the part ids."""
+    """Get the map that maps the part names to the part iIDs."""
     mapper = {}
     for k, value in _BOUNDARIES_PER_HEART_PART.items():
         mapper[k] = value["id"]
@@ -487,12 +485,12 @@ def _get_part_name_to_part_id_map() -> dict:
 
 
 def _get_part_id_to_part_name_map() -> dict:
-    """Get map that maps the part ids to the part names."""
+    """Get the map that maps the part IDs to the part names."""
     return _invert_dict(_get_part_name_to_part_id_map())
 
 
 def _get_boundary_name_to_boundary_id_map() -> dict:
-    """Get the map that maps the boundary name to the boundary id."""
+    """Get the map that maps the boundary name to the boundary ID."""
     mapper = {}
     for part_name, part_subdict in _BOUNDARIES_PER_HEART_PART.items():
         mapper.update(part_subdict["enclosed_by_boundaries"])
@@ -500,12 +498,12 @@ def _get_boundary_name_to_boundary_id_map() -> dict:
 
 
 def _get_boundary_id_to_boundary_name_map() -> dict:
-    """Get the map that maps the boundary name to the boundary id."""
+    """Get the map that maps the boundary IDs to the boundary names."""
     return _invert_dict(_get_boundary_name_to_boundary_id_map())
 
 
 def _get_required_boundaries(model_type: str) -> list[str]:
-    """Return a list of boundaries required for the given model."""
+    """Get a list of boundaries required for a given model."""
     parts = _get_required_parts(model_type)
     required_boundaries = []
     for p in parts:

@@ -1,22 +1,21 @@
 
 .. _ref_writer:
 
-******
 Writer
-******
+======
 
-:attr:`DynaWriter <ansys.heart.writer.dynawriter>` is used to generate LS-DYNA input files for different simulations.
+The :attr:`DynaWriter <ansys.heart.writer.dynawriter>` base class generates LS-DYNA input files for different simulations.
 
-Based on different applications, different Writers need to be created.
+Based on different applications, different writers must be created.
 
-    - :attr:`PurkinjeGenerationDynaWriter`, to generate a LS-DYNA input deck for creating Purkinje network.
-    - :attr:`FiberGenerationDynaWriter`, to generate a LS-DYNA input deck for creating fibers orientation vectors.
-    - :attr:`MechanicsDynaWriter`, to generate a LS-DYNA input deck for mechanical simulations
-    - :attr:`ZeroPressureMechanicsDynaWriter`, to generate a LS-DYNA input deck for stress free configuration simulations
-    - :attr:`ElectrophysiologyDynaWriter`, to generate a LS-DYNA input deck for electrophysiology simulations
-    - :attr:`ElectroMechanicsDynaWriter`, to generate a LS-DYNA input deck for electrical-mecahnical coupled simulations
+- :attr:`PurkinjeGenerationDynaWriter`: Generates an LS-DYNA input deck for creating a Purkinje network.
+- :attr:`FiberGenerationDynaWriter`: Generates an LS-DYNA input deck for creating fiber orientation vectors.
+- :attr:`MechanicsDynaWriter`: Generates an LS-DYNA input deck for mechanical simulations.
+- :attr:`ZeroPressureMechanicsDynaWriter`: Generates an LS-DYNA input deck for stress-free configuration simulations.
+- :attr:`ElectrophysiologyDynaWriter`: Generates an LS-DYNA input deck for electrophysiology simulations.
+- :attr:`ElectroMechanicsDynaWriter`: Generates an LS-DYNA input deck for electrical-mechanical coupled simulations.
 
-A simple use example is given as the following:
+Here is a simple code example:
 
 >>> # Get a heart model
 >>> import ansys.health.heart.models as models

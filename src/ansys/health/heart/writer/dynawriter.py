@@ -2774,7 +2774,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_nodesets_db()
         self._update_parts_cellmodels()
 
-        if self.model._conduction_system.number_of_cells != 0:
+        if self.model._conduction_mesh.number_of_cells != 0:
             # with smcoupl=1, mechanical coupling is disabled
             # with thcoupl=1, thermal coupling is disabled
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=1))
@@ -3084,9 +3084,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 stim_nodes = list(self.model.mesh.find_closest_point(LandMarker.SA_NODE.xyz, n=5))
 
                 # add 1 more beam node to initiate wave propagation
-                p = self.model._conduction_system.find_closest_point(LandMarker.SA_NODE.xyz, n=2)
+                p = self.model._conduction_mesh.find_closest_point(LandMarker.SA_NODE.xyz, n=2)
                 # take the second point, the first point is SA node itself
-                pointid = self.model._conduction_system["_shifted_id"][p[1]]
+                pointid = self.model._conduction_mesh["_shifted_id"][p[1]]
                 stim_nodes.append(pointid)
 
         # stimulate entire elements for Eikonal
@@ -3196,8 +3196,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         beam_elem_id_offset = self.id_offset["element"]["discrete"]
 
         # write beam nodes
-        new_nodes = self.model._conduction_system.points[
-            (np.where(np.logical_not(self.model._conduction_system["_is-connected"]))[0])
+        new_nodes = self.model._conduction_mesh.points[
+            (np.where(np.logical_not(self.model._conduction_mesh["_is-connected"]))[0])
         ]
         ids = (
             np.linspace(
@@ -3283,11 +3283,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self._add_cell_model_keyword(matid=pid, cellmodel=epmat.cell_model)
 
             # build element connectivity
-            line_ids = self.model._conduction_system["_line-id"] == beam.id
+            line_ids = self.model._conduction_mesh["_line-id"] == beam.id
             # get connectivity in _conduction_system
-            edges_org = self.model._conduction_system.cells.reshape(-1, 3)[line_ids, 1:]
+            edges_org = self.model._conduction_mesh.cells.reshape(-1, 3)[line_ids, 1:]
             # get shifted ID
-            shift_id = self.model._conduction_system.point_data["_shifted_id"]
+            shift_id = self.model._conduction_mesh.point_data["_shifted_id"]
             edges = shift_id[edges_org]
 
             # write element
@@ -3462,7 +3462,7 @@ class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
 
         self._update_node_db()
 
-        if self.model._conduction_system.number_of_cells != 0:
+        if self.model._conduction_mesh.number_of_cells != 0:
             # with smcoupl=1, coupling is disabled
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=1))
             beam_pid = self._update_use_Purkinje(associate_to_segment=False)
@@ -3520,7 +3520,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         MechanicsDynaWriter.update(self, dynain_name=dynain_name, robin_bcs=robin_bcs)
 
-        if self.model._conduction_system.number_of_cells != 0:
+        if self.model._conduction_mesh.number_of_cells != 0:
             # Coupling enabled, EP beam nodes follow the motion of surfaces
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=0))
             beam_pid = self._update_use_Purkinje()

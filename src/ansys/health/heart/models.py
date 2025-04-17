@@ -263,10 +263,10 @@ class HeartModel:
         """Electrodes positions for ECG computing."""
 
         self._conduction_paths: list[ConductionBeams] = []
-        """Conduction beams list."""
+        """Conduction paths list."""
 
-        self._conduction_system: Mesh = Mesh()
-        """Mesh defining the conduction system."""
+        self._conduction_mesh: Mesh = Mesh()
+        """Mesh of merged conduction paths."""
 
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
@@ -293,7 +293,7 @@ class HeartModel:
         if len(self._conduction_paths) > 0:
             LOGGER.warning("Removing previously defined conduction beams.")
             self._conduction_paths: list[ConductionBeams] = []
-            self._conduction_system: Mesh = Mesh()
+            self._conduction_mesh: Mesh = Mesh()
 
         if isinstance(beams, ConductionBeams):
             beams = [beams]
@@ -303,11 +303,11 @@ class HeartModel:
 
             # merge beam into conduction_system
             merge_ids, target_ids = self._find_merge_points(beam)
-            self._conduction_system = self._safe_line_merge(
-                self._conduction_system, beam.mesh, merge_ids, target_ids
+            self._conduction_mesh = self._safe_line_merge(
+                self._conduction_mesh, beam.mesh, merge_ids, target_ids
             )
 
-        self._conduction_system.point_data["_shifted_id"] = self._shifted_id()
+        self._conduction_mesh.point_data["_shifted_id"] = self._shifted_id()
 
     def _find_merge_points(self, beam: ConductionBeams):
         registered_name = [c.name for c in self._conduction_paths]
@@ -323,8 +323,8 @@ class HeartModel:
             )
             merge_ids.append(0)
 
-            target_mesh = self._conduction_system.extract_cells(
-                self._conduction_system["_line-id"] == target.id
+            target_mesh = self._conduction_mesh.extract_cells(
+                self._conduction_mesh["_line-id"] == target.id
             )
             sub_id = target_mesh.find_closest_point(beam.mesh.points[0])
             id2 = target_mesh["vtkOriginalPointIds"][sub_id]
@@ -336,8 +336,8 @@ class HeartModel:
                 f"merge last node of {beam.name.value} into closet point of {target.name.value}"
             )
             merge_ids.append(-1)
-            target_mesh = self._conduction_system.extract_cells(
-                self._conduction_system["_line-id"] == target.id
+            target_mesh = self._conduction_mesh.extract_cells(
+                self._conduction_mesh["_line-id"] == target.id
             )
             sub_id = target_mesh.find_closest_point(beam.mesh.points[-1])
             id2 = target_mesh["vtkOriginalPointIds"][sub_id]
@@ -355,18 +355,18 @@ class HeartModel:
 
         kdtree = spatial.cKDTree(self.mesh.points)
 
-        is_connected = self._conduction_system["_is-connected"].astype(bool)
-        querry_points = self._conduction_system.points[is_connected]
+        is_connected = self._conduction_mesh["_is-connected"].astype(bool)
+        querry_points = self._conduction_mesh.points[is_connected]
         dst, solid_id = kdtree.query(querry_points)
         LOGGER.info(f"Maximal distance from solid-beam connected node:{np.max(dst)}")
 
         shifted_ids = np.linspace(
-            0, self._conduction_system.n_points - 1, num=self._conduction_system.n_points, dtype=int
+            0, self._conduction_mesh.n_points - 1, num=self._conduction_mesh.n_points, dtype=int
         )
         # for connected nodes, replace by solid mesh ID
         shifted_ids[is_connected] = solid_id
         # for beam-only nodes, shift their IDs
-        for i in range(self._conduction_system.n_points):
+        for i in range(self._conduction_mesh.n_points):
             if not is_connected[i]:
                 shifted_ids[i] += self.mesh.n_points - np.sum(is_connected[:i])
 
@@ -823,15 +823,15 @@ class HeartModel:
 
     def plot_purkinje(self):
         """Plot the mesh and Purkinje network."""
-        if self._conduction_system is None or self._conduction_system.number_of_cells == 0:
+        if self._conduction_mesh is None or self._conduction_mesh.number_of_cells == 0:
             LOGGER.info("No conduction system was found.")
             return
 
         try:
             plotter = pv.Plotter()
             plotter.add_mesh(self.mesh, color="w", opacity=0.1)
-            self._conduction_system.set_active_scalars("_line-id")
-            beams = self._conduction_system
+            self._conduction_mesh.set_active_scalars("_line-id")
+            beams = self._conduction_mesh
             plotter.add_mesh(beams, line_width=2)
             plotter.show()
         except Exception:

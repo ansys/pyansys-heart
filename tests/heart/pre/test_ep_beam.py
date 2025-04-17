@@ -143,7 +143,7 @@ def test_conduction():
     # new method
     beam_list = HeartModelUtils.define_default_conduction_system(model, purkinje_folder=folder)
     model.add_conduction_beam(beam_list)
-    res = model._conduction_system
+    res = model._conduction_mesh
 
     # old method
     # from ansys.health.heart.pre.conduction_beam import _compute_heart_conductionsystem

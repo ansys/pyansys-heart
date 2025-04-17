@@ -54,10 +54,12 @@ class ConductionBeamType(Enum):
     RIGHT_BUNDLE_BRANCH = "Right bundle branch"
     """Right bundle branch."""
     HIS_TOP = "His_top"
-    """His bundle top part."""
+    """Top part of the His bundle."""
     HIS_LEFT = "His_left"
+    """Left part of the His bundle."""
     HIS_RIGHT = "His_right"
-    BACHMANN_BUNDLE = "Bachman bundle"
+    """Right part of the His bundle."""
+    BACHMANN_BUNDLE = "Bachmann bundle"
     """Bachmann bundle."""
 
 

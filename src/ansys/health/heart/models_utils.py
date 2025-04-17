@@ -32,7 +32,7 @@ import pyvista as pv
 from ansys.health.heart import LOG as LOGGER
 import ansys.health.heart.models as models
 from ansys.health.heart.objects import CapType, Point
-from ansys.health.heart.pre.conduction_beams import ConductionBeams, ConductionPathType
+from ansys.health.heart.pre.conduction_beams import ConductionPath, ConductionPathType
 
 
 @dataclass
@@ -228,9 +228,9 @@ class HeartModelUtils:
     @staticmethod
     def define_default_conduction_system(
         model: models.FullHeart | models.FourChamber, purkinje_folder: str
-    ) -> list[ConductionBeams]:
+    ) -> list[ConductionPath]:
         """TODO: define for LV BV and 4C."""
-        left_pirkinje = ConductionBeams.create_from_k_file(
+        left_pirkinje = ConductionPath.create_from_k_file(
             ConductionPathType.LEFT_PURKINJE,
             k_file=os.path.join(purkinje_folder, "purkinjeNetwork_001.k"),
             id=1,
@@ -238,7 +238,7 @@ class HeartModelUtils:
             model=model,
         )
 
-        right_pirkinje = ConductionBeams.create_from_k_file(
+        right_pirkinje = ConductionPath.create_from_k_file(
             ConductionPathType.RIGHT_PURKINJE,
             k_file=os.path.join(purkinje_folder, "purkinjeNetwork_002.k"),
             id=2,
@@ -249,7 +249,7 @@ class HeartModelUtils:
         sa = HeartModelUtils.define_sino_atrial_node(model)
         av = HeartModelUtils.define_atrio_ventricular_node(model)
 
-        sa_av = ConductionBeams.create_from_keypoints(
+        sa_av = ConductionPath.create_from_keypoints(
             name=ConductionPathType.SAN_AVN,
             keypoints=[sa.xyz, av.xyz],
             id=3,
@@ -262,28 +262,28 @@ class HeartModelUtils:
         his_left_point = HeartModelUtils.define_his_bundle_end_node(model, side="left")
         his_right_point = HeartModelUtils.define_his_bundle_end_node(model, side="right")
 
-        his_top = ConductionBeams.create_from_keypoints(
+        his_top = ConductionPath.create_from_keypoints(
             name=ConductionPathType.HIS_TOP,
             keypoints=[av.xyz, his_bif.xyz],
             id=4,
             base_mesh=model.mesh,
             connection="none",
         )
-        his_left = ConductionBeams.create_from_keypoints(
+        his_left = ConductionPath.create_from_keypoints(
             name=ConductionPathType.HIS_LEFT,
             keypoints=[his_bif.xyz, his_left_point.xyz],
             id=5,
             base_mesh=model.mesh,
             connection="none",
         )
-        his_right = ConductionBeams.create_from_keypoints(
+        his_right = ConductionPath.create_from_keypoints(
             name=ConductionPathType.HIS_RIGHT,
             keypoints=[his_bif.xyz, his_right_point.xyz],
             id=6,
             base_mesh=model.mesh,
             connection="none",
         )
-        left_bundle = ConductionBeams.create_from_keypoints(
+        left_bundle = ConductionPath.create_from_keypoints(
             name=ConductionPathType.LEFT_BUNDLE_BRANCH,
             keypoints=[his_left_point.xyz, model.left_ventricle.apex_points[0].xyz],
             id=7,
@@ -295,7 +295,7 @@ class HeartModelUtils:
         surface_ids = [model.right_ventricle.endocardium.id, model.right_ventricle.septum.id]
         endo_surface = model.mesh.get_surface(surface_ids)
 
-        right_bundle = ConductionBeams.create_from_keypoints(
+        right_bundle = ConductionPath.create_from_keypoints(
             name=ConductionPathType.RIGHT_BUNDLE_BRANCH,
             keypoints=[his_right_point.xyz, model.right_ventricle.apex_points[0].xyz],
             id=8,

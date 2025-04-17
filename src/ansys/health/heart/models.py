@@ -46,7 +46,7 @@ from ansys.health.heart.objects import (
     SurfaceMesh,
 )
 from ansys.health.heart.pre.conduction_beams import (
-    ConductionBeams,
+    ConductionPath,
 )
 from ansys.health.heart.pre.input import _InputModel
 import ansys.health.heart.pre.mesher as mesher
@@ -262,7 +262,7 @@ class HeartModel:
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
 
-        self._conduction_paths: list[ConductionBeams] = []
+        self._conduction_paths: list[ConductionPath] = []
         """Conduction paths list."""
 
         self._conduction_mesh: Mesh = Mesh()
@@ -293,7 +293,7 @@ class HeartModel:
         """Return the conduction mesh."""
         return self._conduction_mesh
 
-    def assign_conduction_paths(self, beams: ConductionBeams | list[ConductionBeams]):
+    def assign_conduction_paths(self, beams: ConductionPath | list[ConductionPath]):
         """Assign conduction paths to the model.
 
         Parameters
@@ -307,10 +307,10 @@ class HeartModel:
         """
         if len(self._conduction_paths) > 0:
             LOGGER.warning("Removing previously defined conduction beams.")
-            self._conduction_paths: list[ConductionBeams] = []
+            self._conduction_paths: list[ConductionPath] = []
             self._conduction_mesh: Mesh = Mesh()
 
-        if isinstance(beams, ConductionBeams):
+        if isinstance(beams, ConductionPath):
             beams = [beams]
 
         for beam in beams:
@@ -325,7 +325,7 @@ class HeartModel:
         # deduce the IDs of the conduction mesh in final mesh
         self._conduction_mesh.point_data["_shifted_id"] = self._shifted_id()
 
-    def _find_merge_points(self, beam: ConductionBeams):
+    def _find_merge_points(self, beam: ConductionPath):
         registered_name = [c.name for c in self._conduction_paths]
 
         merge_ids = []

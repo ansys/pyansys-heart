@@ -93,7 +93,7 @@ connections = {
 }
 
 
-class ConductionBeams:
+class ConductionPath:
     """Conduction beams class."""
 
     def __init__(
@@ -165,7 +165,7 @@ class ConductionBeams:
         base_mesh: pv.PolyData | pv.UnstructuredGrid,
         connection: Literal["none", "first", "last", "all"] = "none",
         refine_length: float | None = 1.5,
-    ) -> ConductionBeams:
+    ) -> ConductionPath:
         """Create a conduction beam on a base mesh through a set of keypoints.
 
         Parameters
@@ -205,12 +205,12 @@ class ConductionBeams:
         elif connection == "all":
             is_connceted[:] = 1
 
-        return ConductionBeams(name, beam_mesh, id, is_connceted, under_surface)
+        return ConductionPath(name, beam_mesh, id, is_connceted, under_surface)
 
     @staticmethod
     def create_from_k_file(
         name: ConductionPathType, k_file: str, id: int, base_mesh: pv.PolyData, model
-    ) -> ConductionBeams:
+    ) -> ConductionPath:
         """TODO."""
         beam_nodes, edges, mask, _ = _read_purkinje_from_kfile(k_file)
 
@@ -237,7 +237,7 @@ class ConductionBeams:
 
         beam_net = pv.PolyData(beam_points, lines=connectivity)
 
-        return ConductionBeams(name, beam_net, id, is_connected, base_mesh)
+        return ConductionPath(name, beam_net, id, is_connected, base_mesh)
 
 
 def _fill_points(point_start: np.array, point_end: np.array, beam_length: float) -> np.ndarray:

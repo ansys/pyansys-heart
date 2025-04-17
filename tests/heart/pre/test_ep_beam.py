@@ -28,7 +28,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.health.heart.models_utils import HeartModelUtils
-from ansys.health.heart.pre.conduction_beams import ConductionBeams, ConductionPathType
+from ansys.health.heart.pre.conduction_beams import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 from tests.heart.conftest import get_assets_folder, get_fourchamber, get_fullheart
 
@@ -80,7 +80,7 @@ def test_create_conductionbeams_on_surface():
     sa = HeartModelUtils.define_sino_atrial_node(model)
     av = HeartModelUtils.define_atrio_ventricular_node(model)
 
-    sa_av = ConductionBeams.create_from_keypoints(
+    sa_av = ConductionPath.create_from_keypoints(
         name=ConductionPathType.SAN_AVN,
         keypoints=[sa.xyz, av.xyz],
         id=2,
@@ -96,7 +96,7 @@ def test_create_conductionbeams_in_solid():
     model = get_fourchamber()
     av = HeartModelUtils.define_atrio_ventricular_node(model)
     bif = HeartModelUtils.define_his_bundle_bifurcation_node(model)
-    his_top = ConductionBeams.create_from_keypoints(
+    his_top = ConductionPath.create_from_keypoints(
         name=ConductionPathType.HIS_TOP,
         keypoints=[av.xyz, bif.xyz],
         id=1,
@@ -175,7 +175,7 @@ def test_conductionbeams_from_k():
     )
     f1 = os.path.join(folder, "purkinjeNetwork_001.k")
 
-    l_pj = ConductionBeams.create_from_k_file(
+    l_pj = ConductionPath.create_from_k_file(
         name=ConductionPathType.LEFT_PURKINJE,
         k_file=f1,
         id=1,

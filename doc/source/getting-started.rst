@@ -1,7 +1,7 @@
 Getting started
 ===============
 
-This guide helps you get started with PyAnsys Heart. It provides information on how to install the package, run tests, and check the code style.
+This section helps you get started with PyAnsys Heart. It provides information on how to install the package, run tests, and check the code style.
 
 .. grid:: 1 2 3 3
     :gutter: 1 2 3 3

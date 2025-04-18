@@ -64,11 +64,11 @@ def _mock_model():
     model.electrodes = [p1, p2]
 
     lines = pv.line_segments_from_points([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
-    model.conduction_beams = [
+    model.conduction_paths = [
         ConductionPath(ConductionPathType.LEFT_PURKINJE, lines, 1, [False, False], pv.Sphere())
     ]
 
-    model._conduction_system = _get_mock_conduction_system()
+    model.conduction_mesh = _get_mock_conduction_system()
 
     yield model
 

@@ -47,7 +47,8 @@ from ansys.health.heart.simulator import DynaSettings, EPMechanicsSimulator
 
 # Accept the DPF license agreement.
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
-os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+# by setting the environment variable ``ANSYS_DPF_ACCEPT_LA`` to ``Y``.
+# for instance by: os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # Set the working directory and path to the model. This example assumes that there is a
 # preprocessed model named ``heart_model.vtu`` in the working directory.

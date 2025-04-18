@@ -58,3 +58,7 @@ class InvalidHeartModelError(Exception):
 
 class LSDYNANotFoundError(FileNotFoundError):
     """Exception raised when the LS-DYNA executable file not found."""
+
+
+class MPIProgamNotFoundError(FileNotFoundError):
+    """MPI program not found."""

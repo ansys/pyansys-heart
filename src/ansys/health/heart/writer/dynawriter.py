@@ -53,7 +53,7 @@ from ansys.health.heart.models import (
 )
 from ansys.health.heart.models_utils import LandMarker
 from ansys.health.heart.objects import Cap, CapType, PartType, SurfaceMesh
-from ansys.health.heart.pre.conduction_beams import ConductionPathType
+from ansys.health.heart.pre.conduction_path import ConductionPathType
 from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
 from ansys.health.heart.settings.material.material import (
     Mat295,

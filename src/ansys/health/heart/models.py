@@ -45,7 +45,7 @@ from ansys.health.heart.objects import (
     Point,
     SurfaceMesh,
 )
-from ansys.health.heart.pre.conduction_beams import (
+from ansys.health.heart.pre.conduction_path import (
     ConductionPath,
 )
 from ansys.health.heart.pre.input import _InputModel

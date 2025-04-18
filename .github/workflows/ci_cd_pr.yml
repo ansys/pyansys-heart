@@ -128,7 +128,7 @@ jobs:
           AWP_ROOT241: C:\\Program Files\\ANSYS Inc\\v241
           DPF_STANDALONE_PATH: C:\\Program Files\\ANSYS Inc\\dpf-server-2024.2rc0
           PYFLUENT_UI_MODE: no_gui # default hidden_gui fails on self-hosted runner
-          NIGHTLY_DOC_BUILD: 1
+          NIGHTLY_DOC_BUILD: 0
         run: |
           cmd /c "C:\Program Files (x86)\Intel\oneAPI\setvars.bat"
           echo %I_MPI_ONEAPI_ROOT%

@@ -76,6 +76,7 @@ def test_compute_his_end_node():
 
 
 def test_create_conductionbeams_on_surface():
+    """Test conductionbeams can be initialized correctly on a surface."""
     model = get_fourchamber()
     sa = HeartModelUtils.define_sino_atrial_node(model)
     av = HeartModelUtils.define_atrio_ventricular_node(model)
@@ -89,6 +90,25 @@ def test_create_conductionbeams_on_surface():
     )
 
     assert sa_av.mesh.n_lines == 48
+    assert np.isclose(sa_av.length, 64.36592438345)
+
+
+def test_create_conductionbeams_on_surface_with_refinement():
+    """Test conductionbeams can be initialized correctly on a surface."""
+    model = get_fourchamber()
+    sa = HeartModelUtils.define_sino_atrial_node(model)
+    av = HeartModelUtils.define_atrio_ventricular_node(model)
+
+    sa_av = ConductionPath.create_from_keypoints(
+        name=ConductionPathType.SAN_AVN,
+        keypoints=[sa.xyz, av.xyz],
+        id=2,
+        base_mesh=model.right_atrium.endocardium,
+        connection="all",
+        line_length=0.5,
+    )
+
+    assert sa_av.mesh.n_lines == 140
     assert np.isclose(sa_av.length, 64.36592438345)
 
 

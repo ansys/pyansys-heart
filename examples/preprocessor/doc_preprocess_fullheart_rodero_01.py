@@ -34,10 +34,6 @@ a simulation-ready heart model.
 # Import the required modules and set relevant paths, including that of the working
 # directory and generated model.
 
-# sphinx_gallery_start_ignore
-# sphinx_gallery_thumbnail_path = '/_static/images/full_heart_mesh.png'
-# sphinx_gallery_end_ignore
-
 import json
 import os
 from pathlib import Path
@@ -131,18 +127,8 @@ print(f"Volume of LV cavity: {model.left_atrium.cavity.volume} mm^3")
 # Plot the remeshed model.
 model.plot_mesh(show_edges=False)
 
-###############################################################################
-# .. image:: /_static/images/full_heart_mesh.png
-#   :width: 400pt
-#   :align: center
-
 # Plot the endocardial surface of the left ventricle.
 model.left_ventricle.endocardium.plot(show_edges=True, color="r")
-
-###############################################################################
-# .. image:: /_static/images/full_heart_lv_endocardium.png
-#   :width: 400pt
-#   :align: center
 
 # Loop over all cavities and plot them in a single window with PyVista.
 import pyvista as pv
@@ -151,42 +137,3 @@ cavities = pv.PolyData()
 for c in model.cavities:
     cavities += c.surface
 cavities.plot(show_edges=True)
-
-###############################################################################
-# .. image:: /_static/images/full_heart_cavities.png
-#   :width: 400pt
-#   :align: center
-
-# sphinx_gallery_start_ignore
-# Generate static images for the documentation.
-#
-docs_images_folder = Path(Path(__file__).resolve().parents[2], "doc", "source", "_static", "images")
-
-# Full mesh
-filename = Path(docs_images_folder, "full_heart_mesh.png")
-plotter = pv.Plotter(off_screen=True)
-model.mesh.set_active_scalars("_volume-id")
-plotter.add_mesh(model.mesh, show_edges=False)
-# plotter.show()
-plotter.camera.roll = -60
-plotter.screenshot(filename)
-
-# Clipped full mesh
-
-# left ventricle endocardium
-filename = Path(docs_images_folder, "full_heart_lv_endocardium.png")
-plotter = pv.Plotter(off_screen=True)
-model.mesh.set_active_scalars(None)
-plotter.add_mesh(model.left_ventricle.endocardium, color="r", show_edges=True)
-plotter.camera.roll = -60
-plotter.screenshot(filename)
-
-# Cavities
-filename = Path(docs_images_folder, "full_heart_cavities.png")
-plotter = pv.Plotter(off_screen=True)
-for c in model.cavities:
-    plotter.add_mesh(c.surface, show_edges=True)
-# plotter.show()
-plotter.camera.roll = -60
-plotter.screenshot(filename)
-# sphinx_gallery_end_ignore

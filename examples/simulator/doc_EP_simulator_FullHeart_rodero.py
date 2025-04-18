@@ -39,25 +39,27 @@ then simulates the electrophysiology.
 import os
 from pathlib import Path
 
+from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models
 from ansys.health.heart.objects import Point
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
 
 # Accept the DPF license agreement.
 # https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
-os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+# by setting the environment variable ``ANSYS_DPF_ACCEPT_LA`` to ``Y``.
+# for instance by: os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # Set the working directory and path to the model. This example assumes that there is a
-# preprocessed model named ``heart_model.vtu`` in the working directory.
+
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
-path_to_model = str(workdir / "heart_model.vtu")
+path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart()
 
 ###############################################################################
 # Load the full-heart model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load the full-heart model.
 model: models.FullHeart = models.FullHeart(working_directory=workdir)
-model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
+model.load_model_from_mesh(path_to_model, path_to_partinfo)
 
 # Save the model.
 model.mesh.save(os.path.join(model.workdir, "simulation_model.vtu"))
@@ -126,11 +128,6 @@ simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
 simulator.model.plot_fibers(n_seed_points=2000)
 
 ###############################################################################
-# .. image:: /_static/images/fibers.png
-#   :width: 400pt
-#   :align: center
-
-###############################################################################
 # Compute the conduction system
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Compute the conduction system and Purkinje network, and then visualize the results.
@@ -145,24 +142,12 @@ simulator.compute_conduction_system()
 simulator.model.plot_purkinje()
 
 ###############################################################################
-# .. image:: /_static/images/purkinje.png
-#   :width: 400pt
-#   :align: center
-
-###############################################################################
 # Start the main simulation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Start the main EP simulation. This uses the previously computed fiber orientation
 # and Purkinje network to set up and run the LS-DYNA model.
 
 
-# Simulate using the default EP solver type (Monodomain).
-simulator.simulate()
-
-# Switch to Eikonal.
+# Compute the Eikonal solution.
 simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
 simulator.simulate(folder_name="main-ep-Eikonal")
-
-# Switch to ReactionEikonal.
-simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
-simulator.simulate(folder_name="main-ep-ReactionEikonal")

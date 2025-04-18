@@ -149,5 +149,6 @@ simulator.model.plot_purkinje()
 
 
 # Compute the Eikonal solution.
+simulator.dyna_settings.num_cpus = 1
 simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
 simulator.simulate(folder_name="main-ep-Eikonal")

@@ -128,5 +128,5 @@ simulator.model.plot_purkinje()
 
 
 # Compute the Eikonal solution. This only computes the activation time.
-simulator.settings.electrophysiology.analysis.solvertype = "ReacionEikonal"
+simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
 simulator.simulate(folder_name="main-ep-Eikonal")

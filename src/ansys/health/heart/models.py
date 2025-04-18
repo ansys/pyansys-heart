@@ -323,7 +323,9 @@ class HeartModel:
             )
 
         # deduce the IDs of the conduction mesh in final mesh
-        self._conduction_mesh.point_data["_shifted_id"] = self._shifted_id()
+        self._conduction_mesh.point_data["_shifted_id"] = self._get_shifted_id(
+            self.mesh, self._conduction_mesh
+        )
 
     def _find_merge_points(self, beam: ConductionPath):
         registered_name = [c.name for c in self._conduction_paths]
@@ -361,7 +363,8 @@ class HeartModel:
 
         return merge_ids, target_ids
 
-    def _shifted_id(self) -> np.ndarray:
+    @staticmethod
+    def _get_shifted_id(solid_mesh: Mesh, path_mesh: Mesh) -> np.ndarray:
         """
         Deduce node IDs after merging to solid mesh.
 
@@ -369,22 +372,20 @@ class HeartModel:
         """
         from scipy import spatial
 
-        kdtree = spatial.cKDTree(self.mesh.points)
+        kdtree = spatial.cKDTree(solid_mesh.points)
 
-        is_connected = self._conduction_mesh["_is-connected"].astype(bool)
-        querry_points = self._conduction_mesh.points[is_connected]
+        is_connected = path_mesh["_is-connected"].astype(bool)
+        querry_points = path_mesh.points[is_connected]
         dst, solid_id = kdtree.query(querry_points)
         LOGGER.info(f"Maximal distance from solid-beam connected node:{np.max(dst)}")
 
-        shifted_ids = np.linspace(
-            0, self._conduction_mesh.n_points - 1, num=self._conduction_mesh.n_points, dtype=int
-        )
+        shifted_ids = np.linspace(0, path_mesh.n_points - 1, num=path_mesh.n_points, dtype=int)
         # for connected nodes, replace by solid mesh ID
         shifted_ids[is_connected] = solid_id
         # for beam-only nodes, shift their IDs
-        for i in range(self._conduction_mesh.n_points):
+        for i in range(path_mesh.n_points):
             if not is_connected[i]:
-                shifted_ids[i] += self.mesh.n_points - np.sum(is_connected[:i])
+                shifted_ids[i] += solid_mesh.n_points - np.sum(is_connected[:i])
 
         return shifted_ids
 

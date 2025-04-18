@@ -293,7 +293,7 @@ class HeartModel:
         """Return the conduction mesh."""
         return self._conduction_mesh
 
-    def assign_conduction_paths(self, beams: ConductionPath | list[ConductionPath]):
+    def assign_conduction_paths(self, paths: ConductionPath | list[ConductionPath]):
         """Assign conduction paths to the model.
 
         Parameters
@@ -310,16 +310,16 @@ class HeartModel:
             self._conduction_paths: list[ConductionPath] = []
             self._conduction_mesh: Mesh = Mesh()
 
-        if isinstance(beams, ConductionPath):
-            beams = [beams]
+        if isinstance(paths, ConductionPath):
+            paths = [paths]
 
-        for beam in beams:
-            self._conduction_paths.append(beam)
+        for path in paths:
+            self._conduction_paths.append(path)
 
-            # merge beam into conduction_system
-            merge_ids, target_ids = self._find_merge_points(beam)
+            # merge path into conduction_system
+            merge_ids, target_ids = self._find_conduction_path_merge_points(path)
             self._conduction_mesh = Mesh._safe_line_merge(
-                self._conduction_mesh, beam.mesh, merge_ids, target_ids
+                self._conduction_mesh, path.mesh, merge_ids, target_ids
             )
 
         # deduce the IDs of the conduction mesh in final mesh
@@ -327,37 +327,38 @@ class HeartModel:
             self.mesh, self._conduction_mesh
         )
 
-    def _find_merge_points(self, beam: ConductionPath):
+    def _find_conduction_path_merge_points(self, path: ConductionPath):
+        """Find the merge points of a conduction path in existeding conduction paths."""
         registered_name = [c.name for c in self._conduction_paths]
 
         merge_ids = []
         target_ids = []
 
-        if beam._up is not None and beam._up in registered_name:
-            target = next(i for i in self._conduction_paths if i.name == beam._up)
+        if path._up is not None and path._up in registered_name:
+            target = next(i for i in self._conduction_paths if i.name == path._up)
 
             LOGGER.info(
-                f"merge first node of {beam.name.value} into closet point of {target.name.value}"
+                f"merge first node of {path.name.value} into closet point of {target.name.value}"
             )
             merge_ids.append(0)
 
             target_mesh = self._conduction_mesh.extract_cells(
                 self._conduction_mesh["_line-id"] == target.id
             )
-            sub_id = target_mesh.find_closest_point(beam.mesh.points[0])
+            sub_id = target_mesh.find_closest_point(path.mesh.points[0])
             id2 = target_mesh["vtkOriginalPointIds"][sub_id]
             target_ids.append(id2)
 
-        if beam._down is not None and beam._down in registered_name:
-            target = next(i for i in self._conduction_paths if i.name == beam._down)
+        if path._down is not None and path._down in registered_name:
+            target = next(i for i in self._conduction_paths if i.name == path._down)
             LOGGER.info(
-                f"merge last node of {beam.name.value} into closet point of {target.name.value}"
+                f"merge last node of {path.name.value} into closet point of {target.name.value}"
             )
             merge_ids.append(-1)
             target_mesh = self._conduction_mesh.extract_cells(
                 self._conduction_mesh["_line-id"] == target.id
             )
-            sub_id = target_mesh.find_closest_point(beam.mesh.points[-1])
+            sub_id = target_mesh.find_closest_point(path.mesh.points[-1])
             id2 = target_mesh["vtkOriginalPointIds"][sub_id]
             target_ids.append(id2)
 

@@ -135,7 +135,7 @@ if nightly_docs:
     gallery_filename_pattern = r".*\.py"
 else:
     # only executes examples with suffix _pr.py
-    gallery_filename_pattern = r".*(fiber_pr\.py)"
+    gallery_filename_pattern = r".*(_pr\.py)"
 
 sphinx_gallery_conf = {
     # convert rst to md for ipynb

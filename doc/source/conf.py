@@ -142,6 +142,8 @@ sphinx_gallery_conf = {
     "pypandoc": True,
     # path to your examples scripts
     "examples_dirs": "../../examples",
+    # order the subsections in the gallery
+    "subsection_order": ["../../examples/preprocessor", "../../examples/simulator"],
     # path where to save gallery generated examples
     "gallery_dirs": "examples",
     # Pattern to search for example files to execute.

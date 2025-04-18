@@ -1077,6 +1077,7 @@ class DynaSettings:
         # expand any environment variables if any
         commands = [os.path.expandvars(c) for c in commands]
         LOGGER.info(f"LS-DYNA commands: {' '.join(commands)}")
+        LOGGER.info(f"Env variables: {os.environ.keys()}")
 
         return commands
 

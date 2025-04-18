@@ -41,7 +41,6 @@ from pathlib import Path
 
 from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models
-from ansys.health.heart.objects import Point
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
 
 # Accept the DPF license agreement.
@@ -87,21 +86,6 @@ simulator = EPSimulator(
 ###############################################################################
 # Load simulation settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~
-# Define electrode positions and add them to the model.
-electrodes = [
-    Point(name="V1", xyz=[76.53798632905277, 167.67667039945263, 384.3139099410445]),
-    Point(name="V2", xyz=[64.97540262482013, 134.94983038904573, 330.4783062379255]),
-    Point(name="V3", xyz=[81.20629301587647, 107.06245851801455, 320.58645260857344]),
-    Point(name="V4", xyz=[85.04956217691463, 59.54502732121309, 299.2838953724169]),
-    Point(name="V5", xyz=[42.31377680589025, 27.997010728192166, 275.7620409440143]),
-    Point(name="V6", xyz=[-10.105919604515957, -7.176987485426985, 270.46379012676135]),
-    Point(name="RA", xyz=[-29.55095501940962, 317.12543912177983, 468.91891094294414]),
-    Point(name="LA", xyz=[-100.27895839242505, 135.64520460914244, 222.56688206809142]),
-    Point(name="RL", xyz=[203.38825799615842, 56.19020893502452, 538.5052677637375]),
-    Point(name="LL", xyz=[157.56391664248335, -81.66615972595032, 354.17867264210076]),
-]
-model.electrodes = electrodes
-
 # Load the default settings.
 simulator.settings.load_defaults()
 

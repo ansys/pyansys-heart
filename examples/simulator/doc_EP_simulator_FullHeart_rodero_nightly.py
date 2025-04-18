@@ -94,11 +94,6 @@ simulator.settings.load_defaults()
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Compute fiber orientation and plot the fibers on the entire model.
 
-###############################################################################
-# .. warning::
-#    The atrial fiber orientation is approximated by the apex-base direction.
-#    Development is ongoing.
-
 # Compute ventricular fibers.
 simulator.compute_fibers(method="D-RBM")
 
@@ -133,5 +128,5 @@ simulator.model.plot_purkinje()
 
 
 # Compute the Eikonal solution. This only computes the activation time.
-simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
+simulator.settings.electrophysiology.analysis.solvertype = "ReacionEikonal"
 simulator.simulate(folder_name="main-ep-Eikonal")

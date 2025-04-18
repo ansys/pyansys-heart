@@ -1077,8 +1077,6 @@ class DynaSettings:
         # expand any environment variables if any
         commands = [os.path.expandvars(c) for c in commands]
 
-        LOGGER.info(f"{commands}")
-
         return commands
 
     def _modify_from_global_settings(self):

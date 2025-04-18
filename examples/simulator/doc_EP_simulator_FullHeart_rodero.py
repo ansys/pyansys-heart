@@ -132,7 +132,7 @@ simulator.model.plot_purkinje()
 # and Purkinje network to set up and run the LS-DYNA model.
 
 
-# Compute the Eikonal solution.
+# Compute the Eikonal solution. This only computes the activation time.
 simulator.dyna_settings.num_cpus = 1
 simulator.settings.electrophysiology.analysis.solvertype = "Eikonal"
 simulator.simulate(folder_name="main-ep-Eikonal")

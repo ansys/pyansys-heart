@@ -118,16 +118,19 @@ jobs:
         env:
           PYANSYS_HEART_FLUENT_VERSION: 24.1
           PYFLUENT_LAUNCH_CONTAINER: 0
-          PYANSYS_HEART_LSDYNA_PATH: C:\Program Files\ANSYS Inc\LS-DYNA\R16.0\windows\R16.0.exe
+          PYANSYS_HEART_LSDYNA_PATH: C:\Program Files\ANSYS Inc\LS-DYNA\R16.0\windows\mpp\intelmpi\ls-dyna_mpp_d_R16.0\ls-dyna_mpp_d_R16.0.exe
+          PYANSYS_HEART_LSDYNA_TYPE: intelmpi
           PYANSYS_HEART_LSDYNA_PLATFORM: windows
-          PYANSYS_HEART_LSDYNA_TYPE: "smp"
           PYANSYS_HEART_NUM_CPU: 4
+          ANSYS_DPF_ACCEPT_LA: Y
+          LSTC_FILE: ansys
           LSTC_LICENSE: ansys
           AWP_ROOT241: C:\\Program Files\\ANSYS Inc\\v241
           DPF_STANDALONE_PATH: C:\\Program Files\\ANSYS Inc\\dpf-server-2024.2rc0
           PYFLUENT_UI_MODE: no_gui # default hidden_gui fails on self-hosted runner
-          NIGHTLY_DOC_BUILD: 0
+          NIGHTLY_DOC_BUILD: 1
         run: |
+          cmd /c "C:\Program Files (x86)\Intel\oneAPI\setvars.bat"
           tox -e doc-links,doc-html,doc-pdf
 
       - name: Upload HTML documentation artifact

@@ -259,7 +259,7 @@ class ConductionPath:
         return ConductionPath(name, beam_net, id, is_connected, base_mesh)
 
 
-def _fill_points(point_start: np.array, point_end: np.array, beam_length: float) -> np.ndarray:
+def _fill_points(point_start: np.array, point_end: np.array, length: float) -> np.ndarray:
     """Create points in a line defined by a start and an end point.
 
     Parameters
@@ -269,7 +269,7 @@ def _fill_points(point_start: np.array, point_end: np.array, beam_length: float)
     point_end : np.array
         End point.
     beam_length : float
-        Beam length.
+        Length.
 
     Returns
     -------
@@ -278,23 +278,47 @@ def _fill_points(point_start: np.array, point_end: np.array, beam_length: float)
     """
     line_vector = point_end - point_start
     line_length = np.linalg.norm(line_vector)
-    n_points = int(np.round(line_length / beam_length)) + 1
+    n_points = int(np.round(line_length / length)) + 1
     points = np.zeros([n_points, 3])
     points = np.linspace(point_start, point_end, n_points)
     return points
 
 
-def _refine_points(nodes: np.array, beam_length: float) -> np.ndarray:
-    if beam_length is None:
-        return nodes
+def _refine_points(nodes: np.array, length: float = None) -> tuple[np.ndarray, np.ndarray]:
+    """Add new points between two points.
 
-    new_nodes = [nodes[0, :]]
-    for beam_id in range(len(nodes) - 1):
-        point_start = nodes[beam_id, :]
-        point_end = nodes[beam_id + 1, :]
-        points = _fill_points(point_start, point_end, beam_length=beam_length)
-        new_nodes = np.vstack((new_nodes, points[1:, :]))
-    return new_nodes
+    Parameters
+    ----------
+    nodes : np.array
+        Nodes to be refined.
+    length : float, default None
+        Length of the line element.
+        If None, no refinement is done.
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray]
+        Refined nodes and mask of original nodes.
+    """
+    if length is None:  # No refinement
+        return nodes, np.array((True, True))
+
+    org_node_id = []
+    refined_nodes = [nodes[0, :]]
+    org_node_id.append(0)
+
+    for i_cell in range(len(nodes) - 1):
+        point_start = nodes[i_cell, :]
+        point_end = nodes[i_cell + 1, :]
+        points = _fill_points(point_start, point_end, length=length)
+
+        refined_nodes = np.vstack((refined_nodes, points[1:, :]))
+        org_node_id.append(len(refined_nodes) - 1)
+
+    # set to True if it's an original node
+    mask = np.zeros(len(refined_nodes), dtype=bool)
+    mask[org_node_id] = True
+    return refined_nodes, mask
 
 
 def _create_path_on_surface(
@@ -325,7 +349,7 @@ def _create_path_on_surface(
         for point in path.points:
             path_points.append(point)
 
-    path_points = _refine_points(np.array(path_points), beam_length=line_length)
+    path_points, mask = _refine_points(np.array(path_points), length=line_length)
 
     return pv.lines_from_points(path_points)
 
@@ -378,7 +402,7 @@ def _create_path_in_solid(
     coords = sub_mesh.points[ids]
 
     #
-    new_nodes = _refine_points(coords, beam_length=line_length)
+    new_nodes, mask = _refine_points(coords, length=line_length)
     beamnet = pv.lines_from_points(new_nodes)
 
     # seg

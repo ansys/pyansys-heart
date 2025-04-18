@@ -830,6 +830,8 @@ def run_lsdyna(
     if _KILL_ANSYSCL_PRIOR_TO_RUN:
         _kill_all_ansyscl()
 
+    LOGGER.info(f"{os.getcwd()} commands: {commands}")
+
     mess = []
     with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:

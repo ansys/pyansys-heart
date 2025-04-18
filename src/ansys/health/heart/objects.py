@@ -22,6 +22,8 @@
 
 """Module that defines classes used in the heart model."""
 
+from __future__ import annotations
+
 import copy
 from enum import Enum
 import json
@@ -971,6 +973,126 @@ class Mesh(pv.UnstructuredGrid):
         """
         mask = self.cell_data["_line-id"] == lid
         return self.remove_cells(mask, inplace=True)
+
+    @staticmethod
+    def _get_shifted_id(solid_mesh: Mesh, path_mesh: Mesh) -> np.ndarray:
+        """Get the shifted ID of the conduction mesh.
+
+        Parameters
+        ----------
+        solid_mesh : Mesh
+            Solid mesh.
+        path_mesh : Mesh
+            Path mesh with "_is-connected" field.
+
+        Returns
+        -------
+        np.ndarray
+            Shifted node ID of the conduction mesh.
+        """
+        from scipy import spatial
+
+        kdtree = spatial.cKDTree(solid_mesh.points)
+
+        is_connected = path_mesh["_is-connected"].astype(bool)
+        querry_points = path_mesh.points[is_connected]
+        dst, solid_id = kdtree.query(querry_points)
+        LOGGER.info(f"Maximal distance from solid-beam connected node:{np.max(dst)}")
+
+        shifted_ids = np.linspace(0, path_mesh.n_points - 1, num=path_mesh.n_points, dtype=int)
+        # for connected nodes, replace by solid mesh ID
+        shifted_ids[is_connected] = solid_id
+        # for beam-only nodes, shift their IDs
+        for i in range(path_mesh.n_points):
+            if not is_connected[i]:
+                shifted_ids[i] += solid_mesh.n_points - np.sum(is_connected[:i])
+
+        return shifted_ids
+
+    @staticmethod
+    def _safe_line_merge(base: Mesh, add_mesh: Mesh, mereged_id: list, target_id: list) -> Mesh:
+        """Safely merge two line meshes by specify the node ID to be merged.
+
+        Parameters
+        ----------
+        base : Mesh
+            Base mesh to be merged.
+        add_mesh : Mesh
+            New mesh to be merged.
+        mereged_id : list
+            List of node ID in add_mesh to be merged.
+        target_id : list
+            List of node ID in base to be merged.
+
+        Returns
+        -------
+        Mesh
+            Merged line mesh.
+
+        Notes
+        -----
+            point_data["_is-connected"] and cell_data["_line-id"] will be merged.
+        """
+
+        def get_lines(m: pv.UnstructuredGrid | pv.PolyData):
+            if m.GetNumberOfCells() == 0:
+                return np.empty(shape=(0, 2), dtype=np.int_)
+            if isinstance(m, pv.UnstructuredGrid):
+                return m.cells.reshape(-1, 3)[:, 1:]
+            elif isinstance(m, pv.PolyData):
+                return m.lines.reshape(-1, 3)[:, 1:]
+
+        base_points = base.points
+        base_lines = get_lines(base)
+
+        if base.GetNumberOfCells() == 0:
+            point_data = np.empty(shape=(0,))
+            cell_data = np.empty(shape=(0,))
+        else:
+            point_data = base.point_data["_is-connected"]
+            cell_data = base.cell_data["_line-id"]
+
+        if mereged_id == []:
+            # no merge
+            new_points = add_mesh.points
+            new_point_data = add_mesh.point_data["_is-connected"]
+            new_lines = get_lines(add_mesh) + len(base_points)
+
+        elif mereged_id == [0]:
+            new_points = add_mesh.points[1:]
+            # first node is merged, lead to an offset of all lines
+            new_lines = get_lines(add_mesh) + len(base_points) - 1
+            # replace first node
+            new_lines[0, 0] = target_id[0]
+
+            # point data
+            new_point_data = add_mesh.point_data["_is-connected"][1:]
+
+        elif mereged_id == [0, -1]:
+            # first node is merged, lead to an offset of all lines
+            # last node is just dropped
+            new_points = add_mesh.points[1:-1]
+            new_lines = get_lines(add_mesh) + len(base_points) - 1
+            # replace first node
+            new_lines[0, 0] = target_id[0]
+            # replace last node
+            new_lines[-1, 1] = target_id[1]
+
+            # point data
+            new_point_data = add_mesh.point_data["_is-connected"][1:-1]
+        else:
+            NotImplementedError("Do not handle this merge lines.")
+
+        merged = pv.PolyData()
+        merged.points = np.vstack((base_points, new_points))
+        merged_lines = np.vstack((base_lines, new_lines))
+        merged.lines = np.hstack(
+            (2 * np.ones(len(merged_lines), dtype=int)[:, np.newaxis], merged_lines)
+        )
+        merged.cell_data["_line-id"] = np.hstack((cell_data, add_mesh.cell_data["_line-id"]))
+        merged.point_data["_is-connected"] = np.hstack((point_data, new_point_data))
+
+        return Mesh(merged)
 
 
 class _BeamsMesh(Mesh):

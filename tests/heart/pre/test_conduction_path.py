@@ -107,8 +107,6 @@ def test_create_conductionbeams_on_surface_with_refinement():
         connection="all",
         line_length=0.5,
     )
-    sa_av.relying_surface.save("surf.vtp")
-    sa_av.mesh.save("line.vtp")
 
     assert sa_av.mesh.n_lines == 140
     assert np.isclose(sa_av.length, 64.36592438345)

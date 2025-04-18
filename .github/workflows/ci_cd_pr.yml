@@ -131,6 +131,7 @@ jobs:
           NIGHTLY_DOC_BUILD: 1
         run: |
           cmd /c "C:\Program Files (x86)\Intel\oneAPI\setvars.bat"
+          echo %I_MPI_ONEAPI_ROOT%
           tox -e doc-links,doc-html,doc-pdf
 
       - name: Upload HTML documentation artifact

@@ -129,7 +129,7 @@ jobs:
           PYFLUENT_UI_MODE: no_gui # default hidden_gui fails on self-hosted runner
           NIGHTLY_DOC_BUILD: 0
         run: |
-          set environment variables for LS-DYNA
+          # set environment variables for LS-DYNA
           "C:\Program Files\ANSYS Inc\LS-DYNA\R16.0\windows\mpp\set_intelmpi_env_vars.bat"
           tox -e doc-links,doc-html,doc-pdf
 

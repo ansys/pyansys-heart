@@ -94,7 +94,7 @@ connections = {
 
 
 class ConductionPath:
-    """Conduction beams class."""
+    """ConductionPath class."""
 
     def __init__(
         self,
@@ -105,20 +105,20 @@ class ConductionPath:
         relying_surface: pv.PolyData,
         material: EPMaterial = EPMaterial.DummyMaterial(),
     ):
-        """Create a conduction beam.
+        """Create a conduction path.
 
         Parameters
         ----------
-        name : ConductionBeamType
-            Name of the conduction beam.
+        name : ConductionPathType
+            Name of the conduction path.
         mesh : Mesh
-            Beam mesh.
+            Line mesh pf the path.
         id : int
-            ID of the conduction beam.
+            ID of the conduction path.
         is_connected : np.ndarray
             Mask array of points connected to solid mesh.
         relying_surface : pv.PolyData
-            Surface mesh where the conduction beam is relying on.
+            Surface mesh where the conduction path is relying on.
         material : EPMaterial, default: EPMaterial.DummyMaterial()
             EP Material property.
         """
@@ -139,22 +139,20 @@ class ConductionPath:
         self._down = connections[self.name][1]
 
     def _assign_data(self):
-        # tempo script to support old structure
+        # save data into mesh
         self.mesh.point_data["_is-connected"] = self.is_connected
         self.mesh.cell_data["_line-id"] = self.id * np.ones(self.mesh.n_cells)
 
     def plot(self):
-        """Plot the conduction beam."""
+        """Plot the conduction path with underlying surface."""
         plotter = pv.Plotter()
         plotter.add_mesh(self.relying_surface, color="w", opacity=0.5)
-        # self.conduction_system.set_active_scalars("_line-id")
-        # beams = self.conduction_system
         plotter.add_mesh(self.mesh, line_width=2)
         plotter.show()
 
     @property
     def length(self):
-        """Length of the conduction beam."""
+        """Length of the conduction path."""
         return self.mesh.length
 
     @staticmethod
@@ -170,19 +168,19 @@ class ConductionPath:
 
         Parameters
         ----------
-        name : ConductionBeamType
-            Name of the conduction beam.
+        name : ConductionPathType
+            Name of the conduction path.
         keypoints : list[np.ndarray]
             Keypoints used to construct the path on the base mesh.
         id : int
-            ID of the conduction beam.
+            ID of the conduction path.
         base_mesh : pv.PolyData | pv.UnstructuredGrid
             Base mesh where the conductionn path is created. If PolyData, then the
             result is a geodesic path on the surface. If an pv.UnstructuredGrid, then the
             result the shortest path in the solid.
         connection : Literal[&quot;none&quot;, &quot;first&quot;, &quot;last&quot;, &quot;all&quot;]
         , default: "none"
-            Describes how the beam is connected to the solid mesh.
+            Describes how the path is connected to the solid mesh.
         line_length : float | None, default: 1.5
             Length of line element in case of refinement.
 
@@ -193,20 +191,20 @@ class ConductionPath:
         """
         if isinstance(base_mesh, pv.PolyData):
             under_surface = base_mesh
-            beam_mesh = _create_path_on_surface(keypoints, under_surface, line_length)
+            path_mesh = _create_path_on_surface(keypoints, under_surface, line_length)
         else:
-            beam_mesh, under_surface = _create_path_in_solid(keypoints, base_mesh, line_length)
+            path_mesh, under_surface = _create_path_in_solid(keypoints, base_mesh, line_length)
 
-        is_connceted = np.zeros(beam_mesh.n_points)
+        is_connceted = np.zeros(path_mesh.n_points)
         if connection == "first":
             is_connceted[0] = 1
         elif connection == "last":
             is_connceted[-1] = 1
         elif connection == "all":
             # only connect nodes located on the basemesh (if there is an refinement)
-            is_connceted[beam_mesh.point_data["base_mesh_nodes"]] = 1
+            is_connceted[path_mesh.point_data["base_mesh_nodes"]] = 1
 
-        return ConductionPath(name, beam_mesh, id, is_connceted, under_surface)
+        return ConductionPath(name, path_mesh, id, is_connceted, under_surface)
 
     @staticmethod
     def create_from_k_file(
@@ -269,7 +267,7 @@ def _fill_points(point_start: np.array, point_end: np.array, length: float) -> n
         Start point.
     point_end : np.array
         End point.
-    beam_length : float
+    length : float
         Length.
 
     Returns
@@ -302,7 +300,7 @@ def _refine_points(nodes: np.array, length: float = None) -> tuple[np.ndarray, n
         Refined nodes and mask of original nodes.
     """
     if length is None:  # No refinement
-        return nodes, np.array((True, True))
+        return nodes, np.ones(len(nodes), dtype=bool)
 
     org_node_id = []
     refined_nodes = [nodes[0, :]]

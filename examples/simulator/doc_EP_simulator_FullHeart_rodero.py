@@ -116,7 +116,7 @@ simulator.settings.load_defaults()
 #    Development is ongoing.
 
 # Compute ventricular fibers.
-simulator.compute_fibers()
+simulator.compute_fibers(method="D-RBM")
 
 # Compute atrial fibers.
 simulator.model.right_atrium.active = True

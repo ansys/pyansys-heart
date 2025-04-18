@@ -230,7 +230,7 @@ class ConductionPath:
         ConductionPath
             Conduction path object.
         """
-        beam_nodes, edges, mask, _ = _read_purkinje_from_kfile(k_file)
+        beam_nodes, edges, mask, _ = _read_purkinje_kfile(k_file)
 
         # build tree: beam_nodes and solid_points
         original_points_order = np.unique(edges[np.invert(mask)])
@@ -457,23 +457,36 @@ def _mesh_to_nx_graph(mesh: pv.UnstructuredGrid) -> nx.Graph:
     return graph
 
 
-def _read_purkinje_from_kfile(filename: str):
-    """Read purkinje from k file.
+def _read_purkinje_kfile(filename: str) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Read purkinje k file.
+
+    It contains new created nodes to create Purkinje network
+    and all the beam elements of Purkinje network.
 
     Parameters
     ----------
-    filename : pathlib.Path
+    filename : str
         Filename of the LS-DYNA keyword file that contains the Purkinje network.
 
     Returns
     -------
-    _type_
-        Beam data extracted from file: beam_nodes,edges,mask,pid
+    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        Coordinates of new created nodes.
+
+        Connectivity of the beam elements.
+            If mask is True, ID is new created node.
+            If mask is False, ID is original node.
+
+        Mask of connectivity.
+            True for new created nodes and False for original nodes.
+
+        Part ID of the beam elements.
     """
     # Open file and import beams and created nodes
     with open(filename, "r") as file:
         start_nodes = 0
         lines = file.readlines()
+
     # find line ids delimiting node data and edge data
     start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
     end_nodes = np.array(np.where(["*" in line for line in lines]))
@@ -484,17 +497,17 @@ def _read_purkinje_from_kfile(filename: str):
 
     # load node data
     node_data = np.loadtxt(filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1)
-    new_ids = node_data[:, 0].astype(int) - 1
-    beam_nodes = node_data[:, 1:4]
+    node_ids = node_data[:, 0].astype(int) - 1  # 0 based
+    coords = node_data[:, 1:4]
 
     # load beam data
     beam_data = np.loadtxt(
         filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
     )
-    edges = beam_data[:, 2:4] - 1
-    pid = beam_data[0, 1]
+    edges = beam_data[:, 2:4] - 1  # 0 based
+    pid = beam_data[:, 1]
 
-    mask = np.isin(edges, new_ids)  # True for new created nodes
-    edges[mask] -= new_ids[0]  # beam nodes id start from 0
+    edges_mask = np.isin(edges, node_ids)  # True for new created nodes
+    edges[edges_mask] -= node_ids[0]  # beam nodes id start from 0
 
-    return beam_nodes, edges, mask, pid
+    return coords, edges, edges_mask, pid

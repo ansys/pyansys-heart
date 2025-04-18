@@ -40,3 +40,8 @@ simulator.settings.settings.EPAnalysis.solvertype
 Rodero
 (?i)GitHub
 PyPI
+Tox
+(?i)Zenodo
+namespace
+subpackages
+venv

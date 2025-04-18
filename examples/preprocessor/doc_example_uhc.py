@@ -22,20 +22,20 @@
 
 """
 
-UHC example
---------------------
-This example shows how to compute universal heart coordinates (UHC) for
+Compute UHCs for the ventricles
+-------------------------------
+This example shows how to compute UHCs (universal heart coordinates) for
 the ventricles.
 """
 
 ###############################################################################
-# Perform the required imports
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Import the required modules and set relevant paths, including that of the working
-# directory, model, and ls-dyna executable (uses DEV-104373-g6d20c20aee).
+# Import required modules
+# ~~~~~~~~~~~~~~~~~~~~~~~
+# Import the necessary modules and set relevant paths, including the working
+# directory, model, and LS-DYNA executable file. This example uses DEV-104373-g6d20c20aee.
 
 # sphinx_gallery_start_ignore
-# Note that we need to put the thumbnail here to avoid weird rendering in the html page.
+# Note that we need to put the thumbnail here to avoid weird rendering on the HTML page.
 # sphinx_gallery_thumbnail_path = '_static/images/thumbnails/uvc.png'
 # sphinx_gallery_end_ignore
 
@@ -48,24 +48,24 @@ import pyvista as pv
 import ansys.health.heart.models as models
 from ansys.health.heart.simulator import BaseSimulator, DynaSettings
 
-# specify the path to the working directory and heart model. The following path assumes
-# that a preprocessed model is already available
+# Specify the path to the working directory and heart model. The following path assumes
+# that a preprocessed model is already available.
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Strocchi2020" / "01" / "FourChamber"
 path_to_model = str(workdir / "heart_model.vtu")
 
-# specify LS-DYNA path
+# Specify LS-DYNA path
 lsdyna_path = r"ls-dyna_smp"
 
-# load heart model.
+# Load heart model
 model: models.FourChamber = models.FourChamber(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
 
 ###############################################################################
-# Instantiate the simulator object
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# instantiate simulator. Change options where necessary.
+# Instantiate the simulator
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# Instantiate the simulator and modify options as needed.
 
-# instantiate dyna settings of choice
+# Instantiate DYNA settings of choice
 dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path,
     dynatype="intelmpi",
@@ -79,18 +79,18 @@ simulator = BaseSimulator(
 )
 
 ###############################################################################
-# Compute UHC
-# ~~~~~~~~~~~
-# Compute UHC using Laplace Dirichlet method.
+# Compute UHCs
+# ~~~~~~~~~~~~
+# Compute UHCs using the Laplace-Dirichlet Rule-Based (LDRB) method.
 
 simulator.compute_uhc()
 
 ###############################################################################
 # .. note::
-#    There are several definitions for UHC (see https://github.com/KIT-IBT/Cobiveco).
-#    Here, a simple approach is taken and the
-#    Dirichlet conditions are shown below. At rotational direction, the start (pi), end (-pi)
-#    and middle (0) points are defined from four-cavity long axis cut view.
+#    Several definitions for UHC exist. (See https://github.com/KIT-IBT/Cobiveco.)
+#    This example uses a simple approach. The following image shows the
+#    Dirichlet conditions. For the rotational direction, the start (pi), end (-pi),
+#    and middle (0) points are defined from the four-cavity long axis cut view.
 
 ###############################################################################
 # .. image:: /_static/images/uvc_bc.png
@@ -98,10 +98,10 @@ simulator.compute_uhc()
 #   :align: center
 
 ###############################################################################
-# Visualization of UVCs
-# ~~~~~~~~~~~~~~~~~~~~~
-# UVC is assigned back to the full model automatically
-# Atrial points are padded with NaN's
+# Visualize UHCs
+# ~~~~~~~~~~~~~~
+# The simulator automatically assigns UHCs back to the full model.
+# Atrial points are padded with NaNs.
 
 plotter = pv.Plotter(shape=(1, 3))
 

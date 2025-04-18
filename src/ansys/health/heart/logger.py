@@ -22,14 +22,14 @@
 
 """Logging module.
 
-The logging module supplies a general framework for logging in PyAnsys Heart-lib.
-This module is built upon `logging <https://docs.python.org/3/library/logging.html>`_ library
-and it does not intend to replace it rather provide a way to interact between
-``logging`` and PyAnsys Heart.
+The logging module supplies a general framework for logging in PyAnsys Heart.
+This module is built on the Python `logging <https://docs.python.org/3/library/logging.html>`_
+library. It does not intend to replace it but rather provide a way to interact between
+the Python ``logging`` library and PyAnsys Heart.
 
-The loggers used in the module include the name of the instance which
+The loggers used in the module include the name of the instance, which
 is intended to be unique. This name is printed in all the active
-outputs and it is used to track the different PyAnsys Heart modules.
+outputs and is used to track the different PyAnsys Heart modules.
 
 
 Usage
@@ -37,23 +37,23 @@ Usage
 
 Global logger
 ~~~~~~~~~~~~~
-There is a global logger named ``PyAnsys Heart_global`` which is created at
-``ansys.health.heart.__init__``.  If you want to use this global logger,
-you must call at the top of your module:
+There is a global logger named ``PyAnsys Heart_global`` that is created when
+``ansys.health.heart.__init__`` is called.  If you want to use this global logger,
+you must call it at the top of your module:
 
 .. code:: python
 
    from ansys.health.heart import LOG
 
-You could also rename it to avoid conflicts with other loggers (if any):
+You can rename this logger to avoid conflicts with other loggers (if any):
 
 .. code:: python
 
    from ansys.health.heart import LOG as logger
 
 
-It should be noticed that the default logging level of ``LOG`` is ``ERROR``.
-To change this and output lower level messages you can use the next snippet:
+The default logging level of ``LOG`` is ``ERROR``.
+You can change this elvel and output lower-level messages with this code:
 
 .. code:: python
 
@@ -62,16 +62,15 @@ To change this and output lower level messages you can use the next snippet:
    LOG.std_out_handler.setLevel("DEBUG")  # If present.
 
 
-Alternatively:
+Alternatively, you can ensure all the handlers are set to the input log level
+with this code:
 
 .. code:: python
 
    LOG.setLevel("DEBUG")
 
-This way ensures all the handlers are set to the input log level.
-
-By default, this logger does not log to a file. If you wish to do so,
-you can add a file handler using:
+This logger does not log to a file by default. If you want, you can
+add a file handler with this code:
 
 .. code:: python
 
@@ -80,12 +79,12 @@ you can add a file handler using:
    file_path = os.path.join(os.getcwd(), "pymapdl.log")
    LOG.log_to_file(file_path)
 
-This sets the logger to be redirected also to that file.  If you wish
+This also sets the logger to be redirected to this file. If you want
 to change the characteristics of this global logger from the beginning
-of the execution, you must edit the file ``__init__`` in the directory
-``ansys.health.heart``.
+of the execution, you must edit the file ``__init__`` file in the
+``ansys.health.heart`` directory.
 
-To log using this logger, just call the desired method as a normal logger.
+To log using this logger, call the desired method as a normal logger:
 
 .. code:: pycon
 
@@ -98,8 +97,8 @@ To log using this logger, just call the desired method as a normal logger.
 
 Other loggers
 ~~~~~~~~~~~~~
-You can create your own loggers using python ``logging`` library as
-you would do in any other script.  There shall no be conflicts between
+You can create your own loggers using the Python ``logging`` library as
+you would do in any other script.  There would be no conflicts between
 these loggers.
 
 """
@@ -157,18 +156,14 @@ string_to_loglevel: Dict[LOG_LEVEL_STRING_TYPE, int] = {
 
 
 class PyAnsysHeartCustomAdapter(logging.LoggerAdapter):
-    """Custom logging adapter for PyAnsys Heart.
+    """Keeps the reference to the PyAnsys Heart service instance dynamic.
 
-    Notes
-    -----
-    This is key to keep the reference to the PyAnsys Heart instance name dynamic.
+    If you use the standard approach, which is supplying *extra* input
+    to the logger, you must input PyAnsys Heart service instances
+    each time that you log a message.
 
-    If we use the standard approach which is supplying ``extra`` input
-    to the logger, we would need to keep inputting PyAnsys Heart instances
-    every time we do a log.
-
-    Using adapters we just need to specify the PyAnsys Heart instance we refer
-    to once.
+    Using adapters, you only need to specify the PyAnsys Heart service instance
+    that you are referring to once.
     """
 
     level = (
@@ -194,28 +189,28 @@ class PyAnsysHeartCustomAdapter(logging.LoggerAdapter):
     def log_to_file(
         self, filename: str = FILE_NAME, level: LOG_LEVEL_TYPE = LOG_LEVEL_FILE
     ) -> None:
-        """Add file handler to logger.
+        """Add a file handler to the logger.
 
         Parameters
         ----------
-        filename : str, optional
-            Name of the file where the logs are recorded. By default FILE_NAME
-        level : str or int, optional
-            Level of logging. E.x. 'DEBUG'. By default LOG_LEVEL
+        filename : str, default: FILE_NAME
+            Name of the file to record logs to.
+        level : str or int, default: LOG_LEVEL
+            Level of logging, such as ``DEBUG``.
         """
         addfile_handler(self.logger, filename=filename, level=level, write_headers=True)
         self.file_handler = self.logger.file_handler
 
     def log_to_stdout(self, level: LOG_LEVEL_TYPE = LOG_LEVEL_STDOUT) -> None:
-        """Add standard output handler to the logger.
+        """Add a standard output handler to the logger.
 
         Parameters
         ----------
-        level : str or int, optional
-            Level of logging record. By default LOG_LEVEL
+        level : str or int, default: LOG_LEVEL
+            Level of the logging record.
         """
         if self.std_out_handler:
-            raise Exception("Stdout logger already defined.")
+            raise Exception("Stdout logger is already defined.")
 
         add_stdout_handler(self.logger, level=level)
         self.std_out_handler = self.logger.std_out_handler
@@ -242,11 +237,11 @@ class _PyAnsysHeartPercentStyle(logging.PercentStyle):
         else:
             values = record.__dict__
 
-        # We can do here any changes we want in record, for example adding a key.
+        # We can make any changes that we want in the record here. For example, adding a key.
 
-        # We could create an if here if we want conditional formatting, and even
+        # We could create an ``if`` here if we want conditional formatting, and even
         # change the record.__dict__.
-        # Since now we don't want to create conditional fields, it is fine to keep
+        # Because we don't want to create conditional fields now, it is fine to keep
         # the same MSG_FORMAT for all of them.
 
         # For the case of logging exceptions to the logger.
@@ -256,7 +251,7 @@ class _PyAnsysHeartPercentStyle(logging.PercentStyle):
 
 
 class _PyAnsysHeartFormatter(logging.Formatter):
-    """Customized ``Formatter`` class used to overwrite the defaults format styles."""
+    """Provides a ``Formatter`` class for overwriting default format styles."""
 
     def __init__(
         self,
@@ -275,7 +270,7 @@ class _PyAnsysHeartFormatter(logging.Formatter):
 
 
 class InstanceFilter(logging.Filter):
-    """Ensure that instance_name record always exists."""
+    """Ensures that the ``instance_name`` record always exists."""
 
     def filter(self, record: logging.LogRecord):
         """Filter record."""
@@ -287,31 +282,26 @@ class InstanceFilter(logging.Filter):
 
 
 class Logger:
-    """Logger used for each PyAnsys Heart session.
+    """Provides the logger used for each PyAnsys Heart session.
 
-    Notes
-    -----
-    This class allows you to add handlers to the logger to output to a file or
-    standard output.
+    This class lets you add handlers to the logger to output messages to a file or
+    to the standard output (stdout).
 
     Parameters
     ----------
-    level : int, optional
+    level : int, default: logging.DEBUG
         Logging level to filter the message severity allowed in the logger.
-        The default is ``logging.DEBUG``.
-    to_file : bool, optional
-        Write log messages to a file. The default is ``False``.
-    to_stdout : bool, optional
-        Write log messages into the standard output. The default is
-        ``True``.
-    filename : str, optional
-        Name of the file where log messages are written to.
-        The default is ``FILE_NAME``.
+    to_file : bool, default: False
+        Whether to write log messages to a file.
+    to_stdout : bool, default: True
+        Whether to write the log messages to the standard output.
+    filename : str, default: FILE_NAME
+        Name of the file to write log messages to.
 
     Examples
     --------
-    Demonstrate logger usage from a PyAnsys Heart instance. This is automatically
-    created when creating an PyAnsys Heart instance.
+    Demonstrate logger usage from a PyAnsys Heart instance, which is automatically
+    created when a PyAnsys Heart instance is created.
 
     Import the global PyAnsys Heart logger and add a file output handler.
 
@@ -319,7 +309,6 @@ class Logger:
     >>> from ansys.health.heart import LOG
     >>> file_path = os.path.join(os.getcwd(), "PyAnsys Heart.log")
     >>> LOG.log_to_file(file_path)
-
     """
 
     file_handler: Optional[logging.FileHandler] = None
@@ -334,19 +323,19 @@ class Logger:
         to_stdout: bool = True,
         filename: str = FILE_NAME,
     ):
-        """Initialize main logger class for PyAnsys Heart.
+        """Initialize the main logger class for PyAnsys Heart.
 
         Parameters
         ----------
-        level : str or int, optional
-            Level of logging as defined in the package ``logging``. By default 'DEBUG'.
-        to_file : bool, optional
-            To record the logs in a file, by default ``False``.
-        to_stdout : bool, optional
-            To output the logs to the standard output, which is the
-            command line. By default ``True``.
-        filename : str, optional
-            Name of the output file. By default ``PyAnsys Heart.log``.
+        level : str or int, default: logging.DEBUG
+            Level of logging as defined in the ``logging`` package.
+        to_file : bool, default: False
+            Whether to write log messages to a file.
+        to_stdout : bool, default: True
+            Whether to write log messages to the standard output (stdout), which is the
+            command line.
+        filename : str, default: FILE_NAME
+            Name of the output file, which is ``'PyAnsys Heart.log'`` by default.
         """
         # create default main logger
         self.logger: logging.Logger = logging.getLogger("PyAnsys Heart_global")
@@ -382,27 +371,25 @@ class Logger:
         level: LOG_LEVEL_TYPE = LOG_LEVEL_FILE,
         remove_other_file_handlers: bool = False,
     ) -> None:
-        """Add file handler to logger.
+        """Add a file handler to the logger.
 
         Parameters
         ----------
-        filename : str, optional
-            Name of the file where the logs are recorded. By default
-            ``'PyAnsys Heart.log'``.
-        level : str or int, optional
-            Level of logging. By default ``'DEBUG'``.
-        remove_other_file_handlers : bool, optional
-            Flag indicating whether to remove all other file handlers, by default False
+        filename : str, default:
+            Name of the file to record logs to, which is ``'PyAnsys Heart.log'`` by default.
+        level : str or int, default: LOG_LEVEL_FILE
+            Level of logging, which is ``'DEBUG'`` by default.
+        remove_other_file_handlers : bool, default: False
+            Whether to remove all other file handlers.
 
         Examples
         --------
-        Write to ``PyAnsys Heart.log`` in the current working directory.
+        Write to the ``PyAnsys Heart.log`` file in the current working directory.
 
         >>> from ansys.health.heart import LOG
         >>> import os
         >>> file_path = os.path.join(os.getcwd(), "PyAnsys Heart.log")
         >>> LOG.log_to_file(file_path)
-
         """
         if remove_other_file_handlers:
             _clear_all_file_handlers(self)
@@ -410,17 +397,23 @@ class Logger:
         addfile_handler(self, filename=filename, level=level, write_headers=True)
 
     def log_to_stdout(self, level: LOG_LEVEL_TYPE = LOG_LEVEL_STDOUT):
-        """Add standard output handler to the logger.
+        """Add a standard output handler to the logger.
 
         Parameters
         ----------
-        level : str or int, optional
-            Level of logging record. By default  ``'DEBUG'``.
+        level : str or int, default: LOG_LEVEL_STDOUT
+            Level of logging record, which is ``'DEBUG'`` by default.
         """
         add_stdout_handler(self, level=level)
 
     def setLevel(self, level: LOG_LEVEL_TYPE = "DEBUG"):  # noqa: N802
-        """Change the log level of the object and the attached handlers."""
+        """Set the log level for the logger and its handlers.
+
+        Parameters
+        ----------
+        level : str or int, default: "DEBUG"
+            The logging level to set.
+        """
         if isinstance(level, str):
             level = string_to_loglevel[cast(LOG_LEVEL_STRING_TYPE, level.upper())]
         self.logger.setLevel(level)
@@ -431,8 +424,8 @@ class Logger:
     def _make_child_logger(self, suffix: str, level: Optional[LOG_LEVEL_TYPE]) -> logging.Logger:
         """Create a child logger.
 
-        Uses ``getChild`` or copying attributes between ``pymapdl_global``
-        logger and the new one.
+        This method uses the ``getChild()``method or copies attributes between the
+        ``pymapdl_global`` logger and the new one.
         """
         logger = logging.getLogger(suffix)
         logger.std_out_handler = None
@@ -447,7 +440,7 @@ class Logger:
                     logger.std_out_handler = new_handler
 
                 if level:
-                    # The logger handlers are copied and changed the loglevel is
+                    # The logger handlers are copied and changed. The loglevel is
                     # the specified log level is lower than the one of the
                     # global.
                     if isinstance(level, str):
@@ -476,18 +469,22 @@ class Logger:
     def add_child_logger(self, suffix: str, level: Optional[LOG_LEVEL_TYPE] = None):
         """Add a child logger to the main logger.
 
-        This logger is more general than an instance logger which is designed to
-        track the state of the PyAnsys Heart instances.
+        This logger is more general than an instance logger, which is designed to
+        track the state of PyAnsys Heart instances.
 
         If the logging level is in the arguments, a new logger with a reference
-        to the ``_global`` logger handlers is created instead of a child.
+        to the ``_global`` logger handlers is created instead of a child logger.
+
+
+        If the logging level is in the arguments, a new logger with a reference
+        to the ``_global`` logger handlers is created instead of a child logger.
 
         Parameters
         ----------
         suffix : str
             Name of the logger.
-        level : str or int, optional
-            Level of logging
+        level : str or int, default: None
+            Level of logging.
 
         Returns
         -------
@@ -506,7 +503,13 @@ class Logger:
             raise KeyError(f"There is no instances with name {key}.")
 
     def add_handling_uncaught_expections(self, logger: logging.Logger):
-        """Redirect the output of an exception to the logger."""
+        """Redirect the output of an exception to a logger.
+
+        Parameters
+        ----------
+        logger : str
+            Name of the logger.
+        """
 
         def handle_exception(
             exc_type: Type[BaseException],
@@ -532,13 +535,13 @@ def addfile_handler(logger, filename=FILE_NAME, level=LOG_LEVEL_STDOUT, write_he
     ----------
     logger : logging.Logger
         Logger to add the file handler to.
-    filename : str, default: "pyconv-de.log"
-        Name of the output file.
+    filename : str, default: FILE_NAME
+        Name of the output file, which is ``'pyconv-de.log'`` by default.
     level : int, default: 10
         Level of logging. The default is ``10``, in which case the
         ``logging.DEBUG`` level is used.
     write_headers : bool, default: False
-        Whether to write the headers to the file.
+        Whether to write headers to the file.
 
     Returns
     -------
@@ -570,7 +573,7 @@ def _clear_all_file_handlers(logger: Logger) -> Logger:
     Parameters
     ----------
     logger : Logger
-        Logger from which to clear the file handlers.
+        Logger to clear file handlers from.
 
     Returns
     -------
@@ -593,8 +596,8 @@ def add_stdout_handler(logger, level=LOG_LEVEL_STDOUT, write_headers=False):
     Parameters
     ----------
     logger : logging.Logger
-        Logger to add the file handler to.
-    level : int, default: 10
+        Logger to add the stdout handler to.
+    level : int, default: ``10``
         Level of logging. The default is ``10``, in which case the
         ``logging.DEBUG`` level is used.
     write_headers : bool, default: False

@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module contains default values for electrophysiology simulations."""
+"""Module contains default values for EP (Electrophysiology) simulations."""
 
 from pint import Quantity
 

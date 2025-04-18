@@ -30,7 +30,7 @@ class BaseDecks:
 
     Notes
     -----
-    Used to distinguish between each of the decks.
+    This class used to distinguish between each of the decks.
     This base class defines some commonly used decks.
     """
 
@@ -80,7 +80,7 @@ class PurkinjeGenerationDecks(BaseDecks):
 
 
 class ElectrophysiologyDecks(BaseDecks):
-    """Useful decks for Electrophysiology simulations."""
+    """Useful decks for electrophysiology simulations."""
 
     def __init__(self) -> None:
         super().__init__()

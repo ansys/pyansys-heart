@@ -166,7 +166,7 @@ class ConductionPath:
         connection: Literal["none", "first", "last", "all"] = "none",
         line_length: float | None = 1.5,
     ) -> ConductionPath:
-        """Create a conduction beam on a base mesh through a set of keypoints.
+        """Create a conduction path on a base mesh through a set of keypoints.
 
         Parameters
         ----------
@@ -177,19 +177,19 @@ class ConductionPath:
         id : int
             ID of the conduction beam.
         base_mesh : pv.PolyData | pv.UnstructuredGrid
-            Base mesh where the conductionn beam is created. If PolyData, then the
+            Base mesh where the conductionn path is created. If PolyData, then the
             result is a geodesic path on the surface. If an pv.UnstructuredGrid, then the
-            result can be a path in the solid.
+            result the shortest path in the solid.
         connection : Literal[&quot;none&quot;, &quot;first&quot;, &quot;last&quot;, &quot;all&quot;]
         , default: "none"
             Describes how the beam is connected to the solid mesh.
         line_length : float | None, default: 1.5
-            Length of line element.
+            Length of line element in case of refinement.
 
         Returns
         -------
-        ConductionBeams
-            ConductionBeams.
+        ConductionPath
+            ConductionPath.
         """
         if isinstance(base_mesh, pv.PolyData):
             under_surface = base_mesh
@@ -203,7 +203,8 @@ class ConductionPath:
         elif connection == "last":
             is_connceted[-1] = 1
         elif connection == "all":
-            is_connceted[:] = 1
+            # only connect nodes located on the basemesh (if there is an refinement)
+            is_connceted[beam_mesh.point_data["base_mesh_nodes"]] = 1
 
         return ConductionPath(name, beam_mesh, id, is_connceted, under_surface)
 
@@ -351,7 +352,9 @@ def _create_path_on_surface(
 
     path_points, mask = _refine_points(np.array(path_points), length=line_length)
 
-    return pv.lines_from_points(path_points)
+    path = pv.lines_from_points(path_points)
+    path.point_data["base_mesh_nodes"] = mask
+    return path
 
 
 def _create_path_in_solid(
@@ -402,8 +405,9 @@ def _create_path_in_solid(
     coords = sub_mesh.points[ids]
 
     #
-    new_nodes, mask = _refine_points(coords, length=line_length)
-    beamnet = pv.lines_from_points(new_nodes)
+    path_points, mask = _refine_points(coords, length=line_length)
+    path = pv.lines_from_points(path_points)
+    path.point_data["base_mesh_nodes"] = mask
 
     # seg
     # TODO: split function
@@ -431,7 +435,7 @@ def _create_path_in_solid(
         triangles=segment,
         nodes=sub_mesh.points,
     )
-    return beamnet, surf
+    return path, surf
 
 
 def _mesh_to_nx_graph(mesh: pv.UnstructuredGrid) -> nx.Graph:

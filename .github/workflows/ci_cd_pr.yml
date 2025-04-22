@@ -131,7 +131,6 @@ jobs:
           cmd.exe "/K" '"C:\Program Files (x86)\Intel\oneAPI\setvars.bat" && powershell'
           "C:\Users\ansys\set_intelmpi_env_vars.ps1"
           Powershell.exe -File "C:\Users\ansys\set_intelmpi_env_vars.ps1"
-          echo "Folder PATH" | Out-File -FilePath $env:PATH -Encoding utf8 -Append
           echo $env:PATH
           tox -e doc-links,doc-html,doc-pdf
 

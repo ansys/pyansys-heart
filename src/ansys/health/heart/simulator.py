@@ -837,9 +837,7 @@ def run_lsdyna(
     LOGGER.info(f"Path: {os.environ['PATH']}")
 
     mess = []
-    err = []
     command = " ".join(commands)
-    command = command.replace("  ", " ")
     LOGGER.info(f"Running command: {command}")
     with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:
@@ -849,7 +847,6 @@ def run_lsdyna(
     os.chdir(simulation_directory)
 
     LOGGER.info(f"mess: {mess}")
-    LOGGER.info(f"err: {err}")
 
     if "N o r m a l    t e r m i n a t i o n" not in "".join(mess):
         if "numNodePurkinje" not in "".join(mess):

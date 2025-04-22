@@ -268,9 +268,6 @@ class HeartModel:
         self._conduction_mesh: Mesh = Mesh()
         """Mesh of merged conduction paths."""
 
-        self.electrodes: List[Point] = []
-        """Electrodes positions for ECG computing."""
-
         self._part_info = {}
         """Information about all parts in the model."""
 
@@ -335,19 +332,16 @@ class HeartModel:
 
     def _find_conduction_path_merge_points(self, path: ConductionPath):
         """Find the merge points of a conduction path in existeding conduction paths."""
-        registered_name = [c.name for c in self._conduction_paths]
-
         merge_ids = []
         target_ids = []
-
-        if path._up is not None and path._up in registered_name:
-            target = next(i for i in self._conduction_paths if i.name == path._up)
-
-            LOGGER.info(
-                f"merge first node of {path.name.value} into closet point of {target.name.value}"
-            )
+        if path.up_path is not None:
+            target = next(i for i in self._conduction_paths if i.name == path.up_path.name)
+            if target is None:
+                raise ValueError(
+                    f"Conduction path {path.up_path.name} not found to merge with {path.name}."
+                )
             merge_ids.append(0)
-
+            # get the last point of the conduction path
             target_mesh = self._conduction_mesh.extract_cells(
                 self._conduction_mesh["_line-id"] == target.id
             )
@@ -355,12 +349,14 @@ class HeartModel:
             id2 = target_mesh["vtkOriginalPointIds"][sub_id]
             target_ids.append(id2)
 
-        if path._down is not None and path._down in registered_name:
-            target = next(i for i in self._conduction_paths if i.name == path._down)
-            LOGGER.info(
-                f"merge last node of {path.name.value} into closet point of {target.name.value}"
-            )
+        if path.down_path is not None:
+            target = next(i for i in self._conduction_paths if i.name == path.down_path.name)
+            if target is None:
+                raise ValueError(
+                    f"Conduction path {path.down_path.name} not found to merge with {path.name}."
+                )
             merge_ids.append(-1)
+            # get the first point of the conduction path
             target_mesh = self._conduction_mesh.extract_cells(
                 self._conduction_mesh["_line-id"] == target.id
             )

@@ -74,36 +74,6 @@ class ConductionPathType(Enum):
     """User path 3."""
 
 
-connections = {
-    ConductionPathType.LEFT_PURKINJE: [ConductionPathType.LEFT_BUNDLE_BRANCH, None],
-    ConductionPathType.RIGHT_PURKINJE: [ConductionPathType.RIGHT_BUNDLE_BRANCH, None],
-    ConductionPathType.SAN_AVN: [None, ConductionPathType.HIS_TOP],
-    ConductionPathType.MID_SAN_AVN: [ConductionPathType.SAN_AVN, ConductionPathType.HIS_TOP],
-    ConductionPathType.POST_SAN_AVN: [ConductionPathType.SAN_AVN, ConductionPathType.HIS_TOP],
-    ConductionPathType.HIS_TOP: [
-        ConductionPathType.SAN_AVN,
-        None,  # [ConductionBeamType.HIS_LEFT, ConductionBeamType.HIS_RIGHT],
-    ],
-    ConductionPathType.HIS_LEFT: [
-        ConductionPathType.HIS_TOP,
-        ConductionPathType.LEFT_BUNDLE_BRANCH,
-    ],
-    ConductionPathType.HIS_RIGHT: [
-        ConductionPathType.HIS_TOP,
-        ConductionPathType.RIGHT_BUNDLE_BRANCH,
-    ],
-    ConductionPathType.LEFT_BUNDLE_BRANCH: [
-        ConductionPathType.HIS_LEFT,
-        ConductionPathType.LEFT_PURKINJE,
-    ],
-    ConductionPathType.RIGHT_BUNDLE_BRANCH: [
-        ConductionPathType.HIS_RIGHT,
-        ConductionPathType.RIGHT_PURKINJE,
-    ],
-    ConductionPathType.BACHMANN_BUNDLE: [ConductionPathType.SAN_AVN, None],
-}
-
-
 class ConductionPath:
     """ConductionPath class."""
 
@@ -115,6 +85,8 @@ class ConductionPath:
         is_connected: np.ndarray,
         relying_surface: pv.PolyData,
         material: EPMaterial = EPMaterial.DummyMaterial(),
+        up_path: ConductionPath | None = None,
+        down_path: ConductionPath | None = None,
     ):
         """Create a conduction path.
 
@@ -132,6 +104,16 @@ class ConductionPath:
             Surface mesh where the conduction path is relying on.
         material : EPMaterial, default: EPMaterial.DummyMaterial()
             EP Material property.
+        up_path : ConductionPath | None, default: None
+            Upstream conduction path, its closest point will be connected to the
+            first point of this path.
+        down_path : ConductionPath | None, default: None
+            Downstream conduction path,  its closest point will be connected to the
+            last point of this path.
+
+        Notes
+        -----
+        up_path and down_path can be parallel paths like the 3 SA-AV paths
         """
         self.name = name
         self.mesh = mesh.copy()
@@ -141,16 +123,62 @@ class ConductionPath:
 
         # check if the mesh lays on the relying_surface
         dst = self.mesh.compute_implicit_distance(self.relying_surface)["implicit_distance"]
-        LOGGER.info(f"Maximal distance between lines to surface is: {np.max(abs(dst))}.")
+        LOGGER.info(
+            f"Maximal distance of {self.name} to its relying surface is: {np.max(abs(dst))}."
+        )
 
         self.ep_material = material
 
         self._assign_data()
-        self._assign_connection()
+        self.up_path = up_path
+        self.down_path = down_path
 
-    def _assign_connection(self):
-        self._up = connections[self.name][0]
-        self._down = connections[self.name][1]
+    @property
+    def up_path(self) -> ConductionPath | None:
+        """Get upstream conduction path."""
+        return self._up_path
+
+    @property
+    def down_path(self) -> ConductionPath | None:
+        """Get downstream conduction path."""
+        return self._down_path
+
+    @up_path.setter
+    def up_path(self, value: ConductionPath | None):
+        """Set upstream conduction path.
+
+        Parameters
+        ----------
+        value : ConductionPath | None
+            Upstream conduction path, its closest point will be connected to
+            the first point of this path.
+        """
+        if value is not None:
+            origin = self.mesh.points[0]
+            target_id = value.mesh.find_closest_point(origin)
+            target = value.mesh.points[target_id]
+            dst = np.linalg.norm(origin - target)
+            LOGGER.info(f"Distance between {self.name} and {value.name} is: {dst}.")
+
+        self._up_path = value
+
+    @down_path.setter
+    def down_path(self, value: ConductionPath | None):
+        """Set downstream conduction path.
+
+        Parameters
+        ----------
+        value : ConductionPath | None
+            Downstream conduction path, its closest point will be connected to
+            the last point of this path.
+        """
+        if value is not None:
+            origin = self.mesh.points[-1]
+            target_id = value.mesh.find_closest_point(origin)
+            target = value.mesh.points[target_id]
+            dst = np.linalg.norm(origin - target)
+            LOGGER.info(f"Distance between {self.name} and {value.name} is: {dst}.")
+        self._down_path = value
 
     def _assign_data(self):
         # save data into mesh

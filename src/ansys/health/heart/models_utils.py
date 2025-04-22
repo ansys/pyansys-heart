@@ -269,6 +269,8 @@ class HeartModelUtils:
             base_mesh=model.mesh,
             connection="none",
         )
+        his_top.up_path = sa_av
+
         his_left = ConductionPath.create_from_keypoints(
             name=ConductionPathType.HIS_LEFT,
             keypoints=[his_bif.xyz, his_left_point.xyz],
@@ -276,6 +278,7 @@ class HeartModelUtils:
             base_mesh=model.mesh,
             connection="none",
         )
+        his_left.up_path = his_top
         his_right = ConductionPath.create_from_keypoints(
             name=ConductionPathType.HIS_RIGHT,
             keypoints=[his_bif.xyz, his_right_point.xyz],
@@ -283,6 +286,8 @@ class HeartModelUtils:
             base_mesh=model.mesh,
             connection="none",
         )
+
+        his_right.up_path = his_top
         left_bundle = ConductionPath.create_from_keypoints(
             name=ConductionPathType.LEFT_BUNDLE_BRANCH,
             keypoints=[his_left_point.xyz, model.left_ventricle.apex_points[0].xyz],
@@ -291,7 +296,8 @@ class HeartModelUtils:
             connection="none",  # TODO: change to 'last'?
             line_length=None,
         )
-
+        left_bundle.up_path = his_left
+        left_bundle.down_path = left_pirkinje
         surface_ids = [model.right_ventricle.endocardium.id, model.right_ventricle.septum.id]
         endo_surface = model.mesh.get_surface(surface_ids)
 
@@ -303,6 +309,8 @@ class HeartModelUtils:
             connection="none",  # TODO: change to 'last'?
             line_length=None,
         )
+        right_bundle.up_path = his_right
+        right_bundle.down_path = right_pirkinje
         return [
             left_pirkinje,
             right_pirkinje,

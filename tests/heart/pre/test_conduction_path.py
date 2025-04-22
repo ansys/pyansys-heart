@@ -157,32 +157,18 @@ def test_conduction():
     folder = os.path.join(
         get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
     )
-    # f1 = os.path.join(folder, "purkinjeNetwork_001.k")
-    # left_purkjinje = model.add_purkinje_from_kfile(f1, _ConductionType.LEFT_PURKINJE.value)
-    # ref0 = pv.read(os.path.join(folder, "left_purkinje.vtp"))
-    # assert meshes_equal(ref0, left_purkjinje)
 
-    # new method
     beam_list = HeartModelUtils.define_default_conduction_system(model, purkinje_folder=folder)
     model.assign_conduction_paths(beam_list)
     res = model.conduction_mesh
-
-    # old method
-    # from ansys.health.heart.pre.conduction_beam import _compute_heart_conductionsystem
-
-    # f1 = os.path.join(folder, "purkinjeNetwork_001.k")
-    # f2 = os.path.join(folder, "purkinjeNetwork_002.k")
-    # model.add_purkinje_from_kfile(f1, _ConductionType.LEFT_PURKINJE.value)
-    # model.add_purkinje_from_kfile(f2, _ConductionType.RIGHT_PURKINJE.value)
-    # _compute_heart_conductionsystem(model, 1.5)
 
     ref = pv.read(os.path.join(folder, "conduction.vtu"))
 
     assert res.n_cells == ref.n_cells
     assert res.n_points == ref.n_points
     assert np.allclose(res.points, ref.points, atol=1e-3)
-    # old method has HIS together but new method split it into 3 part
-    # assert np.array_equal(res["_line-id"], ref["_line-id"])
+    # ref has HIS together but now we split it into 3 part
+    assert np.array_equal(res["_line-id"] == 1, ref["_line-id"] == 1)
     assert np.array_equal(res["_is-connected"], ref["_is-connected"])
 
     # test ID shift after merging to solid

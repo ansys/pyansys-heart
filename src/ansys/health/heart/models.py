@@ -305,13 +305,19 @@ class HeartModel:
         -----
         If conduction paths are already defined, they will be removed.
         """
+        if isinstance(paths, ConductionPath):
+            paths = [paths]
+
+        ids = [path.id for path in paths]
+        if len(ids) != len(set(ids)):
+            msg = "You should set an unique ID for each path."
+            LOGGER.error(msg)
+            raise ValueError(msg)
+
         if len(self._conduction_paths) > 0:
             LOGGER.warning("Removing previously defined conduction beams.")
             self._conduction_paths: list[ConductionPath] = []
             self._conduction_mesh: Mesh = Mesh()
-
-        if isinstance(paths, ConductionPath):
-            paths = [paths]
 
         for path in paths:
             self._conduction_paths.append(path)

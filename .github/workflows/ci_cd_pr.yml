@@ -118,7 +118,7 @@ jobs:
         env:
           PYANSYS_HEART_FLUENT_VERSION: 24.1
           PYFLUENT_LAUNCH_CONTAINER: 0
-          PYANSYS_HEART_LSDYNA_PATH: C:\Program Files\ANSYS Inc\LS-DYNA\R16.0\windows\mpp\intelmpi\ls-dyna_mpp_d_R16.0\ls-dyna_mpp_d_R16.0.exe
+          PYANSYS_HEART_LSDYNA_PATH: C:\Program Files\LS-DYNA\R16.0\windows\mpp\intelmpi\ls-dyna_mpp_d_R16.0\ls-dyna_mpp_d_R16.0.exe
           PYANSYS_HEART_LSDYNA_TYPE: intelmpi
           PYANSYS_HEART_LSDYNA_PLATFORM: windows
           PYANSYS_HEART_NUM_CPU: 4

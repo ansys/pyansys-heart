@@ -111,6 +111,7 @@ jobs:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
       - name: "Install Tox"
+        shell: cmd
         run: |
           uv tool install tox --with tox-uv
 

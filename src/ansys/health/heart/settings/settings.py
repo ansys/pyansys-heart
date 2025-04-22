@@ -994,7 +994,7 @@ class DynaSettings:
                 commands = [
                     mpi_exe,
                     self.mpi_options,
-                    "-np",
+                    "-n",
                     str(self.num_cpus),
                     lsdyna_path,
                     "i=" + path_to_input,

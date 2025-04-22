@@ -113,6 +113,7 @@ jobs:
       - name: "Install Tox"
         run: |
           uv tool install tox --with tox-uv
+          Add-Content $env:GITHUB_PATH "C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin\utils;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin\release;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin"
 
       - name: "Build documentation"
         env:
@@ -128,7 +129,6 @@ jobs:
           PYFLUENT_UI_MODE: no_gui # default hidden_gui fails on self-hosted runner
           NIGHTLY_DOC_BUILD: 0
         run: |
-          Add-Content $env:GITHUB_PATH "C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin\utils;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin\release;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin"
           echo $env:PATH
           tox -e doc-links,doc-html,doc-pdf
 

@@ -837,24 +837,35 @@ def run_lsdyna(
     LOGGER.info(f"Path: {os.environ['PATH']}")
 
     mess = []
+    err = []
     command = " ".join(commands)
     command = command.replace("  ", " ")
     LOGGER.info(f"Running command: {command}")
 
-    with subprocess.Popen("mpiexec --help", stdout=subprocess.PIPE, text=True) as p:
-        for line in p.stdout:
-            LOGGER.info(line.rstrip())
-            mess.append(line)
+    if not shutil.which("mpiexec"):
+        LOGGER.info("mpiexec not found.")
 
-    mess = []
-    with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as p:
-        for line in p.stdout:
-            LOGGER.info(line.rstrip())
-            mess.append(line)
+    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    for line in p.stdout:
+        LOGGER.info(line.rstrip())
+        mess.append(line)
+
+    for line in p.stderr:
+        LOGGER.info(line.rstrip())
+        err.append(err)
+
+    # mess = []
+    # err = []
+    # with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as p: #noqa E501
+    #     output, err = p.communicate()
+    #     for line in p.stdout:
+    #         LOGGER.info(line.rstrip())
+    #         mess.append(line)
 
     os.chdir(simulation_directory)
 
     LOGGER.info(f"mess: {mess}")
+    LOGGER.info(f"err: {err}")
 
     if "N o r m a l    t e r m i n a t i o n" not in "".join(mess):
         if "numNodePurkinje" not in "".join(mess):

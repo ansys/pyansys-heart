@@ -208,3 +208,15 @@ def test_conductionbeams_from_k():
     assert l_pj.ep_material == EPMaterial.DummyMaterial()
     ref0 = pv.read(os.path.join(folder, "left_purkinje.vtp"))
     assert meshes_equal(l_pj.mesh, ref0)
+    assert l_pj.is_connected.sum() == 1114
+
+    # test with merge apex
+    l_pj2 = ConductionPath.create_from_k_file(
+        name=ConductionPathType.LEFT_PURKINJE,
+        k_file=f1,
+        id=1,
+        base_mesh=model.left_ventricle.endocardium,
+        model=model,
+        merge_apex=True,
+    )
+    assert l_pj2.is_connected.sum() == 1115

@@ -208,7 +208,12 @@ class ConductionPath:
 
     @staticmethod
     def create_from_k_file(
-        name: ConductionPathType, k_file: str, id: int, base_mesh: pv.PolyData, model
+        name: ConductionPathType,
+        k_file: str,
+        id: int,
+        base_mesh: pv.PolyData,
+        model,
+        merge_apex: bool = False,
     ) -> ConductionPath:
         """Build conduction path from LS-DYNA k-file.
 
@@ -224,38 +229,47 @@ class ConductionPath:
             Surface mesh where the conduction path is relying on.
         model : HeartModel
             HeartModel object.
+        merge_apex : bool, default: False
+            If True, merge apex node with the solid mesh.
 
         Returns
         -------
         ConductionPath
             Conduction path object.
         """
+        # The method is now unnecessarily complex to build polydata of path,
+        # we can just read solid + beam nodes and beam elements, then build it
+        # following with clean() to remove unused nodes.
+
         beam_nodes, edges, mask, _ = _read_purkinje_kfile(k_file)
 
-        # build tree: beam_nodes and solid_points
-        original_points_order = np.unique(edges[np.invert(mask)])
-        """TODO: remove model from input, read points from k files."""
-        solid_points = model.mesh.points[original_points_order]
+        # get solid points which are not in k_file
+        # alternatively, can be get from reading nodes.k
+        solid_points_ids = np.unique(edges[np.invert(mask)])
+        solid_points = model.mesh.points[solid_points_ids]
+
+        # create connectivity
         connectivity = np.empty_like(edges)
         np.copyto(connectivity, edges)
-
-        # create ids of solid points and fill connectivity
         _, _, inverse_indices = np.unique(
             connectivity[np.logical_not(mask)], return_index=True, return_inverse=True
         )
         connectivity[np.logical_not(mask)] = inverse_indices + max(connectivity[mask]) + 1
+
+        # build polydata
+        points = np.vstack([beam_nodes, solid_points])
         celltypes = np.full((connectivity.shape[0], 1), 2)
         connectivity = np.hstack((celltypes, connectivity))
-        beam_points = np.vstack([beam_nodes, solid_points])
-        # NOTE LS-DYNA create a new apex node as origin
-        # TODO: merge it to apex of solid mesh
+        path = pv.PolyData(points, lines=connectivity)
+
+        # LS-DYNA creates a new node at apex as origin of Purkinje network
         is_connected = np.concatenate(
             [np.zeros(len(beam_nodes)), np.ones(len(solid_points))]
         ).astype(np.int64)
 
-        beam_net = pv.PolyData(beam_points, lines=connectivity)
-
-        return ConductionPath(name, beam_net, id, is_connected, base_mesh)
+        if merge_apex:
+            is_connected[0] = 1
+        return ConductionPath(name, path, id, is_connected, base_mesh)
 
 
 def _fill_points(point_start: np.array, point_end: np.array, length: float) -> np.ndarray:

@@ -128,7 +128,7 @@ jobs:
           PYFLUENT_UI_MODE: no_gui # default hidden_gui fails on self-hosted runner
           NIGHTLY_DOC_BUILD: 0
         run: |
-          $env:PATH="C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin\utils;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin\release;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin;C:\Program Files\PowerShell\7;C:\Program Files\Microsoft MPI\Bin\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\Git\cmd;C:\ProgramData\chocolatey\bin;C:\Program Files\MiKTeX\miktex\bin\x64\;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Program Files\PowerShell\7\;C:\Users\ansys\AppData\Local\Microsoft\WindowsApps;C:\Users\ansys\AppData\Local\Programs\Microsoft VS Code\bin"
+          Add-Content $env:GITHUB_PATH "C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin\utils;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin\release;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin"
           echo $env:PATH
           tox -e doc-links,doc-html,doc-pdf
 

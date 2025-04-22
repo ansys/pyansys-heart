@@ -845,6 +845,8 @@ def run_lsdyna(
 
     os.chdir(simulation_directory)
 
+    LOGGER.info(f"mess: {mess}")
+
     if "N o r m a l    t e r m i n a t i o n" not in "".join(mess):
         if "numNodePurkinje" not in "".join(mess):
             LOGGER.error("LS-DYNA did not terminate properly.")

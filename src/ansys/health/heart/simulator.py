@@ -837,7 +837,8 @@ def run_lsdyna(
     LOGGER.info(f"Path: {os.environ['PATH']}")
 
     mess = []
-    with subprocess.Popen(" ".join(commands), stdout=subprocess.PIPE, text=True) as p:
+    command = " ".join(commands)
+    with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:
             LOGGER.info(line.rstrip())
             mess.append(line)

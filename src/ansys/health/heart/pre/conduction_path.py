@@ -31,6 +31,7 @@ import networkx as nx
 import numpy as np
 import pyvista as pv
 
+from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.objects import Mesh, SurfaceMesh
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 
@@ -126,9 +127,12 @@ class ConductionPath:
         self.mesh = mesh.copy()
         self.id = id
         self.is_connected = is_connected
-
-        # TODO: check if the mesh lays on the relying_surface
         self.relying_surface = relying_surface
+
+        # check if the mesh lays on the relying_surface
+        dst = self.mesh.compute_implicit_distance(self.relying_surface)["implicit_distance"]
+        LOGGER.info(f"Maximal distance between lines to surface is: {np.max(abs(dst))}.")
+
         self.ep_material = material
 
         self._assign_data()

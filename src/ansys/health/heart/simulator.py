@@ -838,6 +838,8 @@ def run_lsdyna(
 
     mess = []
     command = " ".join(commands)
+    command = command.replace("  ", " ")
+    LOGGER.info(f"Running command: {command}")
     with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:
             LOGGER.info(line.rstrip())

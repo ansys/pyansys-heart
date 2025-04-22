@@ -111,7 +111,6 @@ jobs:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
       - name: "Install Tox"
-        shell: cmd
         run: |
           uv tool install tox --with tox-uv
 
@@ -130,9 +129,8 @@ jobs:
           DPF_STANDALONE_PATH: C:\\Program Files\\ANSYS Inc\\dpf-server-2024.2rc0
           PYFLUENT_UI_MODE: no_gui # default hidden_gui fails on self-hosted runner
           NIGHTLY_DOC_BUILD: 0
-        shell: cmd
         run: |
-          "C:\Program Files\ANSYS Inc\LS-DYNA\R16.0\windows\mpp\set_intelmpi_env_vars.bat"
+          Powershell.exe -File "C:\Program Files\ANSYS Inc\LS-DYNA\R16.0\windows\mpp\set_intelmpi_env_vars.ps1"
           tox -e doc-links,doc-html,doc-pdf
 
       - name: Upload HTML documentation artifact

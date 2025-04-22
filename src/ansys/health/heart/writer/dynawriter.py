@@ -3040,7 +3040,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             psid = 1
             eikonal_stim_content += f"{eikonal_id:>10d}{psid:>10d}{nsid:>10d}"
             if solvertype == "ReactionEikonal":
-                eikonal_stim_content += "$ footType     footT     footA  footTauf   footVth\n"
+                eikonal_stim_content += "\n$ footType     footT     footA  footTauf   footVth\n"
                 foot_type = 1
                 foot_t = stim.duration.m
                 foot_a = stim.amplitude.m

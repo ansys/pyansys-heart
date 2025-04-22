@@ -128,14 +128,14 @@ pyvista.BUILDING_GALLERY = True
 
 # use this environment variable to build nightly docs
 nightly_docs = bool(int(os.getenv("NIGHTLY_DOC_BUILD", False)))
-print(f"skip long examples: {nightly_docs}")
+print(f"Run long examples: {nightly_docs}")
 
 if nightly_docs:
     # executes all examples, including the time-intensive ones.
     gallery_filename_pattern = r".*\.py"
 else:
     # only executes examples with suffix _pr.py
-    gallery_filename_pattern = r".*(fiber_pr\.py)"
+    gallery_filename_pattern = r".*(_pr\.py)"
 
 sphinx_gallery_conf = {
     # convert rst to md for ipynb

@@ -62,11 +62,21 @@ class ConductionPathType(Enum):
     """Right part of the His bundle."""
     BACHMANN_BUNDLE = "Bachmann bundle"
     """Bachmann bundle."""
+    LEFT_ANTERIOR_FASCILE = "Left anterior fascicle"
+    """Left anterior fascicle."""
+    LEFT_POSTERIOR_FASCICLE = "Left posterior fascicle"
+    """Left posterior fascicle."""
+    USER_PAHT_1 = "User path 1"
+    """User path 1."""
+    USER_PAHT_2 = "User path 2"
+    """User path 2."""
+    USER_PAHT_3 = "User path 3"
+    """User path 3."""
 
 
 connections = {
-    ConductionPathType.LEFT_PURKINJE: [ConductionPathType.HIS_LEFT, None],
-    ConductionPathType.RIGHT_PURKINJE: [ConductionPathType.HIS_RIGHT, None],
+    ConductionPathType.LEFT_PURKINJE: [ConductionPathType.LEFT_BUNDLE_BRANCH, None],
+    ConductionPathType.RIGHT_PURKINJE: [ConductionPathType.RIGHT_BUNDLE_BRANCH, None],
     ConductionPathType.SAN_AVN: [None, ConductionPathType.HIS_TOP],
     ConductionPathType.MID_SAN_AVN: [ConductionPathType.SAN_AVN, ConductionPathType.HIS_TOP],
     ConductionPathType.POST_SAN_AVN: [ConductionPathType.SAN_AVN, ConductionPathType.HIS_TOP],

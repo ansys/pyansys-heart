@@ -831,7 +831,7 @@ def run_lsdyna(
         _kill_all_ansyscl()
 
     mpi_env_vars = [
-        key for key in os.environ.keys() if "ONEAPI" in key or "Path" in key or "LIB" in key
+        key for key in os.environ.keys() if "ONEAPI" in key or "PATH" in key or "LIB" in key
     ]
     LOGGER.info(f"Env variables: {mpi_env_vars}")
 

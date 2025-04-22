@@ -841,26 +841,10 @@ def run_lsdyna(
     command = " ".join(commands)
     command = command.replace("  ", " ")
     LOGGER.info(f"Running command: {command}")
-
-    if not shutil.which("mpiexec"):
-        LOGGER.info("mpiexec not found.")
-
-    p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    for line in p.stdout:
-        LOGGER.info(line.rstrip())
-        mess.append(line)
-
-    for line in p.stderr:
-        LOGGER.info(line.rstrip())
-        err.append(err)
-
-    # mess = []
-    # err = []
-    # with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as p: #noqa E501
-    #     output, err = p.communicate()
-    #     for line in p.stdout:
-    #         LOGGER.info(line.rstrip())
-    #         mess.append(line)
+    with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as p:
+        for line in p.stdout:
+            LOGGER.info(line.rstrip())
+            mess.append(line)
 
     os.chdir(simulation_directory)
 

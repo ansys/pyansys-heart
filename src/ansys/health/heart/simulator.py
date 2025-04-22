@@ -834,9 +834,10 @@ def run_lsdyna(
         key for key in os.environ.keys() if "ONEAPI" in key or "PATH" in key or "LIB" in key
     ]
     LOGGER.info(f"Env variables: {mpi_env_vars}")
+    LOGGER.info(f"Path: {os.environ['PATH']}")
 
     mess = []
-    with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
+    with subprocess.Popen(" ".join(commands), stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:
             LOGGER.info(line.rstrip())
             mess.append(line)

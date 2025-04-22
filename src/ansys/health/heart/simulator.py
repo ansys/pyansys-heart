@@ -830,6 +830,11 @@ def run_lsdyna(
     if _KILL_ANSYSCL_PRIOR_TO_RUN:
         _kill_all_ansyscl()
 
+    mpi_env_vars = [
+        key for key in os.environ.keys() if "ONEAPI" in key or "Path" in key or "LIB" in key
+    ]
+    LOGGER.info(f"Env variables: {mpi_env_vars}")
+
     mess = []
     with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:

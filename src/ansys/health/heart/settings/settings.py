@@ -1078,11 +1078,6 @@ class DynaSettings:
         commands = [os.path.expandvars(c) for c in commands]
         LOGGER.info(f"LS-DYNA commands: {' '.join(commands)}")
 
-        mpi_env_vars = [
-            key for key in os.environ.keys() if "ONEAPI" in key or "Path" in key or "LIB" in key
-        ]
-        LOGGER.info(f"Env variables: {mpi_env_vars}")
-
         return commands
 
     def _modify_from_global_settings(self):

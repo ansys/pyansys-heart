@@ -39,14 +39,19 @@ jobs:
         run: |
           uv tool install tox --with tox-uv
 
+      - name: "Modify PATH for intelmpi"
+        run: |
+          Add-Content $env:GITHUB_PATH "C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin\utils;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin\release;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin"
+
       - name: "Build documentation"
         env:
           PYANSYS_HEART_FLUENT_VERSION: 24.1
           PYFLUENT_LAUNCH_CONTAINER: 0
-          PYANSYS_HEART_LSDYNA_PATH: C:\Program Files\ANSYS Inc\LS-DYNA\R16.0\windows\R16.0.exe
+          PYANSYS_HEART_LSDYNA_PATH: C:\Program Files\ANSYS Inc\LS-DYNA\R16.0\windows\mpp\intelmpi\ls-dyna_mpp_d_R16.0\ls-dyna_mpp_d_R16.0.exe
+          PYANSYS_HEART_LSDYNA_TYPE: intelmpi
           PYANSYS_HEART_LSDYNA_PLATFORM: windows
-          PYANSYS_HEART_LSDYNA_TYPE: "smp"
-          LSTC_LICENSE: ansys
+          PYANSYS_HEART_NUM_CPU: 4
+          ANSYS_DPF_ACCEPT_LA: Y
           AWP_ROOT241: C:\\Program Files\\ANSYS Inc\\v241
           DPF_STANDALONE_PATH: C:\\Program Files\\ANSYS Inc\\dpf-server-2024.2rc0
           PYFLUENT_UI_MODE: no_gui # default hidden_gui fails on self-hosted runner

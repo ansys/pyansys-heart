@@ -691,24 +691,33 @@ class Mesh(pv.UnstructuredGrid):
             point_data_names = [k for k in mesh.point_data.keys()]
 
             for name in cell_data_names:
-                self.cell_data[name] = _get_fill_data(
-                    mesh, self, name, "cell", fill_int, fill_float
-                )
+                fill_data = _get_fill_data(mesh, self, name, "cell", fill_int, fill_float)
+                if isinstance(fill_data, np.ndarray) and fill_data.shape[0] == 0:
+                    continue
+                self.cell_data[name] = fill_data
 
             for name in point_data_names:
-                self.point_data[name] = _get_fill_data(
-                    mesh, self, name, "point", fill_int, fill_float
-                )
+                fill_data = _get_fill_data(mesh, self, name, "point", fill_int, fill_float)
+                if isinstance(fill_data, np.ndarray) and fill_data.shape[0] == 0:
+                    continue
+                self.point_data[name] = fill_data
 
             # add cell/point arrays mesh to be added
             cell_data_names = [k for k in self.cell_data.keys()]
             point_data_names = [k for k in self.point_data.keys()]
 
             for name in cell_data_names:
-                mesh.cell_data[name] = _get_fill_data(self, mesh, name, "cell")
+                fill_data = _get_fill_data(self, mesh, name, "cell")
+                if isinstance(fill_data, np.ndarray) and fill_data.shape[0] == 0:
+                    continue
+                mesh.cell_data[name] = fill_data
 
             for name in point_data_names:
-                mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
+                fill_data = _get_fill_data(self, mesh, name, "point")
+                if isinstance(fill_data, np.ndarray) and fill_data.shape[0] == 0:
+                    continue
+                mesh.point_data[name] = fill_data
+
         merged = pv.merge((self, mesh), merge_points=False, main_has_priority=False)
         super().__init__(merged)
         return self

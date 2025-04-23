@@ -678,6 +678,13 @@ class Mesh(pv.UnstructuredGrid):
             Whether to try to keep mesh point/cell data.
         """
         mesh = copy.copy(mesh_input)
+        # NOTE: PyVista 0.45.0 sometimes has more data cell/point data arrays than number of
+        # cells/points. This seems to happen mostly in PolyData objects, casting to an unstructured
+        # grid seems to fix this. Aternatively we can call clean and deactivate all flags.
+        # However, that may have other side effects.
+        if isinstance(mesh, pv.PolyData):
+            mesh = mesh.cast_to_unstructured_grid()
+
         if keep_data:
             # add cell/point arrays in self
             cell_data_names = [k for k in mesh.cell_data.keys()]
@@ -702,7 +709,6 @@ class Mesh(pv.UnstructuredGrid):
 
             for name in point_data_names:
                 mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
-
         merged = pv.merge((self, mesh), merge_points=False, main_has_priority=False)
         super().__init__(merged)
         return self

@@ -44,7 +44,9 @@ from ansys.health.heart.objects import (
     PartType,
     Point,
     SurfaceMesh,
-    _BeamsMesh,
+)
+from ansys.health.heart.pre.conduction_path import (
+    ConductionPath,
 )
 from ansys.health.heart.pre.input import _InputModel
 import ansys.health.heart.pre.mesher as mesher
@@ -87,55 +89,6 @@ def _set_field_data_from_axis(
         return None
     mesh.field_data[axis_name] = data
     return mesh
-
-
-def _read_purkinje_from_kfile(filename: pathlib.Path):
-    """Read Purkinje from a k file.
-
-    Parameters
-    ----------
-    filename : pathlib.Path
-        Full path to the K file.
-
-    Returns
-    -------
-    _type_
-        Beam data extracted from file: beam_nodes, edges, mask, pid
-    """
-    # Open file and import beams and created nodes
-    with open(filename, "r") as file:
-        start_nodes = 0
-        lines = file.readlines()
-    # find line ids delimiting node data and edge data
-    start_nodes = np.array(np.where(["*NODE" in line for line in lines]))[0][0]
-    end_nodes = np.array(np.where(["*" in line for line in lines]))
-    end_nodes = end_nodes[end_nodes > start_nodes][0]
-    start_beams = np.array(np.where(["*ELEMENT_BEAM" in line for line in lines]))[0][0]
-    end_beams = np.array(np.where(["*" in line for line in lines]))
-    end_beams = end_beams[end_beams > start_beams][0]
-
-    # load node data
-    node_data = np.loadtxt(filename, skiprows=start_nodes + 1, max_rows=end_nodes - start_nodes - 1)
-    new_ids = node_data[:, 0].astype(int) - 1
-    beam_nodes = node_data[:, 1:4]
-
-    # load beam data
-    beam_data = np.loadtxt(
-        filename, skiprows=start_beams + 1, max_rows=end_beams - start_beams - 1, dtype=int
-    )
-    edges = beam_data[:, 2:4] - 1
-    pid = beam_data[0, 1]
-
-    # TODO: physically, this is not fully understood: Merging the end of bundle branch, the
-    # TODO: origin of Purkinje and the apex of myiocardium seems logical, but it has more chance
-    # TODO: the EP wave will not be triggered.
-    # TODO: so I remove it, it means: end of bundle branch connect to apex, origin of Purkinje
-    # TODO: is another point on the same location.
-
-    mask = np.isin(edges, new_ids)  # True for new created nodes
-    edges[mask] -= new_ids[0]  # beam nodes id start from 0
-
-    return beam_nodes, edges, mask, pid
 
 
 def _set_workdir(workdir: pathlib.Path | str = None) -> str:
@@ -309,11 +262,11 @@ class HeartModel:
         self.electrodes: List[Point] = []
         """Electrodes positions for ECG computing."""
 
-        self.conduction_system: _BeamsMesh = _BeamsMesh()
-        """Mesh defining the conduction system."""
+        self._conduction_paths: list[ConductionPath] = []
+        """Conduction paths list."""
 
-        self.electrodes: List[Point] = []
-        """Electrodes positions for ECG computing."""
+        self._conduction_mesh: Mesh = Mesh()
+        """Mesh of merged conduction paths."""
 
         self._part_info = {}
         """Information about all parts in the model."""
@@ -326,6 +279,92 @@ class HeartModel:
         """l4cv axis."""
 
         return
+
+    @property
+    def conduction_paths(self):
+        """Return the list of conduction path."""
+        return self._conduction_paths
+
+    @property
+    def conduction_mesh(self):
+        """Return the conduction mesh."""
+        return self._conduction_mesh
+
+    def assign_conduction_paths(self, paths: ConductionPath | list[ConductionPath]):
+        """Assign conduction paths to the model.
+
+        Parameters
+        ----------
+        beams : ConductionBeams | list[ConductionBeams]
+            list of conduction beams.
+
+        Notes
+        -----
+        If conduction paths are already defined, they will be removed.
+        """
+        if isinstance(paths, ConductionPath):
+            paths = [paths]
+
+        ids = [path.id for path in paths]
+        if len(ids) != len(set(ids)):
+            msg = "You should set an unique ID for each path."
+            LOGGER.error(msg)
+            raise ValueError(msg)
+
+        if len(self._conduction_paths) > 0:
+            LOGGER.warning("Removing previously defined conduction beams.")
+            self._conduction_paths: list[ConductionPath] = []
+            self._conduction_mesh: Mesh = Mesh()
+
+        for path in paths:
+            self._conduction_paths.append(path)
+
+            # merge path into conduction_system
+            merge_ids, target_ids = self._find_conduction_path_merge_points(path)
+            self._conduction_mesh = Mesh._safe_line_merge(
+                self._conduction_mesh, path.mesh, merge_ids, target_ids
+            )
+
+        # deduce the IDs of the conduction mesh in final mesh
+        self._conduction_mesh.point_data["_shifted_id"] = Mesh._get_shifted_id(
+            self.mesh, self._conduction_mesh
+        )
+
+    def _find_conduction_path_merge_points(self, path: ConductionPath):
+        """Find the merge points of a conduction path in existeding conduction paths."""
+        merge_ids = []
+        target_ids = []
+        if path.up_path is not None:
+            target = next(i for i in self._conduction_paths if i.name == path.up_path.name)
+            if target is None:
+                raise ValueError(
+                    f"Conduction path {path.up_path.name} not found to merge with {path.name}."
+                )
+            merge_ids.append(0)
+            # get the last point of the conduction path
+            target_mesh = self._conduction_mesh.extract_cells(
+                self._conduction_mesh["_line-id"] == target.id
+            )
+            sub_id = target_mesh.find_closest_point(path.mesh.points[0])
+            id2 = target_mesh["vtkOriginalPointIds"][sub_id]
+            target_ids.append(id2)
+
+        if path.down_path is not None:
+            target = next(i for i in self._conduction_paths if i.name == path.down_path.name)
+            if target is None:
+                raise ValueError(
+                    f"Conduction path {path.down_path.name} not found to merge with {path.name}."
+                )
+            merge_ids.append(-1)
+            # get the first point of the conduction path
+            target_mesh = self._conduction_mesh.extract_cells(
+                self._conduction_mesh["_line-id"] == target.id
+            )
+            sub_id = target_mesh.find_closest_point(path.mesh.points[-1])
+            id2 = target_mesh["vtkOriginalPointIds"][sub_id]
+            target_ids.append(id2)
+
+        return merge_ids, target_ids
 
     def __str__(self):
         """Represent self as string."""
@@ -374,43 +413,6 @@ class HeartModel:
         new_part.element_ids = eids
 
         return new_part
-
-    def add_purkinje_from_kfile(self, filename: pathlib.Path, name: str) -> None:
-        """Read an LS-DYNA file containing Purkinje beams and nodes.
-
-        Parameters
-        ----------
-        filename : pathlib.Path
-            Full path to the LS-DYNA file.
-        name : str
-            Beamnet name.
-        """
-        beam_nodes, edges, mask, pid = _read_purkinje_from_kfile(filename)
-
-        # build tree: beam_nodes and solid_points
-        original_points_order = np.unique(edges[np.invert(mask)])
-        solid_points = self.mesh.points[original_points_order]
-        connectivity = np.empty_like(edges)
-        np.copyto(connectivity, edges)
-
-        # create IDs of solid points and fill connectivity
-        _, _, inverse_indices = np.unique(
-            connectivity[np.logical_not(mask)], return_index=True, return_inverse=True
-        )
-        connectivity[np.logical_not(mask)] = inverse_indices + max(connectivity[mask]) + 1
-        celltypes = np.full((connectivity.shape[0], 1), 2)
-        connectivity = np.hstack((celltypes, connectivity))
-        beam_points = np.vstack([beam_nodes, solid_points])
-        is_connected = np.concatenate(
-            [np.zeros(len(beam_nodes)), np.ones(len(solid_points))]
-        ).astype(np.int64)
-
-        beam_net = pv.PolyData(beam_points, lines=connectivity)
-        beam_net.point_data["_is-connected"] = is_connected
-        id = self.conduction_system.get_unique_lines_id()
-        self.conduction_system.add_lines(lines=beam_net, id=id, name=name)
-
-        return beam_net
 
     def load_input(self, input_vtp: pv.PolyData, part_definitions: dict, scalar: str):
         """Load an input model.
@@ -747,15 +749,15 @@ class HeartModel:
 
     def plot_purkinje(self):
         """Plot the mesh and Purkinje network."""
-        if self.conduction_system is None or self.conduction_system.number_of_cells == 0:
+        if self._conduction_mesh is None or self._conduction_mesh.number_of_cells == 0:
             LOGGER.info("No conduction system was found.")
             return
 
         try:
             plotter = pv.Plotter()
             plotter.add_mesh(self.mesh, color="w", opacity=0.1)
-            self.conduction_system.set_active_scalars("_line-id")
-            beams = self.conduction_system
+            self._conduction_mesh.set_active_scalars("_line-id")
+            beams = self._conduction_mesh
             plotter.add_mesh(beams, line_width=2)
             plotter.show()
         except Exception:

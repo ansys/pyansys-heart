@@ -210,38 +210,6 @@ def test_model_get_set_axes():
     assert len(set(model.short_axis) - set(test_axis)) == 0
 
 
-def test_heart_model_add_purkinje_from_file():
-    """Test adding a purkinje network from a file."""
-    lines = """*KEYWORD
-*NODE +
-              123932  0.117289119795E+03  0.244318845738E+02  0.883234881118E+01
-              123933  0.116478727414E+03  0.250487507439E+02  0.795046863408E+01
-              123934  0.116515199453E+03  0.236812534885E+02  0.963833959240E+01
-*ELEMENT_BEAM
-  560893       8  123932  123933
-  560894       8  123932  123934
-*END"""
-    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
-        model = models.HeartModel(tempdir)
-        temp_path = os.path.join(tempdir, "purkinje1.k")
-        with open(temp_path, "w") as f:
-            f.writelines(lines)
-        model.add_purkinje_from_kfile(temp_path, "purkinje1")
-
-        assert len(model.conduction_system.line_ids) == 1
-        assert np.all(model.conduction_system.get_lines(1).lines == np.array([2, 0, 1, 2, 0, 2]))
-        assert np.allclose(
-            model.conduction_system.get_lines(1).points,
-            np.array(
-                [
-                    [0.117289119795e03, 0.244318845738e02, 0.883234881118e01],
-                    [0.116478727414e03, 0.250487507439e02, 0.795046863408e01],
-                    [0.116515199453e03, 0.236812534885e02, 0.963833959240e01],
-                ]
-            ),
-        )
-
-
 def test_create_stiff_ventricle_base():
     """Test creating a stiff ventricle base."""
     model = models.BiVentricle()

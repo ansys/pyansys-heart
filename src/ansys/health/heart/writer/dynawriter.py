@@ -51,7 +51,9 @@ from ansys.health.heart.models import (
     HeartModel,
     LeftVentricle,
 )
-from ansys.health.heart.objects import Cap, CapType, PartType, SurfaceMesh, _ConductionType
+from ansys.health.heart.models_utils import LandMarks
+from ansys.health.heart.objects import Cap, CapType, PartType, SurfaceMesh
+from ansys.health.heart.pre.conduction_path import ConductionPathType
 from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
 from ansys.health.heart.settings.material.material import (
     Mat295,
@@ -2772,14 +2774,16 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self._update_nodesets_db()
         self._update_parts_cellmodels()
 
-        if self.model.conduction_system.number_of_cells != 0:
+        if self.model.conduction_mesh.number_of_cells != 0:
             # with smcoupl=1, mechanical coupling is disabled
             # with thcoupl=1, thermal coupling is disabled
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=1))
-            self._update_use_Purkinje()
+            beam_pid = self._update_use_Purkinje()
+        else:
+            beam_pid = None
 
         # update ep settings
-        self._update_ep_settings()
+        self._update_ep_settings(beam_pid)
         self._update_stimulation()
 
         if self.model._add_blood_pool:
@@ -2907,13 +2911,13 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self.kw_database.cell_models.append(cell_kw)
 
-    def _update_ep_settings(self):
+    def _update_ep_settings(self, beam_pid: list[int]):
         """Add the settings for the electrophysiology solver."""
         save_part_ids = []
         for part in self.model.parts:
             save_part_ids.append(part.pid)
-        for beams_pid in self.model.conduction_system._line_id_to_pid.values():
-            save_part_ids.append(beams_pid)
+        if beam_pid is not None:
+            save_part_ids.extend(beam_pid)
         partset_id = self.get_unique_partset_id()
         kw = keywords.SetPartList(sid=partset_id)
         # kw.parts._data = save_part_ids
@@ -3036,7 +3040,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             psid = 1
             eikonal_stim_content += f"{eikonal_id:>10d}{psid:>10d}{nsid:>10d}"
             if solvertype == "ReactionEikonal":
-                eikonal_stim_content += "$ footType     footT     footA  footTauf   footVth\n"
+                eikonal_stim_content += "\n$ footType     footT     footA  footTauf   footVth\n"
                 foot_type = 1
                 foot_t = stim.duration.m
                 foot_a = stim.amplitude.m
@@ -3075,33 +3079,15 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             node_apex_right = self.model.right_ventricle.apex_points[0].node_id
             stim_nodes = [node_apex_left, node_apex_right]
 
-            if self.model.right_atrium.get_point("SA_node") is not None:
+            if ConductionPathType.SAN_AVN in [beam.name for beam in self.model.conduction_paths]:
                 # Active SA node (belong to both solid and beam)
-                stim_nodes = list(
-                    self.model.mesh.find_closest_point(
-                        self.model.right_atrium.get_point("SA_node").xyz, n=5
-                    )
-                )
+                stim_nodes = list(self.model.mesh.find_closest_point(LandMarks.SA_NODE.xyz, n=5))
 
-                #  add more nodes to initiate wave propagation
-                if _ConductionType.SAN_AVN.value in list(
-                    self.model.conduction_system._line_id_to_name.values()
-                ):
-                    pointid = self.model.conduction_system.get_lines_by_name(
-                        _ConductionType.SAN_AVN.value
-                    )["_written-id"][1]
-                    stim_nodes.append(pointid)
-                if _ConductionType.BACHMANN_BUNDLE.value in list(
-                    self.model.conduction_system._line_id_to_name.values()
-                ):
-                    pointid = self.model.conduction_system.get_lines_by_name(
-                        _ConductionType.BACHMANN_BUNDLE.value
-                    )["_written-id"][0]
-                    stim_nodes.append(pointid)
-                    pointid = self.model.conduction_system.get_lines_by_name(
-                        _ConductionType.BACHMANN_BUNDLE.value
-                    )["_written-id"][1]
-                    stim_nodes.append(pointid)
+                # add 1 more beam node to initiate wave propagation
+                p = self.model.conduction_mesh.find_closest_point(LandMarks.SA_NODE.xyz, n=2)
+                # take the second point, the first point is SA node itself
+                pointid = self.model.conduction_mesh["_shifted_id"][p[1]]
+                stim_nodes.append(pointid)
 
         # stimulate entire elements for Eikonal
         if self.settings.electrophysiology.analysis.solvertype in [
@@ -3196,25 +3182,22 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _update_main_db(self):
         pass
 
-    def _update_use_Purkinje(self, associate_to_segment: bool = True):  # noqa N802
+    def _update_use_Purkinje(self, associate_to_segment: bool = True) -> list[int]:  # noqa N802
         """Update keywords for Purkinje use."""
         if not isinstance(self.model, (FullHeart, FourChamber, BiVentricle, LeftVentricle)):
             LOGGER.error("Model type is not recognized.")
             return
 
+        # write section
         sid = self.get_unique_section_id()
         self.kw_database.beam_networks.append(keywords.SectionBeam(secid=sid, elform=3, a=645))
 
-        if type(self) is ElectroMechanicsDynaWriter:
-            # id offset due to spring-type elements in mechanical
-            beam_elem_id_offset = self.id_offset["element"]["discrete"]
-        else:
-            beam_elem_id_offset = 0  # no beam elements introduced before
+        # id can be offset due to spring-type elements in mechanical
+        beam_elem_id_offset = self.id_offset["element"]["discrete"]
 
         # write beam nodes
-        # Note: the last beam_network saves all beam nodes
-        new_nodes = self.model.conduction_system.points[
-            (np.where(np.logical_not(self.model.conduction_system["_is-connected"]))[0])
+        new_nodes = self.model.conduction_mesh.points[
+            (np.where(np.logical_not(self.model.conduction_mesh["_is-connected"]))[0])
         ]
         ids = (
             np.linspace(
@@ -3228,63 +3211,36 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         nodes_table = np.hstack((ids.reshape(-1, 1), new_nodes))
         kw = add_nodes_to_kw(nodes_table, keywords.Node())
         self.kw_database.beam_networks.append(kw)
-        material_settings = self.settings.electrophysiology.material
-        solvertype = self.settings.electrophysiology.analysis.solvertype
-        default_epmat = EPMaterial.ActiveBeam()
-        if solvertype == "Monodomain":
-            sig1 = material_settings.beam["sigma"].m
-        else:
-            sig1 = material_settings.beam["velocity"].m
-        default_epmat.sigma_fiber = sig1
-        default_epmat.beta = material_settings.beam["beta"].m
-        default_epmat.cm = material_settings.beam["cm"].m
-        default_epmat.pmjres = material_settings.beam["pmjres"].m
-        beam_point_offset_id = 0
-        self.model.conduction_system.point_data["_written-id"] = (
-            np.zeros(self.model.conduction_system.number_of_points, dtype=int) - 1
-        )
-        # new for loop
-        for netid in self.model.conduction_system._line_id_to_name:
-            if isinstance(
-                self.model.conduction_system.ep_material[netid], EPMaterial.DummyMaterial
-            ):
-                epmat = default_epmat
+
+        # loop for each beam
+        beam_pid = []
+        registered_surfaces = [surf for part in self.model.parts for surf in part.surfaces]
+        for beam in self.model.conduction_paths:
+            if isinstance(beam.ep_material, EPMaterial.DummyMaterial):
+                epmat = self._get_default_beam_ep_material()
             else:
-                epmat = self.model.conduction_system.ep_material[netid]
+                epmat = beam.ep_material
+
             pid = self.get_unique_part_id()
-            self.model.conduction_system._line_id_to_pid[netid] = pid
-            name = self.model.conduction_system._line_id_to_name[netid]
-            if name == _ConductionType.LEFT_PURKINJE.value:
-                _node_set_id = self.model.left_ventricle.endocardium._seg_set_id
-            elif name == _ConductionType.RIGHT_PURKINJE.value:
-                _node_set_id = self.model.right_ventricle.endocardium._seg_set_id
-            elif name == _ConductionType.SAN_AVN.value:
-                _node_set_id = self.model.right_atrium.endocardium._seg_set_id
-            elif name == _ConductionType.LEFT_BUNDLE_BRANCH.value:
-                _node_set_id = self.model.left_ventricle.cavity.surface._seg_set_id
-            elif name == _ConductionType.RIGHT_BUNDLE_BRANCH.value:
-                _node_set_id = self.model.right_ventricle.cavity.surface._seg_set_id
-            elif name == _ConductionType.HIS.value:
-                # His bundle are inside of 3d mesh
-                # need to create the segment on which beam elements rely
-                surface = self._add_segment_from_surface(name="his_bundle_segment")
-                _node_set_id = surface._seg_set_id
-            elif name == _ConductionType.BACHMANN_BUNDLE.value:
-                # His bundle are inside of 3d mesh
-                # need to create the segment on which beam elements rely
-                surface = self._add_segment_from_surface(name="Bachman segment")
-                _node_set_id = surface._seg_set_id
+            beam_pid.append(pid)
+
+            name = beam.name.value
+
+            result = next((x for x in registered_surfaces if x == beam.relying_surface), None)
+            if result is not None:
+                _node_set_id = result._seg_set_id
             else:
-                LOGGER.error(f"Unknown network name for {name}.")
-                exit()
+                _node_set_id = self._add_segment_from_surface(
+                    beam.relying_surface, name + "_relying_segment"
+                )
 
             # overwrite nsid if beam should not follow the motion of segment
             if not associate_to_segment:
                 _node_set_id = -1
 
-            # write
+            # write Purkinje keyword
             self.kw_database.beam_networks.append(f"$$ {name} $$")
-            origin_coordinates = self.model.conduction_system.get_lines(netid).points[0]
+            origin_coordinates = beam.mesh.points[0]
             self.kw_database.beam_networks.append(
                 custom_keywords.EmEpPurkinjeNetwork2(
                     purkid=pid,
@@ -3305,6 +3261,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 )
             )
 
+            # write part
             part_df = pd.DataFrame(
                 {
                     "heading": [name],
@@ -3316,105 +3273,88 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             part_kw = keywords.Part()
             part_kw.parts = part_df
             self.kw_database.beam_networks.append(part_kw)
-            self.kw_database.beam_networks.append(keywords.MatNull(mid=pid, ro=1e-11))
 
+            # write material
+            self.kw_database.beam_networks.append(keywords.MatNull(mid=pid, ro=1e-11))
             kw = self._get_ep_material_kw(pid, epmat)
             self.kw_database.beam_networks.append(kw)
 
-            # cell model
+            # write cell model
             self._add_cell_model_keyword(matid=pid, cellmodel=epmat.cell_model)
 
-            # Build connectivity
-            # get edges in a two-column format
-            edges = self.model.conduction_system.get_lines(netid).lines.reshape(
-                (int(len(self.model.conduction_system.get_lines(netid).lines) / 3), 3)
-            )[:, 1:]
+            # build element connectivity
+            line_ids = self.model.conduction_mesh["_line-id"] == beam.id
+            # get connectivity in _conduction_system
+            edges_org = self.model.conduction_mesh.cells.reshape(-1, 3)[line_ids, 1:]
+            # get shifted ID
+            shift_id = self.model.conduction_mesh.point_data["_shifted_id"]
+            edges = shift_id[edges_org]
 
-            # get info on points to be connected to solid and their coordinates
-            connected_point_ids = np.where(
-                self.model.conduction_system.get_lines(netid)["_is-connected"]
-            )[0]
-            mask_nonconnected = np.logical_not(
-                self.model.conduction_system.get_lines(netid)["_is-connected"]
-            )
-            connected_points = self.model.conduction_system.get_lines(netid).points[
-                connected_point_ids
-            ]
-
-            # got IDs in solid mesh of connected points
-            kdtree = spatial.cKDTree(self.model.mesh.points)
-            _, solid_connected_point_ids = kdtree.query(connected_points)
-
-            # compute writer point IDs depending on previously written and connections to solid
-            point_ids_to_write = np.zeros(
-                self.model.conduction_system.get_lines(netid).number_of_points, dtype=int
-            )
-            point_ids_to_write[connected_point_ids] = solid_connected_point_ids
-            mask_already_written = self.model.conduction_system.get_lines(netid)["_written-id"] >= 0
-            point_ids_to_write[mask_already_written] = self.model.conduction_system.get_lines(
-                netid
-            )["_written-id"][mask_already_written]
-            mask_notconnected_notwritten = np.logical_and(
-                mask_nonconnected, np.logical_not(mask_already_written)
-            )
-            point_ids_to_write[mask_notconnected_notwritten] = (
-                np.linspace(
-                    0,
-                    np.sum(mask_notconnected_notwritten) - 1,
-                    np.sum(mask_notconnected_notwritten),
-                    dtype=int,
-                )
-                + self.model.mesh.number_of_points
-                + beam_point_offset_id
-            )
-
-            # replace point ID values in edges
-            edges = np.vectorize(lambda idvalue: point_ids_to_write[idvalue])(edges)
-
-            # write mesh
-            beams_kw = keywords.ElementBeam()
+            # write element
             beams_kw = add_beams_to_kw(
                 beams=edges + 1,
-                beam_kw=beams_kw,
+                beam_kw=keywords.ElementBeam(),
                 pid=pid,
                 offset=beam_elem_id_offset,
             )
+            self.kw_database.beam_networks.append(beams_kw)
             # offset beam element ID
             beam_elem_id_offset += len(edges)
-            # offset beam point id
-            beam_point_offset_id += (
-                self.model.conduction_system.get_lines(netid).number_of_points
-                - len(connected_point_ids)
-                - np.sum(mask_already_written)
-            )
-            # populate the already written IDs variable for other beam networks
-            point_ids_in_conductionsystem = self.model.conduction_system.get_lines(netid)[
-                "_global-point-ids"
-            ]
-            self.model.conduction_system["_written-id"][point_ids_in_conductionsystem] = (
-                point_ids_to_write
-            )
-            self.kw_database.beam_networks.append(beams_kw)
 
         self.id_offset["element"]["discrete"] = beam_elem_id_offset
 
-        return
+        return beam_pid
 
-    def _add_segment_from_surface(self, name: str):
-        surface = self.model.mesh.get_surface_by_name(name)
+    def _get_default_beam_ep_material(self):
+        """Get default EP material for conduction beams."""
+        material_settings = self.settings.electrophysiology.material
+        solvertype = self.settings.electrophysiology.analysis.solvertype
+        default_epmat = EPMaterial.ActiveBeam()
+        if solvertype == "Monodomain":
+            sig1 = material_settings.beam["sigma"].m
+        else:
+            sig1 = material_settings.beam["velocity"].m
+        default_epmat.sigma_fiber = sig1
+        default_epmat.beta = material_settings.beam["beta"].m
+        default_epmat.cm = material_settings.beam["cm"].m
+        default_epmat.pmjres = material_settings.beam["pmjres"].m
 
-        surface._seg_set_id = self.get_unique_segmentset_id()
-        surface._node_set_id = self.get_unique_nodeset_id()
+        return default_epmat
+
+    def _add_segment_from_surface(self, surface: pv.PolyData, name: str) -> int:
+        """Add a segment into keywords and return its segment ID.
+
+        Parameters
+        ----------
+        surface : pv.PolyData
+            surface
+        name : str
+            surface name
+
+        Returns
+        -------
+        int
+            segment ID
+        """
+        # surface_id = int(np.max(self.model.mesh.surface_ids) + 1)
+        # self.model.mesh.add_surface(surface, surface_id, name=name)
+        # self.model.mesh = self.model.mesh.clean()
+        # surface = self.model.mesh.get_surface_by_name(name)
+        seg_id = self.get_unique_segmentset_id()
+        faces = surface.faces.reshape(-1, 4)[:, 1:]
+        points = surface.points[faces]
+        tree = spatial.cKDTree(self.model.mesh.points)
+        a, b = tree.query(points)
 
         kw = create_segment_set_keyword(
-            segments=surface.triangles_global + 1,
-            segid=surface._seg_set_id,
-            title=surface.name,
+            segments=b + 1,
+            segid=seg_id,
+            title=name,
         )
         # append this kw to the segment set database
         self.kw_database.segment_sets.append(kw)
 
-        return surface
+        return seg_id
 
     def _update_export_controls(self):
         """Add solution controls to the main simulation."""
@@ -3522,13 +3462,15 @@ class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
 
         self._update_node_db()
 
-        if self.model.conduction_system.number_of_cells != 0:
+        if self.model.conduction_mesh.number_of_cells != 0:
             # with smcoupl=1, coupling is disabled
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=1))
-            self._update_use_Purkinje(associate_to_segment=False)
+            beam_pid = self._update_use_Purkinje(associate_to_segment=False)
+        else:
+            beam_pid = None
 
         # update ep settings
-        self._update_ep_settings()
+        self._update_ep_settings(beam_pid)
         self._update_stimulation()
 
         include_files = self._get_decknames_of_include()
@@ -3578,16 +3520,18 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         MechanicsDynaWriter.update(self, dynain_name=dynain_name, robin_bcs=robin_bcs)
 
-        if self.model.conduction_system.number_of_cells != 0:
+        if self.model.conduction_mesh.number_of_cells != 0:
             # Coupling enabled, EP beam nodes follow the motion of surfaces
             self.kw_database.ep_settings.append(keywords.EmControlCoupling(thcoupl=1, smcoupl=0))
-            self._update_use_Purkinje()
+            beam_pid = self._update_use_Purkinje()
             self.include_to_main("beam_networks.k")
+        else:
+            beam_pid = None
 
         self._update_parts_cellmodels()
         self.include_to_main("cell_models.k")
 
-        self._update_ep_settings()
+        self._update_ep_settings(beam_pid)
         self._update_stimulation()
 
         # coupling parameters

@@ -36,15 +36,14 @@ def clean_directory(
     extensions_to_remove: list[str] = [".stl", ".vtk", ".msh.h5"],
     remove_all: bool = False,
 ) -> None:
-    """Remove files with extension present in the working directory.
+    """Remove files from the working directory with given extensions.
 
     Parameters
     ----------
-    extensions_to_remove : List[str], optional
-        List of extensions to remove, by default [".stl", ".vtk", ".msh.h5"]
-    remove_all: bool, optional
-        Flag indicating whether to remove files with any extension.
-        Keeps files/folder without extension
+    extensions_to_remove : List[str], default: ``['.stl', '.vtk', '.msh.h5']``
+        List of extensions to remove.
+    remove_all: bool, default: False
+        Whether to remove files with any extension. Files without extensions are kept.
     """
     import glob as glob
 
@@ -69,9 +68,9 @@ def model_summary(model: HeartModel, attributes: list = None) -> dict:
     Parameters
     ----------
     model : HeartModel
-        HeartModel for which to generate the summary dictionary
+        Heart model to generate the summary dictionary for.
     attributes : list
-        List of attributes to try to add to the dict.
+        List of attributes to add to the dictionary.
 
     Returns
     -------
@@ -85,7 +84,7 @@ def model_summary(model: HeartModel, attributes: list = None) -> dict:
         sum_dict["GENERAL"]["total_num_tets"] = model.mesh.tetrahedrons.shape[0]
         sum_dict["GENERAL"]["total_num_nodes"] = model.mesh.points.shape[0]
     except TypeError as error:
-        LOGGER.error(f"Failed to format General model information. {error}")
+        LOGGER.error(f"Failed to format general model information. {error}")
 
     sum_dict["PARTS"] = {}
     sum_dict["CAVITIES"] = {}
@@ -141,7 +140,7 @@ def model_summary(model: HeartModel, attributes: list = None) -> dict:
 
 
 def rodrigues_rot(points: np.ndarray, n0: np.ndarray, n1: np.ndarray) -> np.ndarray:
-    """Perform rodrigues rotation.
+    """Perform Rodrigues rotation.
 
     Parameters
     ----------
@@ -155,7 +154,7 @@ def rodrigues_rot(points: np.ndarray, n0: np.ndarray, n1: np.ndarray) -> np.ndar
     Notes
     -----
     Rotate given points based on a starting and ending vector.
-    Axis k and angle of rotation theta given by vectors n0,n1.
+    Axis k and angle of rotation theta is given by vectors ``n0,n1``.
     P_rot = P*cos(theta) + (k x P)*sin(theta) + k*<k,P>*(1-cos(theta))
 
     Returns
@@ -163,7 +162,7 @@ def rodrigues_rot(points: np.ndarray, n0: np.ndarray, n1: np.ndarray) -> np.ndar
     np.ndarray
         Rotated points.
     """
-    # If P is only 1d array (coords of single point), fix it to be matrix
+    # If P is only a 1D array (coordinates of a single point), fix it to be a matrix
     if points.ndim == 1:
         points = points[np.newaxis, :]
 
@@ -192,12 +191,14 @@ def project_3d_points(p_set: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.nda
     Parameters
     ----------
     p_set : np.ndarray
-        Point set, Nx3
+        Point set, Nx3.
 
     Notes
     -----
-    Uses SVD to find representative plane:
-    https://meshlogic.github.io/posts/jupyter/curve-fitting/fitting-a-circle-to-cluster-of-3d-points/
+    This method uses SVD to find representative plane. For more information,
+    see the `Fitting a circle to cluster of 3D points
+    <https://meshlogic.github.io/posts/jupyter/curve-fitting/fitting-a-circle-to-cluster-of-3d-points/>`_
+     blog on the MESHLOGIC site.
 
     Returns
     -------
@@ -216,12 +217,12 @@ def project_3d_points(p_set: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.nda
     normal = vector[2, :]
 
     # -------------------------------------------------------------------------------
-    # (2) Project points to coords X-Y in 2D plane
+    # (2) Project points to coordinates X-Y in the 2D plane
     # -------------------------------------------------------------------------------
     points_xy = rodrigues_rot(point_centered, normal, [0, 0, 1])
 
     # -------------------------------------------------------------------------------
-    # (2) Project points back to the original CS
+    # (2) Project points back to the original coordinate system
     # -------------------------------------------------------------------------------
     point_projected = np.zeros(p_set.shape)
     for i in range(len(points_xy)):
@@ -289,7 +290,7 @@ def _read_orth_element_kfile(
 
 
 def _slerp(v0: np.ndarray, v1: np.ndarray, t: float) -> np.ndarray:
-    """Spherical Linear Interpolation between two unit vectors v0 and v1."""
+    """Spherical Linear Interpolation between two unit vectors, v0 and v1."""
     # Compute dot product and clamp to handle numerical issues
     dot = np.dot(v0, v1)
     dot = np.clip(dot, -1.0, 1.0)
@@ -315,11 +316,11 @@ def interpolate_slerp(
     Parameters
     ----------
     source_pos : np.ndarray
-        N x 3 array of source points coordinates
+        N x 3 array of source points coordinates.
     source_vec : np.ndarray
-        N x 3 array of source vectors
+        N x 3 array of source vectors.
     target_pos : np.ndarray
-        M x 3 array of target points coordinates
+        M x 3 array of target points coordinates.
 
     Returns
     -------
@@ -329,7 +330,7 @@ def interpolate_slerp(
     # legal test
     norm = np.linalg.norm(source_vec, axis=1)
     if not np.allclose(norm, 1.0):
-        raise TypeError("slerp interpolation must be used for unit vectors.")
+        raise TypeError("Slerp interpolation must be used for unit vectors.")
 
     # Build a KD-tree once
     tree = cKDTree(source_pos)
@@ -340,14 +341,14 @@ def interpolate_slerp(
         Parameters
         ----------
         query_point : np.ndarray
-            query point coordinate
-        k : int, optional
-            no. of nearest points to be used, by default 4
+            Query point coordinate.
+        k : int, default: 4
+            Number of nearest points to use.
 
         Returns
         -------
         np.ndarray
-            vector on query point
+            Vector on query point.
         """
         # Find the k-nearest neighbors
         distances, indices = tree.query(query_point, k=k)

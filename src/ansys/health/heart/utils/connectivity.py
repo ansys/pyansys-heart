@@ -70,7 +70,7 @@ def face_tetra_connectivity(tetra: np.ndarray) -> Tuple[np.ndarray, np.ndarray, 
     num_tetra = tetra.shape[0]
     faces_1 = np.reshape(faces.transpose(0, 2, 1), (4 * num_tetra, 3))
 
-    # sort faces in order to find duplicates
+    # sort faces to find duplicates
     faces_sorted = np.sort(faces_1, axis=1)
     np.sort(faces_sorted, axis=0)
 
@@ -88,11 +88,11 @@ def face_tetra_connectivity(tetra: np.ndarray) -> Tuple[np.ndarray, np.ndarray, 
     tetra_ids = np.repeat(np.arange(0, num_tetra, 1), 4)
     tetra_ids_flip = np.flipud(tetra_ids)
 
-    # get connected tetra id for each face (two for interior, one for boundary face)
+    # get connected tetra ID for each face (two for interior and one for boundary face)
     c0 = tetra_ids[index][inverse]
     c1 = np.flip(tetra_ids_flip[index_r][inverse_r])
 
-    # removing any duplicate faces
+    # remove any duplicate faces
     mapper = np.sort(index)
     faces_1 = faces_1[mapper, :]
     c0 = c0[mapper]
@@ -105,19 +105,21 @@ def face_tetra_connectivity(tetra: np.ndarray) -> Tuple[np.ndarray, np.ndarray, 
 
 
 def get_face_type(faces: np.ndarray, face_cell_connectivity: np.ndarray) -> np.ndarray:
-    """Establish face type. Either boundary faces or interior faces.
+    """Establish the face type, which indicates whether it is a boundary or an interior face.
 
     Parameters
     ----------
     faces : np.ndarray
-        Array with face definitions
+        Array with face definitions.
     face_cell_connectivity : np.ndarray
-        Array describing to which cells each of the faces is connected to, e.g. np.array([c0, c1])
+        Array describing the cells that each of the faces is connected to.
+        For example, ``np.array([c0, c1])``.
 
     Returns
     -------
     np.ndarray
-        Type of face. Either interior (face_type = 1) or boundary (face_type = 2)
+        Type of face, which is either interior ``(face_type = 1)``
+        or boundary ``(face_type = 2)``.
     """
     interior_face_ids = face_cell_connectivity[:, 0] != face_cell_connectivity[:, 1]
     boundary_face_ids = face_cell_connectivity[:, 0] == face_cell_connectivity[:, 1]
@@ -125,12 +127,14 @@ def get_face_type(faces: np.ndarray, face_cell_connectivity: np.ndarray) -> np.n
     face_types[interior_face_ids] = 1
     face_types[boundary_face_ids] = 2
     num_assigned = np.sum(boundary_face_ids) + np.sum(interior_face_ids)
-    assert num_assigned == faces.shape[0], "Not all faces assigned as either interior or boundary"
+    assert num_assigned == faces.shape[0], (
+        "Not all faces are assigned as either interior or boundary."
+    )
     return face_types
 
 
 def get_edges_from_triangles(triangles: np.ndarray) -> np.ndarray:
-    """Generate an array of edges from a array of triangles."""
+    """Generate an array of edges from an array of triangles."""
     num_triangles = triangles.shape[0]
     num_edges = num_triangles * 3
     edges = np.repeat(triangles, 3, axis=0)
@@ -151,14 +155,14 @@ def get_free_edges(
     Parameters
     ----------
     triangles : np.ndarray
-        Array of triangles
-    return_free_triangles : bool, optional
-        Flag indicating whether to return the free triangles, by default False
+        Array of triangles.
+    return_free_triangles : bool, default: False
+        Whether to return the free triangles.
 
     Returns
     -------
     free_edges : np.ndarray
-        Numpy array with the free edges
+        Numpy array with the free edges.
     free_triangles: np.ndarray, optional
         Numpy array with the triangles that use these free edges
     """
@@ -190,26 +194,34 @@ def edge_connectivity(
     Parameters
     ----------
     edges : np.array
-        NumEdges x 2 Numpy array with edge definitions
-    return_type : bool, optional
-        Flag indicating whether to return the type of the edge group, by default False:
-            "open": edge group is open-ended
-            "closed": edge group forms closed edge loop
-    sort_closed : bool, optional
-        Flag indicating whether to sort any closed edge loops, by default False
+        NumEdges x 2 NumPy arrays with edge definitions.
+    return_type : bool, default: False
+        Whether to return the type of the edge group. If ``True``, the function
+        returns a list of strings with these types:
+        - "open": Edge group is open-ended.
+        - "closed": Edge group forms a closed edge loop.
+    sort_closed : bool, default: False
+        Whether to sort closed edge loops.
 
     Returns
     -------
     edge_groups : np.ndarray
         Grouped edges by connectivity.
     group_types : list[str], optional
-        Type of edge group. 'open' ended or 'closed'.
+        Type of the edge group. Options are ``open`` or ``closed``.
 
     Notes
     -----
-    Uses an implementation of a Depth-first search: https://en.wikipedia.org/wiki/Depth-first_search
-    https://www.educative.io/answers/how-to-implement-depth-first-search-in-python
-    Performance is not tested so may not be suitable for large arrays of edges.
+    This method uses an implementation of a depth-first search. For more information,
+    see:
+
+    - `Depth-first search <https://en.wikipedia.org/wiki/Depth-first_search>`_
+      on the Wikipedia site.
+    - `How to implement depth-first search in Python
+      <https://www.educative.io/answers/how-to-implement-depth-first-search-in-python>`_
+      on the HowDev Answers site.
+
+    Performance of this method is not tested. It might not be suitable for large arrays of edges.
     """
 
     def _dfs(visited, graph, node):
@@ -229,15 +241,15 @@ def edge_connectivity(
         connected_nodes = edges.flatten()[mask.flatten()]
         graph[node] = connected_nodes
 
-    # check connectivity of each node using DFS.
-    # Group connected edges
+    # check connectivity of each node using DFS
+    # group connected edges
     node_ids_visited = np.zeros(node_ids.shape[0], dtype=bool)
     edge_groups = []
     while not np.all(node_ids_visited):
         # keep track of visited nodes for this group of edges
         visited = set()
 
-        # node id to start from (finds first un-visited node)
+        # node ID to start from (finds first un-visited node)
         start_node_id = node_ids[np.where(np.invert(node_ids_visited))[0][0]]
 
         # call dept first algorithm to find connectivity
@@ -301,8 +313,8 @@ def remove_triangle_layers_from_trimesh(triangles: np.ndarray, iters: int = 1) -
     ----------
     triangles : np.ndarray
         Array of triangles.
-    iters : int, optional
-        Number of iterations, by default 1.
+    iters : int, default: 1
+        Number of iterations.
 
     Returns
     -------
@@ -321,7 +333,7 @@ def remove_triangle_layers_from_trimesh(triangles: np.ndarray, iters: int = 1) -
 
         idx_triangles_boundary = np.any(np.isin(reduced_triangles, free_nodes), axis=1)
 
-        LOGGER.debug("Removing {0} connected triangles".format(np.sum(idx_triangles_boundary)))
+        LOGGER.debug("Removing {0} connected triangles...".format(np.sum(idx_triangles_boundary)))
 
         # remove boundary triangles
         reduced_triangles = reduced_triangles[~idx_triangles_boundary, :]

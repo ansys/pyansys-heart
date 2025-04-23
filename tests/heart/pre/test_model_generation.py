@@ -280,6 +280,7 @@ def test_writers(extract_model, writer_class):
     """
     model, _ = extract_model
     writer = writer_class(copy.deepcopy(model))
+    add_conduction_beams(writer)
 
     if isinstance(model, models.BiVentricle):
         ref_folder = os.path.join(
@@ -319,6 +320,22 @@ def test_writers(extract_model, writer_class):
         pass
 
     return
+
+
+def add_conduction_beams(writer):
+    if (
+        isinstance(writer.model, models.FullHeart)
+        and type(writer) is writers.ElectrophysiologyDynaWriter
+    ):
+        folder = os.path.join(
+            get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
+        )
+        from ansys.health.heart.models_utils import HeartModelUtils
+
+        beam_list = HeartModelUtils.define_full_conduction_system(
+            writer.model, purkinje_folder=folder
+        )
+        writer.model.assign_conduction_paths(beam_list)
 
 
 @pytest.mark.parametrize(
@@ -373,6 +390,7 @@ def test_writers_after_load_model(extract_model, writer_class):
         model1.load_model_from_mesh(model_path, partinfo)
 
         writer = writer_class(copy.deepcopy(model1))
+        add_conduction_beams(writer)
 
         to_test_folder = os.path.join(workdir, writer_class.__name__)
         writer.update()

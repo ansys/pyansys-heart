@@ -36,18 +36,18 @@ from ansys.health.heart.utils.vtk_utils import find_corresponding_points, genera
 
 
 class AhaStrainCalculator:
-    """Compute Longitudinal, Radial, Circumferential strain for left ventricle."""
+    """Compute longitudinal, radial, and circumferential strain for the left ventricle."""
 
     def __init__(self, model: HeartModel, d3plot_file):
         """
-        Initialize AHA strain calculator.
+        Initialize the AHA strain calculator.
 
         Parameters
         ----------
         model: HeartModel
             Heart model object.
         d3plot_file: Path.Path
-            d3plot header file path.
+            Path to the d3plot header file.
         """
         self.model = model
 
@@ -62,17 +62,17 @@ class AhaStrainCalculator:
         Parameters
         ----------
         time_array : np.ndarray | list, optional
-           time array to export, by default d3plot time
+           Time array to export. The d3plot time is exported by default.
 
         Returns
         -------
         list[pv.PolyData]
-            Polydata that has lines from nodes on the endocardium to nodes on the epicardium
+            Polydata that has lines from nodes on the endocardium to nodes on the epicardium.
 
         Notes
         -----
-        Endocardium surfaces are supposed to be smooth
-        Artifact may occur on base (close to valves) region
+        Endocardium surfaces are supposed to be smooth.
+        Artifact may occur on base (close to valves) region.
         """
         if time_array is None:
             time_array = self.d3plot.time
@@ -121,17 +121,17 @@ class AhaStrainCalculator:
 
         Parameters
         ----------
-        time_array : _type_
-            time array to export
-        surface_endo : pv.PolyData]
-            endocardium surface
-        surface_epi : pv.PolyData]
-            epicardium surface
+        time_array : np.ndarray
+            Time array to export.
+        surface_endo : pv.PolyData
+            Endocardium surface.
+        surface_epi : pv.PolyData
+            Epicardium surface.
 
         Returns
         -------
         list[pv.PolyData]
-            thickness lines
+            Thickness lines.
         """
         res = []
         # assumes that corresponding points don't change in time
@@ -157,18 +157,18 @@ class AhaStrainCalculator:
 
         Parameters
         ----------
-        out_dir : str, optional
-            output folder, by default None
-        write_vtk : bool, optional
-            write into vtk files, by default False
-        t_to_keep : float, optional
-            time to stop, by default 10e10
+        out_dir : str, default: None
+            Output folder.
+        write_vtk : bool, default: False
+            Whether to write to VTK files.
+        t_to_keep : float, default: 10e10
+            Time to stop.
 
         Returns
         -------
         np.ndarray
-            array of N_time * (1+17*3), columns represent time and
-            longitudinal, radial, and circumferential strain averaged of each segment
+            Array of N_time * (1+17*3). Columns represent time and
+            longitudinal, radial, and circumferential strain averaged of each segment.
         """
         save_time = self.d3plot.time[self.d3plot.time >= self.d3plot.time[-1] - t_to_keep]
         strain = np.zeros((len(save_time), 1 + 17 * 3))
@@ -203,19 +203,19 @@ class AhaStrainCalculator:
 
     def compute_aha_strain_at(self, frame: int = 0, out_dir: pathlib.Path = None) -> np.ndarray:
         """
-        Export AHA strain and/or save vtk file for a given frame.
+        Export AHA strain and/or save a VTK file for a given frame.
 
         Parameters
         ----------
-        frame: int
-            at this frame, by default 0.
-        out_dir: pathlib.Path
-            folder where vtk files are saved, by default not save.
+        frame: int, default: 0
+            Frame number to compute strain.
+        out_dir: pathlib.Path, default: None
+            Directory to save VTK file to. No VTK file is saved by default.
 
         Returns
         -------
         np.ndarry
-            AHA LRC strain matrix (17 * 3)
+            AHA LRC strain matrix (17 * 3).
         """
         element_lrc, aha_lrc, element_lrc_averaged = self._compute_myocardial_strain(frame)
 
@@ -251,9 +251,9 @@ class AhaStrainCalculator:
 
         Returns
         -------
-        return1: [nelem * 3] elemental LRC strain
-        return2: [17 * 3] AHA17 LRC strain
-        return3: [nelem * 3] elemental LRC strain averaged from AHA17
+        return1: [nelem * 3] elemental LRC strain.
+        return2: [17 * 3] AHA17 LRC strain.
+        return3: [nelem * 3] elemental LRC strain averaged from AHA17.
         """
         if reference is not None:
             raise NotImplementedError
@@ -303,27 +303,27 @@ class AhaStrainCalculator:
 
     @staticmethod
     def bullseye_plot(ax, data, seg_bold=None, cmap=None, norm=None) -> None:
-        """Bullseye representation for the left ventricle.
+        """Plot bullseye representation for the left ventricle.
 
         Parameters
         ----------
         ax : axes
         data : list of int and float
-            The intensity values for each of the 17 segments
-        seg_bold : list of int, optional
-            A list with the segments to highlight
-        cmap : ColorMap or None, optional
-            Optional argument to set the desired colormap
-        norm : Normalize or None, optional
-            Optional argument to normalize data into the [0.0, 1.0] range
+            Intensity values for each of the 17 segments.
+        seg_bold : list of int, default: None
+            List with the segments to highlight.
+        cmap : ColorMap or None, default: None
+            Optional argument to set the desired colormap.
+        norm : Normalize or None, default: None
+            Optional argument to normalize data into the [0.0, 1.0] range.
 
         Notes
         -----
         This function creates the 17 segment model for the left ventricle according
         to the American Heart Association (AHA) [1]_
 
-        Based on:
-        https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html
+        It is based on `Left ventricle bullseye <https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html>`_
+        in the Matplotlib examples.
 
         References
         ----------

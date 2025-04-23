@@ -51,7 +51,7 @@ from ansys.health.heart.models import (
     HeartModel,
     LeftVentricle,
 )
-from ansys.health.heart.models_utils import LandMarker
+from ansys.health.heart.models_utils import LandMarks
 from ansys.health.heart.objects import Cap, CapType, PartType, SurfaceMesh
 from ansys.health.heart.pre.conduction_path import ConductionPathType
 from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
@@ -3081,10 +3081,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
             if ConductionPathType.SAN_AVN in [beam.name for beam in self.model.conduction_paths]:
                 # Active SA node (belong to both solid and beam)
-                stim_nodes = list(self.model.mesh.find_closest_point(LandMarker.SA_NODE.xyz, n=5))
+                stim_nodes = list(self.model.mesh.find_closest_point(LandMarks.SA_NODE.xyz, n=5))
 
                 # add 1 more beam node to initiate wave propagation
-                p = self.model.conduction_mesh.find_closest_point(LandMarker.SA_NODE.xyz, n=2)
+                p = self.model.conduction_mesh.find_closest_point(LandMarks.SA_NODE.xyz, n=2)
                 # take the second point, the first point is SA node itself
                 pointid = self.model.conduction_mesh["_shifted_id"][p[1]]
                 stim_nodes.append(pointid)

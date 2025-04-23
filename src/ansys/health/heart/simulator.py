@@ -504,7 +504,7 @@ class EPSimulator(BaseSimulator):
             # TODO: refinement is not correctly used
             # beam_length = self.settings.purkinje.edgelen.m
 
-            beam_list = HeartModelUtils.define_default_conduction_system(
+            beam_list = HeartModelUtils.define_full_conduction_system(
                 self.model, os.path.join(self.root_directory, "purkinjegeneration")
             )
             self.model.assign_conduction_paths(beam_list)

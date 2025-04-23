@@ -158,7 +158,7 @@ def test_conduction():
         get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
     )
 
-    beam_list = HeartModelUtils.define_default_conduction_system(model, purkinje_folder=folder)
+    beam_list = HeartModelUtils.define_full_conduction_system(model, purkinje_folder=folder)
     model.assign_conduction_paths(beam_list)
     res = model.conduction_mesh
 

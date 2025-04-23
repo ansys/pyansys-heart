@@ -37,7 +37,7 @@ from ansys.health.heart.settings.material.ep_material import EPMaterial
 
 
 class ConductionPathType(Enum):
-    """Conduction beam types."""
+    """Conduction Path types."""
 
     LEFT_PURKINJE = "Left-purkinje"
     """Left Purkinje network."""

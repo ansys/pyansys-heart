@@ -43,12 +43,13 @@ class LandMarker:
     AV_NODE = Point("AV_node", xyz=None, node_id=None)
     HIS_BIF_NODE = Point("His_bifurcation", xyz=None, node_id=None)
     HIS_LEFT_END_NODE = Point("His_left_end", xyz=None, node_id=None)
-    LEFT_APEX = Point("Left_apex", xyz=None, node_id=None)
-    RIGHT_APEX = Point("Right_apex", xyz=None, node_id=None)
+    HIS_RIGHT_END_NODE = Point("His_right_end", xyz=None, node_id=None)
     BACHMAN_END_NODE = Point("Bachman_end", xyz=None, node_id=None)
     LEFT_FASCILE_END = Point("Left_fasicle_end", xyz=None, node_id=None)
 
     # NOTE bring APEX here
+    LEFT_APEX = Point("Left_apex", xyz=None, node_id=None)
+    RIGHT_APEX = Point("Right_apex", xyz=None, node_id=None)
 
 
 class HeartModelUtils:
@@ -206,10 +207,10 @@ class HeartModelUtils:
             return LandMarker.HIS_LEFT_END_NODE
 
         elif side == "right":
-            LandMarker.LEFT_APEX.node_id = his_end_id
-            LandMarker.LEFT_APEX.xyz = model.mesh.points[his_end_id, :]
+            LandMarker.HIS_RIGHT_END_NODE.node_id = his_end_id
+            LandMarker.HIS_RIGHT_END_NODE.xyz = model.mesh.points[his_end_id, :]
 
-            return LandMarker.LEFT_APEX
+            return LandMarker.HIS_RIGHT_END_NODE
 
     @staticmethod
     def define_bachman_bundle_end_node(
@@ -230,7 +231,7 @@ class HeartModelUtils:
         model: models.FullHeart | models.FourChamber, purkinje_folder: str
     ) -> list[ConductionPath]:
         """TODO: define for LV BV and 4C."""
-        left_pirkinje = ConductionPath.create_from_k_file(
+        left_purkinje = ConductionPath.create_from_k_file(
             ConductionPathType.LEFT_PURKINJE,
             k_file=os.path.join(purkinje_folder, "purkinjeNetwork_001.k"),
             id=1,
@@ -238,7 +239,7 @@ class HeartModelUtils:
             model=model,
         )
 
-        right_pirkinje = ConductionPath.create_from_k_file(
+        right_purkinje = ConductionPath.create_from_k_file(
             ConductionPathType.RIGHT_PURKINJE,
             k_file=os.path.join(purkinje_folder, "purkinjeNetwork_002.k"),
             id=2,
@@ -279,6 +280,7 @@ class HeartModelUtils:
             connection="none",
         )
         his_left.up_path = his_top
+
         his_right = ConductionPath.create_from_keypoints(
             name=ConductionPathType.HIS_RIGHT,
             keypoints=[his_bif.xyz, his_right_point.xyz],
@@ -286,8 +288,8 @@ class HeartModelUtils:
             base_mesh=model.mesh,
             connection="none",
         )
-
         his_right.up_path = his_top
+
         left_bundle = ConductionPath.create_from_keypoints(
             name=ConductionPathType.LEFT_BUNDLE_BRANCH,
             keypoints=[his_left_point.xyz, model.left_ventricle.apex_points[0].xyz],
@@ -297,7 +299,8 @@ class HeartModelUtils:
             line_length=None,
         )
         left_bundle.up_path = his_left
-        left_bundle.down_path = left_pirkinje
+        left_bundle.down_path = left_purkinje
+
         surface_ids = [model.right_ventricle.endocardium.id, model.right_ventricle.septum.id]
         endo_surface = model.mesh.get_surface(surface_ids)
 
@@ -310,10 +313,10 @@ class HeartModelUtils:
             line_length=None,
         )
         right_bundle.up_path = his_right
-        right_bundle.down_path = right_pirkinje
+        right_bundle.down_path = right_purkinje
         return [
-            left_pirkinje,
-            right_pirkinje,
+            left_purkinje,
+            right_purkinje,
             sa_av,
             his_top,
             his_left,

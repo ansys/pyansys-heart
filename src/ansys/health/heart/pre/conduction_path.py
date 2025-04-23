@@ -315,7 +315,7 @@ class ConductionPath:
 
 
 def _fill_points(point_start: np.array, point_end: np.array, length: float) -> np.ndarray:
-    """Create points in a line defined by a start and an end point.
+    """Create additional points in a line defined by a start and an end point.
 
     Parameters
     ----------
@@ -441,7 +441,7 @@ def _create_path_in_solid(
     start = key_points[0]
     end = key_points[1]
     center = 0.5 * (start + end)
-    radius = 3 * np.linalg.norm(start - center)
+    radius = 10 * np.linalg.norm(start - center)
     sphere = pv.Sphere(center=center, radius=radius)
 
     # extract region
@@ -481,8 +481,6 @@ def _create_path_in_solid(
                 segment.append(tri)
                 break
     segment = np.array(segment)
-
-    # segment2 = sub_mesh["_global-point-ids"][segment]
 
     surf = SurfaceMesh(
         name="his_bundle_segment",  # NOTE

@@ -476,7 +476,7 @@ class EPSimulator(BaseSimulator):
 
         LOGGER.info("Assign the Purkinje network to the model...")
 
-        left_pirkinje = ConductionPath.create_from_k_file(
+        left_purkinje = ConductionPath.create_from_k_file(
             ConductionPathType.LEFT_PURKINJE,
             k_file=os.path.join(directory, "purkinjeNetwork_001.k"),
             id=1,
@@ -485,18 +485,18 @@ class EPSimulator(BaseSimulator):
         )
 
         if isinstance(self.model, LeftVentricle):
-            self.model.assign_conduction_paths([left_pirkinje])
-            return left_pirkinje
+            self.model.assign_conduction_paths([left_purkinje])
+            return left_purkinje
         else:
-            right_pirkinje = ConductionPath.create_from_k_file(
+            right_purkinje = ConductionPath.create_from_k_file(
                 ConductionPathType.RIGHT_PURKINJE,
                 k_file=os.path.join(directory, "purkinjeNetwork_002.k"),
                 id=2,
                 base_mesh=self.model.right_ventricle.endocardium,
                 model=self.model,
             )
-            self.model.assign_conduction_paths([left_pirkinje, right_pirkinje])
-            return [left_pirkinje, right_pirkinje]
+            self.model.assign_conduction_paths([left_purkinje, right_purkinje])
+            return [left_purkinje, right_purkinje]
 
     def compute_conduction_system(self):
         """Compute the conduction system."""

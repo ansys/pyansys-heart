@@ -144,4 +144,4 @@ plotter.show()
 ###############################################################################
 # Plot full fibers on full heart model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-model.plot_fibers(n_seed_points=5000)
+fiber_plot = model.plot_fibers(n_seed_points=5000)

@@ -1,7 +1,7 @@
 
 .. _ref_preprocessor:
 
-Pre-processor
+Preprocessor
 =============
 
 This topic provides an overview of the :attr:`Preprocessor <ansys.health.heart.pre>` module. This module can be used to pre-process a case from the following two public datasets:

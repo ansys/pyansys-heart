@@ -33,7 +33,7 @@ The part definitions JSON file has the following format:
 ...}
 
 Here ``id`` is the volumetric part ID, and ``enclosed_by_boundaries`` is a dictionary that contains the IDs of boundaries
-that enclose the volumetric part. The ID's of the enclosing boundaries should be identifiable from a cell data array,
+that enclose the volumetric part. The IDs of the enclosing boundaries should be identifiable from a cell data array,
 for instance by adding a cell data array called ``surface-id``. Consequently this input model and part definitions JSON file
 can be read into by the main class :attr:`HeartModel <ansys.health.heart.models.HeartModel>`.
 

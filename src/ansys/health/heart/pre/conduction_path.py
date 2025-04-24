@@ -255,7 +255,7 @@ class ConductionPath:
         id: int,
         base_mesh: pv.PolyData,
         model,
-        merge_apex: bool = False,
+        merge_apex: bool = True,
     ) -> ConductionPath:
         """Build conduction path from LS-DYNA k-file.
 
@@ -271,8 +271,8 @@ class ConductionPath:
             Surface mesh where the conduction path is relying on.
         model : HeartModel
             HeartModel object.
-        merge_apex : bool, default: False
-            If True, merge apex node with the solid mesh.
+        merge_apex : bool, default: True
+            If False, do not merge apex node with the solid mesh.
 
         Returns
         -------

@@ -3,7 +3,7 @@
 Simulator
 =========
 
-The Simulator <:attr:`Simulator <ansys.heart.simulator>` module links different simulation steps for cardiac modeling. For example, in electrophysiology simulations, you compute fiber orientation and the Purkinje network using the :attr:`BaseSimulator.compute_fibers` and Purkinje network :attr:`EPSimulator.compute_purkinje` methods before you run the physical simulation. In mechanical simulations, you must compute the stress-free configuration using the :attr:`MechanicsSimulator.compute_stress_free_configuration` method before running the simulation.
+The Simulator :attr:`<ansys.heart.simulator` module links different simulation steps for cardiac modeling. For example, in electrophysiology simulations, you compute fiber orientation and the Purkinje network using the :attr:`BaseSimulator.compute_fibers` and Purkinje network :attr:`EPSimulator.compute_purkinje` methods before you run the physical simulation. In mechanical simulations, you must compute the stress-free configuration using the :attr:`MechanicsSimulator.compute_stress_free_configuration` method before running the simulation.
 
 Different simulators must be created based on the application:
 

@@ -9,7 +9,7 @@ This topic provides an overview of the :attr:`Preprocessor <ansys.health.heart.p
 - `A Publicly Available Virtual Cohort of Four-chamber Heart Meshes for Cardiac Electro-mechanics Simulations <https://zenodo.org/records/3890034>`_
 - `Virtual cohort of adult healthy four-chamber heart meshes from CT images <https://zenodo.org/records/4590294>`_
 
-The :attr:`Preprocessor <ansys.health.heart.pre>` module contains methods to extract the necessary information and VTP object from these two databases for further processing and consumption by the :attr:`HeartModel <ansys.health.heart.models.HeartModel>` class. This module also contains methods to conveniently download from these two sources:
+The :attr:`Pre-processor <ansys.health.heart.pre>` module contains methods to extract the necessary information and VTP object from these two databases for further processing and consumption by the :attr:`HeartModel <ansys.health.heart.models.HeartModel>` class. This module also contains methods to conveniently download from these two sources:
 
 >>> from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
 >>> tar_file = download_case_from_zenodo("Rodero2021", 1, "my-download-dir")
@@ -32,14 +32,17 @@ The part definitions JSON file has the following format:
 ...    }
 ...}
 
-Here ``id`` is the volumetric part ID, and ``enclosed_by_boundaries`` is a dictionary that contains the IDs of boundaries that enclose the volumetric part. The ID's of the enclosing boundaries should be identifiable from a cell data array, for instance by adding a cell data array called ``surface-id``. Consequently this input model and part definitions JSON file can be read into by the main class :attr:`HeartModel <ansys.health.heart.models.HeartModel>`.
+Here ``id`` is the volumetric part ID, and ``enclosed_by_boundaries`` is a dictionary that contains the IDs of boundaries
+that enclose the volumetric part. The ID's of the enclosing boundaries should be identifiable from a cell data array,
+for instance by adding a cell data array called ``surface-id``. Consequently this input model and part definitions JSON file
+can be read into by the main class :attr:`HeartModel <ansys.health.heart.models.HeartModel>`.
 
 >>> # Initialize left-ventricular heart model.
 >>> model = models.LeftVentricle(working_directory="my-working-dir")
 >>> # Load input model and part definitions:
 >>> model.load_input(heart, part_definitions, "surface-id")
 
-Finally the :attr:`HeartModel.mesh_volumes` method can be used to generate the volumetric meshes from the input model.
+Finally the :attr:`HeartModel <ansys.health.heart.models.HeartModel.mesh_volume>` method can be used to generate the volumetric meshes from the input model.
 
 >>> # remesh the model using wrapping
 >>> model.mesh_volume(use_wrapper=True, global_mesh_size=1.0)

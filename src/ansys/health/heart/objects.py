@@ -1063,19 +1063,19 @@ class Mesh(pv.UnstructuredGrid):
         return shifted_ids
 
     @staticmethod
-    def _safe_line_merge(base: Mesh, add_mesh: Mesh, mereged_id: list, target_id: list) -> Mesh:
+    def _safe_line_merge(base: Mesh, add_mesh: Mesh, merge_id: list, target_id: list) -> Mesh:
         """Safely merge two line meshes by specify the node ID to be merged.
 
         Parameters
         ----------
         base : Mesh
-            Base mesh to be merged.
+            Base mesh to merge into.
         add_mesh : Mesh
-            New mesh to be merged.
-        mereged_id : list
-            List of node ID in add_mesh to be merged.
+            Mesh to add to merge into the base mesh.
+        merged_id : list
+            List of node IDs to be merged.
         target_id : list
-            List of node ID in base to be merged.
+            List of node IDs in the base to be merged.
 
         Returns
         -------
@@ -1105,13 +1105,13 @@ class Mesh(pv.UnstructuredGrid):
             point_data = base.point_data["_is-connected"]
             cell_data = base.cell_data["_line-id"]
 
-        if mereged_id == []:
+        if merge_id == []:
             # no merge
             new_points = add_mesh.points
             new_point_data = add_mesh.point_data["_is-connected"]
             new_lines = get_lines(add_mesh) + len(base_points)
 
-        elif mereged_id == [0]:
+        elif merge_id == [0]:
             new_points = add_mesh.points[1:]
             # first node is merged, lead to an offset of all lines
             new_lines = get_lines(add_mesh) + len(base_points) - 1
@@ -1121,7 +1121,7 @@ class Mesh(pv.UnstructuredGrid):
             # point data
             new_point_data = add_mesh.point_data["_is-connected"][1:]
 
-        elif mereged_id == [0, -1]:
+        elif merge_id == [0, -1]:
             # first node is merged, lead to an offset of all lines
             # last node is just dropped
             new_points = add_mesh.points[1:-1]

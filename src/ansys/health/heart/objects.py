@@ -31,7 +31,6 @@ import os
 import pathlib
 from typing import List, Literal, Union
 
-from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 
@@ -1147,62 +1146,6 @@ class Mesh(pv.UnstructuredGrid):
         merged.point_data["_is-connected"] = np.hstack((point_data, new_point_data))
 
         return Mesh(merged)
-
-
-class _BeamsMesh(Mesh):
-    """Mesh class: inherits from Mesh.
-
-    Notes
-    -----
-    This class inherits from Mesh and adds additional
-    attributes and convenience methods for enhanced functionality. Lines of the same component are
-    tracked as _line_id, connections to the volume mesh are tracked using the pointdata field
-    _is-connected.
-    """
-
-    def __init__(self, *args):
-        super().__init__(*args)
-
-        self.ep_material: dict = {}
-        """Ep material map."""
-        self._line_id_to_pid: dict = {}
-        """line id to part id map."""
-        pass
-
-    # TODO: consolidate this into Mesh or remove.
-    def get_unique_lines_id(self) -> int:
-        """Get unique lines id."""
-        if self.line_ids is None:
-            new_id = 1
-        else:
-            new_id = np.max(self.line_ids) + 1
-        return int(new_id)
-
-    @deprecated(reason="Use add_lines of the parent class instead.")
-    def add_lines(self, lines: pv.PolyData, id: int = None, name: str = None):
-        """Add lines.
-
-        Parameters
-        ----------
-        lines : pv.PolyData
-            PolyData representation of the lines to add
-        id : int
-            ID of the surface to be added. This id will be tracked as "_line-id"
-        name: str
-            Name of the lines to add
-        """
-        # TODO: move _is_connected outside of _BeamsMesh, and treat
-        # TODO: like regular point data
-        if "_is-connected" not in lines.point_data.keys():
-            lines.point_data["_is-connected"] = np.zeros(lines.n_points, dtype=int)
-
-        self_copy = super().add_lines(lines, id=id, name=name)
-
-        # TODO: move EP Material out of _BeamsMesh
-        if name:
-            self.ep_material[id] = EPMaterial.DummyMaterial()
-
-        return self_copy
 
 
 class PartType(Enum):

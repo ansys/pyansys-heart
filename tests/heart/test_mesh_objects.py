@@ -30,7 +30,7 @@ import pytest
 import pyvista as pv
 from pyvista import examples
 
-from ansys.health.heart.objects import CapType, Mesh, SurfaceMesh, _BeamsMesh
+from ansys.health.heart.objects import CapType, Mesh, SurfaceMesh
 
 SURFACE_TYPES = [pv.CellType.TRIANGLE, pv.CellType.QUAD]
 VOLUME_TYPES = [pv.CellType.TETRA, pv.CellType.HEXAHEDRON]
@@ -536,7 +536,7 @@ def test_mesh_id_to_name():
 
 def test_beamsmesh_add_lines():
     """Test behavior of beamsmesh."""
-    mesh = _BeamsMesh()
+    mesh = Mesh()
     lines1 = pv.Line([0, 0, 0], [-1, 0, 0])
     lines2 = pv.Line([0, 0, 0], [1, 0, 0])
     mesh.add_lines(lines1, id=1, name="lines1")

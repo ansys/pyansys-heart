@@ -936,7 +936,7 @@ class Mesh(pv.UnstructuredGrid):
             lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
 
         # TODO: have merge points as True here to ensure compatibility with _BeamsMesh
-        self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan, merge_points=True)
+        self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan, merge_points=False)
 
         if name:
             self._line_id_to_name[id] = name
@@ -1028,35 +1028,37 @@ class Mesh(pv.UnstructuredGrid):
         return self.remove_cells(mask, inplace=True)
 
     @staticmethod
-    def _get_shifted_id(solid_mesh: Mesh, path_mesh: Mesh) -> np.ndarray:
-        """Get the shifted ID of the conduction mesh.
+    def _get_shifted_id(solid_mesh: Mesh, conduction_mesh: Mesh) -> np.ndarray:
+        """Get the shifted IDs of the conduction mesh.
 
         Parameters
         ----------
         solid_mesh : Mesh
             Solid mesh.
-        path_mesh : Mesh
+        conduction_mesh : Mesh
             Path mesh with "_is-connected" field.
 
         Returns
         -------
         np.ndarray
-            Shifted node ID of the conduction mesh.
+            Shifted node IDs of the conduction mesh.
         """
         from scipy import spatial
 
         kdtree = spatial.cKDTree(solid_mesh.points)
 
-        is_connected = path_mesh["_is-connected"].astype(bool)
-        querry_points = path_mesh.points[is_connected]
+        is_connected = conduction_mesh["_is-connected"].astype(bool)
+        querry_points = conduction_mesh.points[is_connected]
         dst, solid_id = kdtree.query(querry_points)
         LOGGER.info(f"Maximal distance from solid-beam connected node:{np.max(dst)}")
 
-        shifted_ids = np.linspace(0, path_mesh.n_points - 1, num=path_mesh.n_points, dtype=int)
+        shifted_ids = np.linspace(
+            0, conduction_mesh.n_points - 1, num=conduction_mesh.n_points, dtype=int
+        )
         # for connected nodes, replace by solid mesh ID
         shifted_ids[is_connected] = solid_id
         # for beam-only nodes, shift their IDs
-        for i in range(path_mesh.n_points):
+        for i in range(conduction_mesh.n_points):
             if not is_connected[i]:
                 shifted_ids[i] += solid_mesh.n_points - np.sum(is_connected[:i])
 

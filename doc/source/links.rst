@@ -6,6 +6,7 @@
 .. Ansys
 
 .. _Ansys Customer Portal: https://support.ansys.com/Home/HomePage
+.. _Ansys LSDYNA Product Space: https://lsdyna.ansys.com/download-install-overview/
 
 .. Python libraries
 
@@ -21,19 +22,20 @@
 .. _Markdown: https://www.markdownguide.org/
 .. _Python documentation: https://docs.python.org/3/library/venv.html
 
-.. PyAnsys Developer Guide
+.. PyAnsys developer's guide
 
-.. _PyAnsys Developer's Guide: https://dev.docs.pyansys.com/
+.. _PyAnsys developer's guide: https://dev.docs.pyansys.com/
 
 .. PyAnsys Heart repository links
 
 .. _PyAnsys Heart repository: https://github.com/ansys/pyansys-heart
-.. _PyAnsys Heart issues: https://github.com/ansys/pyansys-heart/issues
-.. _PyAnsys Heart discussions: https://github.com/ansys/pyansys-heart/discussions
-.. _PyAnsys Heart documentation: https://heart.docs.pyansys.com/version/stable/index.html
+.. _PyAnsys Heart Issues: https://github.com/ansys/pyansys-heart/issues
+.. _PyAnsys Heart Dscussions: https://github.com/ansys/pyansys-heart/discussions
+.. _PyAnsys Heart documentation: https://heart.health.docs.pyansys.com/version/stable/index.html
 .. _PyAnsys Heart labels: https://github.com/ansys/pyansys-heart/labels
 .. _PyAnsys Heart release page: https://github.com/ansys/pyansys-heart/releases
 
 .. Other links
 
 .. _Contributor Covenant Code of Conduct: https://www.contributor-covenant.org/version/2/1/code_of_conduct/
+

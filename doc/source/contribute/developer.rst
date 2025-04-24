@@ -1,5 +1,5 @@
-Contributing as a developer
-###########################
+Contribute as a developer
+#########################
 
 .. grid:: 1 2 3 3
 
@@ -8,14 +8,14 @@ Contributing as a developer
         :link: fork-the-repository
         :link-type: ref
 
-        Learn how to fork the project and get your own copy.
+        Fork the project to create a copy.
 
     .. grid-item-card:: :fa:`download` Clone the repository
         :padding: 2 2 2 2
         :link: clone-the-repository
         :link-type: ref
 
-        Download your own copy in your local machine.
+        Clone the repository to download the copy to your local machine.
 
     .. grid-item-card:: :fa:`download` Install for developers
         :padding: 2 2 2 2
@@ -29,21 +29,22 @@ Contributing as a developer
         :link: run-tests
         :link-type: ref
 
-        Verify your changes by testing the project.
+        Verify your changes to the project by running tests.
 
     .. grid-item-card:: :fa:`computer` Code style compliance
         :padding: 2 2 2 2
         :link: code-style
         :link-type: ref
 
-        Adhere to code style
+        Adhere to code style.
 
     .. grid-item-card:: :fa:`arrows-spin` Run the CI/CD pipelines
         :padding: 2 2 2 2
         :link: run-pipelines
         :link-type: ref
 
-        Understand the different CI/CD pipelines.
+        Understand the different CI/CD pipelines that are executed
+        automatically.
 
 
 .. _fork-the-repository:
@@ -52,13 +53,13 @@ Fork the repository
 ===================
 
 Forking the repository is the first step to contributing to the project. This
-allows you to have your own copy of the project so you can make changes without
+allows you to have your own copy of the project so that you can make changes without
 affecting the main project. Once you have made your changes, you can submit a
-pull-request to the main project to have your changes reviewed and merged.
+pull request to the main project to have your changes reviewed and merged.
 
 .. button-link:: https://github.com/ansys/pyansys-heart/fork
     :color: primary
-    :align: center
+    :align: left
 
     :fa:`code-fork` Fork this project
 
@@ -71,7 +72,7 @@ pull-request to the main project to have your changes reviewed and merged.
 Clone the repository
 ====================
 
-Clone the latest version of PyAnsys Heart in development mode by running this code:
+Clone the repository in development mode:
 
 .. code-block:: bash
 
@@ -79,36 +80,34 @@ Clone the latest version of PyAnsys Heart in development mode by running this co
 
 .. note::
 
-    If you are not an Ansys employee, you need to :ref:`fork the repository <fork-the-repository>` and
-    replace ``ansys`` with your GitHub user name in the ``git clone``
-    command.
+    If you are not an Ansys employee, you must :ref:`fork the repository <fork-the-repository>` and
+    replace ``ansys`` with your GitHub user name in the ``git clone`` command.
 
 .. _install-for-developers:
 
 Install for developers
 ======================
 
-Installing PyAnsys Heart in development mode allows you to perform changes to the code
-and see the changes reflected in your environment without having to reinstall
+Installing PyAnsys Heart in development mode lets you change the code
+and see these changes reflected in your environment without having to reinstall
 the library every time you make a change.
 
-Virtual environment
--------------------
+Set up a virtual environment
+----------------------------
 
-Start by navigating to the project's root directory by running:
+#. Navigate to the project's root directory :
 
 .. code-block::
 
-    cd pyansys-heart
+       cd pyansys-heart
 
-Then, create a new virtual environment named ``.venv`` to isolate your system's
-Python environment by running:
+#. Create a virtual environment named ``.venv`` to isolate your Python environment:
 
 .. code-block:: text
 
     python -m venv .venv
 
-Finally, activate this environment by running:
+#. Activate the virtual environment:
 
 .. tab-set::
 
@@ -134,22 +133,20 @@ Finally, activate this environment by running:
 
             source .venv/bin/activate
 
-Development mode
-----------------
+Install in development mode
+---------------------------
 
-Now, install PyAnsys Heart in editable mode by running:
+#. Install PyAnsys Heart in editable mode:
 
-.. code-block:: text
+   .. code-block:: text
 
-    python -m pip install --editable .
+       python -m pip install --editable .
 
-Verify the installation by checking the version of the library:
-
+#. Verify the installation by checking the version of the library:
 
 .. code-block:: python
 
     from ansys.heart import __version__
-
 
     print(f"PyAnsys Heart version is {__version__}")
 
@@ -157,44 +154,46 @@ Verify the installation by checking the version of the library:
 
     .. code-block:: text
 
-       >>> PyAnsys Heart version is {{ PYANSYS_HEART_VERSION }}
+       >>> PyAnsys Heart version is {{ PYANSYS_HEART_VERSION }}.
 
-Install tox
+Install Tox
 -----------
 
-Once the project is installed, you can install `tox`_. This is a cross-platform
+Once the project is installed, you can install `Tox`_. This is a cross-platform
 automation tool. The main advantage of Tox is that it eases routine tasks like project
 testing, documentation generation, and wheel building in separate and isolated Python
-virtual environments. To install Tox, run:
+virtual environments.
 
-.. code-block:: text
+#. Install Tox:
 
-    python -m pip install tox
+   .. code-block:: text
 
-Finally, verify the installation by listing all the different environments
+       python -m pip install tox
+
+#. Verify the installation by listing all the different environments
 (automation rules) for PyAnsys Heart:
 
-.. code-block:: text
+   .. code-block:: text
 
-    python -m tox list
+       python -m tox list
 
-.. jinja:: toxenvs
+   .. jinja:: toxenvs
 
-    .. dropdown:: Default Tox environments
-        :animate: fade-in
-        :icon: three-bars
+       .. dropdown:: Default Tox environments
+           :animate: fade-in
+           :icon: three-bars
 
-        .. list-table::
-            :header-rows: 1
-            :widths: auto
+           .. list-table::
+               :header-rows: 1
+               :widths: auto
 
-            * - Environment
-              - Description
-            {% for environment in envs %}
-            {% set name, description  = environment.split("->") %}
-            * - {{ name }}
-              - {{ description }}
-            {% endfor %}
+               * - Environment
+                 - Description
+               {% for environment in envs %}
+               {% set name, description  = environment.split("->") %}
+               * - {{ name }}
+                 - {{ description }}
+               {% endfor %}
 
 .. _run-tests:
 
@@ -202,9 +201,9 @@ Run the tests
 =============
 
 Once you have made your changes, you can run the tests to verify that your
-modifications did not break the project. PyAnsys Heart tests support different markers
-to allow testing with/without coverage (and against specific python versions).
-These markers are associated with dedicated `Tox`_ environments.
+changes did not break the project. PyAnsys Heart tests support different markers
+to allow testing with or without coverage (and against specific Python versions).
+These markers are associated with dedicated Tox environments.
 
 .. jinja:: toxenvs
 
@@ -228,9 +227,9 @@ These markers are associated with dedicated `Tox`_ environments.
 
 .. Note::
 
-    The preceding test commands run all tests, including those that require Fluent (which take longer). For more
-    selective testing, ``-- -vv -m "not requires_fluent or (not extract_models)"`` or ``-- -vv -m "requires_fluent"`` can be
-    appended to tox testing commands.
+    The preceding test code runs all tests, including those that require Fluent (which take longer). For more
+    selective testing, append ``-- -vv -m "not requires_fluent or (not extract_models)"`` or ``-- -vv -m "requires_fluent"``
+    to Tox testing commands:
 
     .. code:: bash
 
@@ -244,12 +243,12 @@ These markers are associated with dedicated `Tox`_ environments.
 Check code style
 ================
 
-PyAnsys Heart follows the PEP8 standard as outlined in
+PyAnsys Heart follows the PEP 8 standard as described in
 `PEP 8 <https://dev.docs.pyansys.com/coding-style/pep8.html>`_ in
-the *PyAnsys Developer's Guide* and implements style checking using
+the *PyAnsys developer's guide* and implements style checking using
 `pre-commit <https://pre-commit.com/>`_.
 
-To ensure your code meets minimum code styling standards, run the following tox environment:
+To ensure your code meets minimum code styling standards, run the following Tox environment:
 
 .. jinja:: toxenvs
 
@@ -293,10 +292,10 @@ Run CI/CD pipelines
 
 PyAnsys Heart has a set of CI/CD pipelines that are executed automatically when certain
 events are detected in the repository. Some of these events include opening a
-pull-request, labelling a pull-request, and tagging a commit.
+pull request, labeling a pull-request, and tagging a commit.
 
-You can label a pull-request to skip certain jobs in the pipeline. Supported
-labels are listed in the `PyAnsys Heart labels`_ page.
+You can label a pull request to skip certain jobs in the pipeline. Supported
+labels are listed on the `PyAnsys Heart labels`_ page.
 
 .. list-table::
     :widths: auto

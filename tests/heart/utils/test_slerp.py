@@ -22,7 +22,7 @@
 
 import numpy as np
 
-from ansys.heart.core.utils.misc import _slerp, interpolate_slerp
+from ansys.health.heart.utils.misc import _slerp, interpolate_slerp
 
 
 def test_slerp():

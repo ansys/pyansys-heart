@@ -27,8 +27,8 @@ import sys
 
 import pytest
 
-import ansys.heart.core.models as models
-from ansys.heart.core.utils.download import download_case_from_zenodo, unpack_case
+import ansys.health.heart.models as models
+from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
 
 ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent)
 
@@ -200,6 +200,32 @@ def get_fourchamber() -> models.FourChamber:
     )
 
     model: models.FourChamber = models.FourChamber(working_directory=".")
+
+    model.load_model_from_mesh(vtu_file, json_file)
+
+    return model
+
+
+def get_fullheart() -> models.FullHeart:
+    vtu_file = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "FullHeart",
+        "heart_model.vtu",
+    )
+
+    json_file = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "FullHeart",
+        "heart_model.partinfo.json",
+    )
+
+    model: models.FullHeart = models.FullHeart(working_directory=".")
 
     model.load_model_from_mesh(vtu_file, json_file)
 

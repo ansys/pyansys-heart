@@ -935,7 +935,6 @@ class Mesh(pv.UnstructuredGrid):
                 return None
             lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
 
-        # TODO: have merge points as True here to ensure compatibility with _BeamsMesh
         self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan, merge_points=False)
 
         if name:
@@ -1036,7 +1035,7 @@ class Mesh(pv.UnstructuredGrid):
         solid_mesh : Mesh
             Solid mesh.
         conduction_mesh : Mesh
-            Path mesh with "_is-connected" field.
+            Path mesh with "_is-connected" cell data.
 
         Returns
         -------

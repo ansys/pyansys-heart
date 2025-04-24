@@ -9,7 +9,7 @@ This topic provides an overview of the :attr:`Preprocessor <ansys.health.heart.p
 - `A Publicly Available Virtual Cohort of Four-chamber Heart Meshes for Cardiac Electro-mechanics Simulations <https://zenodo.org/records/3890034>`_
 - `Virtual cohort of adult healthy four-chamber heart meshes from CT images <https://zenodo.org/records/4590294>`_
 
-The :attr:`Preprocessor <ansys.health.heart.pre>` module contains methods to extract the necessary information and VTP object from these two databases for further processing. This module also contains methods to conveniently download from these two sources:
+The :attr:`Preprocessor <ansys.health.heart.pre>` module contains methods to extract the necessary information and VTP object from these two databases for further processing and consumption by the :attr:`HeartModel <ansys.health.heart.models.HeartModel>` class. This module also contains methods to conveniently download from these two sources:
 
 >>> from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
 >>> tar_file = download_case_from_zenodo("Rodero2021", 1, "my-download-dir")

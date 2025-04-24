@@ -14,24 +14,25 @@ Different simulators must be created based on the application:
 
 Here is a simple code example:
 
->>> # get a heart model
+>>> # load a heart model
 >>> import ansys.health.heart.models as models
->>> model = models.HeartModel.load_model("path_to_model")
+>>> model = models.HeartModel.load_model("path_to_model.vtu", "path_to_info.partinfo.json")
 
 >>> # set up an LS-DYNA executable
 >>> from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 >>> dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path,
+    lsdyna_path="path-to-lsdyna-exe.exe",
     dynatype="intelmpi",
+    platform="windows",
     num_cpus=8)
 
->>> # instantiate simulator
+>>> # instantiate the simulator
 >>> simulator = EPSimulator(
     model=model,
     dyna_settings=dyna_settings,
     simulation_directory="output-path")
 
-Default modeling parameters are saved to the :attr:`ansys.heart.simulator.settings.defaults` attribute.
+Default modeling parameters are saved from the :attr:`ansys.heart.simulator.settings.defaults` module.
 You can load them into the simulator:
 
 .. code:: pycon
@@ -42,8 +43,10 @@ You can load them into the simulator:
    800 millisecond
    >>> # Change it to 1600 ms
    >>> simulator.settings.mechanics.analysis.end_time = Quantity(1600, "ms")
+   >>> # Save to YAML file
+   >>> simulator.settings.save("a-yaml-file.yml")
 
 Alternatively, you can load settings from a YAML file:
 
->>> simulator.settings.load("a-yaml-file")
+>>> simulator.settings.load("a-yaml-file.yml")
 

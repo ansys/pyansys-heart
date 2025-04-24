@@ -17,7 +17,7 @@ The :attr:`Pre-processor <ansys.health.heart.pre>` module contains methods to ex
 
 Here ``file_path`` gives you the path to the downloaded and unpacked CASE or VTK file.
 
-Alternatively a user can provide their own set of input files. In this case the user needs to specify a path to the VTP/VTK that describes the input geometry, and a JSON file that describes the parts.
+Alternatively, you can provide your own set of input files. In this case, you must specify a path to the VTP/VTK that describes the input geometry and a JSON file that describes the parts.
 
 The part definitions JSON file has the following format:
 

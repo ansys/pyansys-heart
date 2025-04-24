@@ -1,10 +1,10 @@
 
 .. _ref_preprocessor:
 
-Preprocessor
-=========
+Pre-processor
+=============
 
-This topic provides an overview of the :attr:`Preprocessor <ansys.health.heart.pre>` module. This module can be used to preprocess a case from the following two public datasets:
+This topic provides an overview of the :attr:`Preprocessor <ansys.health.heart.pre>` module. This module can be used to pre-process a case from the following two public datasets:
 
 - `A Publicly Available Virtual Cohort of Four-chamber Heart Meshes for Cardiac Electro-mechanics Simulations <https://zenodo.org/records/3890034>`_
 - `Virtual cohort of adult healthy four-chamber heart meshes from CT images <https://zenodo.org/records/4590294>`_
@@ -15,9 +15,9 @@ The :attr:`Preprocessor <ansys.health.heart.pre>` module contains methods to ext
 >>> tar_file = download_case_from_zenodo("Rodero2021", 1, "my-download-dir")
 >>> file_path = unpack_case(tar_file)
 
-Here ``file_path`` will give you the path to the downloaded and unpacked CASE or VTK file.
+Here ``file_path`` gives you the path to the downloaded and unpacked CASE or VTK file.
 
-Alternatively a user can provide their own set of input files. In this case the user needs to specify the path to the VTP/VTK that describes the input geometry, and a JSON file that describes the the parts.
+Alternatively a user can provide their own set of input files. In this case the user needs to specify a path to the VTP/VTK that describes the input geometry, and a JSON file that describes the parts.
 
 The part definitions JSON file has the following format:
 
@@ -32,7 +32,7 @@ The part definitions JSON file has the following format:
 ...    }
 ...}
 
-Here ``id`` is the volumetric part ID, and ``enclosed_by_boundaries`` is a dictionary that contains the IDs of the boundaries that enclose the volumetric part. The ID's of the enclosing boundaries should be identifiable from a cell data array, for instance by adding a cell data array called ``surface-id``. Consequently this input model and part definitions JSON file can be read into by the main class :attr:`HeartModel <ansys.health.heart.models.HeartModel>`.
+Here ``id`` is the volumetric part ID, and ``enclosed_by_boundaries`` is a dictionary that contains the IDs of boundaries that enclose the volumetric part. The ID's of the enclosing boundaries should be identifiable from a cell data array, for instance by adding a cell data array called ``surface-id``. Consequently this input model and part definitions JSON file can be read into by the main class :attr:`HeartModel <ansys.health.heart.models.HeartModel>`.
 
 >>> # Initialize left-ventricular heart model.
 >>> model = models.LeftVentricle(working_directory="my-working-dir")

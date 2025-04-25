@@ -88,6 +88,7 @@ jobs:
     name: "Build documentation"
     runs-on: [self-hosted, pyhealth]
     needs: doc-style
+    timeout-minutes: 720
     steps:
 
       - name: "Checkout the project"

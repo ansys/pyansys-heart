@@ -23,7 +23,7 @@
 
 import os
 import tempfile
-from typing import Literal, Union
+from typing import Literal
 
 import numpy as np
 import pytest
@@ -56,7 +56,7 @@ def _convert_to_mesh(model: pv.UnstructuredGrid) -> Mesh:
 # define different beam models that can be used for testing.
 def _get_beam_model(
     cell_type: Literal["tets", "tets+triangles", "triangles", "hex", "hex+quads", "quads"],
-) -> Union[pv.UnstructuredGrid, pv.PolyData]:
+) -> pv.UnstructuredGrid | pv.PolyData:
     """Generates various beam models.
 
     Parameters
@@ -66,7 +66,7 @@ def _get_beam_model(
 
     Returns
     -------
-    Union[pv.UnstructuredGrid, pv.PolyData]
+    pv.UnstructuredGrid | pv.PolyData
         Beam model of defined by cells of type cell_type in UnstructuredGrid or PolyData form.
     """
     from pyvista import examples
@@ -265,6 +265,17 @@ def test_lines_add_001():
     assert np.all(np.isin(mesh.celltypes, [pv.CellType.LINE, pv.CellType.TETRA]))
     np.testing.assert_allclose(np.unique(mesh.cell_data["_volume-id"]), [1, np.nan])
     np.testing.assert_allclose(np.unique(mesh.cell_data["_line-id"]), [2, np.nan])
+
+    # test adding by name
+
+    mesh.add_lines(line, id=3, name="lines1")
+    assert mesh.line_names == ["lines1"]
+    assert mesh.get_lines_by_name("lines1").n_cells == line.n_cells
+
+    mesh.add_lines(line, id=4, name="lines2")
+    assert mesh.line_names == ["lines1", "lines2"]
+    assert mesh.get_lines_by_name("lines2").n_cells == line.n_cells
+    assert mesh._line_id_to_name == {3: "lines1", 4: "lines2"}
 
 
 def test_volume_add_001():
@@ -521,6 +532,19 @@ def test_mesh_id_to_name():
     del mesh._volume_id_to_name[10]
     assert mesh._get_unmapped_volumes() == [10]
     assert not mesh.validate_ids_to_name_map()
+
+
+def test_beamsmesh_add_lines():
+    """Test behavior of beamsmesh."""
+    mesh = Mesh()
+    lines1 = pv.Line([0, 0, 0], [-1, 0, 0])
+    lines2 = pv.Line([0, 0, 0], [1, 0, 0])
+    mesh.add_lines(lines1, id=1, name="lines1")
+    mesh.add_lines(lines2, id=2, name="lines2")
+
+    assert mesh.line_names == ["lines1", "lines2"]
+    assert mesh._line_id_to_name == {1: "lines1", 2: "lines2"}
+    assert np.allclose(mesh.get_lines(1).points, lines1.points)
 
 
 def test_mesh_save_load():

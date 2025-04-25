@@ -1,7 +1,7 @@
 
 .. _ref_preprocessor:
 
-Pre-processor
+Preprocessor
 =============
 
 This topic provides an overview of the :attr:`Preprocessor <ansys.health.heart.pre>` module. This module can be used to pre-process a case from the following two public datasets:
@@ -17,7 +17,7 @@ The :attr:`Pre-processor <ansys.health.heart.pre>` module contains methods to ex
 
 Here ``file_path`` gives you the path to the downloaded and unpacked CASE or VTK file.
 
-Alternatively a user can provide their own set of input files. In this case the user needs to specify a path to the VTP/VTK that describes the input geometry, and a JSON file that describes the parts.
+Alternatively, you can provide your own set of input files. In this case, you must specify a path to the VTP/VTK that describes the input geometry and a JSON file that describes the parts.
 
 The part definitions JSON file has the following format:
 
@@ -33,7 +33,7 @@ The part definitions JSON file has the following format:
 ...}
 
 Here ``id`` is the volumetric part ID, and ``enclosed_by_boundaries`` is a dictionary that contains the IDs of boundaries
-that enclose the volumetric part. The ID's of the enclosing boundaries should be identifiable from a cell data array,
+that enclose the volumetric part. The IDs of the enclosing boundaries should be identifiable from a cell data array,
 for instance by adding a cell data array called ``surface-id``. Consequently this input model and part definitions JSON file
 can be read into by the main class :attr:`HeartModel <ansys.health.heart.models.HeartModel>`.
 

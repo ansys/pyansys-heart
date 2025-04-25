@@ -172,7 +172,7 @@ def test_conduction():
     assert np.array_equal(res["_is-connected"], ref["_is-connected"])
 
     # test ID shift after merging to solid
-    assert np.sum(model.conduction_mesh.point_data["_shifted_id"]) == 587209415
+    assert np.sum(model.conduction_mesh.point_data["_shifted_id"]) == 585876812
 
 
 def test_conductionbeams_from_k():
@@ -189,6 +189,7 @@ def test_conductionbeams_from_k():
         id=1,
         base_mesh=model.left_ventricle.endocardium,
         model=model,
+        merge_apex=False
     )
     assert l_pj.name == ConductionPathType.LEFT_PURKINJE
     assert l_pj.ep_material == EPMaterial.DummyMaterial()

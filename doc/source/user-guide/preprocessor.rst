@@ -3,12 +3,12 @@
 Preprocessor
 =============
 
-This topic provides an overview of the :attr:`Preprocessor <ansys.health.heart.pre>` module. Use this module to preprocess a case from the following two public datasets:
+This topic provides an overview of the :attr:`preprocessor <ansys.health.heart.pre>` module. Use this module to preprocess a case from the following two public datasets:
 
 - `A Publicly Available Virtual Cohort of Four-chamber Heart Meshes for Cardiac Electro-mechanics Simulations <https://zenodo.org/records/3890034>`_
 - `Virtual cohort of adult healthy four-chamber heart meshes from CT images <https://zenodo.org/records/4590294>`_
 
-The :attr:`Preprocessor <ansys.health.heart.pre>` module provides methods to extract the necessary information and VTP object from these two databases. You can then process this data further and use it with the :attr:`HeartModel <ansys.health.heart.models.HeartModel>` class.
+The :attr:`preprocessor <ansys.health.heart.pre>` module provides methods to extract the necessary information and VTP object from these two databases. You can then process this data further and use it with the :attr:`HeartModel.load_input <ansys.health.heart.models.HeartModel.load_input>` method.
 The module also includes methods to conveniently download data from these two public sources.
 
 >>> from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
@@ -39,7 +39,7 @@ The ``id`` represents the volumetric part ID, and ``enclosed_by_boundaries`` con
 >>> # Load input model and part definitions:
 >>> model.load_input(heart, part_definitions, "surface-id")
 
-Use the :attr:`HeartModel <ansys.health.heart.models.HeartModel.mesh_volume>` method to generate the volumetric meshes from the input model.
+Use the :meth:`HeartModel.mesh_volume <ansys.health.heart.models.HeartModel.mesh_volume>` method to generate the volumetric meshes from the input model.
 
 >>> # Remesh the model using wrapping
 >>> model.mesh_volume(use_wrapper=True, global_mesh_size=1.0)

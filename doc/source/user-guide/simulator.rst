@@ -3,16 +3,16 @@
 Simulator
 =========
 
-The Simulator :attr:`ansys.heart.simulator` module links different simulation steps for cardiac modeling.
+The :attr:`simulator <ansys.health.heart.simulator>` module links different simulation steps for cardiac modeling.
 For example, in electrophysiology simulations, you compute fiber orientation and the Purkinje network using the :attr:`BaseSimulator.compute_fibers` and :attr:`EPSimulator.compute_purkinje` methods before running the physical simulation.
 In mechanical simulations, you compute the stress-free configuration using the :attr:`MechanicsSimulator.compute_stress_free_configuration` method before running the simulation.
 
 You create different simulators based on the application and physics of interest:
 
 - :attr:`BaseSimulator <ansys.health.heart.simulator.BaseSimulator>`: This parent class provides general methods, such as fiber generation.
-- :attr:`EPSimulator <ansys.health.heart.simulator.EPSimulator>`: This class derives from :attr:`BaseSimulator` and includes specific methods for cardiac electrophysiology simulations.
-- :attr:`MechanicsSimulator <ansys.health.heart.simulator.MechanicsSimulator>`: This class derives from :attr:`BaseSimulator` and includes specific methods for mechanical cardiac simulations.
-- :attr:`EPMechanicsSimulator <ansys.health.heart.simulator.EPMechanicsSimulator>`: This class derives from :attr:`BaseSimulator` and includes specific methods for electrical-mechanical coupled cardiac simulations.
+- :attr:`EPSimulator <ansys.health.heart.simulator.EPSimulator>`: This class derives from :attr:`BaseSimulator <ansys.health.heart.simulator.BaseSimulator>` and includes specific methods for cardiac electrophysiology simulations.
+- :attr:`MechanicsSimulator <ansys.health.heart.simulator.MechanicsSimulator>`: This class derives from :attr:`BaseSimulator <ansys.health.heart.simulator.BaseSimulator>` and includes specific methods for mechanical cardiac simulations.
+- :attr:`EPMechanicsSimulator <ansys.health.heart.simulator.EPMechanicsSimulator>`: This class derives from :attr:`BaseSimulator <ansys.health.heart.simulator.BaseSimulator>` and includes specific methods for electrical-mechanical coupled cardiac simulations.
 
 Here is a simple code example:
 
@@ -34,7 +34,7 @@ Here is a simple code example:
     dyna_settings=dyna_settings,
     simulation_directory="output-path")
 
-The :attr:`<ansys.heart.settings.defaults>` module saves default modeling parameters. You can load these parameters into the simulator:
+The :attr:`settings <ansys.health.heart.settings.defaults>` module saves default modeling parameters. You can load these parameters into the simulator:
 
 .. code:: pycon
 

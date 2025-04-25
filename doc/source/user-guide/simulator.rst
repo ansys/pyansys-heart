@@ -21,7 +21,7 @@ Here is a simple code example:
 >>> model = models.HeartModel.load_model("path_to_model.vtu", "path_to_info.partinfo.json")
 
 >>> # Set up the LS-DYNA settings
->>> from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
+>>> from ansys.health.heart.simulator.simulator import DynaSettings, MechanicsSimulator
 >>> dyna_settings = DynaSettings(
     lsdyna_path="path-to-lsdyna-exe.exe",
     dynatype="intelmpi",

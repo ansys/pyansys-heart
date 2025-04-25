@@ -8,7 +8,7 @@ The :attr:`postprocessor <ansys.health.heart.post>` module provides methods to p
 This module includes two main classes:
 
 - :attr:`ansys.health.heart.post.dpf_utils.D3plotReader`: This class provides methods to read LS-DYNA ``d3plot`` files.
-- :attr:`ansys.health.heart.post.dpf_utils.EPpostprocessor`: This class provides methods to postprocesses electrophysiology simulation results.
+- :attr:`ansys.health.heart.post.dpf_utils.EPpostprocessor`: This class provides methods to postprocess electrophysiology simulation results.
 
 These classes build on `PyDPF <https://dpf.docs.pyansys.com/>`_ to make it easier to extract relevant simulation results. For example, you can use the :attr:`ansys.health.heart.post.dpf_utils.EPpostprocessor` class to extract the transmembrane potential and other quantities from simulation results.
 

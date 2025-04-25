@@ -71,6 +71,8 @@ extensions = [
     "sphinx_jinja",
     "sphinx.ext.autodoc",
     "ansys_sphinx_theme.extension.autoapi",
+    # the following are required for pyvista interactive figures.
+    # https://docs.pyvista.org/extras/plot_directive.html
     "pyvista.ext.plot_directive",
     "pyvista.ext.viewer_directive",
     "sphinx_design",

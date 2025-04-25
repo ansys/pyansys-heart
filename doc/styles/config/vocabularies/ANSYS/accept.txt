@@ -45,3 +45,4 @@ Tox
 namespace
 subpackages
 venv
+transmembrane

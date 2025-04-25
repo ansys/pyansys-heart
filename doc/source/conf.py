@@ -71,6 +71,9 @@ extensions = [
     "sphinx_jinja",
     "sphinx.ext.autodoc",
     "ansys_sphinx_theme.extension.autoapi",
+    "pyvista.ext.plot_directive",
+    "pyvista.ext.viewer_directive",
+    "sphinx_design",
 ]
 
 # static path

@@ -102,11 +102,11 @@ categorized by version, along with brief descriptions of each change.
 
 .. Documentation links
 .. _prerequisites: https://heart.health.docs.pyansys.com/version/stable/getting-started/prerequisites.html
-.. _installation guidelines: https://heart.docs.pyansys.com/version/stable/getting-started/installation.html
-.. _getting started: https://heart.docs.pyansys.com/version/stable/getting-started/index.html
-.. _user guide: https://heart.docs.pyansys.com/version/stable/user-guide/index.html
-.. _API reference: https://heart.docs.pyansys.com/version/stable/api/index.html
-.. _examples: https://heart.docs.pyansys.com/version/stable/examples/index.html
-.. _contribute: https://heart.docs.pyansys.com/version/stable/contributing/index.html
+.. _installation guidelines: https://heart.health.docs.pyansys.com/version/stable/getting-started/installation.html
+.. _getting started: https://heart.health.docs.pyansys.com/version/stable/getting-started/index.html
+.. _user guide: https://heart.health.docs.pyansys.com/version/stable/user-guide/index.html
+.. _API reference: https://heart.health.docs.pyansys.com/version/stable/api/index.html
+.. _examples: https://heart.health.docs.pyansys.com/version/stable/examples/index.html
+.. _contribute: https://heart.health.docs.pyansys.com/version/stable/contributing/index.html
 .. _LICENSE: https://github.com/ansys/pyansys-heart/blob/main/LICENSE
 .. _CHANGELOG: https://heart.health.docs.pyansys.com/version/stable/changelog.html

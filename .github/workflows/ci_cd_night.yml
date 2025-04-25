@@ -2,7 +2,7 @@ name: night
 
 on:
   schedule:
-    - cron: '0 23 * * *'
+    - cron: '0 22 * * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

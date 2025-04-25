@@ -361,6 +361,9 @@ class HeartModelUtils:
             connection="none",  # TODO: change to 'last'?
             line_length=None,
         )
+        npoints = left_bundle.mesh.n_points
+        start_connect_id = int(npoints*0.4)
+        left_bundle.is_connected[start_connect_id:-1] = 1
         left_bundle.up_path = his_left
         left_bundle.down_path = left_purkinje
 

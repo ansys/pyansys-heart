@@ -1,26 +1,23 @@
-
 .. _ref_postprocessor:
-
 
 Postprocessor
 =============
 
-The post-processor :attr:`ansys.health.heart.post` module contains methods to post-process
-the results of a cardiac simulation. The post-processor can be used to extract and visualize results
-from the simulation output files, such as LS-DYNA's ``d3plot`` files and other relevant information.
+The post-processor :attr:`ansys.health.heart.post` module provides methods to post-process the results of a cardiac simulation. Use this module to extract and visualize results from simulation output files, such as LS-DYNA's ``d3plot`` files and other relevant information.
 
-The two main classes include:
+This module includes two main classes:
 
-- :attr:`ansys.health.heart.post.dpf_utils.D3plotReader`: a class for reading LS-DYNA ``d3plot`` files.
-- :attr:`ansys.health.heart.post.dpf_utils.EPpostprocessor`: a class for post-processing electrophysiology simulation results.
+- :attr:`ansys.health.heart.post.dpf_utils.D3plotReader`: This class reads LS-DYNA ``d3plot`` files.
+- :attr:`ansys.health.heart.post.dpf_utils.EPpostprocessor`: This class post-processes electrophysiology simulation results.
 
-These two classes add additional functionality on top of `PyDPF <https://dpf.docs.pyansys.com/>`_ to extract relevant
-simulation results in a convenient way. For example, the :attr:`ansys.health.heart.post.dpf_utils.EPpostprocessor` class can be used to extract the transmembrane potential
-and other relevant quantities from the simulation results.
+These classes build on `PyDPF <https://dpf.docs.pyansys.com/>`_ to make it easier to extract relevant simulation results. For example, you can use the :attr:`ansys.health.heart.post.dpf_utils.EPpostprocessor` class to extract the transmembrane potential and other quantities from simulation results.
+
+Here is an example of how to use these classes:
 
 >>> from ansys.health.heart.post.dpf_utils import D3plotReader, EPpostprocessor
+>>> # Load a d3plot file
 >>> reader = D3plotReader("path-to-d3plot-file")
->>> # Get ep fields at step 10
+>>> # Extract electrophysiology fields at step 10
 >>> ep_fields = reader.get_ep_fields(at_step=10)
->>> # Get displacement at 200 ms
+>>> # Extract displacement at 200 ms
 >>> displacement = reader.get_displacement(time=200)

@@ -44,6 +44,4 @@ Use the :meth:`HeartModel.mesh_volume <ansys.health.heart.models.HeartModel.mesh
 >>> # Remesh the model using wrapping
 >>> model.mesh_volume(use_wrapper=True, global_mesh_size=1.0)
 
-For working examples, see:
-- https://heart.health.docs.pyansys.com/version/dev/examples/preprocessor/preprocess_truncated_LV_pr.html#sphx-glr-examples-preprocessor-preprocess-truncated-lv-pr-py
-- https://heart.health.docs.pyansys.com/version/dev/examples/preprocessor/doc_preprocess_fullheart_rodero_01.html#sphx-glr-examples-preprocessor-doc-preprocess-fullheart-rodero-01-py
+For working examples see the :ref:`examples/preprocessor``

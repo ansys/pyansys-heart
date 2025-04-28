@@ -52,4 +52,4 @@ Use the :meth:`HeartModel.mesh_volume <ansys.health.heart.models.HeartModel.mesh
     # Remesh the model using wrapping
     model.mesh_volume(use_wrapper=True, global_mesh_size=1.0)
 
-For working examples, see the :ref:`examples/preprocessor`.
+For comprehensive examples, see :ref:`examples_preprocessor`.

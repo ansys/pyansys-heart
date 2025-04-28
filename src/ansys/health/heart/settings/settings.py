@@ -57,7 +57,7 @@ from ansys.health.heart.settings.material.material import (
 
 
 class AttrDict(dict):
-    """Dict subclass whose entries can be accessed by attributes as well as normally."""
+    """Dictionary subclass whose entries can be accessed by attributes as well as normally."""
 
     def __init__(self, *args, **kwargs):
         """Construct nested AttrDicts from nested dictionaries."""
@@ -79,7 +79,7 @@ class Settings:
     """Generic settings class."""
 
     def __repr__(self):
-        """Represent object in as dictionary in YAML style."""
+        """Represent object in dictionary in YAML style."""
         d = self.serialize()
         d = {self.__class__.__name__: d}
         return yaml.dump(json.loads(json.dumps(d)), sort_keys=False)
@@ -101,7 +101,7 @@ class Settings:
         return dictionary
 
     def to_consistent_unit_system(self):
-        """Convert units to consistent unit system.
+        """Convert units to a consistent unit system.
 
         Notes
         -----
@@ -111,7 +111,7 @@ class Settings:
         """
 
         def _to_consitent_units(d):
-            """Convert units to consistent unit system."""
+            """Convert units to a consistent unit system."""
             if isinstance(d, Settings):
                 d = d.__dict__
             for k, v in d.items():
@@ -153,7 +153,7 @@ class Analysis(Settings):
     """Class for analysis settings."""
 
     end_time: Quantity = Quantity(0, "s")
-    """End time of the simulation."""
+    """End time of simulation."""
     dtmin: Quantity = Quantity(0, "s")
     """Minimum time-step of simulation."""
     dtmax: Quantity = Quantity(0, "s")
@@ -182,14 +182,14 @@ class Material(Settings):
     myocardium: AttrDict = None
     """Myocardium material."""
     passive: AttrDict = None
-    """Passive material, e.g. vessel wall."""
+    """Passive material. For example, the vessel wall."""
     cap: AttrDict = None
     """Cap material."""
 
 
 @dataclass(repr=False)
 class EpMaterial(Settings):
-    """Class for storing ep material settings."""
+    """Class for storing EP material settings."""
 
     myocardium: AttrDict = None
     """Myocardium material."""
@@ -198,7 +198,7 @@ class EpMaterial(Settings):
     cap: AttrDict = None
     """Cap material."""
     beam: AttrDict = None
-    """beam material."""
+    """Beam material."""
     # TODO: consider 'other', e.g passive conductor, soft tissue...?
 
 
@@ -222,9 +222,9 @@ class SystemModel(Settings):
     """Name of the system model."""
 
     left_ventricle: AttrDict = None
-    """Parameters for left ventricle."""
+    """Parameters for the left ventricle."""
     right_ventricle: AttrDict = None
-    """Parameters for right ventricle."""
+    """Parameters for the right ventricle."""
 
 
 @dataclass(repr=False)
@@ -243,7 +243,7 @@ class Mechanics(Settings):
 
 @dataclass(repr=False)
 class AnalysisZeroPressure(Analysis):
-    """Class for keeping track of zero pressure analysis settings."""
+    """Class for keeping track of zero-pressure analysis settings."""
 
     dt_nodout: Quantity = 0
     """Time interval of nodeout export."""
@@ -302,7 +302,7 @@ class Stimulation(Settings):
 
 @dataclass(repr=False)
 class Electrophysiology(Settings):
-    """Class for keeping track of electrophysiology settings."""
+    """Class for keeping track of EP settings."""
 
     material: EpMaterial = field(default_factory=lambda: EpMaterial())
     """Material settings/configuration."""
@@ -354,10 +354,10 @@ class AtrialFiber(Settings):
 
 @dataclass(repr=False)
 class Purkinje(Settings):
-    """Class for keeping track of purkinje settings."""
+    """Class for keeping track of Purkinje settings."""
 
     node_id_origin_left: int = None
-    """Left Purkinje origin id."""
+    """Left Purkinje origin ID."""
     node_id_origin_right: int = None
     """Right Purkinje origin id."""
     edgelen: Quantity = 0
@@ -566,7 +566,7 @@ class SimulationSettings:
             LOGGER.error("Failed to load mechanics settings.")
 
     def load_defaults(self):
-        """Load the default simulation settings.
+        """Load default simulation settings.
 
         Examples
         --------
@@ -903,7 +903,7 @@ def _get_consistent_units_str(dimensions: set):
 
 
 class DynaSettings:
-    """Class for collecting, managing and validating LS-DYNA settings."""
+    """Class for collecting, managing, and validating LS-DYNA settings."""
 
     @staticmethod
     def _get_available_mpi_exe():
@@ -946,11 +946,11 @@ class DynaSettings:
         self.lsdyna_path: pathlib.Path = lsdyna_path
         """Path to LS-DYNA executable."""
         self.dynatype: str = dynatype
-        """Type of dyna executable."""
+        """Type of DYNA executable."""
         self.num_cpus: int = num_cpus
         """Number of CPU's requested."""
         self.platform: str = platform
-        """Platform on which dyna is executed."""
+        """Platform DYNA is executed on."""
 
         self.dyna_options = dyna_options
         """Additional command line options for dyna."""

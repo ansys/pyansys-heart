@@ -2,7 +2,7 @@ User guide
 ==========
 
 This section provides an overview of the capabilities of PyAnsys Heart, explaining key concepts of
-the preprocessor, writer, simulator, and postprocessor.
+the preprocessor, simulator, and postprocessor.
 
 .. grid:: 1 2 3 3
     :gutter: 1 2 3 3

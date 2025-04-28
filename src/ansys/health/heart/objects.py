@@ -189,7 +189,7 @@ class SurfaceMesh(pv.PolyData):
 
     @property
     def triangles(self):
-        """Triangular faces of the surface ''num_faces'' x 3."""
+        """Triangular faces of the surface ``num_faces`` x 3."""
         faces = np.reshape(self.faces, (self.n_cells, 3 + 1))[:, 1:]
         return faces
 
@@ -435,16 +435,16 @@ class Point(Feature):
 
 
 class Mesh(pv.UnstructuredGrid):
-    """Mesh class, which inherits from ``pyvista UnstructuredGrid``.
+    """Mesh class, which inherits from the PyVista unstructured grid object.
 
     Notes
     -----
-    This class inherits from ``pyvista.UnstructuredGrid`` and adds additional
-    attributes and convenience methods for enhanced functionality. We use ``_volume_id``,
-    ``_surface_id``, and ``_line_id`` cell arrays to keep track of *labeled* selections of
-    cells. ``_volume_id`` is used to group 3D volume cells together.
+    This class inherits from the ``pyvista.UnstructuredGrid`` object and adds additional
+    attributes and convenience methods for enhanced functionality. The ``_volume_id``,
+    ``_surface_id``, and ``_line_id`` cell arrays keep track of *labeled* selections of
+    cells. The ``_volume_id`` cell array is used to group 3D volume cells together.
     Any non-3D volume cell is labeled as ``numpy.nan``. Similarly 2D and 1D cells are tracked
-    through ``_surface_id`` and ``_line_id`` respectively.
+    through the ``_surface_id`` and ``_line_id`` cell arrays respectively.
     """
 
     @property
@@ -502,7 +502,7 @@ class Mesh(pv.UnstructuredGrid):
         Returns
         -------
         np.ndarray
-            Array with unique surface IDs.
+            NumPy array with unique surface IDs.
         """
         try:
             mask = np.isin(self.celltypes, _SURFACE_CELL_TYPES)
@@ -520,12 +520,12 @@ class Mesh(pv.UnstructuredGrid):
 
     @property
     def volume_ids(self) -> np.ndarray:
-        """Unique volume IDs.
+        """NumPy array with unique volume IDs.
 
         Returns
         -------
         np.ndarray
-            Array with unique volume IDs.
+            NumPy array with unique volume IDs.
         """
         try:
             mask = np.isin(self.celltypes, _VOLUME_CELL_TYPES)
@@ -543,12 +543,12 @@ class Mesh(pv.UnstructuredGrid):
 
     @property
     def line_ids(self) -> np.ndarray:
-        """Unique line IDs.
+        """NumPy array with unique line IDs.
 
         Returns
         -------
         np.ndarray
-            Array with unique line IDs.
+            NumPy array with unique line IDs.
         """
         try:
             mask = self.celltypes == pv.CellType.LINE
@@ -716,7 +716,7 @@ class Mesh(pv.UnstructuredGrid):
 
         Notes
         -----
-        This tries to read a JSON file with the volume/surface ID to name map
+        This method tries to read a JSON file with the volume/surface ID to a name map
         with extension ``.namemap.json`` in the same directory as the file. Alternatively,
         you can read the name map manually by calling ``._load_id_to_name_map(filename)``.
 
@@ -850,9 +850,9 @@ class Mesh(pv.UnstructuredGrid):
         volume : pv.PolyData
             PolyData representation of the volume to add.
         id : int
-            ID of the volume to add. This ID is tracked as ``_volume-id``
+            ID of the volume to add. This ID is tracked as ``_volume-id``.
         name : str, default: None
-            Name of the added volume. The added value is not tracked by default.
+            Name of the added volume. The added volume is not tracked by default.
         """
         if not id:
             if "_volume-id" not in volume.cell_data.keys():
@@ -923,7 +923,7 @@ class Mesh(pv.UnstructuredGrid):
         id : int
             ID of the surface to add. This ID is tracked as ``_line-id``.
         name : str, optional
-            Name of the added lines, by default None (not tracked)
+            Name of the added lines. The added lines are not tracked by default.
         """
         if not id:
             if "_line-id" not in lines.cell_data.keys():
@@ -943,11 +943,11 @@ class Mesh(pv.UnstructuredGrid):
         return self_copy
 
     def get_volume(self, sid: int) -> pv.UnstructuredGrid:
-        """Get a volume as an ``UnstructuredGrid`` object."""
+        """Get a volume as a PyVista unstructured grid object."""
         return self._get_submesh(sid, scalar="_volume-id")
 
     def get_volume_by_name(self, name: str) -> pv.UnstructuredGrid:
-        """Get the surface associated with ``name``."""
+        """Get the surface associated with a given name."""
         if name not in list(self._volume_name_to_id.keys()):
             LOGGER.error(f"No volume is associated with {name}.")
             return None
@@ -956,7 +956,7 @@ class Mesh(pv.UnstructuredGrid):
 
     def get_surface(self, sid: int) -> Union[pv.PolyData, SurfaceMesh]:
         # ?: Return SurfaceMesh instead of PolyData?
-        """Get a surface as a ``PolyData`` object.
+        """Get a surface as a PyVista polydata object.
 
         Notes
         -----
@@ -974,7 +974,7 @@ class Mesh(pv.UnstructuredGrid):
 
     def get_surface_by_name(self, name: str) -> Union[pv.PolyData, SurfaceMesh]:
         # ?: Return SurfaceMesh instead of PolyData?
-        """Get the surface associated with ``name``."""
+        """Get the surface associated with a given name."""
         if name not in list(self._surface_name_to_id.keys()):
             LOGGER.error(f"No surface is associated with {name}.")
             return None
@@ -982,11 +982,11 @@ class Mesh(pv.UnstructuredGrid):
         return self.get_surface(surface_id)
 
     def get_lines(self, sid: int) -> pv.PolyData:
-        """Get lines as a ``PolyData`` object."""
+        """Get lines as a PyVista polydata object."""
         return self._get_submesh(sid, scalar="_line-id").extract_surface()
 
     def get_lines_by_name(self, name: str) -> pv.PolyData:
-        """Get the lines associated with `name`."""
+        """Get the lines associated with a given name."""
         if name not in list(self._line_name_to_id.keys()):
             LOGGER.error(f"No lines associated with {name}")
             return None
@@ -1182,7 +1182,7 @@ class Part:
         return surface_names
 
     def get_point(self, pointname: str) -> Point:
-        """Get point from the part."""
+        """Get a point from the part."""
         for point in self.points:
             if point.name == pointname:
                 return point
@@ -1212,10 +1212,10 @@ class Part:
         """Flag indicating if active stress is established."""
 
         self.meca_material: MechanicalMaterialModel = MechanicalMaterialModel.DummyMaterial()
-        """Material model is to be assiggned in the simulator."""
+        """Material model to assign in the simulator."""
 
         self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
-        """EP material model is to be assigned in the simulator."""
+        """EP material model to assign in the simulator."""
 
         """Cavity belonging to the part."""
         if self.part_type in [PartType.VENTRICLE]:

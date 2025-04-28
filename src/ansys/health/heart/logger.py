@@ -53,7 +53,7 @@ You can rename this logger to avoid conflicts with other loggers (if any):
 
 
 The default logging level of ``LOG`` is ``ERROR``.
-You can change this elvel and output lower-level messages with this code:
+You can change this level and output lower-level messages:
 
 .. code:: python
 
@@ -202,7 +202,7 @@ class PyAnsysHeartCustomAdapter(logging.LoggerAdapter):
         self.file_handler = self.logger.file_handler
 
     def log_to_stdout(self, level: LOG_LEVEL_TYPE = LOG_LEVEL_STDOUT) -> None:
-        """Add a standard output handler to the logger.
+        """Add a stdout handler to the logger.
 
         Parameters
         ----------
@@ -294,7 +294,7 @@ class Logger:
     to_file : bool, default: False
         Whether to write log messages to a file.
     to_stdout : bool, default: True
-        Whether to write the log messages to the standard output.
+        Whether to write the log messages to stdout.
     filename : str, default: FILE_NAME
         Name of the file to write log messages to.
 
@@ -397,7 +397,7 @@ class Logger:
         addfile_handler(self, filename=filename, level=level, write_headers=True)
 
     def log_to_stdout(self, level: LOG_LEVEL_TYPE = LOG_LEVEL_STDOUT):
-        """Add a standard output handler to the logger.
+        """Add a stdout handler to the logger.
 
         Parameters
         ----------
@@ -412,7 +412,7 @@ class Logger:
         Parameters
         ----------
         level : str or int, default: "DEBUG"
-            The logging level to set.
+            Logging level to set.
         """
         if isinstance(level, str):
             level = string_to_loglevel[cast(LOG_LEVEL_STRING_TYPE, level.upper())]
@@ -471,10 +471,6 @@ class Logger:
 
         This logger is more general than an instance logger, which is designed to
         track the state of PyAnsys Heart instances.
-
-        If the logging level is in the arguments, a new logger with a reference
-        to the ``_global`` logger handlers is created instead of a child logger.
-
 
         If the logging level is in the arguments, a new logger with a reference
         to the ``_global`` logger handlers is created instead of a child logger.
@@ -591,7 +587,7 @@ def _clear_all_file_handlers(logger: Logger) -> Logger:
 
 def add_stdout_handler(logger, level=LOG_LEVEL_STDOUT, write_headers=False):
     """
-    Add a standout handler to the logger.
+    Add a stdout handler to the logger.
 
     Parameters
     ----------

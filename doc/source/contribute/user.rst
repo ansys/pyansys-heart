@@ -166,7 +166,7 @@ Install the latest version
 
    .. code-block:: python
 
-       from ansys.heart import __version__
+       from ansys.health.heart import __version__
 
 
        print(f"PyAnsys Heart version is {__version__}.")

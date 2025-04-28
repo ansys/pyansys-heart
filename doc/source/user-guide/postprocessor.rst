@@ -13,11 +13,15 @@ This module includes two main classes:
 These classes build on `PyDPF <https://dpf.docs.pyansys.com/>`_ to make it easier to extract relevant simulation results. For example, you can use the :attr:`ansys.health.heart.post.dpf_utils.EPpostprocessor` class to extract the transmembrane potential and other quantities from simulation results.
 
 Here is an example of how to use these classes:
+.. code-block:: python
 
->>> from ansys.health.heart.post.dpf_utils import D3plotReader, EPpostprocessor
->>> # Load a d3plot file
->>> reader = D3plotReader("path-to-d3plot-file")
->>> # Extract electrophysiology fields at step 10
->>> ep_fields = reader.get_ep_fields(at_step=10)
->>> # Extract displacement at 200 ms
->>> displacement = reader.get_displacement(time=200)
+    from ansys.health.heart.post.dpf_utils import D3plotReader, EPpostprocessor
+
+    # Load a d3plot file
+    reader = D3plotReader("path-to-d3plot-file")
+
+    # Extract electrophysiology fields at step 10
+    ep_fields = reader.get_ep_fields(at_step=10)
+
+    # Extract displacement at 200 ms
+    displacement = reader.get_displacement(time=200)

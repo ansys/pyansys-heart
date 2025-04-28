@@ -2102,6 +2102,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             )
         )
 
+        self.kw_database.ep_settings.append(keywords.EmControlTimestep(dtcons=1))
+        
         # use defaults
         self.kw_database.ep_settings.append(custom_keywords.EmControlEp())
 

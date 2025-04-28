@@ -34,21 +34,20 @@ from ansys.health.heart.objects import (
     Part,
     PartType,
     Point,
-    _BeamMesh,
-    _BeamsMesh,
-    _ConductionType,
 )
+from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.settings import Mechanics, SimulationSettings, Stimulation
 import ansys.health.heart.writer.dynawriter as writers
 
 
-def _get_mock_conduction_system() -> _BeamsMesh:
+def _get_mock_conduction_system() -> Mesh:
     """Get a mock conduction system."""
     edges = examples.load_tetbeam().extract_feature_edges()
-    conduction_system = _BeamsMesh()
-    conduction_system.add_lines(edges, 1, name=_ConductionType.LEFT_PURKINJE.value)
+    conduction_system = Mesh(edges)
     conduction_system.point_data["_is-connected"] = 0
+    conduction_system.cell_data["_line-id"] = 10
     conduction_system.point_data["_is-connected"][0:10] = 1
+    conduction_system.point_data["_shifted_id"] = 1
 
     return conduction_system
 
@@ -64,21 +63,14 @@ def _mock_model():
 
     model.electrodes = [p1, p2]
 
-    conduction_system = _get_mock_conduction_system()
-    model.conduction_system = conduction_system
+    lines = pv.line_segments_from_points([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
+    model.conduction_paths = [
+        ConductionPath(ConductionPathType.LEFT_PURKINJE, lines, 1, [False, False], pv.Sphere())
+    ]
+
+    model.conduction_mesh = _get_mock_conduction_system()
 
     yield model
-
-
-def _add_beam_network(model: FullHeart):
-    """Add a beam network to the model."""
-    lines = pv.line_segments_from_points([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
-    beams = _BeamMesh(name="beams")
-    beams.nodes = lines.points
-    beams.edges = np.array([lines.lines[1:]])
-    beams.pid = 1000
-    model.beam_network = [beams]
-    return model
 
 
 def _add_parts(model: FullHeart):
@@ -113,7 +105,7 @@ def test_add_segment_from_surface(_mock_model):
     model = _mock_model
     writer = writers.ElectroMechanicsDynaWriter(model)
     model.mesh.add_surface(pv.Sphere(), name="test", id=1)
-    writer._add_segment_from_surface(name="test")
+    writer._add_segment_from_surface(pv.Sphere(), name="test")
 
     assert len(writer.kw_database.segment_sets.keywords) == 1
     assert writer.kw_database.segment_sets.keywords[0].get_title() == "*SET_SEGMENT_TITLE"
@@ -161,7 +153,6 @@ def test_update_ep_settings(_mock_model, solvertype, expected_num_keywords):
     """Test updating EP settings."""
     model = _mock_model
 
-    model = _add_beam_network(model)
     model = _add_parts(model)
 
     settings = SimulationSettings()
@@ -169,7 +160,7 @@ def test_update_ep_settings(_mock_model, solvertype, expected_num_keywords):
     settings.electrophysiology.analysis.solvertype = solvertype
 
     writer = writers.ElectroMechanicsDynaWriter(model, settings)
-    writer._update_ep_settings()
+    writer._update_ep_settings(beam_pid=[1, 2, 3])
 
     assert len(writer.kw_database.ep_settings.keywords) == expected_num_keywords
 
@@ -207,12 +198,7 @@ def test_update_create_fibers(_mock_model):
 def test_update_use_purkinje(_mock_model: FullHeart):
     """Test update use purkinje."""
     model = _mock_model
-    model = _add_beam_network(model)
     model = _add_parts(model)
-    model.beam_network[0].name = _ConductionType.LEFT_PURKINJE.value
-    model.mesh.add_surface(pv.Sphere(), id=10, name="Left ventricle endocardium")
-    model.left_ventricle = model.parts[0]
-    model.left_ventricle.endocardium = model.mesh.get_surface(10)
 
     settings = SimulationSettings()
     settings.load_defaults()

@@ -48,7 +48,8 @@ import pyvista as pv
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import LSDYNANotFoundError, LSDYNATerminationError
 from ansys.health.heart.models import FourChamber, HeartModel, LeftVentricle
-from ansys.health.heart.objects import _ConductionType
+from ansys.health.heart.models_utils import HeartModelUtils
+from ansys.health.heart.objects import SurfaceMesh
 from ansys.health.heart.post.auto_process import mech_post, zerop_post
 from ansys.health.heart.post.laplace_post import (
     compute_la_fiber_cs,
@@ -56,7 +57,7 @@ from ansys.health.heart.post.laplace_post import (
     compute_ventricle_fiber_by_drbm,
     read_laplace_solution,
 )
-from ansys.health.heart.pre.conduction_beam import ConductionSystem
+from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.settings import DynaSettings, SimulationSettings
 from ansys.health.heart.utils.misc import _read_orth_element_kfile
 import ansys.health.heart.writer.dynawriter as writers
@@ -468,55 +469,49 @@ class EPSimulator(BaseSimulator):
 
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
+        LOGGER.info("Simulation completed successfully.")
 
         self.dyna_settings.num_cpus = orig_num_cpus
         LOGGER.debug(f"Set number of CPUs back to {orig_num_cpus}.")
 
-        LOGGER.info("Simulation completed successfully.")
-
         LOGGER.info("Assign the Purkinje network to the model...")
 
-        purkinje_k_file = os.path.join(directory, "purkinjeNetwork_001.k")
-        self.model.add_purkinje_from_kfile(purkinje_k_file, _ConductionType.LEFT_PURKINJE.value)
+        left_purkinje = ConductionPath.create_from_k_file(
+            ConductionPathType.LEFT_PURKINJE,
+            k_file=os.path.join(directory, "purkinjeNetwork_001.k"),
+            id=1,
+            base_mesh=self.model.left_ventricle.endocardium,
+            model=self.model,
+        )
 
-        if not isinstance(self.model, LeftVentricle):
-            purkinje_k_file = os.path.join(directory, "purkinjeNetwork_002.k")
-            self.model.add_purkinje_from_kfile(
-                purkinje_k_file, _ConductionType.RIGHT_PURKINJE.value
+        if isinstance(self.model, LeftVentricle):
+            self.model.assign_conduction_paths([left_purkinje])
+            return left_purkinje
+        else:
+            right_purkinje = ConductionPath.create_from_k_file(
+                ConductionPathType.RIGHT_PURKINJE,
+                k_file=os.path.join(directory, "purkinjeNetwork_002.k"),
+                id=2,
+                base_mesh=self.model.right_ventricle.endocardium,
+                model=self.model,
             )
+            self.model.assign_conduction_paths([left_purkinje, right_purkinje])
+            return [left_purkinje, right_purkinje]
 
     def compute_conduction_system(self):
         """Compute the conduction system."""
         if isinstance(self.model, FourChamber):
-            beam_length = self.settings.purkinje.edgelen.m
+            # TODO: refinement is not correctly used
+            # beam_length = self.settings.purkinje.edgelen.m
 
-            cs = ConductionSystem(self.model)
-            cs.compute_sa_node()
-            cs.compute_av_node()
-            cs.compute_av_conduction()
-            _, left_point, right_point = cs.compute_his_conduction(beam_length=beam_length)
-            end_coord = cs.m.conduction_system.get_lines_by_name(
-                _ConductionType.LEFT_PURKINJE.value
-            ).points[0]
-            cs.compute_left_right_bundle(
-                left_point.xyz, end_coord=end_coord, side=_ConductionType.LEFT_BUNDLE_BRANCH.value
+            beam_list = HeartModelUtils.define_full_conduction_system(
+                self.model, os.path.join(self.root_directory, "purkinjegeneration")
             )
-            end_coord = cs.m.conduction_system.get_lines_by_name(
-                _ConductionType.RIGHT_PURKINJE.value
-            ).points[0]
-            cs.compute_left_right_bundle(
-                right_point.xyz, end_coord=end_coord, side=_ConductionType.RIGHT_BUNDLE_BRANCH.value
-            )
-            # # TODO: define end point by uhc, or let user choose
-            # Note: must on surface after zerop if coupled with meca
-            # cs._compute_bachman_bundle(
-            #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
-            #     end_coord=np.array([-34, 163, 413]),
-            # )
-            cs._connect_to_solid(component_id=3, local_point_ids=0)
+            self.model.assign_conduction_paths(beam_list)
         else:
-            LOGGER.info("Computation is only implemented for four-chamber heart models.")
-        return cs
+            LOGGER.info("Computation is only implemented for other than FourChamber models.")
+
+        return beam_list
 
     def _write_main_simulation_files(self, folder_name, extra_k_files: list[str] | None = None):
         """Write LS-DYNA files that are used to start the main EP simulation."""
@@ -686,12 +681,12 @@ class MechanicsSimulator(BaseSimulator):
 
         self.model.mesh.points = guess_ed_coord
 
-        #! Note that it is not always clear if the contents of the retrieved
-        #! surface is actually properly copied to the object that the surface
-        #! is an attribute (part.surface) of. That is, is `=` actually working here?
+        # Update surfaces of all parts
+        # TODO: move it into Part or Model
         for part in self.model.parts:
-            for surface in part.surfaces:
-                surface = self.model.mesh.get_surface(surface.id)
+            for key, value in part.__dict__.items():
+                if isinstance(value, SurfaceMesh):
+                    part.__setattr__(key, self.model.mesh.get_surface(value.id))
 
         return
 

@@ -73,7 +73,7 @@ lsdyna_path = r"ls-dyna_msmpi.exe"
 
 # Instantiate DYNA settings.
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=6, platform="wsl"
+    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=4, platform="wsl"
 )
 
 # Instantiate the simulator, modifying options as necessary.

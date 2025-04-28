@@ -189,7 +189,7 @@ def test_conductionbeams_from_k():
         id=1,
         base_mesh=model.left_ventricle.endocardium,
         model=model,
-        merge_apex=False
+        merge_apex=False,
     )
     assert l_pj.name == ConductionPathType.LEFT_PURKINJE
     assert l_pj.ep_material == EPMaterial.DummyMaterial()

@@ -2,7 +2,7 @@ name: night
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 23 * * *'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -76,9 +76,18 @@ jobs:
        run: |
          uv tool run tox -e tests -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -- -m "${{ matrix.tests.markers }}" -vv
 
+  doc-style:
+    name: Documentation Style Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ansys/actions/doc-style@4f15ff3ab1183912ce862d51b8c66ea124b052a1 # v9.0.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   doc-build:
     name: "Build documentation"
     runs-on: [self-hosted, pyhealth]
+    needs: doc-style
     steps:
 
       - name: "Checkout the project"
@@ -93,7 +102,23 @@ jobs:
         run: |
           uv tool install tox --with tox-uv
 
+      - name: "Modify PATH for intelmpi"
+        run: |
+          Add-Content $env:GITHUB_PATH "C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin\utils;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin\release;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin"
+
       - name: "Build documentation"
+        env:
+          PYANSYS_HEART_FLUENT_VERSION: 24.1
+          PYFLUENT_LAUNCH_CONTAINER: 0
+          PYANSYS_HEART_LSDYNA_PATH: C:\Program Files\ANSYS Inc\LS-DYNA\R16.0\windows\mpp\intelmpi\ls-dyna_mpp_d_R16.0\ls-dyna_mpp_d_R16.0.exe
+          PYANSYS_HEART_LSDYNA_TYPE: intelmpi
+          PYANSYS_HEART_LSDYNA_PLATFORM: windows
+          PYANSYS_HEART_NUM_CPU: 8
+          ANSYS_DPF_ACCEPT_LA: Y
+          AWP_ROOT241: C:\\Program Files\\ANSYS Inc\\v241
+          DPF_STANDALONE_PATH: C:\\Program Files\\ANSYS Inc\\dpf-server-2024.2rc0
+          PYFLUENT_UI_MODE: no_gui # default hidden_gui fails on self-hosted runner
+          NIGHTLY_DOC_BUILD: 1
         run: |
           tox -e doc-links,doc-html,doc-pdf
 
@@ -116,7 +141,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: doc-build
     steps:
-      - uses: ansys/actions/doc-deploy-dev@b666c18ca3623198a1be4cf46f4522736527fee9 # v9.0.0
+      - uses: ansys/actions/doc-deploy-dev@4f15ff3ab1183912ce862d51b8c66ea124b052a1 # v9.0.2
         with:
           doc-artifact-name: "documentation-html"
           cname: ${{ env.DOCUMENTATION_CNAME }}

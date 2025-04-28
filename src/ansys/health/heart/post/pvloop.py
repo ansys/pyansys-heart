@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Get pressure-volume (PV) loop from LS-DYNA icvout file."""
+"""Get pressure-volume (PV) loop from the LS-DYNA ICVOUT file."""
 
 import os
 
@@ -29,21 +29,21 @@ import numpy as np
 
 from ansys.health.heart.post.dpf_utils import ICVoutReader
 
-# NOTE: assume control volume is defined with in this order
+# NOTE: Assume control volume is defined in this order:
 CV_NAME = ["LV", "RV", "LA", "RA"]
 
 
 def write_pvloop_pngs(pressure: np.ndarray, volume: np.ndarray, save_to: str) -> None:
-    """Write pv loop figures into png.
+    """Write PV loop figures to PNG file.
 
     Parameters
     ----------
     pressure : np.ndarray
-        pressure array
+        Pressure array.
     volume : np.ndarray
-        volume array
+        Volume array.
     save_to : str
-        folder to save
+        Directory to save the file to.
     """
     n_cv = pressure.shape[0]
     for iframe in range(pressure.shape[1]):
@@ -70,16 +70,16 @@ def write_pvloop_pngs(pressure: np.ndarray, volume: np.ndarray, save_to: str) ->
 
 
 def generate_pvloop(f: str, out_dir: str, t_to_keep: float = 800) -> None:
-    """Generate pv loop figures from icvout.
+    """Generate PV loop figures from the ICVOUT file.
 
     Parameters
     ----------
     f : str
-        binout path
+        Path to the binout file.
     out_dir : str
-        folder to save
+        Directory to save the file to.
     t_to_keep : float, optional
-        Time to keep from the end, by default 800 (last heart beat)
+        Time to keep from the end. The default is ``800``, which is the last heart beat.
     """
     icvout = ICVoutReader(f)
     n_cv = len(icvout._icv_ids)

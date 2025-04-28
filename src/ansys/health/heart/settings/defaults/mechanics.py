@@ -110,7 +110,7 @@ material = {
             "k1f": Quantity(0.00049, "MPa"),
             "k2f": Quantity(9.01, "dimensionless"),
         },
-        # Note: Mechanical simulation use actype=1, EP-Mechanical simulation use actype=3
+        # Note: Mechanical simulation uses actype=1, EP-Mechanical simulation uses actype=3
         # related parameters are hard coded
         # For more advanced control, use Material class
         "active": {
@@ -150,7 +150,7 @@ boundary_conditions = {
         "scale_factor": {"normal": 0.5, "radial": 1.0},
     },
     "end_diastolic_cavity_pressure": {
-        ## https://doi.org/10.3389/fphys.2018.00539
+        # https://doi.org/10.3389/fphys.2018.00539
         "left_ventricle": Quantity(15, "mmHg"),
         "left_atrial": Quantity(15, "mmHg"),
         "right_ventricle": Quantity(8, "mmHg"),
@@ -173,7 +173,7 @@ ra = 0.03 * rp
 rv = ra
 
 system_model = {
-    "name": "ConstantPreloadWindkesselAfterload",
+    "name": "open-loop",
     "left_ventricle": {
         "constants": {
             # preload resistance

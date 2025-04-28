@@ -25,10 +25,7 @@ Use dynalib to create some commonly used material cards and their default values
 
 Notes
 -----
-E.g.:
-Mat295
-Mat077
-MatNull
+Examples of material cards include Mat295, Mat077, MatNull.
 
 """
 
@@ -53,7 +50,7 @@ class MaterialCap(keywords.MatNull):
     Parameters
     ----------
     keywords : keywords.MatNull
-        Inherits from Null type material
+        Inherits from the Null type material.
     """
 
     def __init__(self, mid: int = 1):
@@ -65,8 +62,16 @@ class MaterialNeoHook(custom_keywords.Mat077H):
 
     Parameters
     ----------
-    Mat077H : Parent class
-        Parent class from which this material is derived
+    mid : int
+        Material ID.
+    rho : float
+        Density of the material.
+    c10 : float
+        First coefficient of the material.
+    nu : float
+        Poisson's ratio.
+    kappa : float
+        Bulk modulus.
     """
 
     def __init__(
@@ -83,7 +88,7 @@ class MaterialNeoHook(custom_keywords.Mat077H):
 
 
 class MaterialHGOMyocardium(keywords.Mat295):
-    """HGO Material model - derived from Mat295."""
+    """HGO material model, which is derived from Mat295."""
 
     def __init__(self, id: int, mat: Mat295, ignore_active: bool = False):
         """Init a keyword of *mat295.
@@ -91,11 +96,11 @@ class MaterialHGOMyocardium(keywords.Mat295):
         Parameters
         ----------
         id : int
-            material ID
-        mat : MAT295
-            material data
-        ignore_active : bool, optional
-            IF igonre active module (e.g. for stress-free), by default False
+            Material ID.
+        mat : Mat295
+            Material data.
+        ignore_active : bool, default: False
+            Whether to ignore the active module. For example, for stress-free.
         """
         # 1st line
         super().__init__(mid=id)
@@ -164,7 +169,7 @@ def active_curve(
     Parameters
     ----------
     curve_name : str
-        Type of curve to compute
+        Type of curve to compute.
     """
     # time array
     # T = np.arange( 0, endtime, timestep )

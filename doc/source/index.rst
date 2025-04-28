@@ -36,7 +36,7 @@ PyAnsys Heart is a `Python`_ framework for heart modeling using Ansys tools.
 
       Explore examples to learn how to use PyAnsys Heart.
 
-   .. grid-item-card:: :material-regular:`people;1.25em` Contributing
+   .. grid-item-card:: :material-regular:`people;1.25em` Contribute
       :link: contributing
       :link-type: doc
 

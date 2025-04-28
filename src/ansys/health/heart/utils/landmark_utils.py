@@ -43,19 +43,19 @@ def compute_anatomy_axis(
     Parameters
     ----------
     mv_center : np.ndarray
-        Mitral valve center
+        Mitral valve center.
     av_center : np.ndarray
-        Aortic valve center
+        Aortic valve center.
     apex : np.ndarray
-        left ventricle epicardium apex point
-    first_cut_short_axis : float, optional
-        relative distance between mv_center and apex, by default 0.2
-        Used for defining the center of the short axis
+        Left ventricle epicardium apex point.
+    first_cut_short_axis : float, default: 0.2
+        Relative distance between the mitral valve center and apex,
+        which is used for defining the center of the short axis.
 
     Returns
     -------
     tuple[dict, dict, dict]
-        4CV,2CV and short-axis, each dict contains `center` and `normal`
+        4CV, 2CV, and short-axis. Each dictionary contains ``center`` and ``normal``.
     """
     # long 4CAV axis: cross apex, mitral and aortic valve centers
     center = np.mean(np.array([av_center, mv_center, apex]), axis=0)
@@ -86,26 +86,26 @@ def compute_aha17(
     seg: Literal[16, 17] = 17,
     p_junction: np.ndarray = None,
 ) -> np.ndarray:
-    """Compute AHA17 label for left ventricle elements.
+    """Compute the AHA17 label for left ventricle elements.
 
     Parameters
     ----------
     model : HeartModel
-        heart model
+        Heart model.
     short_axis : dict
-        short axis
+        Short axis.
     l4cv_axis : dict
-        long 4cv axis
-    seg : Literal[16, 17], optional
-        compute 16 or 17 segments, by default 17
-    p_junction : np.ndarray, optional
-        LV and RV junction points, if given, it defines the start of segment 1, by default None
-        If not given, start point is defined by rotating 60 degrees from 4CV axis
+        Long 4CV axis.
+    seg : Literal[16, 17], default: 17
+        Compute 16 or 17 segments.
+    p_junction : np.ndarray, default: None
+        LV and RV junction points. If these points are given, they defines the start of segment 1.
+        If they are not given, the start point is defined by rotating 60 degrees from the 4CV axis.
 
     Returns
     -------
     np.ndarray
-        AHA17 ids, no concerned elements will be assigned with np.nan
+        AHA17 IDs. No concerned elements are assigned with ``np.nan``.
     """
     aha_ids = np.full(len(model.mesh.tetrahedrons), np.nan)
 
@@ -115,7 +115,7 @@ def compute_aha17(
     except AttributeError:
         ele_ids = np.hstack(model.left_ventricle.element_ids)
 
-    # elements center
+    # element's center
     elem_center = np.mean(model.mesh.points[model.mesh.tetrahedrons[ele_ids]], axis=1)
 
     # anatomical points
@@ -152,7 +152,7 @@ def compute_aha17(
     p1_3 = 1 / 3 * (apex_ep - p_highest) + p_highest
     p2_3 = 2 / 3 * (apex_ep - p_highest) + p_highest
 
-    # In order to have a flat segment 17, project endocardical apex point on short axis
+    # to have a flat segment 17, project endocardical apex point on short axis
     x = apex_ed - apex_ep
     y = p_highest - apex_ep
     apex_ed = y * np.dot(x, y) / np.dot(y, y) + apex_ep
@@ -232,7 +232,7 @@ def compute_aha17(
     return aha_ids
 
 
-@deprecated(reason="Will use gradient from UVC to get better results")
+@deprecated(reason="Using gradient from UVC to get better results.")
 def compute_element_cs(
     model: HeartModel, short_axis: dict, aha_element: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -241,16 +241,16 @@ def compute_element_cs(
     Parameters
     ----------
     model : HeartModel
-        heart model
+        Heart model.
     short_axis : dict
-        short axis
+        Short axis.
     aha_element : np.ndarray
-        elements with AHA labels, compute only on these elements
+        Elements with AHA labels. Compute only on these elements.
 
     Returns
     -------
     tuple[np.ndarray, np.ndarray, np.ndarray]
-        longitudinal, radial, circufenrential vecotors of each AHA element
+        Longitudinal, radial, and circumferential vectors of each AHA element.
     """
     elems = model.mesh.tetrahedrons[aha_element]
     elem_center = np.mean(model.mesh.points[elems], axis=1)

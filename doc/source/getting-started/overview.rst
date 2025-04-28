@@ -61,7 +61,7 @@ General descriptions follow for these and other models:
       LS-DYNA supports other cell models and user-defined models. For more information, see the ``*EM_EP`` collection of keywords in the `LS-DYNA manuals <https://lsdyna.ansys.com/manuals/>`_.
 
 - **Stimulation**
-   Tissue stimulation is set by default on the SA node in a four-chamber model and in the left and right apex in case of a left ventricle or biventricular model. However, you can define your own stimulation origin and profile. For more information, see :ref:`stimulation_definition_example`.
+   Tissue stimulation is set by default on the SA node in a four-chamber model and in the left and right apex in case of a left ventricle or biventricular model. However, you can define your own stimulation origin and profile.
 
 
 Mechanics

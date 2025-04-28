@@ -17,12 +17,14 @@ You create different simulators based on the application and physics of interest
 Here is a simple code example:
 
 Load a heart model.
+
 .. code-block:: python
 
     import ansys.health.heart.models as models
     model = models.HeartModel.load_model("path_to_model.vtu", "path_to_info.partinfo.json")
 
 Set up the LS-DYNA settings.
+
 .. code-block:: python
 
     from ansys.health.heart.simulator.simulator import DynaSettings, MechanicsSimulator
@@ -34,6 +36,7 @@ Set up the LS-DYNA settings.
     )
 
 Instantiate the simulator.
+
 .. code-block:: python
 
     simulator = EPSimulator(

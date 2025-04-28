@@ -24,7 +24,7 @@
 
 Create a full-heart model
 -------------------------
-This example shows how to process a case from `Rodero et al.`_ (2021) into
+This example shows how to process a case from Rodero et al. (2021) into
 a simulation-ready heart model.
 """
 

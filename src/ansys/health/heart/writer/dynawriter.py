@@ -602,14 +602,14 @@ class BaseDynaWriter:
 
         return
 
-    def export(self, export_directory: str, user_k: list[str] = []):
+    def export(self, export_directory: str, user_k: list[str] | None = None):
         """Write the model to files.
 
         Parameters
         ----------
         export_directory : str
             Export directory.
-        user_k : list[str], default: []
+        user_k : list[str], default: None
             User-provided K files.
         """
         tstart = time.time()
@@ -618,15 +618,16 @@ class BaseDynaWriter:
         if not os.path.isdir(export_directory):
             os.makedirs(export_directory)
 
-        for k_file in user_k:
-            if not os.path.isfile(k_file):
-                error_msg = f"File {k_file} is not found."
-                LOGGER.error(error_msg)
-                raise FileNotFoundError(error_msg)
-            else:
-                name = os.path.basename(k_file)
-                shutil.copy(k_file, os.path.join(export_directory, name))
-                self.include_to_main(name)
+        if user_k is not None:
+            for k_file in user_k:
+                if not os.path.isfile(k_file):
+                    error_msg = f"File {k_file} is not found."
+                    LOGGER.error(error_msg)
+                    raise FileNotFoundError(error_msg)
+                else:
+                    name = os.path.basename(k_file)
+                    shutil.copy(k_file, os.path.join(export_directory, name))
+                    self.include_to_main(name)
 
         # export .k files
         self.export_databases(export_directory)

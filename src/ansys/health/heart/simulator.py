@@ -416,14 +416,14 @@ class EPSimulator(BaseSimulator):
 
         return
 
-    def simulate(self, folder_name="main-ep", extra_k_files: list[str] = []):
+    def simulate(self, folder_name="main-ep", extra_k_files: list[str] | None = None):
         """Launch the EP simulation.
 
         Parameters
         ----------
         folder_name : str, default: ``'main-ep'``
             Simulation folder name.
-        extra_k_files : list[str], default: []
+        extra_k_files : list[str], default: None
             User-defined k files.
         """
         directory = os.path.join(self.root_directory, folder_name)
@@ -518,7 +518,7 @@ class EPSimulator(BaseSimulator):
             LOGGER.info("Computation is only implemented for four-chamber heart models.")
         return cs
 
-    def _write_main_simulation_files(self, folder_name, extra_k_files: list[str] = []):
+    def _write_main_simulation_files(self, folder_name, extra_k_files: list[str] | None = None):
         """Write LS-DYNA files that are used to start the main EP simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
 
@@ -575,7 +575,7 @@ class MechanicsSimulator(BaseSimulator):
         folder_name: str = "main-mechanics",
         zerop_folder: str | None = None,
         auto_post: bool = True,
-        extra_k_files: list[str] = [],
+        extra_k_files: list[str] | None = None,
     ):
         """Launch the main mechanical simulation.
 
@@ -588,7 +588,7 @@ class MechanicsSimulator(BaseSimulator):
             If ``None``, ``zeropressure`` under the root directory is used.
         auto_post : bool, default: True
             Whether to run postprocessing scripts.
-        extra_k_files : list[str], default: []
+        extra_k_files : list[str], default: None
             User-defined k files.
         """
         if "apico-basal" not in self.model.mesh.point_data.keys():
@@ -652,7 +652,7 @@ class MechanicsSimulator(BaseSimulator):
         self,
         folder_name="zeropressure",
         overwrite: bool = True,
-        extra_k_files: list[str] = [],
+        extra_k_files: list[str] | None = None,
     ):
         """Compute the stress-free configuration of the model.
 
@@ -662,7 +662,7 @@ class MechanicsSimulator(BaseSimulator):
             Simulation folder name.
         overwrite : bool, default: True
             Whether to run simulation and overwrite files.
-        extra_k_files : list[str], default: []
+        extra_k_files : list[str], default: None
             User-defined k files.
         """
         directory = os.path.join(self.root_directory, folder_name)
@@ -698,7 +698,7 @@ class MechanicsSimulator(BaseSimulator):
     def _write_main_simulation_files(
         self,
         folder_name,
-        extra_k_files: list[str] = [],
+        extra_k_files: list[str] | None = None,
     ):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
@@ -712,7 +712,9 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
-    def _write_stress_free_configuration_files(self, folder_name, extra_k_files: list[str] = []):
+    def _write_stress_free_configuration_files(
+        self, folder_name, extra_k_files: list[str] | None = None
+    ):
         """Write LS-DYNA files to compute the stress-free configuration."""
         export_directory = os.path.join(self.root_directory, folder_name)
 
@@ -746,7 +748,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         folder_name: str = "ep_meca",
         zerop_folder: str | None = None,
         auto_post: bool = True,
-        extra_k_files: list[str] = [],
+        extra_k_files: list[str] | None = None,
     ):
         """Launch the main electro-mechanical simulation.
 
@@ -759,7 +761,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
             Use ``'zeropressure'`` under the root_directory if ``None`` is used.
         auto_post : bool, default: True
             Whether to run postprocessing scripts.
-        extra_k_files : list[str], default: []
+        extra_k_files : list[str], default: None
             User-defined k files.
         """
         # MechanicalSimulator handle dynain file from zerop
@@ -776,7 +778,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
     def _write_main_simulation_files(
         self,
         folder_name,
-        extra_k_files: list[str] = [],
+        extra_k_files: list[str] | None = None,
     ):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)

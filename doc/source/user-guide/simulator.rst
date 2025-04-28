@@ -16,43 +16,55 @@ You create different simulators based on the application and physics of interest
 
 Here is a simple code example:
 
->>> # Load a heart model
->>> import ansys.health.heart.models as models
->>> model = models.HeartModel.load_model("path_to_model.vtu", "path_to_info.partinfo.json")
+Load a heart model.
+.. code-block:: python
 
->>> # Set up the LS-DYNA settings
->>> from ansys.health.heart.simulator.simulator import DynaSettings, MechanicsSimulator
->>> dyna_settings = DynaSettings(
-    lsdyna_path="path-to-lsdyna-exe.exe",
-    dynatype="intelmpi",
-    platform="windows",
-    num_cpus=8)
+    import ansys.health.heart.models as models
+    model = models.HeartModel.load_model("path_to_model.vtu", "path_to_info.partinfo.json")
 
->>> # Instantiate the simulator
->>> simulator = EPSimulator(
-    model=model,
-    dyna_settings=dyna_settings,
-    simulation_directory="output-path")
+Set up the LS-DYNA settings.
+.. code-block:: python
+
+    from ansys.health.heart.simulator.simulator import DynaSettings, MechanicsSimulator
+    dyna_settings = DynaSettings(
+        lsdyna_path="path-to-lsdyna-exe.exe",
+        dynatype="intelmpi",
+        platform="windows",
+        num_cpus=8
+    )
+
+Instantiate the simulator.
+.. code-block:: python
+
+    simulator = EPSimulator(
+        model=model,
+        dyna_settings=dyna_settings,
+        simulation_directory="output-path"
+    )
 
 The :attr:`settings <ansys.health.heart.settings.defaults>` module saves default modeling parameters. You can load these parameters into the simulator:
 
-.. code:: pycon
+.. code-block:: python
 
-   >>> simulator.settings.load_defaults()
-   >>> # Print settings
-   >>> print(simulator.settings.mechanics.analysis.end_time)
-   800 millisecond
-   >>> # Change it to 1600 ms
-   >>> simulator.settings.mechanics.analysis.end_time = Quantity(1600, "ms")
-   >>> # Save to a YAML file
-   >>> simulator.settings.save("a-yaml-file.yml")
+    simulator.settings.load_defaults()
+    # Print settings
+    print(simulator.settings.mechanics.analysis.end_time)
+    # Output: 800 millisecond
+    # Change it to 1600 ms
+    simulator.settings.mechanics.analysis.end_time = Quantity(1600, "ms")
+    # Save to a YAML file
+    simulator.settings.save("a-yaml-file.yml")
 
 Alternatively, you can load settings from a YAML file:
 
->>> simulator.settings.load("a-yaml-file.yml")
+.. code-block:: python
+
+    simulator.settings.load("a-yaml-file.yml")
 
 Finally, run the relevant steps before running the final simulation of the physics of interest:
 
->>> simulator.compute_fibers()
->>> simulator.compute_purkinje()
->>> simulator.simulate()
+.. code-block:: python
+
+    simulator.compute_fibers()
+    simulator.compute_purkinje()
+    simulator.simulate()

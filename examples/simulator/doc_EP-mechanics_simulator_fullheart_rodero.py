@@ -68,7 +68,7 @@ model.load_model_from_mesh(path_to_model, path_to_partinfo)
 # Instantiate DYNA settings.
 lsdyna_path = r"your_dyna_exe"  # tested with DEV-111820
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path, dynatype="intelmpi", platform="wsl", num_cpus=6
+    lsdyna_path=lsdyna_path, dynatype="intelmpi", platform="wsl", num_cpus=4
 )
 
 # Instantiate the simulator.
@@ -134,7 +134,6 @@ simulator.model.save_model(os.path.join(workdir, "heart_fib_beam.vtu"))
 #    No circulation system is coupled with the atria.
 
 # Start main simulation.
-simulator.dyna_settings.num_cpus = 10
 simulator.simulate()
 
 ###############################################################################

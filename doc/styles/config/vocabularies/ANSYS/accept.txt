@@ -48,3 +48,9 @@ namespace
 subpackages
 venv
 transmembrane
+mpiexec
+mpirun
+numpy
+pyvista
+pre
+intelmpi

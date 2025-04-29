@@ -104,13 +104,14 @@ ra = simulator.compute_right_atrial_fiber(appendage_apex)
 ###############################################################################
 # Plot left atrial bundles
 # ~~~~~~~~~~~~~~~~~~~~~~~~
+la.cell_data["bundle"] = la.cell_data["bundle"].astype(np.int32)
 la.set_active_scalars("bundle")
 la.plot()
 
 ###############################################################################
 # Plot right atrial bundles
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
-
+ra.cell_data["bundle"] = ra.cell_data["bundle"].astype(np.int32)
 ra.set_active_scalars("bundle")
 ra.plot()
 
@@ -122,7 +123,7 @@ ra.plot()
 # plot left atrial fibers
 plotter = pv.Plotter()
 mesh = la.ctp()
-streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=50000)
+streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=5000)
 tubes = streamlines.tube()
 plotter.add_mesh(mesh, opacity=0.5, color="white")
 plotter.add_mesh(tubes, color="red")
@@ -135,7 +136,7 @@ plotter.show()
 # plot right atrial fibers
 plotter = pv.Plotter()
 mesh = ra.ctp()
-streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=50000)
+streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=5000)
 tubes = streamlines.tube()
 plotter.add_mesh(mesh, opacity=0.5, color="white")
 plotter.add_mesh(tubes, color="red")

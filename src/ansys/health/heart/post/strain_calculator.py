@@ -153,7 +153,7 @@ class AhaStrainCalculator:
     def compute_aha_strain(
         self, out_dir: str = None, write_vtk: bool = False, t_to_keep: float = 10e10
     ) -> np.ndarray:
-        """Compute AHA 17 segment strain values from deformation gradient.
+        """Compute AHA 17 segment strain values from the deformation gradient.
 
         Parameters
         ----------
@@ -319,7 +319,7 @@ class AhaStrainCalculator:
 
         Notes
         -----
-        This function creates the 17 segment model for the left ventricle according
+        This function creates the 17-segment model for the left ventricle according
         to the American Heart Association (AHA) [1]_
 
         It is based on `Left ventricle bullseye <https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html>`_

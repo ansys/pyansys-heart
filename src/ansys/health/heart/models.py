@@ -282,12 +282,12 @@ class HeartModel:
 
     @property
     def conduction_paths(self):
-        """Return the list of conduction path."""
+        """List of conduction paths."""
         return self._conduction_paths
 
     @property
     def conduction_mesh(self):
-        """Return the conduction mesh."""
+        """Conduction mesh."""
         return self._conduction_mesh
 
     def assign_conduction_paths(self, paths: ConductionPath | list[ConductionPath]):
@@ -296,11 +296,11 @@ class HeartModel:
         Parameters
         ----------
         beams : ConductionBeams | list[ConductionBeams]
-            list of conduction beams.
+            List of conduction beams.
 
         Notes
         -----
-        If conduction paths are already defined, they will be removed.
+        If conduction paths are already defined, they are removed.
         """
         if isinstance(paths, ConductionPath):
             paths = [paths]
@@ -390,7 +390,7 @@ class HeartModel:
         Returns
         -------
         Union[None, Part]
-           Part if successful
+           Part if successful.
         """
         if len(eids) == 0:
             LOGGER.error(f"Failed to create {name}. Element list is empty.")
@@ -483,13 +483,13 @@ class HeartModel:
         -----
         When the input surfaces are non-manifold, the wrapper tries
         to reconstruct the surface and parts. Inevitably this leads to
-        reconstruction errors. Nevertheless, in many instances this approach is
+        reconstruction errors. Nevertheless, in many instances, this approach is
         more robust than meshing from a manifold surface. Moreover, any clear interface
         between parts is potentially lost.
 
-        When the ``mesh_size_per_part`` is incomplete, remaining part sizes default to the
-        global mesh size. This is an experimental setting. Any wrap sizes given
-        as input arguments are ignored when the wrapper is not used.
+        When the ``mesh_size_per_part`` attribute is incomplete, remaining part sizes
+        default to the global mesh size. This is an experimental setting. Any wrap
+        sizes given as input arguments are ignored when the wrapper is not used.
         """
         if not path_to_fluent_mesh:
             path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")
@@ -683,9 +683,12 @@ class HeartModel:
         Examples
         --------
         Import modules and load model.
+
         >>> import ansys.health.heart.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
-        Plot the model
+
+        Plot the model.
+
         >>> model.plot(show_edges=True)
         """
         try:

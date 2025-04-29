@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Post process script related to Laplace solving (UHC, fibers)."""
+"""Postprocessing script related to Laplace solving (UHC, fibers)."""
 
 import os
 
@@ -165,7 +165,7 @@ def compute_la_fiber_cs(
     settings : AtrialFiber
         Atrial fiber settings.
     endo_surface : pv.PolyData, default: None
-        _description_. If given, normal direction is updated by the surface
+        ``_description_``. If given, normal direction is updated by the surface
         normal instead of the Laplace solution.
 
     Notes
@@ -244,7 +244,7 @@ def compute_ra_fiber_cs(
     settings : AtrialFiber
         Atrial fiber settings.
     endo_surface : pv.PolyData, default: None
-        _description_. If given, normal direction is updated by the surface normal
+        ``_description_``. If given, normal direction is updated by the surface normal
         instead of the Laplace solution.
 
     Notes
@@ -428,7 +428,7 @@ def compute_rotation_angle(
     w : np.ndarray
         Intral ventricular interpolation weight.
     rotation : list[float, float]
-        Rotation angles in degree at endocardium and epicardium.
+        Rotation angles in degrees at endocardium and epicardium.
     outflow_tracts : list[float, float], default: None
         Rotation angle of enendocardium do and epicardium on outflow tract.
 
@@ -481,7 +481,7 @@ def compute_ventricle_fiber_by_drbm(
     Returns
     -------
     pv.UnstructuredGrid
-        Grid contains ``fiber``, ``cross-fiber``, and ``sheet`` vectors.
+        Grid containing ``fiber``, ``cross-fiber``, and ``sheet`` vectors.
     """
     solutions = ["trans", "ab_l", "ot_l", "w_l"]
     if not left_only:

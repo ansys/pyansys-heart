@@ -73,14 +73,14 @@ Descriptions follow for each documentation section:
   and how to interact with them programmatically.
 
 - `Examples`_: Shows how to use the Preprocessor, Postprocessor, and Simulator
-- modules to preprocess, consume, and analyze heart models.
+  modules to preprocess, consume, and analyze heart models.
 
 - `Contribute`_: Provides guidelines and instructions on how to contribute
   based on your role in the project.
 
 - `Release notes`_: Provides a summary of notable changes for each version of
-PyAnsys Heart. It helps you keep track of updates, bug fixes, new features, and
-improvements made to the project over time.
+  PyAnsys Heart. It helps you keep track of updates, bug fixes, new features, and
+  improvements made to the project over time.
 
 On the 'PyAnsys Heart Issues <https://github.com/ansys/pyansys-heart/issues>`_ page,
 ou can create issues to report bugs and request new features. On the

@@ -89,7 +89,7 @@ print(part_definitions)
 ###############################################################################
 # Load the input surface
 # ~~~~~~~~~~~~~~~~~~~~~~~
-# Set the working directory
+# Set the working directory.
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "LeftVentricle"
 model: models.LeftVentricle = models.LeftVentricle(working_directory=workdir)
 

@@ -73,8 +73,8 @@ from ansys.health.heart.simulator import DynaSettings, MechanicsSimulator
 # for instance by: os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 ###############################################################################
-# Get the model input surface and part definitions.
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Get the model input surface and part definitions
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 path_to_surface, path_to_part_definitions = get_input_leftventricle()
 
 # Left ventricle is enclosed by 4 surfaces

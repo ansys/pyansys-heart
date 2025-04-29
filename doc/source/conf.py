@@ -150,7 +150,11 @@ sphinx_gallery_conf = {
     # path to your examples scripts
     "examples_dirs": "../../examples",
     # order the subsections in the gallery
-    "subsection_order": ["../../examples/preprocessor", "../../examples/simulator"],
+    "subsection_order": [
+        "../../examples/preprocessor",
+        "../../examples/simulator",
+        "../../examples/postprocessor",
+    ],
     # path where to save gallery generated examples
     "gallery_dirs": "examples",
     # Pattern to search for example files to execute.

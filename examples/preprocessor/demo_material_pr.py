@@ -168,6 +168,8 @@ workdir = str(Path.home() / "pyansys-heart" / "Rodero2021")
 heartmodel: models.FullHeart = models.FullHeart(working_directory=workdir)
 heartmodel.load_model_from_mesh(heart_model_vtu, heart_model_partinfo)
 
+heartmodel.mesh.plot(show_edges=False, color="white")
+
 # Print the default material. You should see that the material is empty.
 print(heartmodel.left_ventricle.meca_material)
 print(heartmodel.left_ventricle.ep_material)

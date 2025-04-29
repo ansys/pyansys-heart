@@ -133,9 +133,11 @@ print(f"Run long examples: {nightly_docs}")
 if nightly_docs:
     # executes all examples, including the time-intensive ones.
     gallery_filename_pattern = r".*\.py"
+    warn_on_example_fail = True
 else:
     # only executes examples with suffix _pr.py
     gallery_filename_pattern = r".*(_pr\.py)"
+    warn_on_example_fail = False
 
 sphinx_gallery_conf = {
     # convert rst to md for ipynb
@@ -160,6 +162,8 @@ sphinx_gallery_conf = {
     "ignore_pattern": r"__init__\.py",
     "thumbnail_size": (320, 240),
     "remove_config_comments": True,
+    # Do not fail doc build on example errors
+    "only_warn_on_example_error": warn_on_example_fail,
 }
 
 # Configuration for Sphinx autoapi

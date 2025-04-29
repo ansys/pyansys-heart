@@ -223,7 +223,7 @@ def active_curve(
         calcium_array = np.append(calcium_array, 0.0)
 
     elif curve_type == "TrueCalcium":
-        file_path = resource_path("ansys.heart.writer", "calcium_from_EP.txt").__enter__()
+        file_path = resource_path("ansys.health.heart.writer", "calcium_from_EP.txt").__enter__()
         a = np.loadtxt(file_path)
         time_array = a[:, 0] / 1000
         calcium_array = a[:, 1]

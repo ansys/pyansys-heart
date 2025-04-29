@@ -3791,8 +3791,8 @@ class LaplaceWriter(BaseDynaWriter):
         self._update_atrial_caps_nodeset(atrium)
 
         # endo/epi
-        endo_nodes = self.model.left_atrium.endocardium.global_node_ids_triangles
-        epi_nodes = self.model.left_atrium.epicardium.global_node_ids_triangles
+        endo_nodes = self._get_update_global_ids(self.model.left_atrium.endocardium.name)
+        epi_nodes = self._get_update_global_ids(self.model.left_atrium.epicardium.name)
         epi_nodes = np.setdiff1d(epi_nodes, endo_nodes)
 
         self._add_nodeset(endo_nodes, "endocardium", nodeset_id=100)
@@ -3813,8 +3813,8 @@ class LaplaceWriter(BaseDynaWriter):
         self._update_atrial_caps_nodeset(atrium)
 
         # endo/epi
-        endo_nodes = self.model.right_atrium.endocardium.global_node_ids_triangles
-        epi_nodes = self.model.right_atrium.epicardium.global_node_ids_triangles
+        endo_nodes = self._get_update_global_ids(self.model.right_atrium.endocardium.name)
+        epi_nodes = self._get_update_global_ids(self.model.right_atrium.epicardium.name)
         epi_nodes = np.setdiff1d(epi_nodes, endo_nodes)
 
         self._add_nodeset(endo_nodes, "endocardium", nodeset_id=100)
@@ -3879,15 +3879,21 @@ class LaplaceWriter(BaseDynaWriter):
         include_files = self._get_decknames_of_include()
         self.include_to_main(include_files)
 
+    def _get_update_global_ids(self, name: str):
+        """Get the update global ids of a surface from its name."""
+        # Note: This is tempo fix to make sure node IDs are correctly traced.
+        surface1 = self.model.mesh.get_surface_by_name(name)
+        return surface1.global_node_ids_triangles
+
     def _update_uvc_bc(self):
         # transmural uvc
-        endo_nodes = self.model.left_ventricle.endocardium.global_node_ids_triangles
-        epi_nodes = self.model.left_ventricle.epicardium.global_node_ids_triangles
+        endo_nodes = self._get_update_global_ids(self.model.left_ventricle.endocardium.name)
+        epi_nodes = self._get_update_global_ids(self.model.left_ventricle.epicardium.name)
 
         if not isinstance(self.model, LeftVentricle):
-            rv_endo = self.model.right_ventricle.endocardium.global_node_ids_triangles
-            septum_endo = self._get_rv_septum_endo_surface().global_node_ids_triangles
-            rv_epi = self.model.right_ventricle.epicardium.global_node_ids_triangles
+            rv_endo = self._get_update_global_ids(self.model.right_ventricle.endocardium.name)
+            septum_endo = self._get_update_global_ids(self._get_rv_septum_endo_surface().name)
+            rv_epi = self._get_update_global_ids(self.model.right_ventricle.epicardium.name)
 
             # septum endocardium is merged into epicardium set, this is
             # consistent with transmural values of LeftVentricle model
@@ -4058,10 +4064,10 @@ class LaplaceWriter(BaseDynaWriter):
             rings_nodes = np.hstack((mv_nodes, av_nodes, pv_nodes, tv_nodes))
 
         # LV endo
-        lv_endo_nodes = self.model.left_ventricle.endocardium.global_node_ids_triangles
+        lv_endo_nodes = self._get_update_global_ids(self.model.left_ventricle.endocardium.name)
         lv_endo_nodes = clean_node_set(lv_endo_nodes, rings_nodes)
         # LV epi
-        epi_nodes = self.model.left_ventricle.epicardium.global_node_ids_triangles
+        epi_nodes = self._get_update_global_ids(self.model.left_ventricle.epicardium.name)
         epi_nodes = clean_node_set(epi_nodes, np.hstack((lv_endo_nodes, rings_nodes)))
         # LV apex
         la_node = self.model.get_apex_node_set(part="left")
@@ -4071,8 +4077,8 @@ class LaplaceWriter(BaseDynaWriter):
             septum_endo = self._get_rv_septum_endo_surface()
             rv_endo_nodes = np.hstack(
                 (
-                    self.model.right_ventricle.endocardium.global_node_ids_triangles,
-                    septum_endo.global_node_ids_triangles,
+                    self._get_update_global_ids(self.model.right_ventricle.endocardium.name),
+                    self._get_update_global_ids(septum_endo.name),
                 )
             )
             rv_endo_nodes = clean_node_set(rv_endo_nodes, rings_nodes)
@@ -4081,7 +4087,7 @@ class LaplaceWriter(BaseDynaWriter):
             epi_nodes = np.hstack(
                 (
                     epi_nodes,
-                    self.model.right_ventricle.epicardium.global_node_ids_triangles,
+                    self._get_update_global_ids(self.model.right_ventricle.epicardium.name),
                 )
             )
             epi_nodes = clean_node_set(epi_nodes, np.hstack((rv_endo_nodes, rings_nodes)))
@@ -4150,6 +4156,7 @@ class LaplaceWriter(BaseDynaWriter):
 
         for part in self.model.parts:
             for cap in part.caps:
+                cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
                 if cap.type == CapType.MITRAL_VALVE:
                     mv_nodes = cap.global_node_ids_edge
                 if cap.type == CapType.AORTIC_VALVE:

@@ -63,7 +63,6 @@ General descriptions follow for these and other models:
 - **Stimulation**
    Tissue stimulation is set by default on the SA node in a four-chamber model and in the left and right apex in case of a left ventricle or biventricular model. However, you can define your own stimulation origin and profile.
 
-
 Mechanics
 ---------
 

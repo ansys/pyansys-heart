@@ -25,11 +25,14 @@
 Options for simulation:
 
 - EP-only
-    with/without fibers.
-    with/without Purkinje.
+
+  - With/without fibers
+  - With/without Purkinje
+
 - Electro-mechanics
-    simplified EP (imposed activation).
-    coupled electro-mechanics.
+
+  - Simplified EP (imposed activation)
+  - Coupled electro-mechanics
 """
 
 import copy
@@ -88,7 +91,7 @@ class BaseSimulator:
 
         """
         self.model: HeartModel = model
-        """HeartModel to simulate."""
+        """Heart model to simulate."""
         if not dyna_settings:
             LOGGER.warning("Setting default LS-DYNA settings.")
             self.dyna_settings = DynaSettings()
@@ -127,7 +130,7 @@ class BaseSimulator:
         Parameters
         ----------
         method : Literal["LSDYNA", "D-RBM"], default: "LSDYNA"
-            Method to compute the fiber orientation.
+            Method for computing the fiber orientation.
         rotation_angles : dict, default: None
             Rotation angle alpha and beta.
         """
@@ -247,15 +250,16 @@ class BaseSimulator:
         top : list[list[float]], default: None
             List of nodal coordinates to define the top path.
 
-        The top path is a set of nodes connecting the superior (SVC) and inferior (IVC) vena cava.
-        For more information, see the "Notes" section.
-        The default method (``top=None``) might not work for some anatomical structures.
-        In such cases, you can define the start and end points by providing a list of coordinates
-        like this: ``[[x1, y1, z1], [x2, y2, z2]]``. These two nodes should be located on the
-        SVC and IVC rings, approximately at the 12 o'clock position.
+            The top path is a set of nodes connecting the superior (SVC) and inferior (IVC)
+            vena cava. For more information, see the "Notes" section.
 
-        You can also add an intermediate point to enforce the geodesic path, like this:
-        ``[[x1, y1, z1], [x3, y3, z3], [x2, y2, z2]]``.
+            The default method (``top=None``) might not work for some anatomical structures.
+            In such cases, you can define the start and end points by providing a list of
+            coordinates like this: ``[[x1, y1, z1], [x2, y2, z2]]``. These two nodes should
+            be located on the SVC and IVC rings, approximately at the 12 o'clock position.
+
+            You can also add an intermediate point to enforce the geodesic path, like this:
+            ``[[x1, y1, z1], [x3, y3, z3], [x2, y2, z2]]``.
 
         Returns
         -------
@@ -265,7 +269,7 @@ class BaseSimulator:
         Notes
         -----
         The method is described in `Modeling cardiac muscle fibers in ventricular and atrial
-        electrophysiology simulations <https://doi.org/10.1016/j.cma.2020.113468>`.
+        electrophysiology simulations <https://doi.org/10.1016/j.cma.2020.113468>`_
         """
         LOGGER.info("Computing right atrium fiber...")
         export_directory = os.path.join(self.root_directory, "ra_fiber")
@@ -348,7 +352,7 @@ class BaseSimulator:
         Parameters
         ----------
         export_directory: str
-            LSDYNA directory
+            LS-DYNA directory
         type: str
             Simulation type.
         kwargs : dict
@@ -356,6 +360,7 @@ class BaseSimulator:
 
         Returns
         -------
+        UnstructuredGrid
             UnstructuredGrid with array to map data back to the full mesh.
 
         """
@@ -580,7 +585,7 @@ class MechanicsSimulator(BaseSimulator):
             Simulation folder name.
         zerop_folder : str | None, default: None
             Folder containing stress-free simulation.
-            If ``None``, ``zeropressure`` under the root directory is used.
+            If ``None``, the ``zeropressure`` folder under the root directory is used.
         auto_post : bool, default: True
             Whether to run postprocessing scripts.
         extra_k_files : list[str], default: None
@@ -752,8 +757,8 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         folder_name : str, default: ``'main-mechanics'``
             Simulation folder name.
         zerop_folder : str | None, default: None
-            Folder containing the stress-free simulation.
-            Use ``'zeropressure'`` under the root_directory if ``None`` is used.
+            Folder containing stress-free simulation.
+            If ``None``, the ``zeropressure`` folder under the root directory is used.
         auto_post : bool, default: True
             Whether to run postprocessing scripts.
         extra_k_files : list[str], default: None

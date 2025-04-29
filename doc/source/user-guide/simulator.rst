@@ -71,3 +71,5 @@ Finally, run the relevant steps before running the final simulation of the physi
     simulator.compute_fibers()
     simulator.compute_purkinje()
     simulator.simulate()
+
+For comprehensive examples, see :ref:`examples_simulator`.

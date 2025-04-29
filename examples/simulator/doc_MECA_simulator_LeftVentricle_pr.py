@@ -77,7 +77,7 @@ from ansys.health.heart.simulator import DynaSettings, MechanicsSimulator
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 path_to_surface, path_to_part_definitions = get_input_leftventricle()
 
-# Left ventricle is enclosed by 4 surfaces
+# Left ventricle is enclosed by four surfaces.
 surface = pv.read(path_to_surface)
 surface.plot()
 

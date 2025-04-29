@@ -78,6 +78,7 @@ ellips_epi.cell_data["surface-id"] = 2
 
 # combine into single polydata object
 heart: pv.PolyData = ellips_endo + ellips_epi + base
+heart.cell_data["surface-id"] = heart.cell_data["surface-id"].astype(np.int32)
 heart.plot(show_edges=True)
 
 ###############################################################################

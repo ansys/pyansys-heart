@@ -53,60 +53,52 @@ on how to install PyAnsys Heart in your system.
 Documentation
 =============
 
-- `Getting started`_. This section provides a brief overview and instructions on
-  how to get started with the project. It typically includes information on how
-  to install the project, set up any necessary dependencies, and run a basic
-  example or test to ensure everything is functioning correctly.
+Documentation for the latest stable release of PyAnsys Heart is hosted at
+`PyAnsys Heart documentation`_.
 
-- `User guide`_. The user guide section offers detailed documentation and
-  instructions on how to use the project. It provides comprehensive explanations
-  of the project's features, functionalities, and configuration options. The
-  user guide aims to help users understand the project's concepts, best
-  practices, and recommended workflows.
+In the upper right corner of the documentation's title bar, there is an option
+for switching from viewing the documentation for the latest stable release
+to viewing the documentation for the development version or previously
+released versions.
 
-- `API reference`_. The API reference section provides detailed documentation
-  for the project's application programming interface (API). It includes
-  information about classes, functions, methods, and their parameters, return
-  values, and usage examples. This reference helps developers understand the
-  available API endpoints, their functionalities, and how to interact with them
-  programmatically.
+Descriptions follow for each documentation section:
 
-- `Examples`_. The examples section showcases practical code examples that
-  demonstrate how to use the project in real-world scenarios. It provides sample
-  code snippets or complete scripts that illustrate different use cases or
-  demonstrate specific features of the project. Examples serve as practical
-  references for developers, helping them understand how to apply the project to
-  their own applications.
+- `Getting started`_: Provides an overview of key techniques in cardiac modeling,
+  package prerequisites, and installation information.
 
-- `Contribute`_. This section provides guidelines and instructions on how to
-  contribute to the project. It includes information on how to set up the
-  development environment, run tests, submit pull requests, and follow
-  contribution guidelines.
+- `User guide`_: Provides an overview of the capabilities of PyAnsys Heart,
+  explaining the key concept of preprocessor, simulator, and postprocessor.
 
-License
-=======
+- `API reference`_: Describes PyAnsys Heart endpoints, their capabilities,
+  and how to interact with them programmatically.
 
-You can find the full text of the license in the `LICENSE`_ file.
+- `Examples`_: Shows how to use the Preprocessor, Postprocessor, and Simulator
+  modules to preprocess, consume, and analyze heart models.
 
-Changelog
-=========
+- `Contribute`_: Provides guidelines and instructions on how to contribute
+  based on your role in the project.
 
-The changelog section provides a summary of notable changes for each version of
-PyAnsys Heart. It helps you keep track of updates, bug fixes, new features, and
-improvements made to the project over time.
+- `Release notes`_: Provides a summary of notable changes for each version of
+  PyAnsys Heart. It helps you keep track of updates, bug fixes, new features, and
+  improvements made to the project over time.
 
-To view the complete changelog, please visit the project repository and
-navigate to the `CHANGELOG`_ file. It provides a comprehensive list of changes
-categorized by version, along with brief descriptions of each change.
+On the 'PyAnsys Heart Issues <https://github.com/ansys/pyansys-heart/issues>`_ page,
+ou can create issues to report bugs and request new features. On the
+`PyAnsys Heart Discussions <https://github.com/ansys/pyansys-heart/discussions>`_ page
+or the `Discussions <https://discuss.ansys.com/>`_` page on the Ansys Developer
+portal, you can post questions, share ideas, and get community feedback.
+To reach the project support team, email `pyansys.core@ansys.com <mailto:pyansys.core@ansys.com>`_.
 
 
 .. Documentation links
 .. _prerequisites: https://heart.health.docs.pyansys.com/version/stable/getting-started/prerequisites.html
-.. _installation guidelines: https://heart.docs.pyansys.com/version/stable/getting-started/installation.html
-.. _getting started: https://heart.docs.pyansys.com/version/stable/getting-started/index.html
-.. _user guide: https://heart.docs.pyansys.com/version/stable/user-guide/index.html
-.. _API reference: https://heart.docs.pyansys.com/version/stable/api/index.html
-.. _examples: https://heart.docs.pyansys.com/version/stable/examples/index.html
-.. _contribute: https://heart.docs.pyansys.com/version/stable/contributing/index.html
+.. _installation guidelines: https://heart.health.docs.pyansys.com/version/stable/getting-started/installation.html
+.. _getting started: https://heart.health.docs.pyansys.com/version/stable/getting-started/index.html
+.. _user guide: https://heart.health.docs.pyansys.com/version/stable/user-guide/index.html
+.. _API reference: https://heart.health.docs.pyansys.com/version/stable/api/index.html
+.. _examples: https://heart.health.docs.pyansys.com/version/stable/examples/index.html
+.. _contribute: https://heart.health.docs.pyansys.com/version/stable/contributing/index.html
 .. _LICENSE: https://github.com/ansys/pyansys-heart/blob/main/LICENSE
-.. _CHANGELOG: https://heart.health.docs.pyansys.com/version/stable/changelog.html
+.. _release_notes: https://heart.health.docs.pyansys.com/version/stable/changelog.html
+.. _PyAnsys Heart documentation: https://heart.health.docs.pyansys.com/version/stable/
+.. _Release notes: https://heart.health.docs.pyansys.com/version/stable/changelog.html

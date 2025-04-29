@@ -33,11 +33,6 @@ This example shows how to generate atrial fibers using the Laplace-Dirichlet Rul
 # Import the required modules and set relevant paths, including that of the working
 # directory, model, and LS-DYNA executable file. This example uses DEV-104373-g6d20c20aee.
 
-# sphinx_gallery_start_ignore
-# Note that we need to put the thumbnail here to avoid weird rendering on the HTML page.
-# sphinx_gallery_thumbnail_path = '_static/images/thumbnails/atrial_fiber.png'
-# sphinx_gallery_end_ignore
-
 import os
 from pathlib import Path
 
@@ -107,43 +102,47 @@ ra = simulator.compute_right_atrial_fiber(appendage_apex)
 #    The list specifies the x, y, and z coordinates close to the appendage.
 
 ###############################################################################
-# Plot bundle selection results
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Plot left atrial bundles
+# ~~~~~~~~~~~~~~~~~~~~~~~~
+la.cell_data["bundle"] = la.cell_data["bundle"].astype(np.int32)
 la.set_active_scalars("bundle")
 la.plot()
 
+###############################################################################
+# Plot right atrial bundles
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+ra.cell_data["bundle"] = ra.cell_data["bundle"].astype(np.int32)
 ra.set_active_scalars("bundle")
 ra.plot()
 
 
-#############
-# Plot fibers
-# ~~~~~~~~~~~
+#########################
+# Plot left atrial fibers
+# ~~~~~~~~~~~~~~~~~~~~~~~
 
 # plot left atrial fibers
 plotter = pv.Plotter()
 mesh = la.ctp()
-streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=50000)
+streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=5000)
 tubes = streamlines.tube()
 plotter.add_mesh(mesh, opacity=0.5, color="white")
 plotter.add_mesh(tubes, color="red")
 plotter.show()
 
+##########################
+# Plot right atrial fibers
+# ~~~~~~~~~~~~~~~~~~~~~~~~
+
 # plot right atrial fibers
 plotter = pv.Plotter()
 mesh = ra.ctp()
-streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=50000)
+streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=5000)
 tubes = streamlines.tube()
 plotter.add_mesh(mesh, opacity=0.5, color="white")
 plotter.add_mesh(tubes, color="red")
 plotter.show()
 
 ###############################################################################
-# Atrial fibers are automatically assigned to heart model after computation.
-plotter = pv.Plotter()
-mesh = model.mesh.ctp()
-streamlines = mesh.streamlines(vectors="fiber", source_radius=100, n_points=50000)
-tubes = streamlines.tube()
-plotter.add_mesh(mesh, opacity=0.5, color="white")
-plotter.add_mesh(tubes, color="red")
-plotter.show()
+# Plot full fibers on full heart model
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+fiber_plot = model.plot_fibers(n_seed_points=5000)

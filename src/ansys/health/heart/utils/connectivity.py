@@ -162,7 +162,7 @@ def get_free_edges(
     Returns
     -------
     free_edges : np.ndarray
-        Numpy array with the free edges.
+        NumPy array with the free edges.
     free_triangles: np.ndarray, optional
         Numpy array with the triangles that use these free edges
     """
@@ -196,10 +196,12 @@ def edge_connectivity(
     edges : np.array
         NumEdges x 2 NumPy arrays with edge definitions.
     return_type : bool, default: False
-        Whether to return the type of the edge group. If ``True``, the function
+        Whether to return the edge group type. If ``True``, the function
         returns a list of strings with these types:
-        - "open": Edge group is open-ended.
-        - "closed": Edge group forms a closed edge loop.
+
+        - ``open``: Edge group is open-ended.
+        - ``closed``: Edge group forms a closed edge loop.
+
     sort_closed : bool, default: False
         Whether to sort closed edge loops.
 
@@ -213,13 +215,8 @@ def edge_connectivity(
     Notes
     -----
     This method uses an implementation of a depth-first search. For more information,
-    see:
-
-    - `Depth-first search <https://en.wikipedia.org/wiki/Depth-first_search>`_
-      on the Wikipedia site.
-    - `How to implement depth-first search in Python
-      <https://www.educative.io/answers/how-to-implement-depth-first-search-in-python>`_
-      on the HowDev Answers site.
+    seeDepth-first search <https://en.wikipedia.org/wiki/Depth-first_search>`_ on
+    the Wikipedia site.
 
     Performance of this method is not tested. It might not be suitable for large arrays of edges.
     """

@@ -54,12 +54,6 @@ questions, and sharing their work with the community.
 
         Share your work with the community.
 
-    .. grid-item-card:: :fa:`book` View documentation
-        :padding: 2 2 2 2
-        :link: view-documentation
-        :link-type: ref
-
-        View project documentation.
 
 .. _report-bugs:
 
@@ -166,7 +160,7 @@ Install the latest version
 
    .. code-block:: python
 
-       from ansys.heart import __version__
+       from ansys.health.heart import __version__
 
 
        print(f"PyAnsys Heart version is {__version__}.")
@@ -206,15 +200,3 @@ If you have used PyAnsys Heart to create something interesting, share it with th
 of the community. You can share your work on the `PyAnsys Heart discussions`_ page. Include
 a brief description of your work and any relevant links that others might find
 useful.
-
-.. _view-documentation:
-
-View documentation
-==================
-Documentation for the latest stable release of PyAnsys Heart is hosted at
-`PyAnsys Heart documentation`_.
-
-In the upper right corner of the documentation's title bar, there is an option
-for switching from viewing the documentation for the latest stable release
-to viewing the documentation for the development version or previously
-released versions.

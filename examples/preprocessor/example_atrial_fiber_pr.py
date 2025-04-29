@@ -104,13 +104,14 @@ ra = simulator.compute_right_atrial_fiber(appendage_apex)
 ###############################################################################
 # Plot left atrial bundles
 # ~~~~~~~~~~~~~~~~~~~~~~~~
+la.cell_data["bundle"] = la.cell_data["bundle"].astype(np.int32)
 la.set_active_scalars("bundle")
 la.plot()
 
 ###############################################################################
 # Plot right atrial bundles
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
-
+ra.cell_data["bundle"] = ra.cell_data["bundle"].astype(np.int32)
 ra.set_active_scalars("bundle")
 ra.plot()
 

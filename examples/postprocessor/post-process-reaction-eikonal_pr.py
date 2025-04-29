@@ -72,7 +72,7 @@ if not data_path.is_file():
 post = EPpostprocessor(data_path)
 
 ###############################################################################
-# Call methods to retrieve results
+# Call methods to activation times
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # get activation time of the full field at the last time step.

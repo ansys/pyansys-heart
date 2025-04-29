@@ -272,7 +272,7 @@ class ConductionPath:
         model : HeartModel
             HeartModel object.
         merge_apex : bool, default: True
-            If False, do not merge apex node with the solid mesh.
+            Whether to merge the apex node with the solid mesh.
 
         Returns
         -------

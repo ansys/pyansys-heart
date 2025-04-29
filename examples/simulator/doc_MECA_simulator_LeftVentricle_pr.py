@@ -24,19 +24,23 @@
 
 Run a left ventricle mechanical simulation
 ------------------------------------------
-This example shows:
-    - how to generate a left-ventricle model from labeled surface
-    - set it up for the mechanical simulation including:
-        - fiber generation
-        - material assignment
-        - boundary conditions tuning
-        - compute stress-free configuration
-        - run the simulation for one heartbeat
-    - post-process the results
-        - plot the stress-free configuration v.s. end-diastole configuration
-        - plot Klotz curve
-        - animate the simulation results
-        - plot PV loop
+This example shows how to perform the following actions:
+    
+- Generate a left-ventricle model from a labeled surface.
+- Set up the model for mechanical simulation:
+
+  - Generate fibers.
+  - Assign material.
+  - Tune boundary conditions.
+  - Compute stress-free configuration.
+  -  Run the simulation for one heartbeat.
+
+- Postprocess the results:
+
+  - Plot the stress-free configuration versus the end-diastole configuration.
+  - Plot the Klotz curve.
+  - Animate the simulation results.
+  - Plot the PV loop.
 """
 
 ###############################################################################

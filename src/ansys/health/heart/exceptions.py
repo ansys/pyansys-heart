@@ -26,9 +26,9 @@
 class LSDYNATerminationError(BaseException):
     """Exception raised when ``Normal Termination`` is not found in the LS-DYNA logs."""
 
-    def __init__(self, message: str | list):
+    def __init__(self, message: str | list = ""):
         if isinstance(message, list):
-            message = "\n".join(message)
+            message = "".join(message)
         super().__init__(f"The LS-DYNA process did not terminate as expected: {message}")
 
 

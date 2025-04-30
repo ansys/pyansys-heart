@@ -35,3 +35,11 @@ def get_preprocessed_fullheart() -> tuple[Path, Path, Path]:
         str(data_path / "rodero_01_fullheart.partinfo.json"),
         str(data_path / "rodero_01_fullheart.namemap.json"),
     )
+
+
+def get_input_leftventricle() -> tuple[Path, Path]:
+    """Get the input of a left ventricle based on Rodero et al 01."""
+    return (
+        str(data_path / "rodero_01_leftventricle_surface.vtp"),
+        str(data_path / "rodero_01_leftventricle_part_definition.json"),
+    )

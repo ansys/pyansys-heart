@@ -34,7 +34,7 @@ Stim nodes
 $#     sid       da1       da2       da3       da4    solver       its    unused
         25       0.0       0.0       0.0       0.0MECH                          
 $#   nodes     nodes     nodes     nodes     nodes     nodes
-     49710     49784     48103     48311     48330     69169
+     49710     49784     48103     48311     48330     69167
 *EM_EP_TENTUSSCHER_STIMULUS
 $#  stimid   settype     setid
         25         2        25

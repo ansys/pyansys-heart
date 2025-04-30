@@ -165,7 +165,7 @@ simulator.model.left_ventricle.meca_material = myocardium
 ###############################################################################
 # .. note::
 #    Input geometry is assumed to be at the end-of-diastole with a
-#    pressure is set to 15 mmHg, you can modify it in the settings.
+#    pressure set to 15 mmHg. You can modify it in the settings.
 
 simulator.compute_stress_free_configuration()
 

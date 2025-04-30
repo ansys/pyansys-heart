@@ -832,10 +832,12 @@ def run_lsdyna(
     if _KILL_ANSYSCL_PRIOR_TO_RUN:
         _kill_all_ansyscl()
 
+    LOGGER.info(f"Starting LS-DYNA with {commands}...")
+
     mess = []
     with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:
-            LOGGER.info(line.rstrip())
+            LOGGER.debug(line.rstrip())
             mess.append(line)
 
     os.chdir(simulation_directory)
@@ -844,5 +846,7 @@ def run_lsdyna(
         if "numNodePurkinje" not in "".join(mess):
             LOGGER.error("LS-DYNA did not terminate properly.")
             raise LSDYNATerminationError()
+
+    LOGGER.info("LS-DYNA simulation successful...")
 
     return

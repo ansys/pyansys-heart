@@ -184,8 +184,8 @@ plotter.add_legend()
 plotter.show()
 
 ###############################################################################
-# the main simulation
-# ~~~~~~~~~~~~~~~~~~~
+# Run the main simulation
+# ~~~~~~~~~~~~~~~~~~~~~~~
 ###############################################################################
 # .. note::
 #    By defaylt, the simulation is coupled to the circulation system model which has

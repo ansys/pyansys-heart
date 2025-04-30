@@ -3880,7 +3880,7 @@ class LaplaceWriter(BaseDynaWriter):
         self.include_to_main(include_files)
 
     def _get_update_global_ids(self, name: str):
-        """Get the update global ids of a surface from its name."""
+        """Get the update global IDs of a surface from its name."""
         # Note: This is tempo fix to make sure node IDs are correctly traced.
         surface1 = self.model.mesh.get_surface_by_name(name)
         return surface1.global_node_ids_triangles

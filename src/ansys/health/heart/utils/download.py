@@ -314,7 +314,8 @@ def download_all_cases(download_dir: str = None) -> list[str]:
     >>> from ansys.health.heart.utils.download import download_all_cases
     >>> tar_files = download_all_cases("my-downloads")
 
-    To unpack all cases you can use the unpack_cases method:
+    To unpack all cases, you can use the ``unpack_cases()`` method:
+
     >>> from ansys.health.heart.utils.download import unpack_cases
     >>> unpack_cases(tar_files)
 

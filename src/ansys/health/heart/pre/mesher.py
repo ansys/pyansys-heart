@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module contains methods for interaction with Fluent meshing."""
+"""Module containing methods for interaction with Fluent meshing."""
 
 import glob
 import os
@@ -774,7 +774,7 @@ def mesh_from_non_manifold_input_model(
     _global_wrap_size : float, default: 1.5
         Global size used by the wrapper to reconstruct the geometry.
     overwrite_existing_mesh : bool, default: True
-        FWhether to overwrite an existing mesh.
+        Whether to overwrite an existing mesh.
     mesh_size_per_part : dict, default: None
         Dictionary specifying the mesh size that should be used for each part.
     _wrap_size_per_part : dict, default: None
@@ -782,11 +782,11 @@ def mesh_from_non_manifold_input_model(
 
     Notes
     -----
-    This method Uses Fluent wrapping technology to wrap the individual parts, first
-    to create manifold parts. Consequently, wrap the entire model and use the manifold
+    This method uses Fluent wrapping technology to wrap the individual parts. First it
+    creates manifold parts. Then, it consequently wraps the entire model and uses the manifold
     parts to split the wrapped model into the different cell zones.
 
-    When specifying a mesh size per part, you can do that by either specifying that for all
+    When specifying a mesh size per part, you can do that by either specifying the size for all
     parts or for specific parts. The default mesh size is used for any part not listed
     in the dictionary. This also applies to the wrapping step. You can control the wrap size
     per part or on a global level. By default, a size of 1.5 mm is used, but this value is not

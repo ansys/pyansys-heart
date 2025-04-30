@@ -137,7 +137,7 @@ print(f"Run long examples: {nightly_docs}")
 
 if nightly_docs:
     # executes all examples, including the time-intensive ones.
-    gallery_filename_pattern = r".*(\.py)(?<!_ignore\.py))"
+    gallery_filename_pattern = r".*(\.py)(?<!_ignore\.py)"
     warn_on_example_fail = True
 else:
     # only executes examples with suffix _pr.py

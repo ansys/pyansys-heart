@@ -218,8 +218,8 @@ plt.ylabel("Pressure (mmHg)")
 plt.title("Pressure-volume loop")
 plt.show()
 
-# Plot the displacement field
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Plot displacement field
+# ~~~~~~~~~~~~~~~~~~~~~~~
 mesh_folder = os.path.join(workdir, "simulation-MECA", "main-mechanics", "post", "vtks")
 mesh_files = sorted(glob.glob(f"{mesh_folder}/*.vtu"))
 mesh_list = []

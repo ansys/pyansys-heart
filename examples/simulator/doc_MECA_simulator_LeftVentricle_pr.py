@@ -200,8 +200,8 @@ simulator.simulate()
 
 
 ###############################################################################
-# Post processing
-# ~~~~~~~~~~~~~~~
+# Postprocessing
+# ~~~~~~~~~~~~~~
 # TODO: remove before merge
 workdir = r"C:\Users\wye\pyansys-heart\downloads\Rodero2021\01\LeftVentricle"
 

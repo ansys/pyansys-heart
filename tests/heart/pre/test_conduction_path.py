@@ -74,6 +74,23 @@ def test_compute_his_end_node():
     assert np.allclose(right.xyz, np.array([2.93215687, 106.09459183, 365.20590901]))
     assert right.node_id == 43585
 
+def test_compute_bachman_bundle_start_node():
+    fourchamber = get_fourchamber()
+
+    ba_start = HeartModelUtils.define_bachman_bundle_end_node(fourchamber)
+
+    assert np.allclose(ba_start.xyz, np.array([-31.71610039, 167.37631585, 411.98900423]))
+    assert ba_start.node_id == 93843
+
+def test_compute_bachman_bundle_end_node():
+    fourchamber = get_fourchamber()
+    sa_node = HeartModelUtils.define_sino_atrial_node(fourchamber)
+    ba_end = HeartModelUtils.define_bachman_bundle_start_node(fourchamber)
+
+    assert np.allclose(ba_end.xyz, np.array([-48.38608303, 109.46168253, 424.58923502]))
+    assert ba_end.node_id == 108609
+
+
 
 def test_create_conductionbeams_on_surface():
     """Test conductionbeams can be initialized correctly on a surface."""

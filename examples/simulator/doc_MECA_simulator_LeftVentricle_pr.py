@@ -205,7 +205,7 @@ simulator.simulate()
 # TODO: remove before merge
 workdir = r"C:\Users\wye\pyansys-heart\downloads\Rodero2021\01\LeftVentricle"
 
-# Plot Pressure volume loop
+# Plot pressure-volume loop
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # read LS-DYNA binout file

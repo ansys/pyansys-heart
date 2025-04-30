@@ -192,7 +192,7 @@ plotter.show()
 #    a constant preload and a Winkessel-type afterload.
 #    The simulation is set to run for one heartbeat by default.
 
-# Tune the boundary conditions (springs at valves regions) which is supposed for this model.
+# Tune the boundary conditions (springs at valves regions), which is supposed for this model.
 simulator.settings.mechanics.boundary_conditions.valve["stiffness"] = Quantity(0.02, "MPa/mm")
 
 # Start the mechanical simulation.

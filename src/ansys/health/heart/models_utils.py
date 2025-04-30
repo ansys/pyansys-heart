@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Hold Stateless methods for HeartModel."""
+"""Stateless methods for the heart model."""
 
 from dataclasses import dataclass
 import os
@@ -53,7 +53,7 @@ class LandMarks:
 
 
 class HeartModelUtils:
-    """Stateless methods for HeartModel."""
+    """Stateless methods for the heart model."""
 
     @staticmethod
     def define_sino_atrial_node(
@@ -66,7 +66,7 @@ class HeartModelUtils:
         model : models.FullHeart | models.FourChamber
             Heart model.
         target_coord : np.ndarray | list, default: None
-            If None, the target coordinate is computed as the midpoint between
+            If ``None``, the target coordinate is computed as the midpoint between
             the centroids of the superior and inferior vena cavae. If a coordinate is provided,
             the closest point on the right atrium endocardium surface to that coordinate is used.
 
@@ -118,7 +118,7 @@ class HeartModelUtils:
         model : models.FullHeart | models.FourChamber
             Heart model.
         target_coord : np.ndarray | list, default: None
-            If None, the target coordinate is computed as the closest point on the right atrium
+            If ``None``, the target coordinate is computed as the closest point on the right atrium
             endocardium surface to the right ventricle septum. If a coordinate is provided, the
             closest point on the right atrium endocardium surface to that coordinate is used.
 
@@ -165,7 +165,7 @@ class HeartModelUtils:
         model : models.FourChamber | models.FullHeart
             Heart model.
         target_coord : np.ndarray | list, default: None
-            If None, the target coordinate is computed as the closest point in the septum to
+            If ``None``, the target coordinate is computed as the closest point in the septum to
             the AV node. If a coordinate is provided, the closest point in the septum to that
             coordinate is used.
 
@@ -218,8 +218,8 @@ class HeartModelUtils:
         model : models.FullHeart | models.FourChamber
             Heart model.
         target_coord : np.ndarray | list, default: None
-            If None, the target coordinate is computed as the n-th closest point on the endocardium
-            to the His bundle bifurcation node.
+            If ``None``, the target coordinate is computed as the n-th closest point
+            on the endocardium to the His bundle bifurcation node.
             Not implemented yet if a coordinate is provided.
         side : Literal[&quot;left&quot;, &quot;right&quot;], default: "left"
             Side of the heart to define the end node for.
@@ -229,7 +229,7 @@ class HeartModelUtils:
         Returns
         -------
         LandMarks | None
-            End Node of His left or right bundle.
+            End node of His left or right bundle.
         """
         if side == "left":
             endo = model.mesh.get_surface(model.left_ventricle.endocardium.id)
@@ -287,12 +287,12 @@ class HeartModelUtils:
         model : models.FullHeart | models.FourChamber
             Heart model.
         purkinje_folder : str
-            Folder of LS-DYNA's purkinje generation.
+            Folder with LS-DYNA's Purkinje generation.
 
         Returns
         -------
         list[ConductionPath]
-            List of Conduction path.
+            List of conduction paths.
         """
         left_purkinje = ConductionPath.create_from_k_file(
             ConductionPathType.LEFT_PURKINJE,

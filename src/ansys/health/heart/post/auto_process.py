@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Script used to post process simulations automatically."""
+"""Script used to postprocess simulations automatically."""
 
 import copy
 import glob

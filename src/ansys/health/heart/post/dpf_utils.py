@@ -180,7 +180,7 @@ class D3plotReader:
         Parameters
         ----------
         time : float
-            Time at which to get the displacement field.
+            Time to get the displacement field at.
 
         Returns
         -------
@@ -208,7 +208,7 @@ class D3plotReader:
         hv_index: List[int]
             History variables index.
         at_step: int, default: 0
-            Step at which to get the history variables.
+            Step to get the history variables at.
 
         Returns
         -------
@@ -217,7 +217,7 @@ class D3plotReader:
 
         Notes
         -----
-        d3plot.get_history_variable(hv_index=list(range(9)), at_frame=at_frame). To
+        ``d3plot.get_history_variable(hv_index=list(range(9)), at_frame=at_frame)``. To
         get the deformation gradient (column-wise storage), see MAT_295 in the LS-DYNA manuals.
 
         """
@@ -384,7 +384,7 @@ class ICVoutReader:
 
 
 class EPpostprocessor:
-    """Postprocess EP (Electrophysiology) results."""
+    """Postprocess EP (plectrophysiology) results."""
 
     def __init__(self, results_path: Path, model: HeartModel = None):
         """Postprocess EP results.
@@ -580,7 +580,7 @@ class EPpostprocessor:
         times: np.ndarray,
         plot: bool = True,
     ) -> np.ndarray:
-        """Compute 12-Lead ECGs from 10 electrodes.
+        """Compute 12-lead ECGs from 10 electrodes.
 
         Parameters
         ----------
@@ -712,7 +712,7 @@ class D3plotToVTKExporter:
         time : float
             Time to convert.
         fname : str, default: None
-            Name of file to be save data to.
+            Name of file to save data to.
 
         Returns
         -------

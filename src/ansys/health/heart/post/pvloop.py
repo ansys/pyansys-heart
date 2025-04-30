@@ -34,7 +34,7 @@ CV_NAME = ["LV", "RV", "LA", "RA"]
 
 
 def write_pvloop_pngs(pressure: np.ndarray, volume: np.ndarray, save_to: str) -> None:
-    """Write PV loop figures to PNG file.
+    """Write PV loop figures to a PNG file.
 
     Parameters
     ----------

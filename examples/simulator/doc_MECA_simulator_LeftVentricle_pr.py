@@ -25,7 +25,7 @@
 Run a left ventricle mechanical simulation
 ------------------------------------------
 This example shows how to perform the following actions:
-    
+
 - Generate a left-ventricle model from a labeled surface.
 - Set up the model for mechanical simulation:
 
@@ -114,8 +114,7 @@ model.plot_mesh()
 # Instantiate the simulator and define settings.
 
 # Specify the LS-DYNA path. (The last tested working version is ``intelmpi-linux-DEV-106117``.)
-# TODO: remove before merge
-lsdyna_path = r"D:\wsl\lsdyna_mpp\ls-dyna_mpp_d_R16"
+lsdyna_path = r"ls-dyna_mpp"
 
 # Instantiate DYNA settings.
 dyna_settings = DynaSettings(
@@ -202,8 +201,6 @@ simulator.simulate()
 ###############################################################################
 # Postprocessing
 # ~~~~~~~~~~~~~~
-# TODO: remove before merge
-workdir = r"C:\Users\wye\pyansys-heart\downloads\Rodero2021\01\LeftVentricle"
 
 # Plot pressure-volume loop
 # ~~~~~~~~~~~~~~~~~~~~~~~~~

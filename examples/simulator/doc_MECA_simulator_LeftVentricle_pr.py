@@ -190,7 +190,7 @@ plotter.show()
 # .. note::
 #    By defaylt, the simulation is coupled to the circulation system model which has
 #    constant-preload and winkessel-type afterload
-#    The simulation is set to run for 1 heartbeat by default.
+#    The simulation is set to run for one heartbeat by default.
 
 # Tune the boundary conditions (springs at valves regions) which is supposed for this model.
 simulator.settings.mechanics.boundary_conditions.valve["stiffness"] = Quantity(0.02, "MPa/mm")

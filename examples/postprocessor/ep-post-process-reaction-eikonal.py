@@ -62,7 +62,7 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
 
 # Specify the path to the d3plot that contains the simulation results.
-data_path = workdir / "simulation-EP" / "main-ep-Eikonal" / "d3plot"
+data_path = workdir / "simulation-EP" / "main-ep-ReactionEikonal" / "d3plot"
 
 # Check if the file exists.
 if not data_path.is_file():

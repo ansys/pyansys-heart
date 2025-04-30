@@ -845,7 +845,7 @@ def run_lsdyna(
     if "N o r m a l    t e r m i n a t i o n" not in "".join(mess):
         if "numNodePurkinje" not in "".join(mess):
             LOGGER.error("LS-DYNA did not terminate properly.")
-            raise LSDYNATerminationError()
+            raise LSDYNATerminationError(mess)
 
     LOGGER.info("LS-DYNA simulation successful...")
 

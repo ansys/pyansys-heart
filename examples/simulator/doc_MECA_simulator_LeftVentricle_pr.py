@@ -188,8 +188,8 @@ plotter.show()
 # ~~~~~~~~~~~~~~~~~~~~~~~
 ###############################################################################
 # .. note::
-#    By defaylt, the simulation is coupled to the circulation system model which has
-#    constant-preload and winkessel-type afterload
+#    By default, the simulation is coupled to the circulation system model, which has
+#    a constant preload and a Winkessel-type afterload.
 #    The simulation is set to run for one heartbeat by default.
 
 # Tune the boundary conditions (springs at valves regions) which is supposed for this model.

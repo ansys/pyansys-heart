@@ -5,7 +5,7 @@ pushd %~dp0
 REM Command file for Sphinx documentation
 
 if "%SPHINXBUILD%" == "" (
-	set SPHINXOPTS=-j auto --color
+	set SPHINXOPTS=-j auto
 	set SPHINXBUILD=sphinx-build
 )
 set SOURCEDIR=source

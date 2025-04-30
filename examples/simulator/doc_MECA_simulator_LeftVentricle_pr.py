@@ -100,7 +100,7 @@ model.load_input(surface, part_definitions, scalar="surface-id")
 model.mesh_volume(use_wrapper=True, global_mesh_size=4.0, _global_wrap_size=4.0)
 ###############################################################################
 # .. note::
-#    Mesh is over coarsed for demonstration purpose. In practice, the mesh size should be smaller.
+#    Mesh is overly coarse for demonstration purpose. In practice, the mesh size should be smaller.
 
 # Update the model.
 model._update_parts()

@@ -92,7 +92,9 @@ print(json.dumps(part_definitions, indent=4))
 # Load the input surface and mesh the model.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Set the working directory.
-workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "LeftVentricle"
+workdir = (
+    Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "LeftVentricle-simulation"
+)
 
 # Initialize a left ventricle model.
 model: models.LeftVentricle = models.LeftVentricle(working_directory=workdir)

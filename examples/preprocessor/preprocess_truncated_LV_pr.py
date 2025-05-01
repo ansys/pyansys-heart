@@ -43,7 +43,6 @@ import ansys.health.heart.models as models
 
 # Use Fluent 2024 R1 for meshing.
 import ansys.health.heart.pre.mesher as mesher
-from ansys.health.heart.utils.misc import clean_directory
 
 mesher._fluent_version = "24.1"
 
@@ -98,20 +97,17 @@ part_definitions = {
 
 # Use the combined polydata `heart` as input, where "surface-id" identifies each
 # of the relevant regions.
-# part definitions is used to map the remeshed model to the HeartModel parts/boundaries
+# part definitions is used to map the meshed model to the HeartModel parts/boundaries
 
 # Initialize left-ventricular heart model.
 model = models.LeftVentricle(working_directory=workdir)
-
-# Clean working directory.
-clean_directory(workdir, [".stl", ".msh.h5", ".pickle"])
 
 # Load input model.
 model.load_input(heart, part_definitions, "surface-id")
 
 ###############################################################################
-# Remesh the surfaces and volume
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Mesh the surfaces and volume
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # .. note::
 #
@@ -119,7 +115,7 @@ model.load_input(heart, part_definitions, "surface-id")
 #    unconnected. Using the wrapper automatically fixes any small gaps
 #    and ensures proper connectivity.
 
-# remesh the model using wrapping
+# Mesh the model using wrapping
 model.mesh_volume(use_wrapper=True, global_mesh_size=0.5)
 
 # assign axis of model manually.

@@ -121,7 +121,10 @@ jobs:
           PYFLUENT_UI_MODE: no_gui # default hidden_gui fails on self-hosted runner
           NIGHTLY_DOC_BUILD: 1
         run: |
-          tox -e doc-links,doc-html,doc-pdf
+          tox -e doc-html,doc-links,doc-pdf
+          # Check if the examples folder exists and list its contents
+          $examples_folder = "doc\_build\html\_images\examples"
+          if (Test-Path $examples_folder){ Dir -Recurse $examples_folder | Get-Childitem} else {Write-Host "WARNING: Expecting an examples folder in $examples_folder. Interactive plots will not work..."}
 
       - name: Upload HTML documentation artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

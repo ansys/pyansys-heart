@@ -142,7 +142,7 @@ if nightly_docs:
 
 else:
     # only executes examples with suffix _pr.py
-    gallery_filename_pattern = r".*(material_pr\.py)"
+    gallery_filename_pattern = r".*(_pr\.py)"
     warn_on_example_fail = False
 
 

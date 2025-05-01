@@ -28,26 +28,24 @@ This example shows how to postprocess a full heart reaction eikonal model.
 """
 
 ###############################################################################
-# Perform the required imports
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Import the required modules and set relevant paths.
-
-import os
-from pathlib import Path
-
-from ansys.health.heart.post.dpf_utils import EPpostprocessor
-
-###############################################################################
-# .. note::
+# .. warning::
 #    When using a standalone version of the DPF Server you will need to accept the license terms
 #    https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html. The license terms
-#    in the license agreement an be accepted by setting the environment variable:
+#    in the license agreement can be accepted by setting the environment variable:
 #
 #    .. code-block:: python
 #
 #        import os
 #        os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
-os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
+###############################################################################
+# Perform the required imports
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Import the required modules and set relevant paths.
+
+from pathlib import Path
+
+from ansys.health.heart.post.dpf_utils import EPpostprocessor
 
 ###############################################################################
 # Create a postprocessor object

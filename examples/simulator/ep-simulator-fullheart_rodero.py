@@ -31,6 +31,17 @@ then simulates the electrophysiology.
 """
 
 ###############################################################################
+# .. warning::
+#    When using a standalone version of the DPF Server you will need to accept the license terms
+#    https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html. The license terms
+#    in the license agreement can be accepted by setting the environment variable:
+#
+#    .. code-block:: python
+#
+#        import os
+#        os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
+###############################################################################
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
@@ -42,11 +53,6 @@ from pathlib import Path
 from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
-
-# Accept the DPF license agreement.
-# https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
-# by setting the environment variable ``ANSYS_DPF_ACCEPT_LA`` to ``Y``.
-# for instance by: os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # Set the working directory and path to the model. This example assumes that there is a
 

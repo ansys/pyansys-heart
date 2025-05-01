@@ -44,6 +44,17 @@ This example shows you how to perform the following actions:
 """
 
 ###############################################################################
+# .. warning::
+#    When using a standalone version of the DPF Server you will need to accept the license terms
+#    https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html. The license terms
+#    in the license agreement can be accepted by setting the environment variable:
+#
+#    .. code-block:: python
+#
+#        import os
+#        os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
+###############################################################################
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
@@ -66,11 +77,6 @@ from ansys.health.heart.post.auto_process import zerop_post
 from ansys.health.heart.post.dpf_utils import ICVoutReader
 from ansys.health.heart.settings.material.material import ACTIVE, ANISO, ISO, Mat295
 from ansys.health.heart.simulator import DynaSettings, MechanicsSimulator
-
-# Accept the DPF license agreement.
-# https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
-# by setting the environment variable ``ANSYS_DPF_ACCEPT_LA`` to ``Y``.
-# for instance by: os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 ###############################################################################
 # Get the model input surface and part definitions
@@ -204,11 +210,6 @@ print(json.dumps(report, indent=4))
 ###############################################################################
 # Run the main simulation
 # ~~~~~~~~~~~~~~~~~~~~~~~
-###############################################################################
-# .. note::
-#    By default, the simulation is coupled to an open-loop circulation model with
-#    a constant preload and a Windkessel-type afterload. Moreover, the simulation
-#    is set to run for a single heartbeat by default.
 
 # Tune the boundary conditions at the valve regions: in this model there are
 # springs in radial and normal direction of the valve region which constrain the model.

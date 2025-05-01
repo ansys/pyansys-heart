@@ -28,6 +28,17 @@ This example shows how to generate atrial fibers using the Laplace-Dirichlet Rul
 """
 
 ###############################################################################
+# .. warning::
+#    When using a standalone version of the DPF Server you will need to accept the license terms
+#    https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html. The license terms
+#    in the license agreement can be accepted by setting the environment variable:
+#
+#    .. code-block:: python
+#
+#        import os
+#        os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
+###############################################################################
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working

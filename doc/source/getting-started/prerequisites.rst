@@ -43,5 +43,7 @@ Software
 
 .. note::
 
-  Ansys Fluent is required for meshing. Also note that currently the postprocessor module is only compatible with Ansys DPF Servers 2024.1 (comes with the 2024 R1 installation), 2024.1rc1, and 2024.2rc0. Later versions are currently not supported. Hence, installing Ansys Fluent 2024 R1 is currently the most convenient.
+  Fluent is required for meshing. Also note that currently the postprocessor module is only compatible with Ansys DPF Servers 2024.1 (comes with 2024 R1 installation), 2024.1rc1, and 2024.2rc0. Later versions are currently not supported. Hence installing Ansys Fluent 2024 R1 is the most convenient.
 
+  If you use a standalone version of the DPF Server, you must accept the DPF license terms <https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html>_ by setting
+  this environment variable ``ANSYS_DPF_ACCEPT_LA`` to ``Y``.

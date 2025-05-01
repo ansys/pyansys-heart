@@ -132,7 +132,8 @@ jobs:
           PYFLUENT_UI_MODE: no_gui # default hidden_gui fails on self-hosted runner
           NIGHTLY_DOC_BUILD: 0
         run: |
-          tox -e doc-links,doc-html,doc-pdf
+          tox -e doc-links,doc-html
+          Dir -Recurse doc\_build\html\_images\examples | Get-Childitem
 
       - name: Upload HTML documentation artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

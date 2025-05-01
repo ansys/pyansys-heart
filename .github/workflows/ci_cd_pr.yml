@@ -133,7 +133,7 @@ jobs:
           NIGHTLY_DOC_BUILD: 0
         run: |
           tox -e doc-links,doc-html,doc-pdf
-          Dir -Recurse doc\source\examples | Get-Childitem
+          Dir -Recurse doc\source\examples\preprocessor\images | Get-Childitem
           Dir -Recurse doc\_build\html\_images\examples | Get-Childitem
 
       - name: Upload HTML documentation artifact

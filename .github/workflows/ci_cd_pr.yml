@@ -134,7 +134,7 @@ jobs:
         run: |
           tox -e doc-links,doc-html
           Dir -Recurse doc\source\examples\preprocessor\images | Get-Childitem
-          Dir -Recurse doc\_build\html | Get-Childitem
+          Dir -Recurse doc\_build\html\_images | Get-Childitem
           Start-Sleep -Seconds 5
 
       - name: Upload HTML documentation artifact

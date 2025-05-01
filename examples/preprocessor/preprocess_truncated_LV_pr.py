@@ -43,7 +43,6 @@ import ansys.health.heart.models as models
 
 # Use Fluent 2024 R1 for meshing.
 import ansys.health.heart.pre.mesher as mesher
-from ansys.health.heart.utils.misc import clean_directory
 
 mesher._fluent_version = "24.1"
 
@@ -102,9 +101,6 @@ part_definitions = {
 
 # Initialize left-ventricular heart model.
 model = models.LeftVentricle(working_directory=workdir)
-
-# Clean working directory.
-clean_directory(workdir, [".stl", ".msh.h5", ".pickle"])
 
 # Load input model.
 model.load_input(heart, part_definitions, "surface-id")

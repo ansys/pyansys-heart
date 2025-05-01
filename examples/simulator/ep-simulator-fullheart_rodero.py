@@ -51,7 +51,7 @@ from ansys.health.heart.simulator import DynaSettings, EPSimulator
 # Set the working directory and path to the model. This example assumes that there is a
 
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
-path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart()
+path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart(resolution="2.0mm")
 
 ###############################################################################
 # Load the full-heart model

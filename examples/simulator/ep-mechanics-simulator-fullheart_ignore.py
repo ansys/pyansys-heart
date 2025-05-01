@@ -52,7 +52,7 @@ from ansys.health.heart.simulator import DynaSettings, EPMechanicsSimulator
 
 # Set the working directory and path to the model. This example assumes that there is a
 # preprocessed model named ``heart_model.vtu`` in the working directory.
-path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart()
+path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart(resolution="2.0mm")
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
 
 ###############################################################################

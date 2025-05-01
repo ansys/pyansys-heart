@@ -133,7 +133,8 @@ jobs:
           NIGHTLY_DOC_BUILD: 0
         run: |
           tox -e doc-links,doc-html
-          Dir -Recurse doc\_build\html\_images\examples | Get-Childitem
+          $examples_folder = "doc\_build\html\_images\examples"
+          if (Test-Path $examples_folder){ Dir -Recurse $examples_folder | Get-Childitem} else {Write-Host "Expecting an examples folder in _images\examples..."}
 
       - name: Upload HTML documentation artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

@@ -218,6 +218,12 @@ simulator.settings.mechanics.boundary_conditions.valve["stiffness"] = Quantity(0
 simulator.simulate()
 
 ###############################################################################
+# .. note::
+#    By default, the simulation is coupled to an open-loop circulation model with
+#    a constant preload and a Windkessel-type afterload. Moreover, the simulation
+#    is set to run for a single heartbeat by default.
+
+###############################################################################
 # Postprocessing
 # ~~~~~~~~~~~~~~
 

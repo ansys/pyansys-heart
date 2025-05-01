@@ -133,6 +133,7 @@ jobs:
           NIGHTLY_DOC_BUILD: 0
         run: |
           tox -e doc-links,doc-html
+          Get-Location
           $examples_folder = "doc\_build\html\_images\examples"
           if (Test-Path $examples_folder){ Dir -Recurse $examples_folder | Get-Childitem} else {Write-Host "WARNING: Expecting an examples folder in $examples_folder. Interactive plots will not work..."}
 

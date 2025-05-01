@@ -97,7 +97,7 @@ part_definitions = {
 
 # Use the combined polydata `heart` as input, where "surface-id" identifies each
 # of the relevant regions.
-# part definitions is used to map the remeshed model to the HeartModel parts/boundaries
+# part definitions is used to map the meshed model to the HeartModel parts/boundaries
 
 # Initialize left-ventricular heart model.
 model = models.LeftVentricle(working_directory=workdir)
@@ -106,8 +106,8 @@ model = models.LeftVentricle(working_directory=workdir)
 model.load_input(heart, part_definitions, "surface-id")
 
 ###############################################################################
-# Remesh the surfaces and volume
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Mesh the surfaces and volume
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # .. note::
 #
@@ -115,7 +115,7 @@ model.load_input(heart, part_definitions, "surface-id")
 #    unconnected. Using the wrapper automatically fixes any small gaps
 #    and ensures proper connectivity.
 
-# remesh the model using wrapping
+# Mesh the model using wrapping
 model.mesh_volume(use_wrapper=True, global_mesh_size=0.5)
 
 # assign axis of model manually.

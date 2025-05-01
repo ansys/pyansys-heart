@@ -145,7 +145,6 @@ else:
     gallery_filename_pattern = r".*(_pr\.py)"
     warn_on_example_fail = False
 
-
 sphinx_gallery_conf = {
     # convert rst to md for ipynb
     "pypandoc": True,

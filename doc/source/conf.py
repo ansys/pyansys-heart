@@ -173,6 +173,8 @@ sphinx_gallery_conf = {
     "remove_config_comments": True,
     # Do not fail doc build on example errors
     "only_warn_on_example_error": warn_on_example_fail,
+    "run_stale_examples": True,
+    "log_level": "DEBUG",
 }
 
 # Configuration for Sphinx autoapi

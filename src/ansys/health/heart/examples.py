@@ -23,17 +23,31 @@
 """Utility functions to get various examples."""
 
 from pathlib import Path
+from typing import Literal
 
 dir_path = Path(__file__).parent
 data_path = dir_path / "data_examples"
 
 
-def get_preprocessed_fullheart() -> tuple[Path, Path, Path]:
-    """Get the result of a preprocessed full heart based on Rodero et al 01."""
+def get_preprocessed_fullheart(
+    resolution: Literal["1.5mm", "2.0mm"] = "2.0mm",
+) -> tuple[Path, Path, Path]:
+    """Get a preprocessed full heart model.
+
+    Parameters
+    ----------
+    resolution : Literal[&quot;1.5mm&quot;, &quot;2.0mm&quot;], default: "2.0mm"
+        The resolution of the preprocessed full heart.
+
+    Returns
+    -------
+    tuple[Path, Path, Path]
+        Paths to the ``.vtu``, ``.partinfo.json``, and ``.namemap.json`` files.
+    """
     return (
-        str(data_path / "rodero_01_fullheart.vtu"),
-        str(data_path / "rodero_01_fullheart.partinfo.json"),
-        str(data_path / "rodero_01_fullheart.namemap.json"),
+        str(data_path / f"rodero_01_fullheart_{resolution}.vtu"),
+        str(data_path / f"rodero_01_fullheart_{resolution}.partinfo.json"),
+        str(data_path / f"rodero_01_fullheart_{resolution}.namemap.json"),
     )
 
 

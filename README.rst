@@ -82,10 +82,10 @@ Descriptions follow for each documentation section:
   PyAnsys Heart. It helps you keep track of updates, bug fixes, new features, and
   improvements made to the project over time.
 
-On the 'PyAnsys Heart Issues <https://github.com/ansys/pyansys-heart/issues>`_ page,
-ou can create issues to report bugs and request new features. On the
+On the `PyAnsys Heart Issues <https://github.com/ansys/pyansys-heart/issues>`_ page,
+you can create issues to report bugs and request new features. On the
 `PyAnsys Heart Discussions <https://github.com/ansys/pyansys-heart/discussions>`_ page
-or the `Discussions <https://discuss.ansys.com/>`_` page on the Ansys Developer
+or the `Discussions <https://discuss.ansys.com/>`_ page on the Ansys Developer
 portal, you can post questions, share ideas, and get community feedback.
 To reach the project support team, email `pyansys.core@ansys.com <mailto:pyansys.core@ansys.com>`_.
 

@@ -1,0 +1,93 @@
+{
+    "Left ventricle": {
+        "part-id": 1,
+        "part-type": "ventricle",
+        "surfaces": {
+            "Left ventricle endocardium": 394574,
+            "Left ventricle epicardium": 394573
+        },
+        "caps": {
+            "mitral-valve": 1001,
+            "aortic-valve": 1002
+        },
+        "cavity": {
+            "Left ventricle cavity": 394578
+        }
+    },
+    "Right ventricle": {
+        "part-id": 2,
+        "part-type": "ventricle",
+        "surfaces": {
+            "Right ventricle endocardium": 394565,
+            "Right ventricle epicardium": 394564,
+            "Right ventricle endocardium septum": 394572
+        },
+        "caps": {
+            "tricuspid-valve": 1003,
+            "pulmonary-valve": 1004
+        },
+        "cavity": {
+            "Right ventricle cavity": 394579
+        }
+    },
+    "Septum": {
+        "part-id": 7,
+        "part-type": "septum",
+        "surfaces": {},
+        "caps": {},
+        "cavity": {}
+    },
+    "Left atrium": {
+        "part-id": 3,
+        "part-type": "atrium",
+        "surfaces": {
+            "Left atrium endocardium": 394549,
+            "Left atrium epicardium": 394548
+        },
+        "caps": {
+            "mitral-valve-atrium": 1005,
+            "right-superior-pulmonary-vein": 1006,
+            "left-atrium-appendage": 1007,
+            "left-superior-pulmonary-vein": 1008,
+            "right-inferior-pulmonary-vein": 1009,
+            "left-inferior-pulmonary-vein": 1010
+        },
+        "cavity": {
+            "Left atrium cavity": 394580
+        }
+    },
+    "Right atrium": {
+        "part-id": 4,
+        "part-type": "atrium",
+        "surfaces": {
+            "Right atrium endocardium": 394532,
+            "Right atrium epicardium": 394531
+        },
+        "caps": {
+            "tricuspid-valve-atrium": 1011,
+            "inferior-vena-cava": 1012,
+            "superior-vena-cava": 1013
+        },
+        "cavity": {
+            "Right atrium cavity": 394581
+        }
+    },
+    "Aorta": {
+        "part-id": 5,
+        "part-type": "artery",
+        "surfaces": {
+            "Aorta wall": 394525
+        },
+        "caps": {},
+        "cavity": {}
+    },
+    "Pulmonary artery": {
+        "part-id": 6,
+        "part-type": "artery",
+        "surfaces": {
+            "Pulmonary artery wall": 394522
+        },
+        "caps": {},
+        "cavity": {}
+    }
+}

@@ -143,13 +143,13 @@ simulator.model.save_model(os.path.join(workdir, "heart_fib_beam.vtu"))
 simulator.simulate()
 
 ###############################################################################
-# View results in LS-PrePost
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~
+# You can visualize and animate results LS-PrePost
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ###############################################################################
 # .. only:: html
 #
-#     .. video:: ../../_static/images/doc_Christobal01_epmeca_fh.mp4
+#     .. video:: ../../_static/images/rodero_epmeca_fullheart.mp4
 #       :width: 600
 #       :loop:
 #       :class: center

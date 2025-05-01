@@ -45,9 +45,9 @@ This example shows you how to perform the following actions:
 
 ###############################################################################
 # .. warning::
-#    When using a standalone version of the DPF Server you will need to accept the license terms
-#    https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html. The license terms
-#    in the license agreement can be accepted by setting the environment variable:
+#    When using a standalone version of the DPF Server, you must accept the `license terms
+#    <https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html>`_. To
+#    accept these terms, you can set this environment variable:
 #
 #    .. code-block:: python
 #

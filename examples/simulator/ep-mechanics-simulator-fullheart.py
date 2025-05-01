@@ -149,7 +149,7 @@ simulator.simulate()
 ###############################################################################
 # .. only:: html
 #
-#     .. video:: ../../_static/images/rodero_epmeca_fullheart.mp4
+#     .. video:: ../../_static/images/rodero_epmechanics_fullheart.mp4
 #       :width: 600
 #       :loop:
 #       :class: center

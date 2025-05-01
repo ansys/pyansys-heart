@@ -22,10 +22,10 @@
 
 """
 
-Run a full-heart EP simulation
-------------------------------
+Run a full-heart electrophysiology simulation
+---------------------------------------------
 This example shows how to consume a full-heart model and set it up for the
-main EP (electrophysiology) simulation. It loads a pre-computed heart model
+main electrophysiology simulation. It loads a pre-computed heart model
 and computes the fiber orientation, Purkinje network, and conduction system. It
 then simulates the electrophysiology.
 """
@@ -129,7 +129,7 @@ simulator.model.plot_purkinje()
 ###############################################################################
 # Start the main simulation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
-# Start the main EP simulation. This uses the previously computed fiber orientation
+# Start the main electrophysiology simulation. This uses the previously computed fiber orientation
 # and Purkinje network to set up and run the LS-DYNA model.
 
 

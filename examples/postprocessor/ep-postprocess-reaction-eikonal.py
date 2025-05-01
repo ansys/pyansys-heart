@@ -53,8 +53,8 @@ from ansys.health.heart.post.dpf_utils import EPpostprocessor
 
 ###############################################################################
 # .. note::
-#    This example assumes that you have you ran a full heart ep simulation and that
-#    the d3plot files are located in ``data_path``.
+#    This example assumes that you have you ran a full heart electrophysiology simulation
+#    and that the d3plot files are located in ``data_path``.
 
 # Import the required modules and set relevant paths.
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"

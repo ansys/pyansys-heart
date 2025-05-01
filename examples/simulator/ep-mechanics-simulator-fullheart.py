@@ -143,8 +143,8 @@ simulator.model.save_model(os.path.join(workdir, "heart_fib_beam.vtu"))
 simulator.simulate()
 
 ###############################################################################
-# You can visualize and animate results LS-PrePost
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Visualize and animate results LS-PrePost
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ###############################################################################
 # .. only:: html

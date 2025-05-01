@@ -141,7 +141,7 @@ if nightly_docs:
     warn_on_example_fail = True
 else:
     # only executes examples with suffix _pr.py
-    gallery_filename_pattern = r".*(_pr\.py)"
+    gallery_filename_pattern = r".*(material_pr\.py)"
     warn_on_example_fail = False
 
 sphinx_gallery_conf = {
@@ -173,7 +173,7 @@ sphinx_gallery_conf = {
     "remove_config_comments": True,
     # Do not fail doc build on example errors
     "only_warn_on_example_error": warn_on_example_fail,
-    "run_stale_examples": True,
+    "run_stale_examples": False,
     "log_level": "DEBUG",
 }
 

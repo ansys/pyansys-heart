@@ -110,7 +110,7 @@ simulator.model.right_atrium.fiber = True
 simulator.model.right_atrium.active = True
 
 ###############################################################################
-# Set the simulation up for the mechanical simulations
+# Set up the simulation for the mechanical simulations
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Extract elements around atrial caps and assign as a passive material.

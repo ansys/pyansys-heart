@@ -137,12 +137,12 @@ simulator.compute_stress_free_configuration(overwrite=True)
 
 ###############################################################################
 # .. note::
-#    Computing the stress free configuration is required since the geometry is imaged
-#    at end-of-diastole. The ``compute_stress_free_configuration`` method runs a
+#    Computing the stress-free configuration is required since the geometry is imaged
+#    at end-of-diastole. The ``compute_stress_free_configuration()`` method runs a
 #    sequence of static simulations to estimate the stress-free state of the model and
 #    the initial stresses present. This step is computationally expensive and can take
 #    relatively long. You can consider reusing earlier runs by setting the ``overwrite``
-#    flag to ``False``. This will reuse the results of the previous run.
+#    flag to ``False``. This reuses the results of the previous run.
 
 ###############################################################################
 # Compute a conduction system

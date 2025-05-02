@@ -31,6 +31,17 @@ then simulates the electrophysiology.
 """
 
 ###############################################################################
+# .. warning::
+#    When using a standalone version of the DPF Server, you must accept the `license terms
+#    <https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html>`_. To
+#    accept these terms, you can set this environment variable:
+#
+#    .. code-block:: python
+#
+#        import os
+#        os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
+###############################################################################
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
@@ -43,15 +54,10 @@ from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
 
-# Accept the DPF license agreement.
-# https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
-# by setting the environment variable ``ANSYS_DPF_ACCEPT_LA`` to ``Y``.
-# for instance by: os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
-
 # Set the working directory and path to the model. This example assumes that there is a
 
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
-path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart()
+path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart(resolution="2.0mm")
 
 ###############################################################################
 # Load the full-heart model

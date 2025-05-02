@@ -104,7 +104,7 @@ model.load_input(input_geom, part_definitions, "surface-id")
 model.mesh_volume(use_wrapper=True, global_mesh_size=1.5)
 
 # Update the model and extract the required anatomical features.
-model._update_parts()
+model.update()
 
 # Optionally save the simulation mesh as a VTK object for "offline" inspection.
 model.mesh.save(os.path.join(model.workdir, "simulation-mesh.vtu"))

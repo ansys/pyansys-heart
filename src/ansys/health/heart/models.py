@@ -925,7 +925,7 @@ class HeartModel:
         return element_ids
 
     def update(self):
-        """Update the model and add relevant features.
+        """Update the model and add required features.
 
         Notes
         -----

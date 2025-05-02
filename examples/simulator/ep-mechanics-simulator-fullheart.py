@@ -176,7 +176,7 @@ simulator.model.save_model(os.path.join(workdir, "heart_fib_beam.vtu"))
 simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
 
 # Start main simulation. The ``auto_post`` option is set to ``False`` to avoid
-# automatic post-processing.
+# automatic postprocessing.
 simulator.simulate(auto_post=False)
 
 ###############################################################################

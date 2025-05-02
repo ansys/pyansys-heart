@@ -137,7 +137,7 @@ print(f"Run long examples: {nightly_docs}")
 
 if nightly_docs:
     # executes all examples, including the time-intensive ones.
-    gallery_filename_pattern = r".*\.py"
+    gallery_filename_pattern = r".*(\.py)(?<!_ignore\.py)"
     warn_on_example_fail = True
 else:
     # only executes examples with suffix _pr.py
@@ -150,7 +150,11 @@ sphinx_gallery_conf = {
     # path to your examples scripts
     "examples_dirs": "../../examples",
     # order the subsections in the gallery
-    "subsection_order": ["../../examples/preprocessor", "../../examples/simulator"],
+    "subsection_order": [
+        "../../examples/preprocessor",
+        "../../examples/simulator",
+        "../../examples/postprocessor",
+    ],
     # path where to save gallery generated examples
     "gallery_dirs": "examples",
     # Pattern to search for example files to execute.

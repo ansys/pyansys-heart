@@ -181,11 +181,10 @@ simulator.simulate(auto_post=False)
 
 ###############################################################################
 # .. note::
-#    The ``ReactionEikonal`` solver ensures activation on a coarse mesh, which
-#    for demonstration purposes is included here as an example. Caveat is that this
-#    currently only allows for a single cardiac cycle. For multiple cardiac cycles you
-#    can use the ``Monodomain`` solver. Note that the ``Monodomain`` solver usually requires
-#    a fine mesh and small time step size.
+#    The ``ReactionEikonal`` solver is suitable for coarse meshes and is
+#    included here for demonstration purposes. However, it currently supports
+#    only a single cardiac cycle. To simulate multiple cardiac cycles, use the
+#    ``Monodomain`` solver, which requires a fine mesh and small time step size.
 
 ###############################################################################
 # Visualize and animate results LS-PrePost

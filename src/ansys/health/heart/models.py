@@ -29,6 +29,7 @@ import pathlib
 import re
 from typing import List, Literal, Union
 
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 import yaml
@@ -923,21 +924,22 @@ class HeartModel:
 
         return element_ids
 
-    def _update_parts(self):
-        """Update the parts using the meshed volume.
+    def update(self):
+        """Update the model and add required features.
 
         Notes
         -----
-        1. Extracts septum.
-        2. Updates parts to include element IDs of the respective part.
-        3. Assigns surfaces to each part.
-        4. Extracts the closing caps.
-        5. Creates cavities.
-        6. Extracts apical points.
-        7. Computes left-ventricle axis.
-        8. Computes left-ventricle 17 segments.
-        9. Adds nodal areas.
-        10. Adds surface normals to boundaries.
+        - Synchronize input parts to model parts.
+        - Extract septum elements from the left ventricle.
+        - Assign elements to parts.
+        - Assign surfaces to each part.
+        - Validate parts and surfaces.
+        - Assign cavities to parts.
+        - Update cap types.
+        - Validate cap names.
+        - Extract apical points.
+        - Compute heart axis.
+        - Add placeholder data for fiber and sheet directions.
         """
         self._sync_input_parts_to_model_parts()
 
@@ -955,6 +957,18 @@ class HeartModel:
         self._extract_apex()
         self._define_anatomy_axis()
 
+        self._add_placeholder_data_fiber_sheet_directions()
+
+        self._get_parts_info()
+
+    @deprecated(reason="Use the public method `update` instead.")
+    def _update_parts(self):
+        """Update the parts using the meshed volume."""
+        self.update()
+        return
+
+    def _add_placeholder_data_fiber_sheet_directions(self) -> None:
+        """Add placeholder data for fiber and sheet directions."""
         if "fiber" not in self.mesh.array_names:
             LOGGER.debug("Adding placeholder for fiber direction.")
             fiber = np.tile([[0.0, 0.0, 1.0]], (self.mesh.n_cells, 1))
@@ -964,9 +978,6 @@ class HeartModel:
             LOGGER.debug("Adding placeholder for sheet direction.")
             sheet = np.tile([[0.0, 1.0, 1.0]], (self.mesh.n_cells, 1))
             self.mesh.cell_data["sheet"] = sheet
-
-        self._get_parts_info()
-
         return
 
     def _sync_input_parts_to_model_parts(self):

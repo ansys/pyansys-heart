@@ -164,7 +164,7 @@ def extract_model(request):
     else:
         model.mesh.load_mesh(mesh_file)
 
-    model._update_parts()
+    model.update()
 
     # Dummy apico-basal data to match pericardium output in asset
     lv_apex = model.left_ventricle.apex_points[1].xyz

@@ -24,7 +24,7 @@
 
 Run a full-heart EP mechanics simulation
 ----------------------------------------
-This example shows you how to consume a full-heart model and
+This example shows how to consume a full-heart model and
 set it up for a coupled electromechanical simulation.
 """
 ###############################################################################

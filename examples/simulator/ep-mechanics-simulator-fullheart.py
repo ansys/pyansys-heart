@@ -139,8 +139,19 @@ simulator.model.save_model(os.path.join(workdir, "heart_fib_beam.vtu"))
 #    A constant pressure is prescribed to the atria.
 #    No circulation system is coupled with the atria.
 
+# simulator.settings.electrophysiology.material.beam.cm._magnitude = 0.001
+simulator.settings.electrophysiology.analysis.solvertype="ReactionEikonal"
+
 # Start main simulation.
 simulator.simulate()
+
+###############################################################################
+# .. note::
+#    The ``ReactionEikonal`` solver ensures activation on a coarse mesh, which
+#    for demonstration purposes is included here as an example. Caveat is that this 
+#    currently only allows for a single cardiac cycle. For multiple cardiac cycles you 
+#    can use the ``Monodomain`` solver. Note that the ``Monodomain`` solver usually requires
+#    a fine mesh and small time step size. 
 
 ###############################################################################
 # Visualize and animate results LS-PrePost
@@ -153,3 +164,5 @@ simulator.simulate()
 #       :width: 600
 #       :loop:
 #       :class: center
+
+print()

@@ -929,17 +929,17 @@ class HeartModel:
 
         Notes
         -----
-        1. Synchronizes input parts to model parts.
-        2. Extracts septum elements from the left ventricle.
-        3. Assigns elements to parts.
-        4. Assigns surfaces to each part.
-        5. Validates parts and surfaces.
-        6. Assigns cavities to parts.
-        7. Updates cap types.
-        8. Validates cap names.
-        9. Extracts apical points.
-        10. Computes heart axis.
-        11. Adds placeholder data for fiber and sheet directions.
+        - Synchronize input parts to model parts.
+        - Extract septum elements from the left ventricle.
+        - Assign elements to parts.
+        - Assign surfaces to each part.
+        - Validate parts and surfaces.
+        - Assign cavities to parts.
+        - Update cap types.
+        - Validate cap names.
+        - Extract apical points.
+        - Compute heart axis.
+        - Add placeholder data for fiber and sheet directions.
         """
         self._sync_input_parts_to_model_parts()
 

@@ -1,0 +1,11 @@
+{
+ "Left ventricle": {
+  "id": 1,
+  "enclosed_by_boundaries": {
+   "left-ventricle-endocardium": 1,
+   "left-ventricle-epicardium": 2,
+   "interface_left-ventricle-myocardium_mitral-valve-plane": 3,
+   "interface_left-ventricle-myocardium_aortic-valve-plane": 4
+  }
+ }
+}

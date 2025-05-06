@@ -118,24 +118,13 @@ model.load_input(heart, part_definitions, "surface-id")
 # Mesh the model using wrapping
 model.mesh_volume(use_wrapper=True, global_mesh_size=0.5)
 
+# update the model
+model.update()
+
 # assign axis of model manually.
 model.l4cv_axis = {"center": base.center, "normal": np.array([1, 0, 0])}
 model.l2cv_axis = {"center": base.center, "normal": np.array([0, 1, 0])}
 model.short_axis = {"center": base.center, "normal": np.array([0, 0, 1])}
-
-# update the model
-model._sync_input_parts_to_model_parts()
-
-model._assign_elements_to_parts()
-model._assign_surfaces_to_parts()
-
-model._validate_parts()
-model._validate_surfaces()
-
-model._assign_cavities_to_parts()
-model._update_cap_types()
-model._validate_cap_names()
-model._extract_apex()
 
 # save to vtu file.
 path_to_model = os.path.join(workdir, "heart_model.vtu")

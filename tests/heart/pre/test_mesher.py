@@ -71,6 +71,7 @@ def test_get_fluent_meshing_session(monkeypatch):
     ]
 
     with mock.patch("ansys.health.heart.pre.mesher.pyfluent.launch_fluent") as mock_launch:
+        monkeypatch.delenv(name="PYFLUENT_LAUNCH_CONTAINER", raising=False)
         mesher._get_fluent_meshing_session(".")
         assert list(mock_launch.call_args.kwargs.keys()) == expected_keys
 

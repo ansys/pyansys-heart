@@ -25,6 +25,7 @@ import glob
 import os
 import shutil
 import tempfile
+from unittest import mock
 
 import numpy as np
 import pytest
@@ -54,6 +55,51 @@ def clean_up_temp_dirs():
             shutil.rmtree(tmp_dir)
         except Exception:
             pass
+
+
+def test_get_fluent_meshing_session(monkeypatch):
+    """Test passing input arguments to the fluent meshing session launcher."""
+
+    expected_keys = [
+        "mode",
+        "precision",
+        "processor_count",
+        "start_transcript",
+        "ui_mode",
+        "product_version",
+        "start_container",
+    ]
+
+    with mock.patch("ansys.health.heart.pre.mesher.pyfluent.launch_fluent") as mock_launch:
+        mesher._get_fluent_meshing_session(".")
+        assert list(mock_launch.call_args.kwargs.keys()) == expected_keys
+
+        # Set additional arguments
+        mock_launch.reset_mock()
+        mesher._extra_launch_kwargs = {"additional_arguments": "-ssh"}
+        mesher._get_fluent_meshing_session(".")
+        assert mock_launch.call_args.kwargs["additional_arguments"] == "-ssh"
+
+        # Set number of processors
+        monkeypatch.delenv(name="PYANSYS_HEART_NUM_CPU", raising=False)
+        mock_launch.reset_mock()
+        mesher._num_cpus = 4
+        mesher._get_fluent_meshing_session(".")
+        assert mock_launch.call_args.kwargs["processor_count"] == 4
+
+        # Set number of processors through environment variable.
+        monkeypatch.setenv(name="PYANSYS_HEART_NUM_CPU", value="100")
+        mock_launch.reset_mock()
+        mesher._get_fluent_meshing_session(".")
+        assert mock_launch.call_args.kwargs["processor_count"] == 100
+
+        # Use container.
+        mock_launch.reset_mock()
+        mesher._uses_container = True
+        mesher._get_fluent_meshing_session(".")
+        assert mock_launch.call_args.kwargs["processor_count"] == 1
+        assert mock_launch.call_args.kwargs["start_container"] is True
+        assert mock_launch.call_args.kwargs["container_dict"]
 
 
 @pytest.mark.parametrize(

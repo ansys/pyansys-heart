@@ -954,15 +954,8 @@ class HeartModel:
         self._update_cap_types()
         self._validate_cap_names()
 
-        try:
-            self._extract_apex()
-        except Exception as err:
-            LOGGER.warning(f"Failed to extract apex. Consider setting apex manually. {err}")
-
-        try:
-            self._define_anatomy_axis()
-        except Exception as err:
-            LOGGER.warning(f"Failed to extract heart axis. Consider setting manually. {err}")
+        self._extract_apex()
+        self._define_anatomy_axis()
 
         self._add_placeholder_data_fiber_sheet_directions()
 

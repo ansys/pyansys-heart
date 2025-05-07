@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 # Check https://flit.readthedocs.io/en/latest/pyproject_toml.html for all available sections
 name = "ansys-health-heart"
-version = "0.12.dev0"
+version = "0.12.0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
 requires-python = ">=3.11,<4"

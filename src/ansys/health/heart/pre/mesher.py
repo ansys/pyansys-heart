@@ -43,7 +43,11 @@ from ansys.health.heart.utils.vtk_utils import (
 )
 
 _supported_fluent_versions = ["25.1", "24.2", "24.1"]
+"""List of supported Fluent versions."""
 _num_cpus: bool = 2
+"""Number of CPUs to use for meshing."""
+_extra_launch_kwargs = {}
+"""Extra keyword arguments passed to ``pyfluent.launch_fluent()``."""
 
 # check whether containerized version of Fluent is used
 _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
@@ -262,6 +266,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
             product_version=product_version,
             start_container=_uses_container,
             container_dict=custom_config,
+            **_extra_launch_kwargs,
         )
 
     else:
@@ -274,6 +279,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
             ui_mode=_fluent_ui_mode,
             product_version=product_version,
             start_container=_uses_container,
+            **_extra_launch_kwargs,
         )
 
     return session

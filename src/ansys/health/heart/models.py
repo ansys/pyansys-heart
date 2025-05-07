@@ -45,6 +45,7 @@ from ansys.health.heart.objects import (
     PartType,
     Point,
     SurfaceMesh,
+    _convert_int64_to_int32,
 )
 from ansys.health.heart.pre.conduction_path import (
     ConductionPath,
@@ -828,6 +829,8 @@ class HeartModel:
         # try to load the mesh.
         self.mesh.load_mesh(filename_mesh)
 
+        self.mesh = _convert_int64_to_int32(self.mesh, ["_volume-id", "_surface-id", "_line-id"])
+
         # open part info
         with open(filename_part_info, "r") as f:
             self._part_info = json.load(f)
@@ -960,6 +963,10 @@ class HeartModel:
         self._add_placeholder_data_fiber_sheet_directions()
 
         self._get_parts_info()
+
+        self.mesh._change_int64_to_int32(["_volume-id", "_surface-id", "_line-id"])
+
+        return
 
     @deprecated(reason="Use the public method `update` instead.")
     def _update_parts(self):

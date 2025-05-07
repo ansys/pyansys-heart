@@ -1,8 +1,6 @@
 name: release
 on:
   push:
-    branches:
-      - 'release/*'
     tags:
       - "v*.*.*"
 
@@ -25,12 +23,12 @@ jobs:
 
   changelog-deployment:
     name: "Changelog"
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
-    runs-on: ubuntu-latest
     steps:
-      - uses: ansys/actions/doc-deploy-changelog@main
+      - uses: ansys/actions/doc-deploy-changelog@4f15ff3ab1183912ce862d51b8c66ea124b052a1 # v9.0.2
         with:
           token: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
           bot-user: ${{ secrets.PYANSYS_CI_BOT_USERNAME }}

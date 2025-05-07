@@ -964,7 +964,7 @@ class HeartModel:
 
         self._get_parts_info()
 
-        self.mesh._change_int64_to_int32(["_volume-id", "_surface-id", "_line-id"])
+        self.mesh = _convert_int64_to_int32(self.mesh, ["_volume-id", "_surface-id", "_line-id"])
 
         return
 

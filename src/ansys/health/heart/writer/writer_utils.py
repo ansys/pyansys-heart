@@ -544,7 +544,7 @@ def fast_element_writer(
 
     Notes
     -----
-    Use this method as an alternative to the dynalib writer.
+    Use this method as an alternative to the PyDyna keywords module.
 
     """
     # TODO: generalize this writer

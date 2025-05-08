@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 """
-Use dynalib to create some commonly used material cards and their default values.
+Use PyDyna keywords module to create commonly used material cards and their default values.
 
 Notes
 -----

@@ -32,7 +32,7 @@ import scipy.spatial as spatial
 from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
-from ansys.health.heart.objects import CapType
+from ansys.health.heart.objects import CapType, SurfaceMesh
 from ansys.health.heart.writer.base_writer import BaseDynaWriter
 from ansys.health.heart.writer.writer_utils import (
     create_element_solid_keyword,
@@ -42,7 +42,7 @@ from ansys.health.heart.writer.writer_utils import (
 
 
 class LaplaceWriter(BaseDynaWriter):
-    """Writer to set Laplace Dirichlet problem."""
+    """Class for preparing the input for a Laplace LS-DYNA simulation."""
 
     # constant nodeset ID for atrial valves/caps
     _CAP_NODESET_MAP = {
@@ -61,7 +61,7 @@ class LaplaceWriter(BaseDynaWriter):
 
     def __init__(
         self, model: HeartModel, type: Literal["uvc", "la_fiber", "ra_fiber", "D-RBM"], **kwargs
-    ):
+    ) -> None:
         """Write thermal input to set up a Laplace Dirichlet problem.
 
         Parameters
@@ -112,7 +112,7 @@ class LaplaceWriter(BaseDynaWriter):
 
             self.target = model.mesh.extract_cells(model.parts[0].element_ids)
 
-    def _update_ra_top_nodeset(self, atrium: pv.UnstructuredGrid):
+    def _update_ra_top_nodeset(self, atrium: pv.UnstructuredGrid) -> None:
         """
         Define right atrium top nodeset with nodeset ID 10.
 
@@ -130,7 +130,7 @@ class LaplaceWriter(BaseDynaWriter):
         kw = create_node_set_keyword(top_ids + 1, node_set_id=10, title="top")
         self.kw_database.node_sets.append(kw)
 
-    def _find_top_nodeset_by_cut(self, atrium: pv.UnstructuredGrid):
+    def _find_top_nodeset_by_cut(self, atrium: pv.UnstructuredGrid) -> np.ndarray:
         """
         Define right atrium top nodeset.
 
@@ -174,7 +174,7 @@ class LaplaceWriter(BaseDynaWriter):
         atrium.point_data.remove("point_ids_tmp")
         return top_ids
 
-    def _find_top_nodeset_by_geodesic(self, atrium: pv.UnstructuredGrid):
+    def _find_top_nodeset_by_geodesic(self, atrium: pv.UnstructuredGrid) -> np.ndarray:
         """Define top nodeset by connecting landmark points with a geodesic path."""
         top_ids = []
         surface: pv.PolyData = atrium.extract_surface()
@@ -188,7 +188,7 @@ class LaplaceWriter(BaseDynaWriter):
 
         return np.unique(np.array(top_ids))
 
-    def _define_ra_cut(self):
+    def _define_ra_cut(self) -> tuple[np.ndarray, np.ndarray]:
         """Define a cutplane using the three caps of the right atrium."""
         for cap in self.model.parts[0].caps:
             if cap.type == CapType.TRICUSPID_VALVE_ATRIUM:
@@ -202,7 +202,7 @@ class LaplaceWriter(BaseDynaWriter):
 
         return cut_center, cut_normal
 
-    def _update_ra_tricuspid_nodeset(self, atrium):
+    def _update_ra_tricuspid_nodeset(self, atrium: pv.UnstructuredGrid) -> None:
         """Define the nodeset for the tricuspid wall and septum."""
         # get tricuspid-valve name
         tv_name = CapType.TRICUSPID_VALVE_ATRIUM.value
@@ -235,7 +235,7 @@ class LaplaceWriter(BaseDynaWriter):
         kw = create_node_set_keyword(tv_w_ids_sub + 1, node_set_id=13, title="tv_wall")
         self.kw_database.node_sets.append(kw)
 
-    def _update_atrial_caps_nodeset(self, atrium: pv.UnstructuredGrid):
+    def _update_atrial_caps_nodeset(self, atrium: pv.UnstructuredGrid) -> None:
         """Define nodesets for the caps."""
         for cap in self.model.parts[0].caps:
             # get node IDs for atrium mesh
@@ -254,10 +254,10 @@ class LaplaceWriter(BaseDynaWriter):
 
         return
 
-    def _update_la_bc(self):
+    def _update_la_bc(self) -> None:
         atrium = self.target
 
-        def get_laa_nodes(atrium, laa: np.ndarray):
+        def get_laa_nodes(atrium: pv.UnstructuredGrid, laa: np.ndarray) -> np.ndarray:
             tree = spatial.cKDTree(atrium.points)
             ids = np.array(tree.query_ball_point(laa, self._LANDMARK_RADIUS))
             return ids
@@ -294,7 +294,7 @@ class LaplaceWriter(BaseDynaWriter):
         for case_id, job_name, set_ids, bc_values in cases:
             self.add_case(case_id, job_name, set_ids, bc_values)
 
-    def _update_ra_bc(self):
+    def _update_ra_bc(self) -> None:
         atrium = self.target
         # caps
         self._update_atrial_caps_nodeset(atrium)
@@ -334,7 +334,7 @@ class LaplaceWriter(BaseDynaWriter):
         for case_id, job_name, set_ids, bc_values in cases:
             self.add_case(case_id, job_name, set_ids, bc_values)
 
-    def update(self):
+    def update(self) -> None:
         """Update the keyword database."""
         # nodes
         node_kw = create_node_keyword(self.target.points)
@@ -366,13 +366,13 @@ class LaplaceWriter(BaseDynaWriter):
         include_files = self._get_decknames_of_include()
         self.include_to_main(include_files)
 
-    def _get_update_global_ids(self, name: str):
+    def _get_update_global_ids(self, name: str) -> np.ndarray:
         """Get the update global IDs of a surface from its name."""
         # Note: This is temporary fix to make sure node IDs are correctly traced.
         surface1 = self.model.mesh.get_surface_by_name(name)
         return surface1.global_node_ids_triangles
 
-    def _update_uvc_bc(self):
+    def _update_uvc_bc(self) -> None:
         # transmural uvc
         endo_nodes = self._get_update_global_ids(self.model.left_ventricle.endocardium.name)
         epi_nodes = self._get_update_global_ids(self.model.left_ventricle.epicardium.name)
@@ -427,7 +427,7 @@ class LaplaceWriter(BaseDynaWriter):
         for case_id, job_name, set_ids, bc_values in cases:
             self.add_case(case_id, job_name, set_ids, bc_values)
 
-    def _get_uvc_rotation_bc(self):
+    def _get_uvc_rotation_bc(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Select the nodeset on the long axis plane."""
         mesh = copy.deepcopy(self.target)
         mesh["cell_ids"] = np.arange(0, mesh.n_cells, dtype=int)
@@ -458,7 +458,7 @@ class LaplaceWriter(BaseDynaWriter):
 
         return set1, set2, set3
 
-    def _update_parts_materials_db(self):
+    def _update_parts_materials_db(self) -> None:
         """Loop over parts defined in the model and create keywords."""
         LOGGER.debug("Updating part keywords...")
 
@@ -495,7 +495,7 @@ class LaplaceWriter(BaseDynaWriter):
 
         return
 
-    def _update_main_db(self):
+    def _update_main_db(self) -> None:
         self.kw_database.main.append(keywords.ControlSolution(soln=1))
         self.kw_database.main.append(keywords.ControlThermalSolver(atype=0, ptype=0, solver=11))
         self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=1.0))
@@ -531,10 +531,10 @@ class LaplaceWriter(BaseDynaWriter):
         self.kw_database.node_sets.append(kw)
         return nodeset_id
 
-    def _update_drbm_bc(self):
+    def _update_drbm_bc(self) -> None:
         """Update D-RBM boundary conditions."""
 
-        def clean_node_set(nodes: np.ndarray, exclude_nodes: np.ndarray = None):
+        def clean_node_set(nodes: np.ndarray, exclude_nodes: np.ndarray = None) -> np.ndarray:
             """Ensure no duplicate or excluded nodes to avoid a thermal boundary condition error."""
             nodes = np.unique(nodes)
             if exclude_nodes is not None:
@@ -629,7 +629,7 @@ class LaplaceWriter(BaseDynaWriter):
         for case_id, job_name, set_ids, bc_values in cases:
             self.add_case(case_id, job_name, set_ids, bc_values)
 
-    def _get_rv_septum_endo_surface(self):
+    def _get_rv_septum_endo_surface(self) -> SurfaceMesh:
         """Get the right ventricle septum endocardium surface."""
         for surface in self.model.right_ventricle.surfaces:
             if "endocardium" in surface.name and "septum" in surface.name:
@@ -637,7 +637,9 @@ class LaplaceWriter(BaseDynaWriter):
 
         raise ValueError("Septum endocardium surface is not found in right ventricle.")
 
-    def _update_ventricular_caps_nodes(self):
+    def _update_ventricular_caps_nodes(
+        self,
+    ) -> tuple[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], bool]:
         combined_av_mv = False  # combined mitral and aortic valve
         mv_nodes = av_nodes = tv_nodes = pv_nodes = None
 
@@ -660,7 +662,9 @@ class LaplaceWriter(BaseDynaWriter):
 
         return (pv_nodes, tv_nodes, av_nodes, mv_nodes), combined_av_mv
 
-    def add_case(self, case_id: int, case_name: str, set_ids: list[int], bc_values: list[float]):
+    def add_case(
+        self, case_id: int, case_name: str, set_ids: list[int], bc_values: list[float]
+    ) -> None:
         """Add a case to the keyword database.
 
         Parameters

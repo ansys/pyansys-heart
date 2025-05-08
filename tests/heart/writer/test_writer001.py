@@ -27,7 +27,7 @@ import pyvista as pv
 
 import ansys.health.heart.models as models
 from ansys.health.heart.objects import Mesh, SurfaceMesh
-import ansys.health.heart.writer.dynawriter as writers
+import ansys.health.heart.writer.base as writers
 
 
 def get_test_model():

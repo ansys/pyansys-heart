@@ -47,14 +47,9 @@ html_theme_options = {
     "ansys_sphinx_theme_autoapi": {
         "project": project,
         "ignore": [
-            "*writer*",
+            # ignore all files under the ``writer`` subpackage.
+            "*heart/writer/**/*",
             "*misc*",
-            "*custom_keywords*",
-            "*system_models.py",
-            "*define_function_templates.py",
-            "*heart_decks.py",
-            "*keyword_utils.py",
-            "*material_keywords.py",
         ],
     },
 }
@@ -141,7 +136,7 @@ if nightly_docs:
     warn_on_example_fail = True
 else:
     # only executes examples with suffix _pr.py
-    gallery_filename_pattern = r".*(_pr\.py)"
+    gallery_filename_pattern = r".*(_xpr\.py)"
     warn_on_example_fail = False
 
 sphinx_gallery_conf = {

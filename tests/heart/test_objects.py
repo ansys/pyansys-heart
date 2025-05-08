@@ -33,8 +33,9 @@ def test_convert_int64_to_int32():
     mesh["cell_data"] = np.arange(0, mesh.n_cells, dtype=np.int64)  # Add int64 cell data
     mesh["point_data"] = np.arange(0, mesh.n_points, dtype=np.int64)  # Add int64 point data
 
-    mesh["data"] = np.arange(0, mesh.n_points, dtype=np.int64)  # Add int64 point data
-    mesh["data"] = np.arange(0, mesh.n_cells, dtype=np.int64)  # Add int64 point data
+    # Add int64 point data with same array name
+    mesh["data"] = np.arange(0, mesh.n_points, dtype=np.int64)
+    mesh["data"] = np.arange(0, mesh.n_cells, dtype=np.int64)
 
     # Verify initial data types are int64
     assert mesh["cell_data"].dtype == np.int64

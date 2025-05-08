@@ -233,7 +233,3 @@ def active_curve(
     # plt.show()
 
     return time_array, calcium_array
-
-
-if __name__ == "__main__":
-    pass

@@ -128,12 +128,12 @@ def _invert_dict(dictionary: dict) -> dict:
 def _convert_int64_to_int32(
     mesh: Mesh | pv.UnstructuredGrid | pv.PolyData | SurfaceMesh, array_names: list[str] = None
 ):
-    """Change the datatype of a cell and point arrays to int32.
+    """Change the datatype of cell and point arrays to int32.
 
     Parameters
     ----------
     mesh : Mesh | pv.UnstructuredGrid | pv.PolyData | SurfaceMesh
-        The PyVista mesh object containing the cell and point data arrays to convert.
+        The ``PyVista`` mesh object containing the cell and point data arrays to convert.
     array_names : list[str], default: None
         List of specific array names to convert. If not provided, all arrays in
         the mesh will be checked and converted if necessary.
@@ -141,12 +141,12 @@ def _convert_int64_to_int32(
     Returns
     -------
     Mesh | pv.UnstructuredGrid | pv.PolyData | SurfaceMesh
-        The input mesh with cell and point data arrays converted to `int32`.
+        The input mesh with cell and point data arrays converted to ``int32``.
 
     Notes
     -----
-    ``pyvista`` uses ``int64`` by default, which is not compatible with
-    the ``pyvista`` sphinx plot directive for interactive plots in the documentation.
+    ``PyVista`` uses ``int64`` by default, which is not compatible with
+    the ``PyVista`` sphinx plot directive for interactive plots in the documentation.
     This method changes the datatype of the cell and point arrays to ``int32``.
     """
     if array_names is None:

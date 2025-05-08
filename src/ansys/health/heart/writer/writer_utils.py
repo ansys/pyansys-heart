@@ -22,8 +22,6 @@
 
 """Module for useful methods to help format LS-DYNA keywords."""
 
-from typing import List, Union
-
 import numpy as np
 import pandas as pd
 
@@ -184,7 +182,7 @@ def create_segment_set_keyword(
 
 
 def create_node_set_keyword(
-    node_ids: Union[np.ndarray, List[int], int],
+    node_ids: np.ndarray | list[int] | int,
     node_set_id: int = 1,
     title: str = "nodeset-title",
 ) -> keywords.SetNodeList:
@@ -192,7 +190,7 @@ def create_node_set_keyword(
 
     Parameters
     ----------
-    node_ids : Union[np.ndarray, List[int], int]
+    node_ids : np.ndarray | list[int] | int
         List of node IDs to include in the nodeset.
     node_set_id : int, default: 1
         ID of the nodeset.
@@ -415,8 +413,8 @@ def create_define_sd_orientation_kw(
 def create_discrete_elements_kw(
     nodes: np.ndarray,
     part_id: int,
-    vector_ids: Union[np.ndarray, int],
-    scale_factor: Union[np.ndarray, float],
+    vector_ids: np.ndarray | int,
+    scale_factor: np.ndarray | float,
     element_id_offset: int = 0,
 ) -> keywords.ElementDiscrete:
     """Create discrete elements based on input arguments.
@@ -427,10 +425,10 @@ def create_discrete_elements_kw(
         Nx2 array with node IDs used for the discrete element.
     part_id : int
         Part ID of the discrete elements given.
-    vector_ids : Union[np.ndarray, int]
+    vector_ids : np.ndarray | int
         Orientation IDs (vector IDs) that the spring acts on.
         You can provide either an array of length N or a scalar integer.
-    scale_factor : Union[np.ndarray, float]
+    scale_factor : np.ndarray | float
         Scale factor on forces. You can provide either an array of length N
         or a scalar value.
     element_id_offset : int, default: 0
@@ -540,7 +538,7 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.ndarray:
 
 
 def fast_element_writer(
-    element_kw: Union[keywords.ElementSolidOrtho, keywords.ElementSolid], filename: str
+    element_kw: keywords.ElementSolidOrtho | keywords.ElementSolid, filename: str
 ) -> None:
     """Fast implementation of the element writer.
 

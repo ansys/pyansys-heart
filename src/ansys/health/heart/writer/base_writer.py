@@ -33,15 +33,10 @@ from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.objects import PartType, SurfaceMesh
+import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings
 from ansys.health.heart.writer import custom_keywords as custom_keywords
-from ansys.health.heart.writer.ep_writer import (
-    ElectrophysiologyDynaWriter,
-    PurkinjeGenerationDynaWriter,
-)
 from ansys.health.heart.writer.heart_decks import BaseDecks, FiberGenerationDecks
-from ansys.health.heart.writer.laplace_writer import LaplaceWriter
-from ansys.health.heart.writer.mechanics_writer import MechanicsDynaWriter
 from ansys.health.heart.writer.writer_utils import (
     add_nodes_to_kw,
     create_element_solid_ortho_keyword,
@@ -130,12 +125,11 @@ class BaseDynaWriter:
             """Simulation settings."""
 
         self.settings.to_consistent_unit_system()
-        self._check_settings()
 
         return
 
-    def _check_settings(self):
-        """Check if required settings are available."""
+    def _get_subsettings(self) -> list[sett.Settings]:
+        """Get subsettings from the settings object."""
         import ansys.health.heart.settings.settings as sett
 
         subsettings_classes = [
@@ -144,29 +138,7 @@ class BaseDynaWriter:
             if isinstance(getattr(self.settings, attr), sett.Settings)
         ]
 
-        if isinstance(self, MechanicsDynaWriter):
-            if sett.Mechanics not in subsettings_classes:
-                raise ValueError("Expecting mechanics settings.")
-
-        elif isinstance(self, FiberGenerationDynaWriter):
-            if sett.Fibers not in subsettings_classes:
-                raise ValueError("Expecting fiber settings.")
-
-        elif isinstance(self, PurkinjeGenerationDynaWriter):
-            if sett.Purkinje not in subsettings_classes:
-                raise ValueError("Expecting Purkinje settings.")
-
-        elif isinstance(self, ElectrophysiologyDynaWriter):
-            if sett.Electrophysiology not in subsettings_classes:
-                raise ValueError("Expecting electrophysiology settings.")
-        elif isinstance(self, LaplaceWriter):
-            pass
-        else:
-            raise NotImplementedError(
-                f"Checking settings for {self.__class__.__name__} not yet implemented."
-            )
-
-        return
+        return subsettings_classes
 
     def _update_node_db(self, ids: np.ndarray = None):
         """Update node database.
@@ -718,6 +690,9 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         super().__init__(model=model, settings=settings)
         self.kw_database = FiberGenerationDecks()
         """Collection of keywords relevant for fiber generation."""
+
+        if sett.Fibers not in self._get_subsettings():
+            raise ValueError("Expecting fiber settings.")
 
     def update(self, rotation_angles=None):
         """Update keyword database for fiber generation.

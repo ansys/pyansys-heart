@@ -34,6 +34,7 @@ from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, Heart
 from ansys.health.heart.models_utils import LandMarks
 from ansys.health.heart.pre.conduction_path import ConductionPathType
 from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
+import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings, Stimulation
 from ansys.health.heart.writer import custom_keywords as custom_keywords
 from ansys.health.heart.writer.base_writer import BaseDynaWriter
@@ -57,6 +58,9 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
         super().__init__(model=model, settings=settings)
         self.kw_database = PurkinjeGenerationDecks()
         """Collection of keywords relevant for Purkinje generation."""
+
+        if sett.Purkinje not in self._get_subsettings():
+            raise ValueError("Expecting Purkinje settings.")
 
     def update(self):
         """Update keyword database.
@@ -325,6 +329,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         super().__init__(model=model, settings=settings)
         self.kw_database = ElectrophysiologyDecks()
         """Collection of keywords relevant for electrophysiology."""
+
+        if sett.Electrophysiology not in self._get_subsettings():
+            raise ValueError("Expecting electrophysiology settings.")
 
     def update(self):
         """Update keyword database for electrophysiology."""

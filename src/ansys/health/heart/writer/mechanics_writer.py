@@ -38,6 +38,7 @@ from ansys.health.heart.settings.material.material import (
     MechanicalMaterialModel,
     NeoHookean,
 )
+import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings
 from ansys.health.heart.utils.vtk_utils import compute_surface_nodal_area_pyvista
 from ansys.health.heart.writer import custom_keywords as custom_keywords
@@ -47,9 +48,6 @@ from ansys.health.heart.writer._control_volume import (
     _create_open_loop,
 )
 from ansys.health.heart.writer.base_writer import BaseDynaWriter
-from ansys.health.heart.writer.ep_mechanics_writer import (
-    ElectroMechanicsDynaWriter,
-)
 from ansys.health.heart.writer.heart_decks import MechanicsDecks
 from ansys.health.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
 from ansys.health.heart.writer.writer_utils import (
@@ -82,6 +80,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         self.set_flow_area: bool = True
         """Flag indicating if the flow area is set for control volume."""
+
+        if sett.Mechanics not in self._get_subsettings():
+            raise ValueError("Expecting mechanics settings.")
         return
 
     def update(self, dynain_name: str = None, robin_bcs: list[Callable] = None):
@@ -163,7 +164,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self._add_solution_controls()
             self._add_export_controls(settings.analysis.dt_d3plot.m)
 
-        elif isinstance(self, (MechanicsDynaWriter, ElectroMechanicsDynaWriter)):
+        elif isinstance(self, MechanicsDynaWriter):
             settings = self.settings.mechanics
             self._add_solution_controls(
                 end_time=settings.analysis.end_time.m,

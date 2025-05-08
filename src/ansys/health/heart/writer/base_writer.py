@@ -140,7 +140,7 @@ class BaseDynaWriter:
 
         return subsettings_classes
 
-    def _update_node_db(self, ids: np.ndarray = None):
+    def _update_node_db(self, ids: np.ndarray = None) -> None:
         """Update node database.
 
         Parameters
@@ -160,7 +160,7 @@ class BaseDynaWriter:
 
         return
 
-    def _update_parts_db(self):
+    def _update_parts_db(self) -> None:
         """Loop over parts defined in the model and create keywords."""
         LOGGER.debug("Updating part keywords...")
 
@@ -192,7 +192,7 @@ class BaseDynaWriter:
 
         return
 
-    def _update_segmentsets_db(self, add_caps: bool = False, add_cavities: bool = True):
+    def _update_segmentsets_db(self, add_caps: bool = False, add_cavities: bool = True) -> None:
         """Update the segment set database."""
         # NOTE 0: add all surfaces as segment sets
         # NOTE 1: need to more robustly check segids that are already used?
@@ -257,7 +257,7 @@ class BaseDynaWriter:
                 self.kw_database.segment_sets.append(segset_kw)
         return
 
-    def _filter_bc_nodes(self, surface: SurfaceMesh):
+    def _filter_bc_nodes(self, surface: SurfaceMesh) -> np.ndarray:
         """Remove one or more nodes from tetrahedrons having all nodes in the boundary.
 
         Notes
@@ -356,7 +356,7 @@ class BaseDynaWriter:
 
     def _update_nodesets_db(
         self, remove_duplicates: bool = True, remove_one_node_from_cell: bool = False
-    ):
+    ) -> None:
         """Update the nodeset database.
 
         Parameters
@@ -507,7 +507,7 @@ class BaseDynaWriter:
 
         return include_files
 
-    def include_to_main(self, file_list: list[str] | str = []):
+    def include_to_main(self, file_list: list[str] | str = []) -> None:
         """Add *INCLUDE keywords into the main decl.
 
         Parameters
@@ -523,7 +523,7 @@ class BaseDynaWriter:
 
         return
 
-    def export(self, export_directory: str, user_k: list[str] | None = None):
+    def export(self, export_directory: str, user_k: list[str] | None = None) -> None:
         """Write the model to files.
 
         Parameters
@@ -561,7 +561,7 @@ class BaseDynaWriter:
 
         return
 
-    def export_databases(self, export_directory: str):
+    def export_databases(self, export_directory: str) -> None:
         """Export each non-empty database to a specified directory."""
         if not export_directory:
             export_directory = self.model.info.working_directory
@@ -587,7 +587,7 @@ class BaseDynaWriter:
 
         return
 
-    def _keep_ventricles(self):
+    def _keep_ventricles(self) -> None:
         """Remove any non-ventricular parts."""
         LOGGER.debug("Only keeping ventricular-parts for fiber/Purkinje generation.")
         parts_to_keep = [
@@ -596,7 +596,7 @@ class BaseDynaWriter:
         self._keep_parts(parts_to_keep)
         return
 
-    def _keep_parts(self, parts_to_keep: List[str]):
+    def _keep_parts(self, parts_to_keep: List[str]) -> None:
         """Remove parts by a list of part names."""
         parts_to_remove = [part for part in self.model.part_names if part not in parts_to_keep]
         for part_to_remove in parts_to_remove:
@@ -604,7 +604,7 @@ class BaseDynaWriter:
             self.model.remove_part(part_to_remove)
         return
 
-    def _update_solid_elements_db(self, add_fibers: bool = True):
+    def _update_solid_elements_db(self, add_fibers: bool = True) -> None:
         """
         Create slid (ortho) elements for all parts.
 
@@ -694,7 +694,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         if sett.Fibers not in self._get_subsettings():
             raise ValueError("Expecting fiber settings.")
 
-    def update(self, rotation_angles=None):
+    def update(self, rotation_angles=None) -> None:
         """Update keyword database for fiber generation.
 
         This method overwrites the inherited function.
@@ -752,7 +752,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         return
 
-    def _remove_atrial_nodes_from_ventricles_surfaces(self):
+    def _remove_atrial_nodes_from_ventricles_surfaces(self) -> None:
         """Remove nodes other than ventricular from ventricular surfaces."""
         parts = [
             part
@@ -783,7 +783,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         return
 
-    def _update_material_db(self):
+    def _update_material_db(self) -> None:
         """Add simple linear elastic and orthotropic EM material for each defined part."""
         # collect myocardium and septum parts
         ventricles = [part for part in self.model.parts if "ventricle" in part.name]
@@ -820,7 +820,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 ]
             )
 
-    def _update_ep_settings(self):
+    def _update_ep_settings(self) -> None:
         """Add the settings for the electrophysiology solver."""
         self.kw_database.ep_settings.append(
             keywords.EmControl(
@@ -843,7 +843,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         return
 
     # TODO: Refactor
-    def _update_create_fibers(self, rotation_angles):
+    def _update_create_fibers(self, rotation_angles) -> None:
         """Update the keywords for fiber generation."""
         # collect relevant node and segment sets.
         # nodeset: apex, base
@@ -1186,7 +1186,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 )
             )
 
-    def _update_main_db(self):
+    def _update_main_db(self) -> None:
         self.kw_database.main.append(
             keywords.ControlTimeStep(dtinit=1.0, dt2ms=1.0, emscl=None, ihdo=None, rmscl=None)
         )

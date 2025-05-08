@@ -21,6 +21,8 @@
 # SOFTWARE.
 """Module containing classes for writing LS-DYNA keyword files for ep-mechanics simulations."""
 
+from typing import Callable, Optional
+
 from ansys.dyna.core.keywords import keywords
 from ansys.health.heart.models import FourChamber, HeartModel
 from ansys.health.heart.settings.settings import SimulationSettings
@@ -36,7 +38,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
     def __init__(
         self,
         model: HeartModel,
-        settings: SimulationSettings = None,
+        settings: Optional[SimulationSettings] = None,
     ) -> None:
         if isinstance(model, FourChamber):
             model._create_atrioventricular_isolation()
@@ -49,7 +51,9 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         self.set_flow_area = True
         """from MechanicWriter."""
 
-    def update(self, dynain_name: str = None, robin_bcs=None):
+    def update(
+        self, dynain_name: Optional[str] = None, robin_bcs: Optional[list[Callable]] = None
+    ) -> None:
         """Update the keyword database.
 
         Parameters
@@ -95,7 +99,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
 
         return
 
-    def _update_material_db(self, add_active: bool = True):
+    def _update_material_db(self, add_active: bool = True) -> None:
         """Update the database of material keywords."""
         MechanicsDynaWriter._update_material_db(self, add_active=add_active, em_couple=True)
         ElectrophysiologyDynaWriter._update_ep_material_db(self)

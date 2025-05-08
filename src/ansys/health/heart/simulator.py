@@ -63,16 +63,7 @@ from ansys.health.heart.post.laplace_post import (
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.settings import DynaSettings, SimulationSettings
 from ansys.health.heart.utils.misc import _read_orth_element_kfile
-from ansys.health.heart.writer import (
-    ElectroMechanicsDynaWriter,
-    ElectrophysiologyBeamsDynaWriter,
-    ElectrophysiologyDynaWriter,
-    FiberGenerationDynaWriter,
-    LaplaceWriter,
-    MechanicsDynaWriter,
-    PurkinjeGenerationDynaWriter,
-    ZeroPressureMechanicsDynaWriter,
-)
+import ansys.health.heart.writer as writers
 
 _KILL_ANSYSCL_PRIOR_TO_RUN = True
 """Flag indicating whether to kill all Ansys license clients prior to an LS-DYNA run."""
@@ -199,7 +190,7 @@ class BaseSimulator:
         """Use LSDYNA native fiber method."""
         directory = os.path.join(self.root_directory, "fibergeneration")
 
-        dyna_writer = FiberGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
+        dyna_writer = writers.FiberGenerationDynaWriter(copy.deepcopy(self.model), self.settings)
         dyna_writer.update(rotation_angles)
         dyna_writer.export(directory)
 
@@ -380,7 +371,7 @@ class BaseSimulator:
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
-        dyna_writer = LaplaceWriter(copy.deepcopy(self.model), type, **kwargs)
+        dyna_writer = writers.LaplaceWriter(copy.deepcopy(self.model), type, **kwargs)
 
         dyna_writer.update()
         dyna_writer.export(export_directory)
@@ -532,7 +523,7 @@ class EPSimulator(BaseSimulator):
         export_directory = os.path.join(self.root_directory, folder_name)
 
         model = copy.deepcopy(self.model)
-        dyna_writer = ElectrophysiologyDynaWriter(model, self.settings)
+        dyna_writer = writers.ElectrophysiologyDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory, user_k=extra_k_files)
 
@@ -543,7 +534,7 @@ class EPSimulator(BaseSimulator):
         export_directory = os.path.join(self.root_directory, folder_name)
 
         model = copy.deepcopy(self.model)
-        dyna_writer = ElectrophysiologyBeamsDynaWriter(model, self.settings)
+        dyna_writer = writers.ElectrophysiologyBeamsDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
 
@@ -555,7 +546,7 @@ class EPSimulator(BaseSimulator):
     ) -> pathlib:
         """Write purkinje files."""
         model = copy.deepcopy(self.model)
-        dyna_writer = PurkinjeGenerationDynaWriter(model, self.settings)
+        dyna_writer = writers.PurkinjeGenerationDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory)
         return
@@ -712,7 +703,7 @@ class MechanicsSimulator(BaseSimulator):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
 
-        dyna_writer = MechanicsDynaWriter(
+        dyna_writer = writers.MechanicsDynaWriter(
             self.model,
             self.settings,
         )
@@ -732,7 +723,7 @@ class MechanicsSimulator(BaseSimulator):
         if isinstance(model, FourChamber) and isinstance(self, EPMechanicsSimulator):
             model._create_atrioventricular_isolation()
 
-        dyna_writer = ZeroPressureMechanicsDynaWriter(model, self.settings)
+        dyna_writer = writers.ZeroPressureMechanicsDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory, user_k=extra_k_files)
 
@@ -792,7 +783,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
 
-        dyna_writer = ElectroMechanicsDynaWriter(self.model, self.settings)
+        dyna_writer = writers.ElectroMechanicsDynaWriter(self.model, self.settings)
         dyna_writer.update(dynain_name=self._dynain_name)
         dyna_writer.export(export_directory, user_k=extra_k_files)
 

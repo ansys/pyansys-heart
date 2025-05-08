@@ -35,7 +35,7 @@ from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, Heart
 from ansys.health.heart.objects import PartType, SurfaceMesh
 from ansys.health.heart.settings.settings import SimulationSettings
 from ansys.health.heart.writer import custom_keywords as custom_keywords
-from ansys.health.heart.writer.ep import (
+from ansys.health.heart.writer.ep_writer import (
     ElectrophysiologyDynaWriter,
     PurkinjeGenerationDynaWriter,
 )
@@ -48,8 +48,8 @@ from ansys.health.heart.writer.keyword_utils import (
     fast_element_writer,
     get_list_of_used_ids,
 )
-from ansys.health.heart.writer.laplace import LaplaceWriter
-from ansys.health.heart.writer.mechanics import MechanicsDynaWriter
+from ansys.health.heart.writer.laplace_writer import LaplaceWriter
+from ansys.health.heart.writer.mechanics_writer import MechanicsDynaWriter
 
 
 class BaseDynaWriter:

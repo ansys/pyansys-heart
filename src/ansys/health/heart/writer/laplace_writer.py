@@ -33,7 +33,7 @@ from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.objects import CapType
-from ansys.health.heart.writer.base import BaseDynaWriter
+from ansys.health.heart.writer.base_writer import BaseDynaWriter
 from ansys.health.heart.writer.keyword_utils import (
     create_element_solid_keyword,
     create_node_keyword,

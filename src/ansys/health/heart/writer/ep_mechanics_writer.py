@@ -24,10 +24,10 @@
 from ansys.dyna.core.keywords import keywords
 from ansys.health.heart.models import FourChamber, HeartModel
 from ansys.health.heart.settings.settings import SimulationSettings
-from ansys.health.heart.writer.base import BaseDynaWriter
-from ansys.health.heart.writer.ep import ElectrophysiologyDynaWriter
+from ansys.health.heart.writer.base_writer import BaseDynaWriter
+from ansys.health.heart.writer.ep_writer import ElectrophysiologyDynaWriter
 from ansys.health.heart.writer.heart_decks import ElectroMechanicsDecks
-from ansys.health.heart.writer.mechanics import MechanicsDynaWriter
+from ansys.health.heart.writer.mechanics_writer import MechanicsDynaWriter
 
 
 class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWriter):

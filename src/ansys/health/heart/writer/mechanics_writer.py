@@ -46,8 +46,8 @@ from ansys.health.heart.writer._control_volume import (
     _create_closed_loop,
     _create_open_loop,
 )
-from ansys.health.heart.writer.base import BaseDynaWriter
-from ansys.health.heart.writer.ep_mechanics import (
+from ansys.health.heart.writer.base_writer import BaseDynaWriter
+from ansys.health.heart.writer.ep_mechanics_writer import (
     ElectroMechanicsDynaWriter,
 )
 from ansys.health.heart.writer.heart_decks import MechanicsDecks

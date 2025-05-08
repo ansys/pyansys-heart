@@ -36,7 +36,7 @@ from ansys.health.heart.pre.conduction_path import ConductionPathType
 from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
 from ansys.health.heart.settings.settings import SimulationSettings, Stimulation
 from ansys.health.heart.writer import custom_keywords as custom_keywords
-from ansys.health.heart.writer.base import BaseDynaWriter
+from ansys.health.heart.writer.base_writer import BaseDynaWriter
 from ansys.health.heart.writer.heart_decks import ElectrophysiologyDecks, PurkinjeGenerationDecks
 from ansys.health.heart.writer.keyword_utils import (
     add_beams_to_kw,

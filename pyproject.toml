@@ -58,7 +58,7 @@ doc = [
     "sphinx-jinja==2.0.2",
     "sphinxcontrib-video==0.4.1",
     "sphinx_design",
-    "pyvista[jupyter]",
+    "pyvista[jupyter]==0.45.0",
 ]
 tests = [
     "pytest==8.3.5",

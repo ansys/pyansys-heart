@@ -51,13 +51,13 @@ from ansys.health.heart.writer.ep_mechanics_writer import (
     ElectroMechanicsDynaWriter,
 )
 from ansys.health.heart.writer.heart_decks import MechanicsDecks
-from ansys.health.heart.writer.keyword_utils import (
+from ansys.health.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
+from ansys.health.heart.writer.writer_utils import (
     create_define_curve_kw,
     create_define_sd_orientation_kw,
     create_discrete_elements_kw,
     create_element_shell_keyword,
 )
-from ansys.health.heart.writer.material_keywords import MaterialHGOMyocardium, MaterialNeoHook
 
 
 class _BoundaryConditionType(Enum):

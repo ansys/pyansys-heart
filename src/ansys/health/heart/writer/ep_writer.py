@@ -38,7 +38,7 @@ from ansys.health.heart.settings.settings import SimulationSettings, Stimulation
 from ansys.health.heart.writer import custom_keywords as custom_keywords
 from ansys.health.heart.writer.base_writer import BaseDynaWriter
 from ansys.health.heart.writer.heart_decks import ElectrophysiologyDecks, PurkinjeGenerationDecks
-from ansys.health.heart.writer.keyword_utils import (
+from ansys.health.heart.writer.writer_utils import (
     add_beams_to_kw,
     add_nodes_to_kw,
     create_node_set_keyword,

@@ -40,7 +40,9 @@ from ansys.health.heart.writer.ep_writer import (
     PurkinjeGenerationDynaWriter,
 )
 from ansys.health.heart.writer.heart_decks import BaseDecks, FiberGenerationDecks
-from ansys.health.heart.writer.keyword_utils import (
+from ansys.health.heart.writer.laplace_writer import LaplaceWriter
+from ansys.health.heart.writer.mechanics_writer import MechanicsDynaWriter
+from ansys.health.heart.writer.writer_utils import (
     add_nodes_to_kw,
     create_element_solid_ortho_keyword,
     create_node_set_keyword,
@@ -48,8 +50,6 @@ from ansys.health.heart.writer.keyword_utils import (
     fast_element_writer,
     get_list_of_used_ids,
 )
-from ansys.health.heart.writer.laplace_writer import LaplaceWriter
-from ansys.health.heart.writer.mechanics_writer import MechanicsDynaWriter
 
 
 class BaseDynaWriter:

@@ -218,7 +218,7 @@ def test_base_simulator_fiber(_mocked_methods):
         simulator.load_default_settings()
 
         with mock.patch(
-            "ansys.health.heart.simulator.FiberGenerationDynaWriter",
+            "ansys.health.heart.writer.FiberGenerationDynaWriter",
             return_value=mock_writer,
         ):
             simulator.compute_fibers()

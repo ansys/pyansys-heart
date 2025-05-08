@@ -112,7 +112,7 @@ model.load_input(surface, part_definitions, scalar="surface-id")
 model.mesh_volume(use_wrapper=True, global_mesh_size=4.0, _global_wrap_size=4.0)
 
 # Update the model.
-model._update_parts()
+model.update()
 
 # Plot the mesh.
 model.plot_mesh()

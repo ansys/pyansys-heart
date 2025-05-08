@@ -37,9 +37,7 @@ from ansys.health.heart.objects import (
 )
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.settings import Mechanics, SimulationSettings, Stimulation
-import ansys.health.heart.writer.base_writer as writers
-import ansys.health.heart.writer.ep_mechanics_writer
-import ansys.health.heart.writer.mechanics_writer
+import ansys.health.heart.writer as writers
 
 
 def _get_mock_conduction_system() -> Mesh:
@@ -91,7 +89,7 @@ def test_update_ECG_coordinates(_mock_model):  # noqa: N802
     """Test updating ECG Coordinates."""
     model = _mock_model
 
-    writer = ansys.health.heart.writer.ep_mechanics_writer.ElectroMechanicsDynaWriter(model)
+    writer = writers.ElectroMechanicsDynaWriter(model)
 
     writer._update_ECG_coordinates()
 
@@ -105,7 +103,7 @@ def test_update_ECG_coordinates(_mock_model):  # noqa: N802
 def test_add_segment_from_surface(_mock_model):
     """Test adding a segment set from a Mesh surface."""
     model = _mock_model
-    writer = ansys.health.heart.writer.ep_mechanics_writer.ElectroMechanicsDynaWriter(model)
+    writer = writers.ElectroMechanicsDynaWriter(model)
     model.mesh.add_surface(pv.Sphere(), name="test", id=1)
     writer._add_segment_from_surface(pv.Sphere(), name="test")
 
@@ -133,9 +131,7 @@ def test_add_stimulation_keyword(_mock_model, solvertype, expected_kw):
     # set up stimulation
     stimulation = Stimulation([1, 2])
 
-    writer = ansys.health.heart.writer.ep_mechanics_writer.ElectroMechanicsDynaWriter(
-        model, settings
-    )
+    writer = writers.ElectroMechanicsDynaWriter(model, settings)
 
     nodeset_kw, stim_kw = writer._add_stimulation_keyword(stimulation)
 
@@ -163,9 +159,7 @@ def test_update_ep_settings(_mock_model, solvertype, expected_num_keywords):
     settings.load_defaults()
     settings.electrophysiology.analysis.solvertype = solvertype
 
-    writer = ansys.health.heart.writer.ep_mechanics_writer.ElectroMechanicsDynaWriter(
-        model, settings
-    )
+    writer = writers.ElectroMechanicsDynaWriter(model, settings)
     writer._update_ep_settings(beam_pid=[1, 2, 3])
 
     assert len(writer.kw_database.ep_settings.keywords) == expected_num_keywords
@@ -184,9 +178,7 @@ def test_add_myocardial_nodeset_layer(_mock_model):
     settings = SimulationSettings()
     settings.load_defaults()
 
-    writer = ansys.health.heart.writer.ep_mechanics_writer.ElectroMechanicsDynaWriter(
-        model, settings
-    )
+    writer = writers.ElectroMechanicsDynaWriter(model, settings)
     # assert node-set ids (no other nodesets present, so expecting 1,2,3)
     assert writer._create_myocardial_nodeset_layers() == (1, 2, 3)
 
@@ -211,9 +203,7 @@ def test_update_use_purkinje(_mock_model: FullHeart):
     settings = SimulationSettings()
     settings.load_defaults()
 
-    writer = ansys.health.heart.writer.ep_mechanics_writer.ElectroMechanicsDynaWriter(
-        model, settings
-    )
+    writer = writers.ElectroMechanicsDynaWriter(model, settings)
 
     writer._update_use_Purkinje()
 
@@ -235,7 +225,7 @@ def test_export(_mock_model):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         setting = mock.Mock(spec=Mechanics).return_value
         setting.mechanics.system.name = "ConstantPreloadWindkesselAfterload"
-        w = ansys.health.heart.writer.mechanics_writer.MechanicsDynaWriter(_mock_model, setting)
+        w = writers.MechanicsDynaWriter(_mock_model, setting)
         w.kw_database.main.append("*END")
         w.export(tempdir)
         # test export

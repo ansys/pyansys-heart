@@ -63,15 +63,16 @@ from ansys.health.heart.post.laplace_post import (
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.settings import DynaSettings, SimulationSettings
 from ansys.health.heart.utils.misc import _read_orth_element_kfile
-from ansys.health.heart.writer.base_writer import FiberGenerationDynaWriter
-import ansys.health.heart.writer.ep_mechanics_writer
-from ansys.health.heart.writer.ep_writer import (
+from ansys.health.heart.writer import (
+    ElectroMechanicsDynaWriter,
     ElectrophysiologyBeamsDynaWriter,
     ElectrophysiologyDynaWriter,
+    FiberGenerationDynaWriter,
+    LaplaceWriter,
+    MechanicsDynaWriter,
     PurkinjeGenerationDynaWriter,
+    ZeroPressureMechanicsDynaWriter,
 )
-import ansys.health.heart.writer.laplace_writer
-import ansys.health.heart.writer.mechanics_writer
 
 _KILL_ANSYSCL_PRIOR_TO_RUN = True
 """Flag indicating whether to kill all Ansys license clients prior to an LS-DYNA run."""
@@ -379,9 +380,7 @@ class BaseSimulator:
 
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
-        dyna_writer = ansys.health.heart.writer.laplace_writer.LaplaceWriter(
-            copy.deepcopy(self.model), type, **kwargs
-        )
+        dyna_writer = LaplaceWriter(copy.deepcopy(self.model), type, **kwargs)
 
         dyna_writer.update()
         dyna_writer.export(export_directory)
@@ -713,7 +712,7 @@ class MechanicsSimulator(BaseSimulator):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
 
-        dyna_writer = ansys.health.heart.writer.mechanics_writer.MechanicsDynaWriter(
+        dyna_writer = MechanicsDynaWriter(
             self.model,
             self.settings,
         )
@@ -733,9 +732,7 @@ class MechanicsSimulator(BaseSimulator):
         if isinstance(model, FourChamber) and isinstance(self, EPMechanicsSimulator):
             model._create_atrioventricular_isolation()
 
-        dyna_writer = ansys.health.heart.writer.mechanics_writer.ZeroPressureMechanicsDynaWriter(
-            model, self.settings
-        )
+        dyna_writer = ZeroPressureMechanicsDynaWriter(model, self.settings)
         dyna_writer.update()
         dyna_writer.export(export_directory, user_k=extra_k_files)
 
@@ -795,9 +792,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
 
-        dyna_writer = ansys.health.heart.writer.ep_mechanics_writer.ElectroMechanicsDynaWriter(
-            self.model, self.settings
-        )
+        dyna_writer = ElectroMechanicsDynaWriter(self.model, self.settings)
         dyna_writer.update(dynain_name=self._dynain_name)
         dyna_writer.export(export_directory, user_k=extra_k_files)
 

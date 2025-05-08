@@ -40,10 +40,7 @@ import ansys.health.heart.models as models
 from ansys.health.heart.pre.database_utils import get_compatible_input
 from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
 from ansys.health.heart.utils.misc import rodrigues_rot
-import ansys.health.heart.writer.base_writer as writers
-import ansys.health.heart.writer.ep_mechanics_writer
-import ansys.health.heart.writer.ep_writer
-import ansys.health.heart.writer.mechanics_writer
+import ansys.health.heart.writer as writers
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
 from tests.heart.conftest import get_assets_folder
 from tests.heart.end2end.compare_k import read_file
@@ -265,12 +262,12 @@ def _unpack_k_files():
 @pytest.mark.parametrize(
     "writer_class",
     [
-        ansys.health.heart.writer.ep_writer.ElectrophysiologyDynaWriter,
-        ansys.health.heart.writer.ep_mechanics_writer.ElectroMechanicsDynaWriter,
-        ansys.health.heart.writer.mechanics_writer.MechanicsDynaWriter,
-        ansys.health.heart.writer.mechanics_writer.ZeroPressureMechanicsDynaWriter,
+        writers.ElectrophysiologyDynaWriter,
+        writers.ElectroMechanicsDynaWriter,
+        writers.MechanicsDynaWriter,
+        writers.ZeroPressureMechanicsDynaWriter,
         writers.FiberGenerationDynaWriter,
-        ansys.health.heart.writer.ep_writer.PurkinjeGenerationDynaWriter,
+        writers.PurkinjeGenerationDynaWriter,
     ],
 )
 @pytest.mark.k_file_writer
@@ -328,7 +325,7 @@ def test_writers(extract_model, writer_class):
 def add_conduction_beams(writer):
     if (
         isinstance(writer.model, models.FullHeart)
-        and type(writer) is ansys.health.heart.writer.ep_writer.ElectrophysiologyDynaWriter
+        and type(writer) is writers.ElectrophysiologyDynaWriter
     ):
         folder = os.path.join(
             get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
@@ -344,12 +341,12 @@ def add_conduction_beams(writer):
 @pytest.mark.parametrize(
     "writer_class",
     [
-        ansys.health.heart.writer.ep_writer.ElectrophysiologyDynaWriter,
-        ansys.health.heart.writer.ep_mechanics_writer.ElectroMechanicsDynaWriter,
-        ansys.health.heart.writer.mechanics_writer.MechanicsDynaWriter,
-        ansys.health.heart.writer.mechanics_writer.ZeroPressureMechanicsDynaWriter,
+        writers.ElectrophysiologyDynaWriter,
+        writers.ElectroMechanicsDynaWriter,
+        writers.MechanicsDynaWriter,
+        writers.ZeroPressureMechanicsDynaWriter,
         writers.FiberGenerationDynaWriter,
-        ansys.health.heart.writer.ep_writer.PurkinjeGenerationDynaWriter,
+        writers.PurkinjeGenerationDynaWriter,
     ],
 )
 @pytest.mark.k_file_writer

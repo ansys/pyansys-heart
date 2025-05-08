@@ -981,7 +981,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     def __init__(
         self,
         model: HeartModel,
-        settings: SimulationSettings = None,
+        settings: Optional[SimulationSettings] = None,
     ) -> None:
         super().__init__(model=model, settings=settings)
 
@@ -990,7 +990,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         return
 
-    def update(self, robin_bcs: list[Callable] = None):
+    def update(self, robin_bcs: list[Callable] = None) -> None:
         """Update the keyword database.
 
         Parameters
@@ -1072,7 +1072,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         return
 
-    def _add_export_controls(self, dt_output_d3plot: float = 0.5):
+    def _add_export_controls(self, dt_output_d3plot: float = 0.5) -> None:
         """Rewrite the method for zerop export.
 
         Parameters
@@ -1111,7 +1111,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         return
 
-    def _add_solution_controls(self):
+    def _add_solution_controls(self) -> None:
         """Rewrite the method for the zerop simulation."""
         settings = copy.deepcopy(self.settings.stress_free)
         settings._remove_units()
@@ -1154,7 +1154,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         return
 
-    def _add_control_reference_configuration(self):
+    def _add_control_reference_configuration(self) -> None:
         """Add control reference configuration keyword to main."""
         LOGGER.debug("Adding *CONTROL_REFERENCE_CONFIGURATION to main.k")
         settings = self.settings.stress_free.analysis
@@ -1218,7 +1218,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
     #     self.kw_database.main.append(keywords.DatabaseIcvout(dt=10, binary=2))
     #     return
 
-    def _add_enddiastolic_pressure_bc(self):
+    def _add_enddiastolic_pressure_bc(self) -> None:
         """Add end diastolic pressure boundary condition on the left and right endocardium."""
         bc_settings = self.settings.mechanics.boundary_conditions
         pressure_lv = bc_settings.end_diastolic_cavity_pressure["left_ventricle"].m

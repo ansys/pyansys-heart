@@ -694,7 +694,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         if sett.Fibers not in self._get_subsettings():
             raise ValueError("Expecting fiber settings.")
 
-    def update(self, rotation_angles=None) -> None:
+    def update(self, rotation_angles: dict[str, list[float]] | None = None) -> None:
         """Update keyword database for fiber generation.
 
         This method overwrites the inherited function.
@@ -843,7 +843,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         return
 
     # TODO: Refactor
-    def _update_create_fibers(self, rotation_angles) -> None:
+    def _update_create_fibers(self, rotation_angles: dict[str, list[float]]) -> None:
         """Update the keywords for fiber generation."""
         # collect relevant node and segment sets.
         # nodeset: apex, base

@@ -23,7 +23,7 @@
 
 import copy
 from enum import Enum
-from typing import Callable, Literal
+from typing import Callable, Literal, Optional
 
 import numpy as np
 import pandas as pd
@@ -32,7 +32,7 @@ import pyvista as pv
 from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
-from ansys.health.heart.objects import Cap, CapType, PartType
+from ansys.health.heart.objects import Cap, CapType, PartType, SurfaceMesh
 from ansys.health.heart.settings.material.material import (
     Mat295,
     MechanicalMaterialModel,
@@ -71,7 +71,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def __init__(
         self,
         model: HeartModel,
-        settings: SimulationSettings = None,
+        settings: Optional[SimulationSettings] = None,
     ) -> None:
         super().__init__(model=model, settings=settings)
 
@@ -85,7 +85,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             raise ValueError("Expecting mechanics settings.")
         return
 
-    def update(self, dynain_name: str = None, robin_bcs: list[Callable] = None):
+    def update(self, dynain_name: Optional[str] = None, robin_bcs: list[Callable] = None) -> None:
         """Update the keyword database.
 
         Parameters
@@ -152,7 +152,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _update_main_db(self):
+    def _update_main_db(self) -> None:
         """Update the main K file."""
         LOGGER.debug("Updating main keywords...")
 
@@ -184,7 +184,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         dtmin: float = 1.0,
         dtmax: float = 10.0,
         simulation_type: str = "quasi-static",
-    ):
+    ) -> None:
         """Add solution controls, output controls, and solver settings."""
         # add termination keywords
         self.kw_database.main.append(keywords.ControlTermination(endtim=end_time))
@@ -249,7 +249,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.ControlAccuracy(osu=1, inn=4, iacc=1))
         return
 
-    def _add_export_controls(self, dt_output_d3plot: float = 0.05, dt_output_icvout: float = 0.001):
+    def _add_export_controls(
+        self, dt_output_d3plot: float = 0.05, dt_output_icvout: float = 0.001
+    ) -> None:
         """Add solution controls to the main simulation.
 
         Parameters
@@ -301,7 +303,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _add_damping(self):
+    def _add_damping(self) -> None:
         """Add damping to the main file."""
         lcid_damp = self.get_unique_curve_id()
         # mass damping
@@ -326,7 +328,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.main.append(kw)
         return
 
-    def _update_material_db(self, add_active: bool = True, em_couple: bool = False):
+    def _update_material_db(self, add_active: bool = True, em_couple: bool = False) -> None:
         #
         for part in self.model.parts:
             if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
@@ -380,7 +382,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 )
                 self.kw_database.material.append(material_kw)
 
-    def _add_cap_bc(self, bc_type: _BoundaryConditionType):
+    def _add_cap_bc(self, bc_type: _BoundaryConditionType) -> None:
         """Add boundary condition to the cap.
 
         Parameters
@@ -447,7 +449,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _get_contraint_caps(self):
+    def _get_contraint_caps(self) -> list[CapType]:
         """Get a list of constraint caps, depending on models."""
         constraint_caps = []
 
@@ -481,7 +483,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         part_id: int,
         scale_factor_normal: float,
         scale_factor_radial: float,
-    ):
+    ) -> None:
         """Add springs to the cap nodes.
 
         Notes
@@ -569,7 +571,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return
 
-    def _add_pericardium_bc(self, scale=1.0):
+    def _add_pericardium_bc(self, scale: float = 1.0) -> None:
         """Add the pericardium."""
         boundary_conditions = copy.deepcopy(self.settings.mechanics.boundary_conditions)
         robin_settings = boundary_conditions.robin
@@ -617,7 +619,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
     def _get_epi_surface(
         self, apply: Literal[PartType.VENTRICLE, PartType.ATRIUM] = PartType.VENTRICLE
-    ):
+    ) -> SurfaceMesh:
         """Get the epicardial surfaces of either the ventricle or atria."""
         LOGGER.debug(f"Collecting epicardium nodesets of {apply}:")
 
@@ -638,7 +640,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return epicardium_surface1
 
-    def _get_longitudinal_penalty(self, pericardium_settings):
+    def _get_longitudinal_penalty(self, pericardium_settings: dict) -> np.ndarray:
         """
         Use the universal ventricular longitudinal coordinate and a sigmoid penalty function.
 
@@ -675,7 +677,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         robin_type: Literal["spring", "damper"],
         constant: float,
         surface: pv.PolyData,
-        normal: np.ndarray = None,
+        normal: Optional[np.ndarray] = None,
     ) -> list:
         """Create Robin boundary condition on a given surface.
 
@@ -782,7 +784,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
         return kw
 
-    def _update_cap_elements_db(self, add_mesh=True):
+    def _update_cap_elements_db(self, add_mesh: bool = True) -> None:
         """Update the database of shell elements.
 
         Notes
@@ -873,7 +875,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 cap_names_used.append(cap.name)
         return
 
-    def _update_controlvolume_db(self, system_map: list[ControlVolume]):
+    def _update_controlvolume_db(self, system_map: list[ControlVolume]) -> None:
         """Prepare the keywords for the control volume feature.
 
         Parameters

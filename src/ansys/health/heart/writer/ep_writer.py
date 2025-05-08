@@ -62,7 +62,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
         if sett.Purkinje not in self._get_subsettings():
             raise ValueError("Expecting Purkinje settings.")
 
-    def update(self):
+    def update(self) -> None:
         """Update keyword database.
 
         This method overwrites the inherited function.
@@ -94,7 +94,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
 
         return
 
-    def _update_material_db(self):
+    def _update_material_db(self) -> None:
         """Add simple linear elastic material for each defined part."""
         material_settings = self.settings.electrophysiology.material
         for part in self.model.parts:
@@ -121,7 +121,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                 ]
             )
 
-    def _update_ep_settings(self):
+    def _update_ep_settings(self) -> None:
         """Add the settings for the electrophysiology solver."""
         self.kw_database.ep_settings.append(
             keywords.EmControl(
@@ -133,7 +133,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
 
         return
 
-    def _update_create_Purkinje(self):  # noqa N802
+    def _update_create_Purkinje(self) -> None:  # noqa N802
         """Update the keywords for Purkinje generation."""
         # collect relevant node and segment sets.
         # nodeset: apex, base
@@ -309,7 +309,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                 )
             )
 
-    def _update_main_db(self):
+    def _update_main_db(self) -> None:
         return
 
 
@@ -333,7 +333,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         if sett.Electrophysiology not in self._get_subsettings():
             raise ValueError("Expecting electrophysiology settings.")
 
-    def update(self):
+    def update(self) -> None:
         """Update keyword database for electrophysiology."""
         # self._isolate_atria_and_ventricles()
 
@@ -380,7 +380,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return
 
-    def _update_dummy_material_db(self):
+    def _update_dummy_material_db(self) -> None:
         """Add simple mechanics material for each defined part."""
         for part in self.model.parts:
             ep_mid = part.pid
@@ -388,7 +388,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 keywords.MatElastic(mid=ep_mid, ro=1e-6, e=1),
             )
 
-    def _update_ep_material_db(self):
+    def _update_ep_material_db(self) -> None:
         """Add electrophysiology material for each defined part."""
         material_settings = self.settings.electrophysiology.material
         solvertype = self.settings.electrophysiology.analysis.solvertype
@@ -419,7 +419,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return
 
-    def _update_parts_cellmodels(self):
+    def _update_parts_cellmodels(self) -> None:
         """Add cell model for each defined part."""
         for part in self.model.parts:
             if isinstance(part.ep_material, EPMaterial.Active):
@@ -443,7 +443,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self._add_Tentusscher_keyword(matid=-mid_id, params=tentusscher_mid.to_dictionary())
             self._add_Tentusscher_keyword(matid=-epi_id, params=tentusscher_epi.to_dictionary())
 
-    def _create_myocardial_nodeset_layers(self):
+    def _create_myocardial_nodeset_layers(self) -> tuple[int, int, int]:
+        """Create myocardial node set layers."""
         percent_endo = self.settings.electrophysiology.material.myocardium["percent_endo"]
         percent_mid = self.settings.electrophysiology.material.myocardium["percent_mid"]
         values = self.model.mesh.point_data["transmural"]
@@ -477,14 +478,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.node_sets.append(node_set_kw)
         return endo_nodeset_id, mid_nodeset_id, epi_nodeset_id
 
-    def _add_cell_model_keyword(self, matid: int, cellmodel: CellModel):
+    def _add_cell_model_keyword(self, matid: int, cellmodel: CellModel) -> None:
         """Add cell model keyword to the database."""
         if isinstance(cellmodel, CellModel.Tentusscher):
             self._add_Tentusscher_keyword(matid=matid, params=cellmodel.to_dictionary())
         else:
             raise NotImplementedError
 
-    def _add_Tentusscher_keyword(self, matid: int, params: dict):  # noqa N802
+    def _add_Tentusscher_keyword(self, matid: int, params: dict) -> None:  # noqa N802
         cell_kw = keywords.EmEpCellmodelTentusscher(**{**params})
         cell_kw.mid = matid
         # Note: bug in EmEpCellmodelTentusscher
@@ -494,7 +495,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self.kw_database.cell_models.append(cell_kw)
 
-    def _update_ep_settings(self, beam_pid: list[int]):
+    def _update_ep_settings(self, beam_pid: list[int]) -> None:
         """Add the settings for the electrophysiology solver."""
         save_part_ids = []
         for part in self.model.parts:
@@ -564,7 +565,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self.kw_database.ep_settings.append(keywords.EmOutput(mats=1, matf=1, sols=1, solf=1))
 
-    def _update_stimulation(self):
+    def _update_stimulation(self) -> None:
         # define stimulation settings
         stimsettings = self.settings.electrophysiology.stimulation
         if not stimsettings:
@@ -588,7 +589,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             self.kw_database.ep_settings.append(node_set_kw)
             self.kw_database.ep_settings.append(stim_kw)
 
-    def _add_stimulation_keyword(self, stim: Stimulation):
+    def _add_stimulation_keyword(
+        self, stim: Stimulation
+    ) -> tuple[keywords.SetNodeList, Union[custom_keywords.EmEpTentusscherStimulus, str]]:
         # create node-sets for stim nodes
         nsid = self.get_unique_nodeset_id()
         node_set_kw = create_node_set_keyword(
@@ -682,7 +685,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return stim_nodes
 
-    def _update_blood_settings(self):
+    def _update_blood_settings(self) -> None:
         """Update blood settings."""
         if self.model._add_blood_pool:
             dirichlet_bc_nid = self.get_unique_nodeset_id()
@@ -714,7 +717,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     if "EM_MAT" in kw.get_title():
                         kw.lambda_ = self.settings.electrophysiology.material.myocardium["lambda"].m
 
-    def _update_ECG_coordinates(self):  # noqa N802
+    def _update_ECG_coordinates(self) -> None:  # noqa N802
         """Add ECG computation content."""
         # TODO: replace strings by custom dyna keyword
         # TODO: handle dynamic numbering of point set ids "psid'
@@ -744,9 +747,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         self.kw_database.ep_settings.append(em_ep_ekg_content)
 
-    def _update_solution_controls(
-        self,
-    ):
+    def _update_solution_controls(self) -> None:
         """Add solution controls and other solver settings as keywords."""
         self.kw_database.main.append(
             keywords.ControlTermination(
@@ -762,7 +763,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         )
         return
 
-    def _update_main_db(self):
+    def _update_main_db(self) -> None:
         pass
 
     def _update_use_Purkinje(self, associate_to_segment: bool = True) -> list[int]:  # noqa N802
@@ -888,7 +889,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return beam_pid
 
-    def _get_default_beam_ep_material(self):
+    def _get_default_beam_ep_material(self) -> EPMaterial.ActiveBeam:
         """Get default EP material for conduction beams."""
         material_settings = self.settings.electrophysiology.material
         solvertype = self.settings.electrophysiology.analysis.solvertype
@@ -939,7 +940,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return seg_id
 
-    def _update_export_controls(self):
+    def _update_export_controls(self) -> None:
         """Add solution controls to the main simulation."""
         self.kw_database.main.append(
             keywords.DatabaseBinaryD3Plot(dt=self.settings.electrophysiology.analysis.dt_d3plot.m)
@@ -947,7 +948,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return
 
-    def _get_ep_material_kw(self, ep_mid: int, ep_material: EPMaterial):
+    def _get_ep_material_kw(
+        self, ep_mid: int, ep_material: EPMaterial
+    ) -> Union[custom_keywords.EmMat001, custom_keywords.EmMat003]:
         if type(ep_material) is EPMaterial.Insulator:
             # insulator mtype
             mtype = 1
@@ -1034,7 +1037,7 @@ class ElectrophysiologyBeamsDynaWriter(ElectrophysiologyDynaWriter):
         self.kw_database = ElectrophysiologyDecks()
         """Collection of keywords relevant for electrophysiology."""
 
-    def update(self):
+    def update(self) -> None:
         """Update keyword database for electrophysiology."""
         # self._isolate_atria_and_ventricles()
 

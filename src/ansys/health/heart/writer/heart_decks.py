@@ -35,18 +35,18 @@ class BaseDecks:
     """
 
     def __init__(self) -> None:
-        self.main = Deck()
-        self.parts = Deck()
-        self.nodes = Deck()
-        self.solid_elements = Deck()
-        self.material = Deck()
-        self.segment_sets = Deck()
-        self.node_sets = Deck()
-        self.boundary_conditions = Deck()
+        self.main: Deck = Deck()
+        self.parts: Deck = Deck()
+        self.nodes: Deck = Deck()
+        self.solid_elements: Deck = Deck()
+        self.material: Deck = Deck()
+        self.segment_sets: Deck = Deck()
+        self.node_sets: Deck = Deck()
+        self.boundary_conditions: Deck = Deck()
 
         return
 
-    def add_deck(self, deckname: str):
+    def add_deck(self, deckname: str) -> None:
         """Add deck by filename."""
         setattr(self, deckname, Deck())
 
@@ -56,9 +56,9 @@ class MechanicsDecks(BaseDecks):
 
     def __init__(self) -> None:
         super().__init__()
-        self.cap_elements = Deck()
-        self.control_volume = Deck()
-        self.pericardium = Deck()
+        self.cap_elements: Deck = Deck()
+        self.control_volume: Deck = Deck()
+        self.pericardium: Deck = Deck()
 
 
 class FiberGenerationDecks(BaseDecks):
@@ -66,8 +66,8 @@ class FiberGenerationDecks(BaseDecks):
 
     def __init__(self) -> None:
         super().__init__()
-        self.ep_settings = Deck()
-        self.create_fiber = Deck()
+        self.ep_settings: Deck = Deck()
+        self.create_fiber: Deck = Deck()
 
 
 class PurkinjeGenerationDecks(BaseDecks):
@@ -75,8 +75,8 @@ class PurkinjeGenerationDecks(BaseDecks):
 
     def __init__(self) -> None:
         super().__init__()
-        self.main = Deck()
-        self.ep_settings = Deck()
+        self.main: Deck = Deck()
+        self.ep_settings: Deck = Deck()
 
 
 class ElectrophysiologyDecks(BaseDecks):
@@ -84,9 +84,9 @@ class ElectrophysiologyDecks(BaseDecks):
 
     def __init__(self) -> None:
         super().__init__()
-        self.cell_models = Deck()
-        self.ep_settings = Deck()
-        self.beam_networks = Deck()
+        self.cell_models: Deck = Deck()
+        self.ep_settings: Deck = Deck()
+        self.beam_networks: Deck = Deck()
 
 
 class ElectroMechanicsDecks(ElectrophysiologyDecks, MechanicsDecks):
@@ -94,4 +94,4 @@ class ElectroMechanicsDecks(ElectrophysiologyDecks, MechanicsDecks):
 
     def __init__(self) -> None:
         super().__init__()
-        self.duplicate_nodes = Deck()
+        self.duplicate_nodes: Deck = Deck()

@@ -110,7 +110,7 @@ simulator.model.right_atrium.fiber = True
 simulator.model.left_atrium.fiber = True
 simulator.compute_left_atrial_fiber()
 simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
-simulator.model.plot_fibers(n_seed_points=2000)
+simulator.model.plot_fibers(n_seed_points=1000)
 
 ###############################################################################
 # Compute the conduction system

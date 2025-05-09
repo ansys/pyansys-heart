@@ -1,7 +1,7 @@
 .. _contributing:
 
 Contribute
-########## 
+##########
 
 Thank you for your interest in contributing to PyHeart. Contributions for
 making the project better can include fixing bugs, adding new features, and

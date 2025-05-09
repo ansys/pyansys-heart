@@ -40,7 +40,7 @@ import ansys.health.heart.models as models
 from ansys.health.heart.pre.database_utils import get_compatible_input
 from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
 from ansys.health.heart.utils.misc import rodrigues_rot
-import ansys.health.heart.writer.dynawriter as writers
+import ansys.health.heart.writer as writers
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
 from tests.heart.conftest import get_assets_folder
 from tests.heart.end2end.compare_k import read_file

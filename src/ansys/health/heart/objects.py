@@ -1288,10 +1288,6 @@ class Part:
         self.myocardium = Part(name="myocardium", part_type=PartType.MYOCARDIUM)
         return
 
-    def _add_septum_part(self):
-        self.septum = Part(name="septum", part_type=PartType.SEPTUM)
-        return
-
     def _get_info(self):
         """Get part information to reconstruct from a mesh file."""
         info = {

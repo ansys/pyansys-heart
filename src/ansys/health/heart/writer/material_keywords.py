@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 """
-Use PyDyna keywords module to create commonly used material cards and their default values.
+Use PyDYNA keywords module to create commonly used material cards and their default values.
 
 Notes
 -----

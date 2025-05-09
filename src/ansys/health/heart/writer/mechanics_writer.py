@@ -938,11 +938,11 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 sets = []
                 for cap in part.caps:
                     sets.append(cap._seg_set_id)
-                if len(sets) % 8 == 0:  # PyDyna keywords bug when length is 8,16,...
+                if len(sets) % 8 == 0:  # PyDYNA keywords bug when length is 8,16,...
                     sets.append(0)
                 self.kw_database.control_volume.append(keywords.SetSegmentAdd(sid=sid, sets=sets))
 
-                # TODO: use PyDyna keywords: keywords.DefineControlVolumeFlowArea()
+                # TODO: use PyDYNA keywords: keywords.DefineControlVolumeFlowArea()
                 flow_area_kw = "*DEFINE_CONTROL_VOLUME_FLOW_AREA\n"
                 flow_area_kw += "$#    FAID     FCIID     FASID   FASTYPE       PID\n"
                 flow_area_kw += "{0:10d}".format(control_volume.id)  # same as CVID
@@ -1040,7 +1040,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         partset_id = self.get_unique_partset_id()
         kw = keywords.SetPartList(sid=partset_id)
         # kw.parts._data = save_part_ids
-        # NOTE: when len(save_part_ids) = 8/16, PyDyna keywords bugs
+        # NOTE: when len(save_part_ids) = 8/16, PyDYNA keywords bugs
         str = "\n"
         for i, id in enumerate(save_part_ids):
             str += "{0:10d}".format(id)

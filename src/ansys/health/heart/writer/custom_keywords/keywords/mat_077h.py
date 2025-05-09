@@ -29,13 +29,13 @@ from ansys.dyna.core.lib.card import Card, Field
 from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 """
-This files contains the keywords that is not supported by the PyDyna keywords module
+This files contains the keywords that is not supported by the PyDYNA keywords module
 """
 
 
 class Mat077H(KeywordBase):
     """DYNA MAT_077_H keyword
-    Replace the bug in current version of PyDyna keywords module
+    Replace the bug in current version of PyDYNA keywords module
 
     """
 

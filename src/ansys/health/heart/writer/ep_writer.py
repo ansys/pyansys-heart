@@ -505,7 +505,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         partset_id = self.get_unique_partset_id()
         kw = keywords.SetPartList(sid=partset_id)
         # kw.parts._data = save_part_ids
-        # NOTE: when len(save_part_ids) = 8/16, PyDyna keywords bugs
+        # NOTE: when len(save_part_ids) = 8/16, PyDYNA keywords bugs
         str = "\n"
         for i, id in enumerate(save_part_ids):
             str += "{0:10d}".format(id)

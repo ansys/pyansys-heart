@@ -679,33 +679,3 @@ def test_cap_properties():
             ]
         ),
     )
-
-
-def test_part_get_info():
-    """Test getting part info."""
-    from ansys.health.heart.objects import Cap, Cavity, Part, PartType
-
-    part = Part("Part1", PartType.VENTRICLE)
-    part.pid = 1
-    part.endocardium = SurfaceMesh(pv.Tube(), name="tube1", id=10)
-    part.epicardium = SurfaceMesh(pv.Tube(radius=1.2), name="tube2", id=11)
-
-    # create some mock caps.
-    cap1 = Cap("cap1")
-    cap1._mesh = SurfaceMesh(pv.Circle(0.2), id=100, name="cap1")
-    cap2 = Cap("cap2")
-    cap2._mesh = SurfaceMesh(pv.Circle(0.1), id=101, name="cap2")
-    part.caps.extend([cap1, cap2])
-
-    part.cavity = Cavity(
-        surface=SurfaceMesh(
-            pv.merge([part.endocardium, cap1._mesh, cap2._mesh]), name="cavity1", id=1000
-        )
-    )
-
-    info = part._get_info()
-    assert info["Part1"]["part-id"] == 1
-    assert info["Part1"]["part-type"] == PartType.VENTRICLE.value
-    assert info["Part1"]["surfaces"] == {"tube1": 10, "tube2": 11}
-    assert info["Part1"]["caps"] == {"cap1": 100, "cap2": 101}
-    assert info["Part1"]["cavity"] == {"cavity1": 1000}

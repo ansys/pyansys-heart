@@ -1247,11 +1247,6 @@ class Part:
         """Array holding element IDs that make up the part."""
         self.points: List[Point] = []
         """Points of interest belonging to the part."""
-        # TODO: refactor so that caps and cavity are only there in the relevant
-        # TODO: inherited parts.
-        self.caps: List[Cap] = []
-        """List of caps belonging to the part."""
-        self.cavity: Cavity = None
 
         self.fiber: bool = False
         """Flag indicating if the part has fiber/sheet data."""
@@ -1271,25 +1266,26 @@ class Part:
                 "part-id": self.pid,
                 "part-type": self.part_type.value,
                 "surfaces": {},
-                "caps": {},
-                "cavity": {},
             }
         }
 
         info2 = {}
         info2["surfaces"] = {}
-        info2["caps"] = {}
-        info2["cavity"] = {}
+
         for surface in self.surfaces:
             if isinstance(surface, SurfaceMesh):
                 if surface.id:
                     info2["surfaces"][surface.name] = surface.id
 
-        for cap in self.caps:
-            info2["caps"][cap.name] = cap._mesh.id
+        if hasattr(self, "caps"):
+            info2["caps"] = {}
+            for cap in self.caps:
+                info2["caps"][cap.name] = cap._mesh.id
 
-        if self.cavity:
-            info2["cavity"][self.cavity.surface.name] = self.cavity.surface.id
+        if hasattr(self, "cavity"):
+            info2["cavity"] = {}
+            if self.cavity:
+                info2["cavity"][self.cavity.surface.name] = self.cavity.surface.id
 
         info[self.name].update(info2)
 

@@ -667,30 +667,45 @@ class Mesh(pv.UnstructuredGrid):
             Flag specifying whether to merge the points.
         """
         mesh = copy.copy(mesh_input)
+        # NOTE: PyVista 0.45.0 sometimes has more data cell/point data arrays than number of
+        # cells/points. This seems to happen mostly in PolyData objects, casting to an unstructured
+        # grid seems to fix this. Aternatively we can call clean and deactivate all flags.
+        # However, that may have other side effects.
+        if isinstance(mesh, pv.PolyData):
+            mesh = mesh.cast_to_unstructured_grid()
+
         if keep_data:
             # add cell/point arrays in self
             cell_data_names = [k for k in mesh.cell_data.keys()]
             point_data_names = [k for k in mesh.point_data.keys()]
 
             for name in cell_data_names:
-                self.cell_data[name] = _get_fill_data(
-                    mesh, self, name, "cell", fill_int, fill_float
-                )
+                fill_data = _get_fill_data(mesh, self, name, "cell", fill_int, fill_float)
+                if isinstance(fill_data, np.ndarray) and fill_data.shape[0] == 0:
+                    continue
+                self.cell_data[name] = fill_data
 
             for name in point_data_names:
-                self.point_data[name] = _get_fill_data(
-                    mesh, self, name, "point", fill_int, fill_float
-                )
+                fill_data = _get_fill_data(mesh, self, name, "point", fill_int, fill_float)
+                if isinstance(fill_data, np.ndarray) and fill_data.shape[0] == 0:
+                    continue
+                self.point_data[name] = fill_data
 
             # add cell/point arrays mesh to be added
             cell_data_names = [k for k in self.cell_data.keys()]
             point_data_names = [k for k in self.point_data.keys()]
 
             for name in cell_data_names:
-                mesh.cell_data[name] = _get_fill_data(self, mesh, name, "cell")
+                fill_data = _get_fill_data(self, mesh, name, "cell")
+                if isinstance(fill_data, np.ndarray) and fill_data.shape[0] == 0:
+                    continue
+                mesh.cell_data[name] = fill_data
 
             for name in point_data_names:
-                mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
+                fill_data = _get_fill_data(self, mesh, name, "point")
+                if isinstance(fill_data, np.ndarray) and fill_data.shape[0] == 0:
+                    continue
+                mesh.point_data[name] = fill_data
 
         merged = pv.merge((self, mesh), merge_points=merge_points, main_has_priority=False)
         super().__init__(merged)

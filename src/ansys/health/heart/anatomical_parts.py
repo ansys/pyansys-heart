@@ -36,7 +36,7 @@ class Septum(Part):
         super().__init__(name=name, part_type=PartType.SEPTUM)
 
 
-class Chamber(Part):
+class _Chamber(Part):
     """Intermediate class for heart chambers with endocardium and epicardium."""
 
     def __init__(self, name: str = None, part_type: PartType = None):
@@ -47,6 +47,9 @@ class Chamber(Part):
         """Epicardial surface."""
         self.septum = SurfaceMesh(name="{0} endocardium septum".format(self.name))
         """Septal part."""
+
+        self.myocardium = Part(name="myocardium", part_type=PartType.MYOCARDIUM)
+        """Myocardial part."""
 
         self.caps: list[Cap] = []
         """List of caps belonging to the part."""
@@ -59,7 +62,7 @@ class Chamber(Part):
         """Flag indicating if fiber/sheet data should be included."""
 
 
-class Ventricle(Chamber):
+class Ventricle(_Chamber):
     """Ventricle part."""
 
     def __init__(self, name: str = None):
@@ -69,7 +72,7 @@ class Ventricle(Chamber):
         """List of apex points."""
 
 
-class Atrium(Chamber):
+class Atrium(_Chamber):
     """Atrium part."""
 
     def __init__(self, name: str = None):

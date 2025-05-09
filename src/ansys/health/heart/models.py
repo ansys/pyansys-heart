@@ -35,6 +35,7 @@ import pyvista as pv
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
+import ansys.health.heart.anatomical_parts as anatomy
 from ansys.health.heart.exceptions import InvalidHeartModelError
 from ansys.health.heart.objects import (
     Cap,
@@ -254,9 +255,6 @@ class HeartModel:
 
         self._input: _InputModel = None
         """Input model."""
-
-        self._add_subparts()
-        """Add any subparts."""
 
         self._set_part_ids()
         """Set incremental part IDs."""
@@ -912,13 +910,6 @@ class HeartModel:
             p.pid = c
             c += 1
 
-    def _add_subparts(self) -> None:
-        """Add subparts to parts of type ventricle."""
-        for part in self.parts:
-            if part.part_type in [PartType.VENTRICLE]:
-                part._add_myocardium_part()
-        return
-
     def _get_used_element_ids(self) -> np.ndarray:
         """Get an array of used element IDs."""
         element_ids = np.empty(0, dtype=int)
@@ -1420,7 +1411,7 @@ class HeartModel:
         from ansys.health.heart.utils.landmark_utils import compute_anatomy_axis
 
         try:
-            left_ventricle: Part = self.left_ventricle
+            left_ventricle: anatomy.Ventricle = self.left_ventricle
 
         except AttributeError:
             LOGGER.info("Left ventricle part does not exist to build anatomical axis.")
@@ -1690,7 +1681,7 @@ class LeftVentricle(HeartModel):
     """Model of only the left ventricle."""
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
+        self.left_ventricle: Part = anatomy.Ventricle(name="Left ventricle")
         """Left ventricle part."""
         # remove septum - not used in left ventricle only model
         del self.left_ventricle.septum
@@ -1706,11 +1697,11 @@ class BiVentricle(HeartModel):
     """Model of the left and right ventricles."""
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
+        self.left_ventricle: Part = anatomy.Ventricle(name="Left ventricle")
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
+        self.right_ventricle: Part = anatomy.Ventricle(name="Right ventricle")
         """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
+        self.septum: Part = anatomy.Septum(name="Septum")
         """Septum."""
 
         self.left_ventricle.fiber = True
@@ -1728,16 +1719,16 @@ class FourChamber(HeartModel):
     """Model of the left/right ventricle and left/right atrium."""
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
+        self.left_ventricle: Part = anatomy.Ventricle(name="Left ventricle")
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
+        self.right_ventricle: Part = anatomy.Ventricle(name="Right ventricle")
         """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
+        self.septum: Part = anatomy.Septum(name="Septum")
         """Septum."""
 
-        self.left_atrium: Part = Part(name="Left atrium", part_type=PartType.ATRIUM)
+        self.left_atrium: Part = anatomy.Atrium(name="Left atrium")
         """Left atrium part."""
-        self.right_atrium: Part = Part(name="Right atrium", part_type=PartType.ATRIUM)
+        self.right_atrium: Part = anatomy.Atrium(name="Right atrium")
         """Right atrium part."""
 
         self.left_ventricle.fiber = True
@@ -1761,20 +1752,20 @@ class FullHeart(FourChamber):
     """Model of both ventricles, both atria, the aorta, and the pulmonary artery."""
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
+        self.left_ventricle: Part = anatomy.Ventricle(name="Left ventricle")
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
+        self.right_ventricle: Part = anatomy.Ventricle(name="Right ventricle")
         """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
+        self.septum: Part = anatomy.Septum(name="Septum")
         """Septum."""
-        self.left_atrium: Part = Part(name="Left atrium", part_type=PartType.ATRIUM)
+        self.left_atrium: Part = anatomy.Atrium(name="Left atrium")
         """Left atrium part."""
-        self.right_atrium: Part = Part(name="Right atrium", part_type=PartType.ATRIUM)
+        self.right_atrium: Part = anatomy.Atrium(name="Right atrium")
         """Right atrium part."""
 
-        self.aorta: Part = Part(name="Aorta", part_type=PartType.ARTERY)
+        self.aorta: Part = anatomy.Artery(name="Aorta")
         """Aorta part."""
-        self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type=PartType.ARTERY)
+        self.pulmonary_artery: Part = anatomy.Artery(name="Pulmonary artery")
         """Pulmonary artery part."""
 
         self.left_ventricle.fiber = True
@@ -1799,7 +1790,3 @@ class FullHeart(FourChamber):
         super().__init__(working_directory=working_directory)
 
         pass
-
-
-if __name__ == "__main__":
-    print("Protected")

@@ -1247,6 +1247,8 @@ class Part:
         """Array holding element IDs that make up the part."""
         self.points: List[Point] = []
         """Points of interest belonging to the part."""
+        # TODO: refactor so that caps and cavity are only there in the relevant
+        # TODO: inherited parts.
         self.caps: List[Cap] = []
         """List of caps belonging to the part."""
         self.cavity: Cavity = None
@@ -1261,32 +1263,6 @@ class Part:
 
         self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
         """EP material model to assign in the simulator."""
-
-        """Cavity belonging to the part."""
-        if self.part_type in [PartType.VENTRICLE]:
-            self.apex_points: List[Point] = []
-            """Points on the apex."""
-
-        self._add_surfaces()
-
-    def _add_surfaces(self):
-        """Add surfaces to the part."""
-        if self.part_type in [PartType.VENTRICLE, PartType.ATRIUM]:
-            self.endocardium = SurfaceMesh(name="{0} endocardium".format(self.name))
-            """Endocardium."""
-            self.epicardium = SurfaceMesh(name="{0} epicardium".format(self.name))
-            """Epicardium."""
-            if self.part_type == PartType.VENTRICLE:
-                self.septum = SurfaceMesh(name="{0} endocardium septum".format(self.name))
-                """Septum surface."""
-        elif self.part_type in [PartType.ARTERY]:
-            self.wall = SurfaceMesh(name="{0} wall".format(self.name))
-            """Wall."""
-        return
-
-    def _add_myocardium_part(self):
-        self.myocardium = Part(name="myocardium", part_type=PartType.MYOCARDIUM)
-        return
 
     def _get_info(self):
         """Get part information to reconstruct from a mesh file."""

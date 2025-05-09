@@ -23,8 +23,8 @@
 
 from dataclasses import dataclass
 
+from ansys.health.heart.anatomical_parts import _Chamber
 from ansys.health.heart.models import BiVentricle, FourChamber, HeartModel, LeftVentricle
-from ansys.health.heart.objects import Part
 from ansys.health.heart.writer.define_function_templates import _define_function_0d_system
 
 
@@ -50,7 +50,7 @@ class CVInteraction:
 class ControlVolume:
     """Template to define control volume."""
 
-    part: Part
+    part: _Chamber
     id: int
     Interactions: list[CVInteraction]
 

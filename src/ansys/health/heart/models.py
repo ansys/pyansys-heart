@@ -36,6 +36,7 @@ import yaml
 
 from ansys.health.heart import LOG as LOGGER
 import ansys.health.heart.anatomical_parts as anatomy
+from ansys.health.heart.anatomical_parts import _Chamber
 from ansys.health.heart.exceptions import InvalidHeartModelError
 from ansys.health.heart.objects import (
     Cap,
@@ -167,7 +168,12 @@ class HeartModel:
     @property
     def cavities(self) -> List[Cavity]:
         """List of all cavities in the model."""
-        return [part.cavity for part in self.parts if part.cavity]
+        return [part.cavity for part in self.parts if isinstance(part, _Chamber) if part.cavity]
+
+    @property
+    def all_caps(self) -> list[Cap]:
+        """List of all caps in the model."""
+        return [cap for part in self.parts if isinstance(part, _Chamber) for cap in part.caps]
 
     @property
     def part_name_to_part_id(self) -> dict:
@@ -1193,7 +1199,9 @@ class HeartModel:
         idoffset = 1000  # TODO: need to improve id checking
         ii = 0
 
-        for part in self.parts:
+        parts_with_cavities = [p for p in self.parts if isinstance(p, anatomy._Chamber)]
+
+        for part in parts_with_cavities:
             if not hasattr(part, "endocardium"):
                 continue
 
@@ -1280,7 +1288,9 @@ class HeartModel:
         boundaries_to_check = [
             s for s in self.mesh._surfaces if "valve" in s.name or "inlet" in s.name
         ]
-        for part in self.parts:
+        parts_with_caps = [p for p in self.parts if isinstance(p, anatomy._Chamber)]
+
+        for part in parts_with_caps:
             for cap in part.caps:
                 cap_mesh = self.mesh.get_surface_by_name(cap.name)
                 for b in boundaries_to_check:
@@ -1309,7 +1319,8 @@ class HeartModel:
 
     def _validate_cap_names(self):
         """Validate that caps are attached to the right part."""
-        for part in self.parts:
+        parts_with_caps = [p for p in self.parts if isinstance(p, anatomy._Chamber)]
+        for part in parts_with_caps:
             cap_types = [c.type for c in part.caps]
             if part.name == "Left ventricle":
                 expected_cap_types = [

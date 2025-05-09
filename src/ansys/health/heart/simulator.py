@@ -63,7 +63,7 @@ from ansys.health.heart.post.laplace_post import (
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.settings import DynaSettings, SimulationSettings
 from ansys.health.heart.utils.misc import _read_orth_element_kfile
-import ansys.health.heart.writer.dynawriter as writers
+import ansys.health.heart.writer as writers
 
 _KILL_ANSYSCL_PRIOR_TO_RUN = True
 """Flag indicating whether to kill all Ansys license clients prior to an LS-DYNA run."""

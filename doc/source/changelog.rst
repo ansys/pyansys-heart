@@ -7,7 +7,7 @@ Release notes
 
 .. towncrier release notes start
 
-`0.12.1 <https://github.com/ansys/pyansys-heart/releases/tag/v0.12.1>`_ (May 07, 2025)
+`0.12.2 <https://github.com/ansys/pyansys-heart/releases/tag/v0.12.2>`_ (May 08, 2025)
 ======================================================================================
 
 .. tab-set::
@@ -67,6 +67,9 @@ Release notes
 
         * - force update node mesh ID in laplacewriter
           - `#1079 <https://github.com/ansys/pyansys-heart/pull/1079>`_
+
+        * - convert int64 data to int32 for visualization
+          - `#1097 <https://github.com/ansys/pyansys-heart/pull/1097>`_
 
         * - changelog actions version in release ci
           - `#1099 <https://github.com/ansys/pyansys-heart/pull/1099>`_

@@ -1199,10 +1199,11 @@ class HeartModel:
     def _assign_cavities_to_parts(self) -> None:
         """Create cavities based on endocardium surfaces and cap definitions."""
         # construct cavities with endocardium and caps
-        idoffset = 1000  # TODO: need to improve id checking
-        ii = 0
+        starting_id = int(np.sort(self.mesh.surface_ids)[-1] + 1)
+        starting_cap_id = int((starting_id // 1000 + 2) * 1000)
+        iii = 0
 
-        for part in self.parts:
+        for ii, part in enumerate(self.parts):
             if not hasattr(part, "endocardium"):
                 continue
 
@@ -1222,7 +1223,7 @@ class HeartModel:
             surface.name = part.name + " cavity"
 
             # save this cavity mesh to the centralized mesh object
-            surface.id = int(np.sort(self.mesh.surface_ids)[-1] + 1)  # get unique ID.
+            surface.id = starting_id + ii  # get unique id.
 
             # Generate patches that close the surface.
             patches = vtk_utils.get_patches_with_centroid(surface)
@@ -1232,12 +1233,12 @@ class HeartModel:
             # TODO: Note that points come from surface, and does not contain all points in the mesh.
             # Create Cap objects with patches.
             for patch in patches:
-                ii += 1
+                iii += 1
 
-                cap_name = f"cap_{ii}_{part.name}"
+                cap_name = f"cap_{iii}_{part.name}"
 
                 # create cap: NOTE, mostly for compatibility. Could simplify further
-                cap_mesh = SurfaceMesh(patch.clean(), name=cap_name, id=ii + idoffset)
+                cap_mesh = SurfaceMesh(patch.clean(), name=cap_name, id=starting_cap_id + iii)
 
                 # Add cap to main mesh.
                 self.mesh.add_surface(cap_mesh, id=cap_mesh.id, name=cap_name)

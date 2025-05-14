@@ -47,14 +47,9 @@ html_theme_options = {
     "ansys_sphinx_theme_autoapi": {
         "project": project,
         "ignore": [
-            "*writer*",
+            # ignore all files under the ``writer`` subpackage.
+            "*heart/writer/**/*",
             "*misc*",
-            "*custom_keywords*",
-            "*system_models.py",
-            "*define_function_templates.py",
-            "*heart_decks.py",
-            "*keyword_utils.py",
-            "*material_keywords.py",
         ],
     },
 }
@@ -71,6 +66,11 @@ extensions = [
     "sphinx_jinja",
     "sphinx.ext.autodoc",
     "ansys_sphinx_theme.extension.autoapi",
+    # the following are required for pyvista interactive figures.
+    # https://docs.pyvista.org/extras/plot_directive.html
+    "pyvista.ext.plot_directive",
+    "pyvista.ext.viewer_directive",
+    "sphinx_design",
 ]
 
 # static path
@@ -132,10 +132,12 @@ print(f"Run long examples: {nightly_docs}")
 
 if nightly_docs:
     # executes all examples, including the time-intensive ones.
-    gallery_filename_pattern = r".*\.py"
+    gallery_filename_pattern = r".*(\.py)(?<!_ignore\.py)"
+    warn_on_example_fail = True
 else:
     # only executes examples with suffix _pr.py
     gallery_filename_pattern = r".*(_pr\.py)"
+    warn_on_example_fail = False
 
 sphinx_gallery_conf = {
     # convert rst to md for ipynb
@@ -143,7 +145,11 @@ sphinx_gallery_conf = {
     # path to your examples scripts
     "examples_dirs": "../../examples",
     # order the subsections in the gallery
-    "subsection_order": ["../../examples/preprocessor", "../../examples/simulator"],
+    "subsection_order": [
+        "../../examples/preprocessor",
+        "../../examples/simulator",
+        "../../examples/postprocessor",
+    ],
     # path where to save gallery generated examples
     "gallery_dirs": "examples",
     # Pattern to search for example files to execute.
@@ -160,6 +166,8 @@ sphinx_gallery_conf = {
     "ignore_pattern": r"__init__\.py",
     "thumbnail_size": (320, 240),
     "remove_config_comments": True,
+    # Do not fail doc build on example errors
+    "only_warn_on_example_error": warn_on_example_fail,
 }
 
 # Configuration for Sphinx autoapi

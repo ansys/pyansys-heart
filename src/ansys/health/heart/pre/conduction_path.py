@@ -75,7 +75,7 @@ class ConductionPathType(Enum):
 
 
 class ConductionPath:
-    """ConductionPath class."""
+    """Conduction path class."""
 
     def __init__(
         self,
@@ -101,7 +101,7 @@ class ConductionPath:
         is_connected : np.ndarray
             Mask array of points connected to solid mesh.
         relying_surface : pv.PolyData
-            Surface mesh where the conduction path is relying on.
+            Surface mesh that the conduction path is relying on.
         material : EPMaterial, default: EPMaterial.DummyMaterial()
             EP Material property.
         up_path : ConductionPath | None, default: None
@@ -217,8 +217,8 @@ class ConductionPath:
         id : int
             ID of the conduction path.
         base_mesh : pv.PolyData | pv.UnstructuredGrid
-            Base mesh where the conductionn path is created. If PolyData, then the
-            result is a geodesic path on the surface. If an pv.UnstructuredGrid, then the
+            Base mesh where the conductionn path is created. If ``PolyData``, then the
+            result is a geodesic path on the surface. If ``pv.UnstructuredGrid``, then the
             result the shortest path in the solid.
         connection : Literal[&quot;none&quot;, &quot;first&quot;, &quot;last&quot;, &quot;all&quot;]
         , default: "none"
@@ -229,7 +229,7 @@ class ConductionPath:
         Returns
         -------
         ConductionPath
-            ConductionPath.
+            Conduction path.
         """
         if isinstance(base_mesh, pv.PolyData):
             under_surface = base_mesh
@@ -255,7 +255,7 @@ class ConductionPath:
         id: int,
         base_mesh: pv.PolyData,
         model,
-        merge_apex: bool = False,
+        merge_apex: bool = True,
     ) -> ConductionPath:
         """Build conduction path from LS-DYNA k-file.
 
@@ -268,16 +268,16 @@ class ConductionPath:
         id : int
             ID of the conduction path.
         base_mesh : pv.PolyData
-            Surface mesh where the conduction path is relying on.
+            Surface mesh that the conduction path is relying on.
         model : HeartModel
             HeartModel object.
-        merge_apex : bool, default: False
-            If True, merge apex node with the solid mesh.
+        merge_apex : bool, default: True
+            Whether to merge the apex node with the solid mesh.
 
         Returns
         -------
         ConductionPath
-            Conduction path object.
+            Conduction path.
         """
         # The method is now unnecessarily complex to build polydata of path,
         # we can just read solid + beam nodes and beam elements, then build it

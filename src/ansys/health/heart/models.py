@@ -29,6 +29,7 @@ import pathlib
 import re
 from typing import List, Literal, Union
 
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 import yaml
@@ -44,6 +45,7 @@ from ansys.health.heart.objects import (
     PartType,
     Point,
     SurfaceMesh,
+    _convert_int64_to_int32,
 )
 from ansys.health.heart.pre.conduction_path import (
     ConductionPath,
@@ -282,12 +284,12 @@ class HeartModel:
 
     @property
     def conduction_paths(self):
-        """Return the list of conduction path."""
+        """List of conduction paths."""
         return self._conduction_paths
 
     @property
     def conduction_mesh(self):
-        """Return the conduction mesh."""
+        """Conduction mesh."""
         return self._conduction_mesh
 
     def assign_conduction_paths(self, paths: ConductionPath | list[ConductionPath]):
@@ -296,11 +298,11 @@ class HeartModel:
         Parameters
         ----------
         beams : ConductionBeams | list[ConductionBeams]
-            list of conduction beams.
+            List of conduction beams.
 
         Notes
         -----
-        If conduction paths are already defined, they will be removed.
+        If conduction paths are already defined, they are removed.
         """
         if isinstance(paths, ConductionPath):
             paths = [paths]
@@ -390,7 +392,7 @@ class HeartModel:
         Returns
         -------
         Union[None, Part]
-           Part if successful
+           Part if successful.
         """
         if len(eids) == 0:
             LOGGER.error(f"Failed to create {name}. Element list is empty.")
@@ -483,13 +485,13 @@ class HeartModel:
         -----
         When the input surfaces are non-manifold, the wrapper tries
         to reconstruct the surface and parts. Inevitably this leads to
-        reconstruction errors. Nevertheless, in many instances this approach is
+        reconstruction errors. Nevertheless, in many instances, this approach is
         more robust than meshing from a manifold surface. Moreover, any clear interface
         between parts is potentially lost.
 
-        When the ``mesh_size_per_part`` is incomplete, remaining part sizes default to the
-        global mesh size. This is an experimental setting. Any wrap sizes given
-        as input arguments are ignored when the wrapper is not used.
+        When the ``mesh_size_per_part`` attribute is incomplete, remaining part sizes
+        default to the global mesh size. This is an experimental setting. Any wrap
+        sizes given as input arguments are ignored when the wrapper is not used.
         """
         if not path_to_fluent_mesh:
             path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")
@@ -703,7 +705,7 @@ class HeartModel:
             )
             return None
         tubes = streamlines.tube()
-        plotter.add_mesh(mesh, opacity=0.5, color="white")
+        plotter.add_mesh(mesh.extract_surface(), opacity=0.5, color="white")
         plotter.add_mesh(tubes, color="white")
         plotter.show()
         return plotter
@@ -714,9 +716,12 @@ class HeartModel:
         Examples
         --------
         Import modules and load model.
+
         >>> import ansys.health.heart.models as models
         >>> model = models.HeartModel.load_model("my_model.pickle")
-        Plot the model
+
+        Plot the model.
+
         >>> model.plot(show_edges=True)
         """
         try:
@@ -824,6 +829,8 @@ class HeartModel:
         # try to load the mesh.
         self.mesh.load_mesh(filename_mesh)
 
+        self.mesh = _convert_int64_to_int32(self.mesh, ["_volume-id", "_surface-id", "_line-id"])
+
         # open part info
         with open(filename_part_info, "r") as f:
             self._part_info = json.load(f)
@@ -920,21 +927,22 @@ class HeartModel:
 
         return element_ids
 
-    def _update_parts(self):
-        """Update the parts using the meshed volume.
+    def update(self):
+        """Update the model and add required features.
 
         Notes
         -----
-        1. Extracts septum.
-        2. Updates parts to include element IDs of the respective part.
-        3. Assigns surfaces to each part.
-        4. Extracts the closing caps.
-        5. Creates cavities.
-        6. Extracts apical points.
-        7. Computes left-ventricle axis.
-        8. Computes left-ventricle 17 segments.
-        9. Adds nodal areas.
-        10. Adds surface normals to boundaries.
+        - Synchronize input parts to model parts.
+        - Extract septum elements from the left ventricle.
+        - Assign elements to parts.
+        - Assign surfaces to each part.
+        - Validate parts and surfaces.
+        - Assign cavities to parts.
+        - Update cap types.
+        - Validate cap names.
+        - Extract apical points.
+        - Compute heart axis.
+        - Add placeholder data for fiber and sheet directions.
         """
         self._sync_input_parts_to_model_parts()
 
@@ -952,6 +960,22 @@ class HeartModel:
         self._extract_apex()
         self._define_anatomy_axis()
 
+        self._add_placeholder_data_fiber_sheet_directions()
+
+        self._get_parts_info()
+
+        self.mesh = _convert_int64_to_int32(self.mesh, ["_volume-id", "_surface-id", "_line-id"])
+
+        return
+
+    @deprecated(reason="Use the public method `update` instead.")
+    def _update_parts(self):
+        """Update the parts using the meshed volume."""
+        self.update()
+        return
+
+    def _add_placeholder_data_fiber_sheet_directions(self) -> None:
+        """Add placeholder data for fiber and sheet directions."""
         if "fiber" not in self.mesh.array_names:
             LOGGER.debug("Adding placeholder for fiber direction.")
             fiber = np.tile([[0.0, 0.0, 1.0]], (self.mesh.n_cells, 1))
@@ -961,9 +985,6 @@ class HeartModel:
             LOGGER.debug("Adding placeholder for sheet direction.")
             sheet = np.tile([[0.0, 1.0, 1.0]], (self.mesh.n_cells, 1))
             self.mesh.cell_data["sheet"] = sheet
-
-        self._get_parts_info()
-
         return
 
     def _sync_input_parts_to_model_parts(self):

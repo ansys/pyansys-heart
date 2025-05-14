@@ -6,8 +6,11 @@ API
 (?i)ansys
 (?i)heart
 (?i)preprocessor
+(?i)preprocess
 Purkinje
 (?i)postprocessor
+(?i)postprocess
+(?i)postprocessing
 (?i)YAML
 Costabal
 Documentarians
@@ -45,3 +48,13 @@ Tox
 namespace
 subpackages
 venv
+transmembrane
+mpiexec
+mpirun
+numpy
+pyvista
+pre
+intelmpi
+Klotz
+mmHg
+afterload

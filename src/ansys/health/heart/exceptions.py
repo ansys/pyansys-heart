@@ -26,8 +26,10 @@
 class LSDYNATerminationError(BaseException):
     """Exception raised when ``Normal Termination`` is not found in the LS-DYNA logs."""
 
-    def __init__(self):
-        super().__init__("The LS-DYNA process did not terminate as expected.")
+    def __init__(self, message: str | list = ""):
+        if isinstance(message, list):
+            message = "".join(message)
+        super().__init__(f"The LS-DYNA process did not terminate as expected: {message}")
 
 
 class DatabaseNotSupportedError(NotImplementedError):
@@ -57,8 +59,8 @@ class InvalidHeartModelError(Exception):
 
 
 class LSDYNANotFoundError(FileNotFoundError):
-    """Exception raised when the LS-DYNA executable file not found."""
+    """Exception raised when the LS-DYNA executable file is not found."""
 
 
 class MPIProgamNotFoundError(FileNotFoundError):
-    """MPI program not found."""
+    """Exception raised when MPI program is not found."""

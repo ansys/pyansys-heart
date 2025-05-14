@@ -337,6 +337,7 @@ def _smooth_boundary_edges(
     id_to_label_map,
     sub_label_to_smooth: str = "endocardium",
     window_size: int = 5,
+    project_edge_loop: bool = True,
 ) -> tuple[pv.PolyData, list]:
     """Smooth edges of surfaces that match the label string.
 
@@ -347,9 +348,11 @@ def _smooth_boundary_edges(
     id_to_label_map : dict
         ID to label map.
     sub_label_to_smooth : str, default: ``'endocardium'``
-        Sublabel to smooth.
+        Select labels where this sub string is present.
     window_size : int, default: 5
         Window size of the smoothing method.
+    project_edge_loop : bool, default: True
+        Whether to project the edge loop to a repesentative plane before smoothing.
 
     Returns
     -------
@@ -392,9 +395,9 @@ def _smooth_boundary_edges(
                     continue
 
                 # project points
-                edges.points
-                new_points = geodisc.project_3d_points(edges.points)[0]
-                edges.points = new_points
+                if project_edge_loop:
+                    new_points = geodisc.project_3d_points(edges.points)[0]
+                    edges.points = new_points
 
                 sorted_points = edges.points[sorted_edges_array[:, 0], :]
 

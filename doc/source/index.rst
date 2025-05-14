@@ -48,6 +48,11 @@ PyAnsys Heart is a `Python`_ framework for heart modeling using Ansys tools.
 
       View the changelog for PyAnsys Heart.
 
+   .. grid-item-card:: :material-regular:`thumb_up;1.25em` Acknowledgements
+      :link: acknowledgements
+      :link-type: doc
+
+      Give proper credit to the data used in this repository.
 
 .. toctree::
    :hidden:
@@ -59,3 +64,4 @@ PyAnsys Heart is a `Python`_ framework for heart modeling using Ansys tools.
    examples/index
    contributing
    changelog
+   acknowledgements

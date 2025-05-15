@@ -234,7 +234,7 @@ def interpolate_slerp(
     # legal test
     norm = np.linalg.norm(source_vec, axis=1)
     if not np.allclose(norm, 1.0):
-        raise TypeError("Slerp interpolation must be used for unit vectors.")
+        raise TypeError("Slerp interpolation requires unit vectors.")
 
     # Build a KD-tree once
     tree = cKDTree(source_pos)

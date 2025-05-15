@@ -93,9 +93,13 @@ def test_plot_aha_bullseye():
     fig = plt.figure(figsize=(10, 5), layout="constrained")
     fig.get_layout_engine().set(wspace=0.1, w_pad=0.2)
     axs = fig.subplots(1, 1, subplot_kw=dict(projection="polar"))
-    # NOTE: just for line coverage: no assertion done here to check validity
-    # NOTE: of result.
-    AhaStrainCalculator.bullseye(axs, data)
+    # NOTE: just for line coverage: no assertion done here to check validity of the plot.
+    AhaStrainCalculator.bullseye_17_segments(axs, data)
+
+    # Method should fail with 16 data points.
+    data = np.arange(16)
+    with pytest.raises(ValueError):
+        AhaStrainCalculator.bullseye_17_segments(axs, data)
 
 
 @pytest.mark.requires_dpf

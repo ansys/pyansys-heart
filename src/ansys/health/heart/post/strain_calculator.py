@@ -302,7 +302,7 @@ class AhaStrainCalculator:
         return strain, aha_strain, averaged_strain
 
     @staticmethod
-    def bullseye_plot(ax, data, seg_bold=None, cmap=None, norm=None) -> None:
+    def bullseye(ax, data, cmap: mpl.colors.ListedColormap = None) -> None:
         """Plot bullseye representation for the left ventricle.
 
         Parameters
@@ -310,12 +310,8 @@ class AhaStrainCalculator:
         ax : axes
         data : list of int and float
             Intensity values for each of the 17 segments.
-        seg_bold : list of int, default: None
-            List with the segments to highlight.
         cmap : ColorMap or None, default: None
             Optional argument to set the desired colormap.
-        norm : Normalize or None, default: None
-            Optional argument to normalize data into the [0.0, 1.0] range.
 
         Notes
         -----
@@ -333,105 +329,70 @@ class AhaStrainCalculator:
             nomenclature for tomographic imaging of the heart",
             Circulation, vol. 105, no. 4, pp. 539-542, 2002.
         """
-        if seg_bold is None:
-            seg_bold = []
-
         linewidth = 2
+
         data = np.ravel(data)
 
         if cmap is None:
             cmap = plt.cm.viridis
 
-        if norm is None:
-            norm = mpl.colors.Normalize(vmin=data.min(), vmax=data.max())
-
         theta = np.linspace(0, 2 * np.pi, 768)
-        r = np.linspace(0.2, 1, 4)
+        radii = np.linspace(0.2, 1, 4)
 
         # Remove grid
         ax.grid(False)
 
-        # Create the bound for the segment 17
-        for i in range(r.shape[0]):
-            ax.plot(theta, np.repeat(r[i], theta.shape), "-k", lw=linewidth)
+        # Create the bounds for segment 17
+        for ii in range(radii.shape[0]):
+            ax.plot(theta, np.repeat(radii[ii], theta.shape), "-k", lw=linewidth)
 
-        # Create the bounds for the segments 1-12
-        for i in range(6):
-            theta_i = np.deg2rad(i * 60)
-            ax.plot([theta_i, theta_i], [r[1], 1], "-k", lw=linewidth)
+        # Create the bounds for segments 1-12
+        for ii in range(6):
+            theta_i = np.deg2rad(ii * 60)
+            ax.plot([theta_i, theta_i], [radii[1], 1], "-k", lw=linewidth)
 
-        # Create the bounds for the segments 13-16
-        for i in range(4):
-            theta_i = np.deg2rad(i * 90 - 45)
-            ax.plot([theta_i, theta_i], [r[0], r[1]], "-k", lw=linewidth)
+        # Create the bounds for segments 13-16
+        for ii in range(4):
+            theta_i = np.deg2rad(ii * 90 - 45)
+            ax.plot([theta_i, theta_i], [radii[0], radii[1]], "-k", lw=linewidth)
 
-        # Fill the segments 1-6
-        r0 = r[2:4]
+        # Fill segments 1-6
+        r0 = radii[2:4]
         r0 = np.repeat(r0[:, np.newaxis], 128, axis=1).T
-        for i in range(6):
+        for ii in range(6):
             # First segment start at 60 degrees
-            theta0 = theta[i * 128 : i * 128 + 128] + np.deg2rad(60)
+            theta0 = theta[ii * 128 : ii * 128 + 128] + np.deg2rad(60)
             theta0 = np.repeat(theta0[:, np.newaxis], 2, axis=1)
-            # for color fill
-            # z = np.ones((128, 2)) * data[i]
-            # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
+            # print value to segment.
+            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[ii]), fontsize=12)
 
-            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[i]), fontsize=12)
-
-            if i + 1 in seg_bold:
-                ax.plot(theta0, r0, "-k", lw=linewidth + 2)
-                ax.plot(theta0[0], [r[2], r[3]], "-k", lw=linewidth + 1)
-                ax.plot(theta0[-1], [r[2], r[3]], "-k", lw=linewidth + 1)
-
-        # Fill the segments 7-12
-        r0 = r[1:3]
+        # Fill segments 7-12
+        r0 = radii[1:3]
         r0 = np.repeat(r0[:, np.newaxis], 128, axis=1).T
-        for i in range(6):
+        for ii in range(6):
             # First segment start at 60 degrees
-            theta0 = theta[i * 128 : i * 128 + 128] + np.deg2rad(60)
+            theta0 = theta[ii * 128 : ii * 128 + 128] + np.deg2rad(60)
             theta0 = np.repeat(theta0[:, np.newaxis], 2, axis=1)
-            # for color fill
-            # z = np.ones((128, 2)) * data[i + 6]
-            # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
-
-            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[i + 6]), fontsize=12)
-
-            if i + 7 in seg_bold:
-                ax.plot(theta0, r0, "-k", lw=linewidth + 2)
-                ax.plot(theta0[0], [r[1], r[2]], "-k", lw=linewidth + 1)
-                ax.plot(theta0[-1], [r[1], r[2]], "-k", lw=linewidth + 1)
+            # print value to segment.
+            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[ii + 6]), fontsize=12)
 
         # Fill the segments 13-16
-        r0 = r[0:2]
+        r0 = radii[0:2]
         r0 = np.repeat(r0[:, np.newaxis], 192, axis=1).T
-        for i in range(4):
+        for ii in range(4):
             # First segment start at 45 degrees
-            theta0 = theta[i * 192 : i * 192 + 192] + np.deg2rad(45)
+            theta0 = theta[ii * 192 : ii * 192 + 192] + np.deg2rad(45)
             theta0 = np.repeat(theta0[:, np.newaxis], 2, axis=1)
-            # for color fill
-            # z = np.ones((192, 2)) * data[i + 12]
-            # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
-
-            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[i + 12]), fontsize=12)
-
-            if i + 13 in seg_bold:
-                ax.plot(theta0, r0, "-k", lw=linewidth + 2)
-                ax.plot(theta0[0], [r[0], r[1]], "-k", lw=linewidth + 1)
-                ax.plot(theta0[-1], [r[0], r[1]], "-k", lw=linewidth + 1)
+            # print value to segment.
+            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[ii + 12]), fontsize=12)
 
         # Fill the segments 17
         if data.size == 17:
-            r0 = np.array([0, r[0]])
+            r0 = np.array([0, radii[0]])
             r0 = np.repeat(r0[:, np.newaxis], theta.size, axis=1).T
             theta0 = np.repeat(theta[:, np.newaxis], 2, axis=1)
-            # for color fill
-            # z = np.ones((theta.size, 2)) * data[16]
-            # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
-
+            # print value to segment.
             ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[16]), fontsize=12)
-
-            if 17 in seg_bold:
-                ax.plot(theta0, r0, "-k", lw=linewidth + 2)
 
         ax.set_ylim([0, 1])
         ax.set_yticklabels([])

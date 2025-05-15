@@ -1,6 +1,6 @@
 .. _acknowledgements:
 
-Acknowledgements and Attribution
+Acknowledgements and attribution
 ################################
 
 This project uses and modifies data from the following sources:

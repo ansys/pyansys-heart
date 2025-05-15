@@ -643,22 +643,21 @@ class LaplaceWriter(BaseDynaWriter):
         combined_av_mv = False  # combined mitral and aortic valve
         mv_nodes = av_nodes = tv_nodes = pv_nodes = None
 
-        for part in self.model.parts:
-            for cap in part.caps:
-                cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
-                if cap.type == CapType.MITRAL_VALVE:
-                    mv_nodes = cap.global_node_ids_edge
-                if cap.type == CapType.AORTIC_VALVE:
-                    av_nodes = cap.global_node_ids_edge
-                if cap.type == CapType.COMBINED_MITRAL_AORTIC_VALVE:
-                    mv_nodes = av_nodes = cap.global_node_ids_edge
-                    combined_av_mv = True
+        for cap in self.model.all_caps:
+            cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
+            if cap.type == CapType.MITRAL_VALVE:
+                mv_nodes = cap.global_node_ids_edge
+            if cap.type == CapType.AORTIC_VALVE:
+                av_nodes = cap.global_node_ids_edge
+            if cap.type == CapType.COMBINED_MITRAL_AORTIC_VALVE:
+                mv_nodes = av_nodes = cap.global_node_ids_edge
+                combined_av_mv = True
 
-                if not isinstance(self.model, LeftVentricle):
-                    if cap.type == CapType.TRICUSPID_VALVE:
-                        tv_nodes = cap.global_node_ids_edge
-                    if cap.type == CapType.PULMONARY_VALVE:
-                        pv_nodes = cap.global_node_ids_edge
+            if not isinstance(self.model, LeftVentricle):
+                if cap.type == CapType.TRICUSPID_VALVE:
+                    tv_nodes = cap.global_node_ids_edge
+                if cap.type == CapType.PULMONARY_VALVE:
+                    pv_nodes = cap.global_node_ids_edge
 
         return (pv_nodes, tv_nodes, av_nodes, mv_nodes), combined_av_mv
 

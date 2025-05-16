@@ -31,7 +31,6 @@ import pyvista as pv
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.utils.connectivity import face_tetra_connectivity
-import ansys.health.heart.utils.misc as geodisc
 
 
 def _read_input_mesh(mesh_path: str, database: str) -> pv.UnstructuredGrid:
@@ -337,6 +336,7 @@ def _smooth_boundary_edges(
     id_to_label_map,
     sub_label_to_smooth: str = "endocardium",
     window_size: int = 5,
+    project_edge_loop: bool = True,
 ) -> tuple[pv.PolyData, list]:
     """Smooth edges of surfaces that match the label string.
 
@@ -347,9 +347,11 @@ def _smooth_boundary_edges(
     id_to_label_map : dict
         ID to label map.
     sub_label_to_smooth : str, default: ``'endocardium'``
-        Sublabel to smooth.
+        Select labels where this sub string is present.
     window_size : int, default: 5
         Window size of the smoothing method.
+    project_edge_loop : bool, default: True
+        Whether to project the edge loop to a repesentative plane before smoothing.
 
     Returns
     -------
@@ -392,9 +394,18 @@ def _smooth_boundary_edges(
                     continue
 
                 # project points
-                edges.points
-                new_points = geodisc.project_3d_points(edges.points)[0]
-                edges.points = new_points
+                if project_edge_loop:
+                    # fit points through plane.
+                    _, plane_center, plane_normal = pv.fit_plane_to_points(
+                        edges.points, return_meta=True
+                    )
+                    # project points to the plane.
+                    new_points = (
+                        pv.PolyData(edges.points)
+                        .project_points_to_plane(plane_center, plane_normal)
+                        .points
+                    )
+                    edges.points = new_points
 
                 sorted_points = edges.points[sorted_edges_array[:, 0], :]
 

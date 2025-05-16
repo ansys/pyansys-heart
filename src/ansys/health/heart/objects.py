@@ -31,6 +31,7 @@ import os
 import pathlib
 from typing import List, Literal, Union
 
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 
@@ -1190,3 +1191,17 @@ class Mesh(pv.UnstructuredGrid):
         merged.point_data["_is-connected"] = np.hstack((point_data, new_point_data))
 
         return Mesh(merged)
+
+
+@deprecated(
+    reason="""Importing Part class with ``from ansys.health.heart.objects import Part``
+    is deprecated. Import with ``from ansys.health.heart.parts import Part`` instead.""",
+)
+class Part:
+    """Part class for backward compatibility."""
+
+    def __init__(self, *args, **kwargs):
+        from ansys.health.heart.parts import Part as RealPart
+
+        self.__class__ = RealPart
+        self.__init__(*args, **kwargs)

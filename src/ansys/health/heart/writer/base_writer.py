@@ -31,9 +31,9 @@ import pandas as pd
 
 from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.anatomical_parts import PartType, _Chamber
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.objects import SurfaceMesh
+from ansys.health.heart.parts import PartType, _Chamber
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings
 from ansys.health.heart.writer import custom_keywords as custom_keywords

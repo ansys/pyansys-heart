@@ -35,8 +35,6 @@ import pyvista as pv
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
-import ansys.health.heart.anatomical_parts as anatomy
-from ansys.health.heart.anatomical_parts import Part, PartType, _Chamber
 from ansys.health.heart.exceptions import InvalidHeartModelError
 from ansys.health.heart.objects import (
     Cap,
@@ -47,6 +45,8 @@ from ansys.health.heart.objects import (
     SurfaceMesh,
     _convert_int64_to_int32,
 )
+import ansys.health.heart.parts as anatomy
+from ansys.health.heart.parts import Part, PartType, _Chamber
 from ansys.health.heart.pre.conduction_path import (
     ConductionPath,
 )

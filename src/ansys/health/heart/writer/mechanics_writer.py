@@ -31,9 +31,9 @@ import pyvista as pv
 
 from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.anatomical_parts import PartType
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.objects import Cap, CapType, SurfaceMesh
+from ansys.health.heart.parts import PartType
 from ansys.health.heart.settings.material.material import (
     Mat295,
     MechanicalMaterialModel,

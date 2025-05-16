@@ -28,12 +28,12 @@ import pytest
 import pyvista as pv
 import pyvista.examples as examples
 
-from ansys.health.heart.anatomical_parts import Part, PartType
 from ansys.health.heart.models import FullHeart
 from ansys.health.heart.objects import (
     Mesh,
     Point,
 )
+from ansys.health.heart.parts import Part, PartType
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.settings import Mechanics, SimulationSettings, Stimulation
 import ansys.health.heart.writer as writers

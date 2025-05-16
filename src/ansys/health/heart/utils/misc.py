@@ -28,8 +28,8 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.anatomical_parts import _Chamber
 from ansys.health.heart.models import HeartModel
+from ansys.health.heart.parts import _Chamber
 
 
 def clean_directory(

@@ -142,7 +142,7 @@ class Septum(Part):
         super().__init__(name=name, part_type=PartType.SEPTUM)
 
 
-class _Chamber(Part):
+class Chamber(Part):
     """Intermediate class for heart chambers with endocardium and epicardium."""
 
     def __init__(self, name: str = None, part_type: PartType = None):
@@ -168,7 +168,7 @@ class _Chamber(Part):
         """Flag indicating if fiber/sheet data should be included."""
 
 
-class Ventricle(_Chamber):
+class Ventricle(Chamber):
     """Ventricle part."""
 
     def __init__(self, name: str = None):
@@ -178,7 +178,7 @@ class Ventricle(_Chamber):
         """List of apex points."""
 
 
-class Atrium(_Chamber):
+class Atrium(Chamber):
     """Atrium part."""
 
     def __init__(self, name: str = None):

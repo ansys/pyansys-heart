@@ -33,7 +33,7 @@ from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.objects import SurfaceMesh
-from ansys.health.heart.parts import PartType, _Chamber
+from ansys.health.heart.parts import Chamber, PartType
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings
 from ansys.health.heart.writer import custom_keywords as custom_keywords
@@ -379,7 +379,7 @@ class BaseDynaWriter:
         used_node_ids = np.empty(0, dtype=int)
 
         # add node-set for each cap
-        parts_with_caps = [part for part in self.model.parts if isinstance(part, _Chamber)]
+        parts_with_caps = [part for part in self.model.parts if isinstance(part, Chamber)]
         for part in parts_with_caps:
             for cap in self.model.all_caps:
                 # update cap mesh:

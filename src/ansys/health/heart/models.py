@@ -46,7 +46,7 @@ from ansys.health.heart.objects import (
     _convert_int64_to_int32,
 )
 import ansys.health.heart.parts as anatomy
-from ansys.health.heart.parts import Part, PartType, _Chamber
+from ansys.health.heart.parts import Chamber, Part, PartType
 from ansys.health.heart.pre.conduction_path import (
     ConductionPath,
 )
@@ -166,12 +166,12 @@ class HeartModel:
     @property
     def cavities(self) -> List[Cavity]:
         """List of all cavities in the model."""
-        return [part.cavity for part in self.parts if isinstance(part, _Chamber) if part.cavity]
+        return [part.cavity for part in self.parts if isinstance(part, Chamber) if part.cavity]
 
     @property
     def all_caps(self) -> list[Cap]:
         """List of all caps in the model."""
-        return [cap for part in self.parts if isinstance(part, _Chamber) for cap in part.caps]
+        return [cap for part in self.parts if isinstance(part, Chamber) for cap in part.caps]
 
     @property
     def part_name_to_part_id(self) -> dict:
@@ -872,7 +872,7 @@ class HeartModel:
                 pass
 
             # try to initialize cavity object.
-            if isinstance(part_1, _Chamber):
+            if isinstance(part_1, Chamber):
                 if part_info[part_1.name]["cavity"] != {}:
                     cavity_name = list(part_info[part_1.name]["cavity"].keys())[0]
                     cavity_id = list(part_info[part_1.name]["cavity"].values())[0]
@@ -1200,7 +1200,7 @@ class HeartModel:
         idoffset = 1000  # TODO: need to improve id checking
         ii = 0
 
-        parts_with_cavities = [p for p in self.parts if isinstance(p, anatomy._Chamber)]
+        parts_with_cavities = [p for p in self.parts if isinstance(p, anatomy.Chamber)]
 
         for part in parts_with_cavities:
             if not hasattr(part, "endocardium"):
@@ -1289,7 +1289,7 @@ class HeartModel:
         boundaries_to_check = [
             s for s in self.mesh._surfaces if "valve" in s.name or "inlet" in s.name
         ]
-        parts_with_caps = [p for p in self.parts if isinstance(p, anatomy._Chamber)]
+        parts_with_caps = [p for p in self.parts if isinstance(p, anatomy.Chamber)]
 
         for part in parts_with_caps:
             for cap in part.caps:
@@ -1320,7 +1320,7 @@ class HeartModel:
 
     def _validate_cap_names(self):
         """Validate that caps are attached to the right part."""
-        parts_with_caps = [p for p in self.parts if isinstance(p, anatomy._Chamber)]
+        parts_with_caps = [p for p in self.parts if isinstance(p, anatomy.Chamber)]
         for part in parts_with_caps:
             cap_types = [c.type for c in part.caps]
             if part.name == "Left ventricle":

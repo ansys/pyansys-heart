@@ -29,7 +29,7 @@ from scipy.spatial import cKDTree
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import HeartModel
-from ansys.health.heart.parts import _Chamber
+from ansys.health.heart.parts import Chamber
 
 
 def clean_directory(
@@ -110,7 +110,7 @@ def model_summary(model: HeartModel, attributes: list = None) -> dict:
                         )
                     except AttributeError:
                         pass
-        if isinstance(part, _Chamber):
+        if isinstance(part, Chamber):
             for cap in part.caps:
                 sum_dict["PARTS"][part.name]["CAPS"][cap.name] = {}
                 sum_dict["PARTS"][part.name]["CAPS"][cap.name]["num_nodes"] = len(

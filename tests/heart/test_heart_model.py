@@ -32,8 +32,9 @@ import pytest
 import pyvista as pv
 from pyvista import examples
 
+from ansys.health.heart.anatomical_parts import PartType
 import ansys.health.heart.models as models
-from ansys.health.heart.objects import Mesh, PartType
+from ansys.health.heart.objects import Mesh
 
 
 def test_set_workdir():

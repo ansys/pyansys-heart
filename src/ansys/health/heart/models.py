@@ -36,15 +36,13 @@ import yaml
 
 from ansys.health.heart import LOG as LOGGER
 import ansys.health.heart.anatomical_parts as anatomy
-from ansys.health.heart.anatomical_parts import _Chamber
+from ansys.health.heart.anatomical_parts import Part, PartType, _Chamber
 from ansys.health.heart.exceptions import InvalidHeartModelError
 from ansys.health.heart.objects import (
     Cap,
     CapType,
     Cavity,
     Mesh,
-    Part,
-    PartType,
     Point,
     SurfaceMesh,
     _convert_int64_to_int32,

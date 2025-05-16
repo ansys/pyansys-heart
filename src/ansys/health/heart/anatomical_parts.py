@@ -26,7 +26,113 @@ These classes extend the base Part class and provide specialized attributes for 
 heart structures.
 """
 
-from ansys.health.heart.objects import Cap, Cavity, Part, PartType, Point, SurfaceMesh
+from enum import Enum
+from typing import List
+
+import numpy as np
+
+from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.objects import Cap, Cavity, Point, SurfaceMesh
+from ansys.health.heart.settings.material.ep_material import EPMaterial
+from ansys.health.heart.settings.material.material import MechanicalMaterialModel
+
+
+class PartType(Enum):
+    """Stores valid part types."""
+
+    VENTRICLE = "ventricle"
+    ATRIUM = "atrium"
+    SEPTUM = "septum"
+    ARTERY = "artery"
+    MYOCARDIUM = "myocardium"
+    UNDEFINED = "undefined"
+
+
+class Part:
+    """Base part class."""
+
+    @property
+    def surfaces(self) -> List[SurfaceMesh]:
+        """List of surfaces belonging to the part."""
+        surfaces = []
+        for key, value in self.__dict__.items():
+            if isinstance(value, SurfaceMesh):
+                surfaces.append(value)
+        return surfaces
+
+    @property
+    def surface_names(self) -> List[str]:
+        """List of surface names belonging to the part."""
+        surface_names = []
+        for key, value in self.__dict__.items():
+            if isinstance(value, SurfaceMesh):
+                surface_names.append(value.name)
+        return surface_names
+
+    def get_point(self, pointname: str) -> Point:
+        """Get a point from the part."""
+        for point in self.points:
+            if point.name == pointname:
+                return point
+        LOGGER.error("Cannot find point {0:s}.".format(pointname))
+        return None
+
+    def __init__(self, name: str = None, part_type: PartType = PartType.UNDEFINED) -> None:
+        self.name = name
+        """Part name."""
+        self.pid = None
+        """Part ID."""
+        self.mid = None
+        """Material ID associated with the part."""
+        self.part_type: PartType = part_type
+        """Type of the part."""
+        self.element_ids: np.ndarray = np.empty((0, 4), dtype=int)
+        """Array holding element IDs that make up the part."""
+        self.points: List[Point] = []
+        """Points of interest belonging to the part."""
+
+        self.fiber: bool = False
+        """Flag indicating if the part has fiber/sheet data."""
+        self.active: bool = False
+        """Flag indicating if active stress is established."""
+
+        self.meca_material: MechanicalMaterialModel = MechanicalMaterialModel.DummyMaterial()
+        """Material model to assign in the simulator."""
+
+        self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
+        """EP material model to assign in the simulator."""
+
+    def _get_info(self):
+        """Get part information to reconstruct from a mesh file."""
+        info = {
+            self.name: {
+                "part-id": self.pid,
+                "part-type": self.part_type.value,
+                "surfaces": {},
+            }
+        }
+
+        info2 = {}
+        info2["surfaces"] = {}
+
+        for surface in self.surfaces:
+            if isinstance(surface, SurfaceMesh):
+                if surface.id:
+                    info2["surfaces"][surface.name] = surface.id
+
+        if hasattr(self, "caps"):
+            info2["caps"] = {}
+            for cap in self.caps:
+                info2["caps"][cap.name] = cap._mesh.id
+
+        if hasattr(self, "cavity"):
+            info2["cavity"] = {}
+            if self.cavity is not None:
+                info2["cavity"][self.cavity.surface.name] = self.cavity.surface.id
+
+        info[self.name].update(info2)
+
+        return info
 
 
 class Septum(Part):

@@ -26,8 +26,9 @@ import numpy as np
 import pytest
 import pyvista as pv
 
+from ansys.health.heart.anatomical_parts import Part
 import ansys.health.heart.models as models
-from ansys.health.heart.objects import Mesh, Part, SurfaceMesh
+from ansys.health.heart.objects import Mesh, SurfaceMesh
 from tests.heart.writer.test_dynawriter import _get_mock_conduction_system
 
 

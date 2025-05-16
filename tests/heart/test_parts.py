@@ -23,8 +23,16 @@
 import pytest
 import pyvista as pv
 
-from ansys.health.heart.anatomical_parts import Artery, Atrium, Myocardium, Part, Septum, Ventricle
-from ansys.health.heart.objects import Cap, Cavity, PartType, SurfaceMesh
+from ansys.health.heart.anatomical_parts import (
+    Artery,
+    Atrium,
+    Myocardium,
+    Part,
+    PartType,
+    Septum,
+    Ventricle,
+)
+from ansys.health.heart.objects import Cap, Cavity, SurfaceMesh
 
 
 @pytest.mark.parametrize(

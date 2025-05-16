@@ -30,6 +30,7 @@ from enum import Enum
 from typing import List
 
 import numpy as np
+import yaml
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.objects import Cap, Cavity, Point, SurfaceMesh
@@ -101,6 +102,10 @@ class Part:
 
         self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
         """EP material model to assign in the simulator."""
+
+    def __str__(self) -> str:
+        """Return a string representation of the part."""
+        return yaml.dump(self._get_info(), indent=4)
 
     def _get_info(self):
         """Get part information to reconstruct from a mesh file."""

@@ -34,7 +34,7 @@ from pyvista import examples
 
 import ansys.health.heart.models as models
 from ansys.health.heart.objects import Mesh
-from ansys.health.heart.parts import _PartType
+from ansys.health.heart.parts import PartType
 
 
 def test_set_workdir():
@@ -137,21 +137,21 @@ def test_load_from_mesh():
         part_info = {
             "Left ventricle": {
                 "part-id": 10,
-                "part-type": _PartType.VENTRICLE.value,
+                "part-type": PartType.VENTRICLE.value,
                 "surfaces": {"Left ventricle endocardium": 1},
                 "caps": {"mitral-valve": 3, "aortic-valve": 4},
                 "cavity": {"Left ventricle endocardium": 1},
             },
             "Right ventricle": {
                 "part-id": 11,
-                "part-type": _PartType.VENTRICLE.value,
+                "part-type": PartType.VENTRICLE.value,
                 "surfaces": {"Right ventricle epicardium": 1},
                 "caps": {},
                 "cavity": {},
             },
             "Septum": {
                 "part-id": 12,
-                "part-type": _PartType.SEPTUM.value,
+                "part-type": PartType.SEPTUM.value,
                 "surfaces": {},
                 "caps": {},
                 "cavity": {},

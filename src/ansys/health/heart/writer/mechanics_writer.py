@@ -33,7 +33,7 @@ from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.objects import Cap, CapType, SurfaceMesh
-from ansys.health.heart.parts import _PartType
+from ansys.health.heart.parts import PartType
 from ansys.health.heart.settings.material.material import (
     Mat295,
     MechanicalMaterialModel,
@@ -578,7 +578,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         robin_settings = boundary_conditions.robin
 
         # collect all pericardium nodes:
-        ventricles_epi = self._get_epi_surface(apply=_PartType.VENTRICLE)
+        ventricles_epi = self._get_epi_surface(apply=PartType.VENTRICLE)
 
         #! penalty function is defined on all nodes in the mesh: but just need the epicardial nodes.
         # penalty function
@@ -605,7 +605,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
 
         if isinstance(self.model, FourChamber):
-            atrial_epi = self._get_epi_surface(_PartType.ATRIUM)
+            atrial_epi = self._get_epi_surface(PartType.ATRIUM)
 
             k = robin_settings["atrial"]["stiffness"].to("MPa/mm").m
             self.kw_database.pericardium.extend(
@@ -619,12 +619,12 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _get_epi_surface(
-        self, apply: Literal[_PartType.VENTRICLE, _PartType.ATRIUM] = _PartType.VENTRICLE
+        self, apply: Literal[PartType.VENTRICLE, PartType.ATRIUM] = PartType.VENTRICLE
     ) -> SurfaceMesh:
         """Get the epicardial surfaces of either the ventricle or atria."""
         LOGGER.debug(f"Collecting epicardium nodesets of {apply}:")
 
-        targets = [part for part in self.model.parts if apply == part.part_type]
+        targets = [part for part in self.model.parts if apply == part._part_type]
 
         # retrieve combined epicardial surface from the central mesh object:
         # this ensures that we can use the global-point-ids

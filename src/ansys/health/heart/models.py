@@ -874,17 +874,20 @@ class HeartModel:
                 pass
 
             # try to initialize cavity object.
-            if part_info[part_1.name]["cavity"] != {}:
-                cavity_name = list(part_info[part_1.name]["cavity"].keys())[0]
-                cavity_id = list(part_info[part_1.name]["cavity"].values())[0]
-                part_1.cavity = Cavity(surface=self.mesh.get_surface(cavity_id), name=cavity_name)
+            if isinstance(part_1, _Chamber):
+                if part_info[part_1.name]["cavity"] != {}:
+                    cavity_name = list(part_info[part_1.name]["cavity"].keys())[0]
+                    cavity_id = list(part_info[part_1.name]["cavity"].values())[0]
+                    part_1.cavity = Cavity(
+                        surface=self.mesh.get_surface(cavity_id), name=cavity_name
+                    )
 
-            if part_info[part_1.name]["caps"] != {}:
-                for cap_name, cap_id in part_info[part_1.name]["caps"].items():
-                    #! note that we sasume cap name equals cap type here.
-                    cap = Cap(cap_name, cap_type=CapType(cap_name))
-                    cap._mesh = self.mesh.get_surface(cap_id)
-                    part_1.caps.append(cap)
+                if part_info[part_1.name]["caps"] != {}:
+                    for cap_name, cap_id in part_info[part_1.name]["caps"].items():
+                        #! note that we sasume cap name equals cap type here.
+                        cap = Cap(cap_name, cap_type=CapType(cap_name))
+                        cap._mesh = self.mesh.get_surface(cap_id)
+                        part_1.caps.append(cap)
 
             # TODO: add non-standard part by setattr(self, part_name_n, part)
 

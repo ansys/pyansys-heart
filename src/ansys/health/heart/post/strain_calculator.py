@@ -312,10 +312,12 @@ class AhaStrainCalculator:
         Notes
         -----
         This function creates the 17-segment model for the left ventricle according
-        to the American Heart Association (AHA) [1]_
+        to the American Heart Association (AHA) [1]_.
 
-        This method is inspired by `Left ventricle bullseye <https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html>`_
-        in the Matplotlib examples.
+        This method is modified from the ``Matplotlibs`` `bullseye <https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html>`_
+        example. Copyright |copy| 2012- Matplotlib Development Team; All Rights Reserved.
+        Modifications consisted of removing colors and including the values for each segment.
+
 
         References
         ----------

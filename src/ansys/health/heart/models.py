@@ -1629,8 +1629,8 @@ class HeartModel:
     def create_atrial_stiff_ring(self, radius: float = 2) -> None | Part:
         """Create a part for solids close to the atrial caps.
 
-        Note
-        ----
+        Notes
+        -----
         Part created is passive and isotropic. The material must be defined.
 
         Parameters

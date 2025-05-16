@@ -1284,7 +1284,8 @@ class Part:
 
         if hasattr(self, "cavity"):
             info2["cavity"] = {}
-            info2["cavity"][self.cavity.surface.name] = self.cavity.surface.id
+            if self.cavity is not None:
+                info2["cavity"][self.cavity.surface.name] = self.cavity.surface.id
 
         info[self.name].update(info2)
 

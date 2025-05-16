@@ -52,7 +52,7 @@ PyAnsys Heart is a `Python`_ framework for heart modeling using Ansys tools.
       :link: acknowledgements
       :link-type: doc
 
-      Give proper credit to the data used in this repository.
+      See proper credits for the data used in this repository.
 
 .. toctree::
    :hidden:

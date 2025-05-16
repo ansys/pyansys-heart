@@ -331,9 +331,7 @@ class AhaStrainCalculator:
 
         if data.size != 17:
             raise ValueError(
-                "Data must be a 1D array of length 17. Received data of length {0}.".format(
-                    data.size
-                )
+                f"Data must be a 1D array of length 17. Received data of length {data.size}."
             )
 
         theta = np.linspace(0, 2 * np.pi, 768)
@@ -387,12 +385,11 @@ class AhaStrainCalculator:
             ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[ii + 12]), fontsize=12)
 
         # Fill segment 17
-        if data.size == 17:
-            r0 = np.array([0, radii[0]])
-            r0 = np.repeat(r0[:, np.newaxis], theta.size, axis=1).T
-            theta0 = np.repeat(theta[:, np.newaxis], 2, axis=1)
-            # Print value to segment.
-            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[16]), fontsize=12)
+        r0 = np.array([0, radii[0]])
+        r0 = np.repeat(r0[:, np.newaxis], theta.size, axis=1).T
+        theta0 = np.repeat(theta[:, np.newaxis], 2, axis=1)
+        # Print value to segment.
+        ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[16]), fontsize=12)
 
         ax.set_ylim([0, 1])
         ax.set_yticklabels([])

@@ -150,8 +150,6 @@ def extract_model(request):
     # global workdir
     workdir = tempfile.TemporaryDirectory(prefix=".pyansys-heart").name
 
-    # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
-
     model: models.HeartModel = model_type(working_directory=workdir)
 
     if not isinstance(model, (models.BiVentricle, models.FullHeart)):
@@ -166,7 +164,7 @@ def extract_model(request):
 
     model.update()
 
-    # # Dummy apico-basal data to match pericardium output in asset
+    # Dummy apico-basal data to match pericardium output in asset
     lv_apex = model.left_ventricle.apex_points[1].xyz
     mv_centroid = [c.centroid for p in model.parts for c in p.caps if "mitral" in c.name][0]
     longitudinal_axis = lv_apex - mv_centroid

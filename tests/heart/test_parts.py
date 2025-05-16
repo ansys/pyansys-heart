@@ -29,9 +29,9 @@ from ansys.health.heart.parts import (
     Atrium,
     Myocardium,
     Part,
-    PartType,
     Septum,
     Ventricle,
+    _PartType,
 )
 
 
@@ -84,7 +84,7 @@ def test_part_get_info_with_data():
     info = part._get_info()
 
     assert info["Part1"]["part-id"] == 1
-    assert info["Part1"]["part-type"] == PartType.VENTRICLE.value
+    assert info["Part1"]["part-type"] == _PartType.VENTRICLE.value
     assert info["Part1"]["surfaces"] == {"tube1": 10, "tube2": 11}
     assert info["Part1"]["caps"] == {"cap1": 100, "cap2": 101}
     assert info["Part1"]["cavity"] == {"cavity1": 1000}

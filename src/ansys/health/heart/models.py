@@ -46,7 +46,7 @@ from ansys.health.heart.objects import (
     _convert_int64_to_int32,
 )
 import ansys.health.heart.parts as anatomy
-from ansys.health.heart.parts import Chamber, Part, PartType
+from ansys.health.heart.parts import Chamber, Part, _PartType
 from ansys.health.heart.pre.conduction_path import (
     ConductionPath,
 )
@@ -1060,7 +1060,7 @@ class HeartModel:
         element_ids_septum = self.mesh._global_tetrahedron_ids[element_ids_septum]
 
         # assign to septum
-        part = next(part for part in self.parts if part.part_type == PartType.SEPTUM)
+        part = next(part for part in self.parts if part.part_type == _PartType.SEPTUM)
         part.element_ids = element_ids_septum
         # manipulate _volume-id
         self.mesh.cell_data["_volume-id"][element_ids_septum] = part.pid
@@ -1516,9 +1516,9 @@ class HeartModel:
         #! Note that this only works since tetrahedrons are located
         #! at start of the mesh object.
         for part in self.parts:
-            if part.part_type == PartType.VENTRICLE:
+            if part.part_type == _PartType.VENTRICLE:
                 v_ele = np.append(v_ele, part.element_ids)
-            elif part.part_type == PartType.ATRIUM:
+            elif part.part_type == _PartType.ATRIUM:
                 a_ele = np.append(a_ele, part.element_ids)
 
         ventricles = self.mesh.extract_cells(v_ele)
@@ -1566,7 +1566,7 @@ class HeartModel:
 
         # create a new part
         isolation: Part = self.create_part_by_ids(interface_eids, "Atrioventricular isolation")
-        isolation.part_type = PartType.ATRIUM
+        isolation.part_type = _PartType.ATRIUM
         isolation.fiber = True
         isolation.active = False
         isolation.ep_material = EPMaterial.Insulator()
@@ -1620,7 +1620,7 @@ class HeartModel:
             eids = np.hstack((eids, eid_r))
 
         part: Part = self.create_part_by_ids(eids, "base")
-        part.part_type = PartType.VENTRICLE
+        part.part_type = _PartType.VENTRICLE
         part.fiber = False
         part.active = False
         part.meca_material = stiff_material
@@ -1680,7 +1680,7 @@ class HeartModel:
 
         # Create ring part
         ring: Part = self.create_part_by_ids(ring_eles, name="atrial stiff rings")
-        ring.part_type = PartType.ATRIUM
+        ring.part_type = _PartType.ATRIUM
         ring.fiber = False
         ring.active = False
         # assign default EP material

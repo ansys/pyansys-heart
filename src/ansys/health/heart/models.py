@@ -245,7 +245,7 @@ class HeartModel:
         self.mesh = Mesh()
         """Computational mesh."""
 
-        self.fluid_mesh = Mesh()
+        self._fluid_mesh = Mesh()
         """Generated fluid mesh."""
 
         #! TODO: non-functional flag. Remove or replace.
@@ -522,77 +522,46 @@ class HeartModel:
 
         return self.mesh
 
-    def _mesh_fluid_volume(self, remesh_caps: bool = True):
-        """Generate a volume mesh of the cavities.
-
-        Parameters
-        ----------
-        remesh_caps : bool, default: True
-            Whether to remesh the caps of each cavity.
-        """
-        # get all relevant boundaries for the fluid cavities:
+    def _mesh_fluid_volume(self) -> Mesh:
+        """Generate a volume mesh of the cavities."""
+        # get all relevant boundaries for the fluid:
+        # NOTE: relies on substrings to select the right surfaces/boundaries.
         substrings_include = ["endocardium", "valve-plane", "septum"]
-        substrings_include_re = "|".join(substrings_include)
+        substrings_include_regex = "|".join(substrings_include)
 
-        substrings_exlude = ["pulmonary-valve", "aortic-valve"]
-        substrings_exlude_re = "|".join(substrings_exlude)
+        substrings_exlude = [CapType.PULMONARY_VALVE.value, CapType.AORTIC_VALVE.value]
+        substrings_exlude_regex = "|".join(substrings_exlude)
 
         boundaries_fluid = [
-            b for b in self.mesh._surfaces if re.search(substrings_include_re, b.name)
+            b for b in self.mesh._surfaces if re.search(substrings_include_regex, b.name)
         ]
         boundaries_exclude = [
-            b.name for b in boundaries_fluid if re.search(substrings_exlude_re, b.name)
+            b.name for b in boundaries_fluid if re.search(substrings_exlude_regex, b.name)
         ]
         boundaries_fluid = [b for b in boundaries_fluid if b.name not in boundaries_exclude]
 
-        caps = [c._mesh for p in self.parts for c in p.caps]
-
         if len(boundaries_fluid) == 0:
-            LOGGER.debug(
-                "Meshing of fluid cavities is not possible. No fluid surfaces are detected."
-            )
+            LOGGER.error("Meshing of blood pool is not possible. No fluid surfaces detected.")
             return
 
-        if len(caps) == 0:
-            LOGGER.debug("Meshing of fluid cavities is not possible. No caps are detected.")
-            return
+        LOGGER.info("Meshing blood pool...")
 
-        LOGGER.info("Meshing fluid cavities...")
+        fluid_mesh = mesher._mesh_fluid_from_boundaries(boundaries_fluid, self.workdir, mesh_size=1)
 
-        # mesh the fluid cavities
-        fluid_mesh = mesher._mesh_fluid_cavities(
-            boundaries_fluid, caps, self.workdir, remesh_caps=remesh_caps
-        )
+        # update patches with appropriate cap name, based on centroid location.
+        model_caps = [c for part in self.parts for c in part.caps]
+        cap_centroids = np.array([cap.centroid for cap in model_caps])
+        cap_names = [cap.name for cap in model_caps]
 
-        LOGGER.info(f"Meshed {len(fluid_mesh.cell_zones)} fluid regions...")
+        patches = {sid: sn for sid, sn in fluid_mesh._surface_id_to_name.items() if "patch" in sn}
+        for patch_id in patches.keys():
+            patch_mesh = fluid_mesh.get_surface(patch_id)
+            cap_index = np.argmin(np.linalg.norm(cap_centroids - patch_mesh.center, axis=1))
+            fluid_mesh._surface_id_to_name[patch_id] = cap_names[cap_index]
 
-        # add part-ids
-        cz_ids = np.sort([cz.id for cz in fluid_mesh.cell_zones])
+        self._fluid_mesh = fluid_mesh
 
-        # TODO: this offset is arbitrary.
-        offset = 10000
-        new_ids = np.arange(cz_ids.shape[0]) + offset
-        czid_to_pid = {cz_id: new_ids[ii] for ii, cz_id in enumerate(cz_ids)}
-
-        for cz in fluid_mesh.cell_zones:
-            cz.id = czid_to_pid[cz.id]
-
-        fluid_mesh._fix_negative_cells()
-        fluid_mesh_vtk = fluid_mesh._to_vtk(add_cells=True, add_faces=False)
-
-        fluid_mesh_vtk.cell_data["_volume-id"] = fluid_mesh_vtk.cell_data["cell-zone-ids"]
-
-        boundaries = [
-            SurfaceMesh(name=fz.name, triangles=fz.faces, nodes=fluid_mesh.nodes, id=fz.id)
-            for fz in fluid_mesh.face_zones
-            if "interior" not in fz.name
-        ]
-
-        self.fluid_mesh = Mesh(fluid_mesh_vtk)
-        for boundary in boundaries:
-            self.fluid_mesh.add_surface(boundary, boundary.id, boundary.name)
-
-        return
+        return fluid_mesh
 
     def get_part(self, name: str, by_substring: bool = False) -> Union[Part, None]:
         """Get a specific part based on a part name."""

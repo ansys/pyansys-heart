@@ -324,7 +324,7 @@ class AhaStrainCalculator:
 
         This method is modified from the ``Matplotlibs`` `bullseye <https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html>`_
         example. Copyright |copy| 2012- Matplotlib Development Team; All Rights Reserved.
-        The example was modified to remove colors and include the values for each segment.
+        Modifications consisted of removing colors and including the values for each segment.
 
 
         References

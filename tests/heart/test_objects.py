@@ -19,14 +19,33 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Writer subpackage."""
 
-from .base_writer import FiberGenerationDynaWriter
-from .ep_mechanics_writer import ElectroMechanicsDynaWriter
-from .ep_writer import (
-    ElectrophysiologyBeamsDynaWriter,
-    ElectrophysiologyDynaWriter,
-    PurkinjeGenerationDynaWriter,
-)
-from .laplace_writer import LaplaceWriter
-from .mechanics_writer import MechanicsDynaWriter, ZeroPressureMechanicsDynaWriter
+import numpy as np
+import pyvista as pv
+
+from ansys.health.heart.objects import _convert_int64_to_int32
+
+
+def test_convert_int64_to_int32():
+    """Test the `_change_int64_to_int32` function."""
+    # Create a sample PyVista mesh with int64 arrays
+    mesh = pv.Sphere()
+    mesh["cell_data"] = np.arange(0, mesh.n_cells, dtype=np.int64)  # Add int64 cell data
+    mesh["point_data"] = np.arange(0, mesh.n_points, dtype=np.int64)  # Add int64 point data
+
+    # Add int64 point data with same array name
+    mesh["data"] = np.arange(0, mesh.n_points, dtype=np.int64)
+    mesh["data"] = np.arange(0, mesh.n_cells, dtype=np.int64)
+
+    # Verify initial data types are int64
+    assert mesh["cell_data"].dtype == np.int64
+    assert mesh["point_data"].dtype == np.int64
+
+    # Call the function to convert int64 to int32
+    _convert_int64_to_int32(mesh)
+
+    # Verify that the data types have been converted to int32
+    assert mesh["cell_data"].dtype == np.int32
+    assert mesh["point_data"].dtype == np.int32
+    assert mesh.cell_data["data"].dtype == np.int32
+    assert mesh.point_data["data"].dtype == np.int32

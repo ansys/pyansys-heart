@@ -37,7 +37,7 @@ from ansys.health.heart.objects import (
 )
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.settings import Mechanics, SimulationSettings, Stimulation
-import ansys.health.heart.writer.dynawriter as writers
+import ansys.health.heart.writer as writers
 
 
 def _get_mock_conduction_system() -> Mesh:

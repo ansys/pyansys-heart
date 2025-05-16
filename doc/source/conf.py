@@ -47,17 +47,18 @@ html_theme_options = {
     "ansys_sphinx_theme_autoapi": {
         "project": project,
         "ignore": [
-            "*writer*",
+            # ignore all files under the ``writer`` subpackage.
+            "*heart/writer/**/*",
             "*misc*",
-            "*custom_keywords*",
-            "*system_models.py",
-            "*define_function_templates.py",
-            "*heart_decks.py",
-            "*keyword_utils.py",
-            "*material_keywords.py",
         ],
     },
 }
+
+# Define copyright symbol
+rst_prolog = """
+.. |copy| unicode:: U+000A9
+   :ltrim:
+"""
 
 # Sphinx extensions
 extensions = [

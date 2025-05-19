@@ -193,9 +193,14 @@ jobs:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
   release:
-    name: "Release"
+    name: "Release project"
+    if: ${{ github.event_name == 'push' && contains(github.ref, 'refs/tags') }}
     runs-on: ubuntu-latest
     needs: build-library
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
     steps:
 
       - name: Download all artifacts
@@ -204,13 +209,13 @@ jobs:
           name: ${{ env.LIBRARY_NAME }}-artifacts
           path: ${{ env.LIBRARY_NAME }}-artifacts
 
-      - name: "Release to public PyPI repository"
-        uses: ansys/actions/release-pypi-public@2cf9a9c43235a000d613c2b13e64c954232a4553 # v9.0.9
+      - name: "Upload artifacts to PyPI using trusted publisher"
+        uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc # v1.12.4
         with:
-          library-name: ${{ env.LIBRARY_NAME }}
-          twine-username: "__token__"
-          twine-token: ${{ secrets.PYPI_TOKEN }}
-          dry-run: true
+          repository-url: "https://upload.pypi.org/legacy/"
+          print-hash: true
+          packages-dir: ${{ env.LIBRARY_NAME }}-artifacts
+          skip-existing: false
 
       - name: Release to GitHub
         uses: ansys/actions/release-github@90c8d3f174d3393c68bc2143088d60265275b8cc # v9.0.7

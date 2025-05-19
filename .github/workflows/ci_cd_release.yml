@@ -209,7 +209,8 @@ jobs:
         with:
           library-name: ${{ env.LIBRARY_NAME }}
           twine-username: "__token__"
-          twine-token: ${{ secrets.PYANSYS_PYPI_PRIVATE_PAT }}
+          twine-token: ${{ secrets.PYPI_TOKEN }}
+          dry-run: true
 
       - name: Release to GitHub
         uses: ansys/actions/release-github@90c8d3f174d3393c68bc2143088d60265275b8cc # v9.0.7

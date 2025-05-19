@@ -7,6 +7,77 @@ Release notes
 
 .. towncrier release notes start
 
+`0.13.0 <https://github.com/ansys/pyansys-heart/releases/tag/v0.13.0>`_ (May 19, 2025)
+======================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Fixed
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - bump ansys-sphinx-theme
+          - `#1102 <https://github.com/ansys/pyansys-heart/pull/1102>`_
+
+
+  .. tab-item:: Documentation
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - update contributing.rst
+          - `#1105 <https://github.com/ansys/pyansys-heart/pull/1105>`_
+
+        * - add acknowledgments
+          - `#1110 <https://github.com/ansys/pyansys-heart/pull/1110>`_
+
+
+  .. tab-item:: Dependencies
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - update scipy requirement from <=1.15.2 to <=1.15.3
+          - `#1108 <https://github.com/ansys/pyansys-heart/pull/1108>`_
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - bump the actions group across 1 directory with 3 updates
+          - `#1088 <https://github.com/ansys/pyansys-heart/pull/1088>`_
+
+        * - bump version to 0.13.dev0
+          - `#1096 <https://github.com/ansys/pyansys-heart/pull/1096>`_
+
+        * - update CHANGELOG for v0.12.1
+          - `#1100 <https://github.com/ansys/pyansys-heart/pull/1100>`_
+
+        * - update CHANGELOG for v0.12.2
+          - `#1104 <https://github.com/ansys/pyansys-heart/pull/1104>`_
+
+
+  .. tab-item:: Miscellaneous
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - refactor dyna writer to improve maintainability
+          - `#1101 <https://github.com/ansys/pyansys-heart/pull/1101>`_
+
+        * - refactor and further cleanup for release
+          - `#1109 <https://github.com/ansys/pyansys-heart/pull/1109>`_
+
+
 `0.12.2 <https://github.com/ansys/pyansys-heart/releases/tag/v0.12.2>`_ (May 08, 2025)
 ======================================================================================
 

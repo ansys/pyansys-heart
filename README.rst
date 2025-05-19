@@ -93,12 +93,12 @@ To reach the project support team, email `pyansys.core@ansys.com <mailto:pyansys
 .. Documentation links
 .. _prerequisites: https://heart.health.docs.pyansys.com/version/stable/getting-started/prerequisites.html
 .. _installation guidelines: https://heart.health.docs.pyansys.com/version/stable/getting-started/installation.html
-.. _getting started: https://heart.health.docs.pyansys.com/version/stable/getting-started/index.html
-.. _user guide: https://heart.health.docs.pyansys.com/version/stable/user-guide/index.html
+.. _getting started: https://heart.health.docs.pyansys.com/version/stable/getting-started.html
+.. _user guide: https://heart.health.docs.pyansys.com/version/stable/user-guide.html
 .. _API reference: https://heart.health.docs.pyansys.com/version/stable/api/index.html
 .. _examples: https://heart.health.docs.pyansys.com/version/stable/examples/index.html
-.. _contribute: https://heart.health.docs.pyansys.com/version/stable/contributing/index.html
+.. _contribute: https://heart.health.docs.pyansys.com/version/stable/contributing.html
 .. _LICENSE: https://github.com/ansys/pyansys-heart/blob/main/LICENSE
-.. _release_notes: https://heart.health.docs.pyansys.com/version/stable/changelog.html
+.. _release notes: https://heart.health.docs.pyansys.com/version/stable/changelog.html
 .. _PyAnsys Heart documentation: https://heart.health.docs.pyansys.com/version/stable/
-.. _Release notes: https://heart.health.docs.pyansys.com/version/stable/changelog.html
+

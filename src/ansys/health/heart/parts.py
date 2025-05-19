@@ -20,9 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Defines anatomical heart part classes such as Ventricle, Atrium, Septum, Artery, and Myocardium.
+"""Define classes for anatomical parts.
 
-These classes extend the base Part class and provide specialized attributes for different
+Each class extends the base Part class and provides specialized attributes for different
 heart structures.
 """
 

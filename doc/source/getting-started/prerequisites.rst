@@ -4,7 +4,7 @@ Prerequisites
 Operating system
 ----------------
 
-- Windows 10
+- Windows 10, Windows 11
 - Linux
 
 

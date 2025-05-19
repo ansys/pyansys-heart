@@ -102,3 +102,8 @@ To reach the project support team, email `pyansys.core@ansys.com <mailto:pyansys
 .. _release_notes: https://heart.health.docs.pyansys.com/version/stable/changelog.html
 .. _PyAnsys Heart documentation: https://heart.health.docs.pyansys.com/version/stable/
 .. _Release notes: https://heart.health.docs.pyansys.com/version/stable/changelog.html
+.. _Getting started: https://heart.health.docs.pyansys.com/version/stable/getting-started.html
+.. _User guide: https://heart.health.docs.pyansys.com/version/stable/user-guide.html
+.. _Examples: https://heart.health.docs.pyansys.com/version/stable/examples/index.html
+.. _Contribute: https://heart.health.docs.pyansys.com/version/stable/contributing.html
+

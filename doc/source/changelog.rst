@@ -7,7 +7,7 @@ Release notes
 
 .. towncrier release notes start
 
-`0.13.1 <https://github.com/ansys/pyansys-heart/releases/tag/v0.13.1>`_ (May 20, 2025)
+`0.13.2 <https://github.com/ansys/pyansys-heart/releases/tag/v0.13.2>`_ (May 20, 2025)
 ======================================================================================
 
 .. tab-set::
@@ -21,6 +21,9 @@ Release notes
 
         * - bump ansys-sphinx-theme
           - `#1102 <https://github.com/ansys/pyansys-heart/pull/1102>`_
+
+        * - support python 3.10
+          - `#1120 <https://github.com/ansys/pyansys-heart/pull/1120>`_
 
 
   .. tab-item:: Documentation
@@ -40,6 +43,9 @@ Release notes
 
         * - update install instructions
           - `#1117 <https://github.com/ansys/pyansys-heart/pull/1117>`_
+
+        * - update the badges in readme
+          - `#1119 <https://github.com/ansys/pyansys-heart/pull/1119>`_
 
 
   .. tab-item:: Dependencies

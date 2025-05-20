@@ -7,7 +7,7 @@ Release notes
 
 .. towncrier release notes start
 
-`0.13.0 <https://github.com/ansys/pyansys-heart/releases/tag/v0.13.0>`_ (May 19, 2025)
+`0.13.1 <https://github.com/ansys/pyansys-heart/releases/tag/v0.13.1>`_ (May 20, 2025)
 ======================================================================================
 
 .. tab-set::
@@ -34,6 +34,12 @@ Release notes
 
         * - add acknowledgments
           - `#1110 <https://github.com/ansys/pyansys-heart/pull/1110>`_
+
+        * - fix links in README
+          - `#1116 <https://github.com/ansys/pyansys-heart/pull/1116>`_
+
+        * - update install instructions
+          - `#1117 <https://github.com/ansys/pyansys-heart/pull/1117>`_
 
 
   .. tab-item:: Dependencies
@@ -63,6 +69,9 @@ Release notes
 
         * - update CHANGELOG for v0.12.2
           - `#1104 <https://github.com/ansys/pyansys-heart/pull/1104>`_
+
+        * - release to public pypi
+          - `#1112 <https://github.com/ansys/pyansys-heart/pull/1112>`_
 
 
   .. tab-item:: Miscellaneous

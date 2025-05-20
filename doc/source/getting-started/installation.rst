@@ -27,7 +27,7 @@ Then, install PyAnsys Heart:
 
 .. code:: bash
 
-    python -m pip install pyansys-heart
+    python -m pip install ansys-health-heart
 
 Install from GitHub source code
 -------------------------------

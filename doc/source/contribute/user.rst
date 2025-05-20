@@ -108,68 +108,67 @@ they are being developed, without having to wait for releases.
 Set up a virtual environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#. Navigate to the project's root directory:
+Navigate to the project's root directory:
 
-   .. code-block::
+.. code-block::
 
-       cd pyansys-heart
+    cd pyansys-heart
 
-#. Create a new virtual environment named ``.venv`` to isolate your system's
-   Python environment:
+Create a new virtual environment named ``.venv`` to isolate your system's
+Python environment:
 
-   .. code-block:: text
+.. code-block:: text
 
-       python -m venv .venv
+    python -m venv .venv
 
-3. Activate this environment:
+Activate this environment:
 
-   .. tab-set::
+.. tab-set::
 
-       .. tab-item:: Windows
+    .. tab-item:: Windows
 
-           .. tab-set::
+        .. tab-set::
 
-               .. tab-item:: CMD
+            .. tab-item:: CMD
 
-                   .. code-block:: text
+                .. code-block:: text
 
-                       .venv\Scripts\activate.bat
+                    .venv\Scripts\activate.bat
 
-               .. tab-item:: PowerShell
+            .. tab-item:: PowerShell
 
-                   .. code-block:: text
+                .. code-block:: text
 
-                       .venv\Scripts\Activate.ps1
+                    .venv\Scripts\Activate.ps1
 
-       .. tab-item:: macOS/Linux/UNIX
+    .. tab-item:: macOS/Linux/UNIX
 
-           .. code-block:: text
+        .. code-block:: text
 
-               source .venv/bin/activate
+            source .venv/bin/activate
 
 Install the latest version
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#. Install PyAnsys Heart in editable mode:
+Install PyAnsys Heart in editable mode:
+
+.. code-block:: text
+
+    python -m pip install .
+
+Verify the installation by checking the version of the library:
+
+.. code-block:: python
+
+    from ansys.health.heart import __version__
+
+    print(f"PyAnsys Heart version is {__version__}.")
+
+.. jinja::
 
    .. code-block:: text
 
-       python -m pip install .
-
-2. Verify the installation by checking the version of the library:
-
-   .. code-block:: python
-
-       from ansys.health.heart import __version__
-
-
-       print(f"PyAnsys Heart version is {__version__}.")
-
-   .. jinja::
-
-       .. code-block:: text
-
-       >>> PyAnsys Heart version is {{ PYANSYS_HEART_VERSION }}.
+      >>> PyAnsys Heart version is {{ PYANSYS_HEART_VERSION }}.
 
 .. _start-a-discussion:
 

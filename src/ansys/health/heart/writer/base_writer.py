@@ -63,9 +63,6 @@ class BaseDynaWriter:
             Simulation settings for creating the LS-DYNA model.
             The dfeault settings are loaded in ``None``is used.
 
-        Example
-        -------
-        TODO: add example
         """
         self.model = model
         """Model information necessary for creating the LS-DYNA K files."""

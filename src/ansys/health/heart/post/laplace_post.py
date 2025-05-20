@@ -83,8 +83,8 @@ def read_laplace_solution(
 def update_transmural_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData) -> np.ndarray:
     """Use surface normal for transmural direction.
 
-    Note
-    ----
+    Notes
+    -----
     Assume mesh is coarse compared to the thickness. Solid cell normal
     is interpolated from closest surface normal.
 
@@ -437,8 +437,8 @@ def compute_rotation_angle(
     np.ndarray
         Cell-wise rotation angles.
 
-    Note
-    ----
+    Notes
+    -----
     Compute for all cells, but filter by left/right mask outside of this function.
     """
     rot_endo, rot_epi = set_rotation_bounds(w, rotation[0], rotation[1], outflow_tracts)

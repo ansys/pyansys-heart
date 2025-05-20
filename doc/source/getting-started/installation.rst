@@ -27,7 +27,7 @@ Then, install PyAnsys Heart:
 
 .. code:: bash
 
-    python -m pip install pyansys-heart
+    python -m pip install ansys-health-heart
 
 Install from GitHub source code
 -------------------------------
@@ -63,8 +63,8 @@ Python 3.10 on a Windows machine, run the following commands:
 
 .. code:: bash
 
-    unzip pyansys-heart-v0.6.1-wheelhouse-windows-latest-3.12.zip wheelhouse
-    pip install pyansys-heart -f wheelhouse --no-index --upgrade --ignore-installed
+    unzip ansys-health-heart-v0.13.0-wheelhouse-windows-latest-3.12.zip wheelhouse
+    pip install ansys-health-heart -f wheelhouse --no-index --upgrade --ignore-installed
 
 If you are on Windows with Python 3.12, unzip the wheelhouse archive to a wheelhouse
 directory and then install using the same ``pip install`` command as in the preceding example.

@@ -162,7 +162,6 @@ Install the latest version
 
        from ansys.health.heart import __version__
 
-
        print(f"PyAnsys Heart version is {__version__}.")
 
    .. jinja::

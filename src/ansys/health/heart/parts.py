@@ -157,9 +157,9 @@ class Chamber(Part):
         self.epicardium = SurfaceMesh(name=f"{self.name} epicardium")
         """Epicardial surface."""
         self.septum = SurfaceMesh(name="{0} endocardium septum".format(self.name))
-        """Septal part."""
+        """Septal surface."""
 
-        self.myocardium = Part(name="myocardium", part_type=PartType.MYOCARDIUM)
+        self.myocardium = Myocardium(name="myocardium")
         """Myocardial part."""
 
         self.caps: list[Cap] = []

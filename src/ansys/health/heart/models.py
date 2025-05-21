@@ -1571,7 +1571,7 @@ class HeartModel:
         isolation: anatomy.Part = self.create_part_by_ids(
             interface_eids, "Atrioventricular isolation"
         )
-        isolation._part_type = anatomy.PartType.ATRIUM
+        isolation._part_type = anatomy._PartType.ATRIUM
         isolation.fiber = True
         isolation.active = False
         isolation.ep_material = EPMaterial.Insulator()
@@ -1625,7 +1625,7 @@ class HeartModel:
             eids = np.hstack((eids, eid_r))
 
         part: anatomy.Part = self.create_part_by_ids(eids, "base")
-        part._part_type = anatomy.PartType.VENTRICLE
+        part._part_type = anatomy._PartType.VENTRICLE
         part.fiber = False
         part.active = False
         part.meca_material = stiff_material
@@ -1685,7 +1685,7 @@ class HeartModel:
 
         # Create ring part
         ring: anatomy.Part = self.create_part_by_ids(ring_eles, name="atrial stiff rings")
-        ring._part_type = anatomy.PartType.ATRIUM
+        ring._part_type = anatomy._PartType.ATRIUM
         ring.fiber = False
         ring.active = False
         # assign default EP material

@@ -578,7 +578,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         robin_settings = boundary_conditions.robin
 
         # collect all pericardium nodes:
-        ventricles_epi = self._get_epi_surface(apply=anatomy.PartType.VENTRICLE)
+        ventricles_epi = self._get_epi_surface(apply=anatomy._PartType.VENTRICLE)
 
         #! penalty function is defined on all nodes in the mesh: but just need the epicardial nodes.
         # penalty function
@@ -605,7 +605,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
 
         if isinstance(self.model, FourChamber):
-            atrial_epi = self._get_epi_surface(anatomy.PartType.ATRIUM)
+            atrial_epi = self._get_epi_surface(anatomy._PartType.ATRIUM)
 
             k = robin_settings["atrial"]["stiffness"].to("MPa/mm").m
             self.kw_database.pericardium.extend(
@@ -621,8 +621,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _get_epi_surface(
         self,
         apply: Literal[
-            anatomy.PartType.VENTRICLE, anatomy.PartType.ATRIUM
-        ] = anatomy.PartType.VENTRICLE,
+            anatomy._PartType.VENTRICLE, anatomy._PartType.ATRIUM
+        ] = anatomy._PartType.VENTRICLE,
     ) -> SurfaceMesh:
         """Get the epicardial surfaces of either the ventricle or atria."""
         LOGGER.debug(f"Collecting epicardium nodesets of {apply}:")

@@ -38,7 +38,7 @@ from ansys.health.heart.settings.material.ep_material import EPMaterial
 from ansys.health.heart.settings.material.material import MechanicalMaterialModel
 
 
-class PartType(Enum):
+class _PartType(Enum):
     """Stores valid part types."""
 
     VENTRICLE = "ventricle"
@@ -78,14 +78,14 @@ class Part:
         LOGGER.error("Cannot find point {0:s}.".format(pointname))
         return None
 
-    def __init__(self, name: str = None, part_type: PartType = PartType.UNDEFINED) -> None:
+    def __init__(self, name: str = None, part_type: _PartType = _PartType.UNDEFINED) -> None:
         self.name = name
         """Part name."""
         self.pid = None
         """Part ID."""
         self.mid = None
         """Material ID associated with the part."""
-        self._part_type: PartType = part_type
+        self._part_type: _PartType = part_type
         """Type of the part."""
         self.element_ids: np.ndarray = np.empty((0, 4), dtype=int)
         """Array holding element IDs that make up the part."""
@@ -144,13 +144,13 @@ class Septum(Part):
     """Septum part."""
 
     def __init__(self, name: str = None):
-        super().__init__(name=name, part_type=PartType.SEPTUM)
+        super().__init__(name=name, part_type=_PartType.SEPTUM)
 
 
 class Chamber(Part):
     """Intermediate class for heart chambers with endocardium and epicardium."""
 
-    def __init__(self, name: str = None, part_type: PartType = None):
+    def __init__(self, name: str = None, part_type: _PartType = None):
         super().__init__(name=name, part_type=part_type)
         self.endocardium = SurfaceMesh(name=f"{self.name} endocardium")
         """Endocardial surface."""
@@ -177,7 +177,7 @@ class Ventricle(Chamber):
     """Ventricle part."""
 
     def __init__(self, name: str = None):
-        super().__init__(name=name, part_type=PartType.VENTRICLE)
+        super().__init__(name=name, part_type=_PartType.VENTRICLE)
 
         self.apex_points: list[Point] = []
         """List of apex points."""
@@ -187,14 +187,14 @@ class Atrium(Chamber):
     """Atrium part."""
 
     def __init__(self, name: str = None):
-        super().__init__(name=name, part_type=PartType.ATRIUM)
+        super().__init__(name=name, part_type=_PartType.ATRIUM)
 
 
 class Artery(Part):
     """Artery part."""
 
     def __init__(self, name: str = None):
-        super().__init__(name=name, part_type=PartType.ARTERY)
+        super().__init__(name=name, part_type=_PartType.ARTERY)
 
         self.wall = SurfaceMesh(name="{0} wall".format(self.name))
 
@@ -203,4 +203,4 @@ class Myocardium(Part):
     """Myocardium part."""
 
     def __init__(self, name: str = None):
-        super().__init__(name=name, part_type=PartType.MYOCARDIUM)
+        super().__init__(name=name, part_type=_PartType.MYOCARDIUM)

@@ -41,7 +41,7 @@ files.
 The layout of the ``doc/source`` directory is reflected in the URLs of the
 online documentation. For example, the
 ``doc/source/contribute/documentarian.rst`` file renders as the
-``https://heart.docs.pyansys.com/contribute/documentarian.html`` URL.
+``https://heart.health.docs.pyansys.com/version/stable/contribute/documentarian.html`` URL.
 
 Thus, if you create a file, it is important to follow these rules:
 

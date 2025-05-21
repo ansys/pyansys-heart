@@ -31,10 +31,9 @@ import pyvista.examples as examples
 from ansys.health.heart.models import FullHeart
 from ansys.health.heart.objects import (
     Mesh,
-    Part,
-    PartType,
     Point,
 )
+import ansys.health.heart.parts as anatomy
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.settings import Mechanics, SimulationSettings, Stimulation
 import ansys.health.heart.writer as writers
@@ -76,9 +75,9 @@ def _mock_model():
 def _add_parts(model: FullHeart):
     """Add parts to model."""
     model.parts = [
-        Part(name="left_ventricle", part_type=PartType.VENTRICLE),
-        Part(name="Right ventricle", part_type=PartType.VENTRICLE),
-        Part(name="Septum", part_type=PartType.SEPTUM),
+        anatomy.Ventricle(name="left_ventricle"),
+        anatomy.Ventricle(name="Right ventricle"),
+        anatomy.Septum(name="Septum"),
     ]
     for ii, part in enumerate(model.parts):
         part.pid = ii

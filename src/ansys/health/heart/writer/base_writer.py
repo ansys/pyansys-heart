@@ -32,7 +32,8 @@ import pandas as pd
 from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
-from ansys.health.heart.objects import PartType, SurfaceMesh
+from ansys.health.heart.objects import SurfaceMesh
+import ansys.health.heart.parts as anatomy
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings
 from ansys.health.heart.writer import custom_keywords as custom_keywords
@@ -196,8 +197,7 @@ class BaseDynaWriter:
 
         # add closed cavity segment sets
         if add_cavities:
-            cavities = [p.cavity for p in self.model.parts if p.cavity]
-            for cavity in cavities:
+            for cavity in self.model.cavities:
                 #! Get up to date surface mesh of cavity.
                 surface = self.model.mesh.get_surface(cavity.surface.id)
                 segset_id = self.get_unique_segmentset_id()
@@ -240,7 +240,7 @@ class BaseDynaWriter:
 
         if add_caps:
             # create corresponding segment sets
-            caps = [cap for part in self.model.parts for cap in part.caps]
+            caps = self.model.all_caps
             for cap in caps:
                 cap_mesh = self.model.mesh.get_surface(cap._mesh.id)
                 segid = self.get_unique_segmentset_id()
@@ -252,6 +252,7 @@ class BaseDynaWriter:
                     title=cap.name,
                 )
                 self.kw_database.segment_sets.append(segset_kw)
+
         return
 
     def _filter_bc_nodes(self, surface: SurfaceMesh) -> np.ndarray:
@@ -375,8 +376,9 @@ class BaseDynaWriter:
         used_node_ids = np.empty(0, dtype=int)
 
         # add node-set for each cap
-        for part in self.model.parts:
-            for cap in part.caps:
+        parts_with_caps = [part for part in self.model.parts if isinstance(part, anatomy.Chamber)]
+        for part in parts_with_caps:
+            for cap in self.model.all_caps:
                 # update cap mesh:
                 cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
                 if remove_duplicates:
@@ -588,8 +590,9 @@ class BaseDynaWriter:
         """Remove any non-ventricular parts."""
         LOGGER.debug("Only keeping ventricular-parts for fiber/Purkinje generation.")
         parts_to_keep = [
-            p.name for p in self.model.parts if p.part_type in [PartType.VENTRICLE, PartType.SEPTUM]
+            p.name for p in self.model.parts if isinstance(p, (anatomy.Ventricle, anatomy.Septum))
         ]
+
         self._keep_parts(parts_to_keep)
         return
 
@@ -707,7 +710,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             parts = [
                 part
                 for part in self.model.parts
-                if part.part_type in [PartType.VENTRICLE, PartType.SEPTUM]
+                if isinstance(part, (anatomy.Ventricle, anatomy.Septum))
             ]
             #! Note that this only works when tetrahedrons are added at the beginning
             #! of the mesh (file)! E.g. check self.mesh.celltypes to make sure this is the case!
@@ -754,7 +757,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         parts = [
             part
             for part in self.model.parts
-            if part.part_type in [PartType.VENTRICLE, PartType.SEPTUM]
+            if isinstance(part, (anatomy.Ventricle, anatomy.Septum))
         ]
 
         tet_ids = np.empty((0), dtype=int)
@@ -855,9 +858,9 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         node_set_ids_epi_and_rseptum = []  # only relevant for bv, 4c and full model
 
         # list of ventricular parts
-        ventricles = [part for part in self.model.parts if part.part_type == PartType.VENTRICLE]
+        ventricles = [part for part in self.model.parts if isinstance(part, anatomy.Ventricle)]
         septum = next(
-            (part for part in self.model.parts if part.part_type == PartType.SEPTUM),
+            (part for part in self.model.parts if isinstance(part, anatomy.Septum)),
             None,
         )
 
@@ -884,9 +887,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                     node_set_ids_epi_and_rseptum = node_sets_ids_epi + [surface._node_set_id]
                     break
 
-        for part in self.model.parts:
-            for cap in part.caps:
-                nodes_base = np.append(nodes_base, cap.global_node_ids_edge)
+        for cap in self.model.all_caps:
+            nodes_base = np.append(nodes_base, cap.global_node_ids_edge)
 
         # apex ID [0] endocardium, [1] epicardium
         apex_point = self.model.get_part("Left ventricle").apex_points[1]

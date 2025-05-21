@@ -68,7 +68,7 @@ tests = [
 [project.urls]
 source = "https://github.com/ansys/pyansys-heart"
 issues = "https://github.com/ansys/pyansys-heart/issues"
-documentation = "https://heart.docs.pyansys.com/"
+documentation = "https://heart.health.docs.pyansys.com/"
 releases = "https://github.com/ansys/pyansys-heart/releases"
 
 [tool.flit.module]

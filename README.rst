@@ -7,12 +7,12 @@ PyAnsys Heart
    :target: https://docs.pyansys.com/
    :alt: PyAnsys
 
-.. |python| image:: https://img.shields.io/pypi/pyversions/pyansys-heart?logo=pypi
-   :target: https://pypi.org/project/pyansys-heart/
+.. |python| image:: https://img.shields.io/pypi/pyversions/ansys-health-heart?logo=pypi
+   :target: https://pypi.org/project/ansys-health-heart/
    :alt: Python
 
-.. |pypi| image:: https://img.shields.io/pypi/v/pyansys-heart.svg?logo=python&logoColor=white&label=PyPI
-   :target: https://pypi.org/project/pyansys-heart
+.. |pypi| image:: https://img.shields.io/pypi/v/ansys-health-heart.svg?logo=python&logoColor=white&label=PyPI
+   :target: https://pypi.org/project/ansys-health-heart
    :alt: PyPI
 
 .. |GH-CI| image:: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd_night.yml/badge.svg

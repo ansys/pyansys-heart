@@ -65,9 +65,8 @@ class Part:
     def surface_names(self) -> List[str]:
         """List of surface names belonging to the part."""
         surface_names = []
-        for key, value in self.__dict__.items():
-            if isinstance(value, SurfaceMesh):
-                surface_names.append(value.name)
+        for surface in self.surfaces:
+            surface_names.append(surface.name)
         return surface_names
 
     def get_point(self, pointname: str) -> Point:

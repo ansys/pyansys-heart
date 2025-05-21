@@ -1063,7 +1063,7 @@ class HeartModel:
         element_ids_septum = self.mesh._global_tetrahedron_ids[element_ids_septum]
 
         # assign to septum
-        part = next(part for part in self.parts if part._part_type == anatomy.PartType.SEPTUM)
+        part = next(part for part in self.parts if isinstance(part, anatomy.Septum))
         part.element_ids = element_ids_septum
         # manipulate _volume-id
         self.mesh.cell_data["_volume-id"][element_ids_septum] = part.pid
@@ -1519,9 +1519,9 @@ class HeartModel:
         #! Note that this only works since tetrahedrons are located
         #! at start of the mesh object.
         for part in self.parts:
-            if part._part_type == anatomy.PartType.VENTRICLE:
+            if isinstance(part, anatomy.Ventricle):
                 v_ele = np.append(v_ele, part.element_ids)
-            elif part._part_type == anatomy.PartType.ATRIUM:
+            elif isinstance(part, anatomy.Atrium):
                 a_ele = np.append(a_ele, part.element_ids)
 
         ventricles = self.mesh.extract_cells(v_ele)

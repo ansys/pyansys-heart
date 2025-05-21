@@ -33,7 +33,7 @@ from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.objects import SurfaceMesh
-from ansys.health.heart.parts import Chamber, PartType
+import ansys.health.heart.parts as anatomy
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings
 from ansys.health.heart.writer import custom_keywords as custom_keywords
@@ -376,7 +376,7 @@ class BaseDynaWriter:
         used_node_ids = np.empty(0, dtype=int)
 
         # add node-set for each cap
-        parts_with_caps = [part for part in self.model.parts if isinstance(part, Chamber)]
+        parts_with_caps = [part for part in self.model.parts if isinstance(part, anatomy.Chamber)]
         for part in parts_with_caps:
             for cap in self.model.all_caps:
                 # update cap mesh:
@@ -590,10 +590,9 @@ class BaseDynaWriter:
         """Remove any non-ventricular parts."""
         LOGGER.debug("Only keeping ventricular-parts for fiber/Purkinje generation.")
         parts_to_keep = [
-            p.name
-            for p in self.model.parts
-            if p._part_type in [PartType.VENTRICLE, PartType.SEPTUM]
+            p.name for p in self.model.parts if isinstance(p, (anatomy.Ventricle, anatomy.Septum))
         ]
+
         self._keep_parts(parts_to_keep)
         return
 
@@ -711,7 +710,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             parts = [
                 part
                 for part in self.model.parts
-                if part._part_type in [PartType.VENTRICLE, PartType.SEPTUM]
+                if isinstance(part, (anatomy.Ventricle, anatomy.Septum))
             ]
             #! Note that this only works when tetrahedrons are added at the beginning
             #! of the mesh (file)! E.g. check self.mesh.celltypes to make sure this is the case!
@@ -758,7 +757,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         parts = [
             part
             for part in self.model.parts
-            if part._part_type in [PartType.VENTRICLE, PartType.SEPTUM]
+            if isinstance(part, (anatomy.Ventricle, anatomy.Septum))
         ]
 
         tet_ids = np.empty((0), dtype=int)
@@ -859,9 +858,9 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         node_set_ids_epi_and_rseptum = []  # only relevant for bv, 4c and full model
 
         # list of ventricular parts
-        ventricles = [part for part in self.model.parts if part._part_type == PartType.VENTRICLE]
+        ventricles = [part for part in self.model.parts if isinstance(part, anatomy.Ventricle)]
         septum = next(
-            (part for part in self.model.parts if part._part_type == PartType.SEPTUM),
+            (part for part in self.model.parts if isinstance(part, anatomy.Septum)),
             None,
         )
 

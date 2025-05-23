@@ -27,7 +27,7 @@ import json
 import os
 import pathlib
 import re
-from typing import List, Literal
+from typing import Literal
 
 from deprecated import deprecated
 import numpy as np
@@ -125,7 +125,7 @@ class HeartModel:
     """Parent class for heart models."""
 
     @property
-    def parts(self) -> List[anatomy.Part]:
+    def parts(self) -> list[anatomy.Part]:
         """List of parts."""
         parts = []
         for key, value in self.__dict__.items():
@@ -135,7 +135,7 @@ class HeartModel:
         return parts
 
     @property
-    def part_names(self) -> List[str]:
+    def part_names(self) -> list[str]:
         """List of part names."""
         part_names = []
         for part in self.parts:
@@ -143,27 +143,27 @@ class HeartModel:
         return part_names
 
     @property
-    def part_ids(self) -> List[int]:
+    def part_ids(self) -> list[int]:
         """List of used part IDs."""
         return [part.pid for part in self.parts]
 
     @property
-    def surfaces(self) -> List[SurfaceMesh]:
+    def surfaces(self) -> list[SurfaceMesh]:
         """List of all defined surfaces."""
         return [s for p in self.parts for s in p.surfaces]
 
     @property
-    def surface_names(self) -> List[str]:
+    def surface_names(self) -> list[str]:
         """List of all defined surface names."""
         return [s.name for s in self.surfaces]
 
     @property
-    def surface_ids(self) -> List[str]:
+    def surface_ids(self) -> list[str]:
         """List of all defined surface IDs."""
         return [s.id for s in self.surfaces]
 
     @property
-    def cavities(self) -> List[Cavity]:
+    def cavities(self) -> list[Cavity]:
         """List of all cavities in the model."""
         return [
             part.cavity for part in self.parts if isinstance(part, anatomy.Chamber) if part.cavity
@@ -266,7 +266,7 @@ class HeartModel:
         self._set_part_ids()
         """Set incremental part IDs."""
 
-        self.electrodes: List[Point] = []
+        self.electrodes: list[Point] = []
         """Electrodes positions for ECG computing."""
 
         self._conduction_paths: list[ConductionPath] = []
@@ -384,12 +384,12 @@ class HeartModel:
             self._part_info.update(part._get_info())
         return self._part_info
 
-    def create_part_by_ids(self, eids: List[int], name: str) -> None | anatomy.Part:
+    def create_part_by_ids(self, eids: list[int], name: str) -> None | anatomy.Part:
         """Create a part by element IDs.
 
         Parameters
         ----------
-        eids : List[int]
+        eids : list[int]
             List of element IDs.
         name : str
             Part name.

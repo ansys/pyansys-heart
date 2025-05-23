@@ -770,8 +770,8 @@ class HeartModel:
             beams = self._conduction_mesh
             plotter.add_mesh(beams, line_width=2)
             plotter.show()
-        except Exception:
-            LOGGER.warning("Failed to plot the mesh.")
+        except Exception as e:
+            LOGGER.warning(f"Failed to plot the mesh. {e}")
         return
 
     def save_model(self, filename: str):
@@ -870,8 +870,8 @@ class HeartModel:
                 part_1.element_ids = np.argwhere(
                     np.isin(self.mesh.cell_data["_volume-id"], part_1.pid)
                 ).flatten()
-            except Exception:
-                LOGGER.warning(f"Failed to set element IDs for {part_1.name}.")
+            except Exception as e:
+                LOGGER.warning(f"Failed to set element IDs for {part_1.name}. {e}")
                 pass
 
             # try to initialize cavity object.
@@ -896,17 +896,17 @@ class HeartModel:
         # NOTE: #? add validation method to make sure all essential components are present?
         try:
             self._extract_apex()
-        except Exception:
-            LOGGER.warning("Failed to extract apex. Consider setting apex manually.")
+        except Exception as e:
+            LOGGER.warning(f"Failed to extract apex. Consider setting apex manually. {e}")
 
         if any(v is None for v in [self.short_axis, self.l4cv_axis, self.l2cv_axis]):
             LOGGER.warning("Heart is not defined in the VTU file.")
             try:
                 LOGGER.warning("Computing heart axis...")
                 self._define_anatomy_axis()
-            except Exception:
+            except Exception as e:
                 LOGGER.error(
-                    "Failed to extract heart axis. Consider computing and setting manually."
+                    f"Failed to extract heart axis. Consider computing and setting manually. {e}"
                 )
         else:
             LOGGER.info("Heart axis defined in the VTU file is reused...")

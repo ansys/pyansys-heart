@@ -44,6 +44,7 @@ class LandMarks:
     HIS_BIF_NODE = Point("His_bifurcation", xyz=None, node_id=None)
     HIS_LEFT_END_NODE = Point("His_left_end", xyz=None, node_id=None)
     HIS_RIGHT_END_NODE = Point("His_right_end", xyz=None, node_id=None)
+    BACHMAN_START_NODE = Point("Bachman_start", xyz=None, node_id=None)
     BACHMAN_END_NODE = Point("Bachman_end", xyz=None, node_id=None)
     LEFT_FASCILE_END = Point("Left_fasicle_end", xyz=None, node_id=None)
 
@@ -177,7 +178,7 @@ class HeartModelUtils:
         if target_coord is None:
             av_coord = LandMarks.AV_NODE.xyz
             if av_coord is None:
-                LOGGER.error("AV node need to be defined before.")
+                LOGGER.error("AV node needs to be defined before.")
                 return
             target_coord = av_coord
 
@@ -243,7 +244,7 @@ class HeartModelUtils:
             # find n-th closest point to bifurcation
             bifurcation_coord = LandMarks.HIS_BIF_NODE.xyz
             if bifurcation_coord is None:
-                LOGGER.error("AV node need to be defined before.")
+                LOGGER.error("AV node needs to be defined before.")
                 return
             temp_id = pv.PolyData(
                 model.mesh.points[endo.global_node_ids_triangles, :]
@@ -263,11 +264,64 @@ class HeartModelUtils:
             return LandMarks.HIS_RIGHT_END_NODE
 
     @staticmethod
-    def define_bachman_bundle_end_node(
+    def define_bachman_bundle_start_node(
         model: models.FullHeart | models.FourChamber, target_coord=None
     ) -> LandMarks | None:
+        """Define Bachmann bundle start node."""
+        try:
+            right_atrium_epi = model.mesh.get_surface(model.right_atrium.epicardium.id)
+        except AttributeError:
+            LOGGER.error("Cannot find left atrium to create Bachmann bundle")
+            return
+        if target_coord is None:
+            sa_coord = LandMarks.SA_NODE.xyz
+            if sa_coord is None:
+                LOGGER.error("SA node needs to be defined before.")
+                return
+            target_coord = sa_coord
+        
+
+        target_id = pv.PolyData(
+            model.mesh.points[right_atrium_epi.global_node_ids_triangles, :]
+        ).find_closest_point(target_coord)
+        bachmann_end_id = right_atrium_epi.global_node_ids_triangles[target_id]
+        LandMarks.BACHMAN_START_NODE.xyz = model.mesh.points[bachmann_end_id, :]
+        LandMarks.BACHMAN_START_NODE.node_id = bachmann_end_id
+
+        return LandMarks.BACHMAN_START_NODE
+
+
+    @staticmethod
+    def define_bachman_bundle_end_node(
+        model: models.FullHeart | models.FourChamber,target_coord=None
+    ) -> LandMarks | None:
         """Define Bachmann bundle end node."""
-        NotImplementedError
+        try:
+            left_atrium_epi = model.mesh.get_surface(model.left_atrium.epicardium.id)
+        except AttributeError:
+            LOGGER.error("Cannot find left atrium to create Bachmann bundle")
+            return
+        if target_coord is None:
+            lipv_center = next(
+                cap.centroid for cap in model.left_atrium.caps if cap.type == CapType.LEFT_INFERIOR_PULMONARY_VEIN
+            )
+            lspv_center = next(
+                cap.centroid for cap in model.left_atrium.caps if cap.type == CapType.LEFT_SUPERIOR_PULMONARY_VEIN
+            )
+            ripv_center = next(
+                cap.centroid for cap in model.left_atrium.caps if cap.type == CapType.RIGHT_INFERIOR_PULMONARY_VEIN
+            )
+            rspv_center = next(
+                cap.centroid for cap in model.left_atrium.caps if cap.type == CapType.RIGHT_SUPERIOR_PULMONARY_VEIN
+            )
+            target_coord = np.mean([lipv_center,lspv_center,ripv_center,rspv_center],axis=0)
+        target_id = pv.PolyData(model.mesh.points[left_atrium_epi.global_node_ids_triangles, :]).find_closest_point(target_coord)
+        bachmann_end_id = left_atrium_epi.global_node_ids_triangles[target_id]
+        LandMarks.BACHMAN_END_NODE.xyz = model.mesh.points[bachmann_end_id, :]
+        LandMarks.BACHMAN_END_NODE.node_id = bachmann_end_id
+
+        return LandMarks.BACHMAN_END_NODE
+
 
     @staticmethod
     def define_fascile_bundle_end_node(
@@ -367,19 +421,35 @@ class HeartModelUtils:
         left_bundle.up_path = his_left
         left_bundle.down_path = left_purkinje
 
-        surface_ids = [model.right_ventricle.endocardium.id, model.right_ventricle.septum.id]
-        endo_surface = model.mesh.get_surface(surface_ids)
+        ventricular_endo_surface_ids = [model.right_ventricle.endocardium.id, model.right_ventricle.septum.id]
+        ventricular_endo_surface = model.mesh.get_surface(ventricular_endo_surface_ids)
 
         right_bundle = ConductionPath.create_from_keypoints(
             name=ConductionPathType.RIGHT_BUNDLE_BRANCH,
             keypoints=[his_right_point.xyz, model.right_ventricle.apex_points[0].xyz],
             id=8,
-            base_mesh=endo_surface,
+            base_mesh=ventricular_endo_surface,
             connection="none",  # TODO: change to 'last'?
             line_length=None,
         )
         right_bundle.up_path = his_right
         right_bundle.down_path = right_purkinje
+
+        atrial_epi_surface_ids = [model.right_atrium.epicardium.id, model.left_atrium.epicardium.id]
+        atrial_epi_surface = model.mesh.get_surface(atrial_epi_surface_ids)
+        bachmann_start = HeartModelUtils.define_bachman_bundle_start_node(model=model)
+        bachmann_end = HeartModelUtils.define_bachman_bundle_end_node(model=model)
+
+        # compute bachmann bundle without including it in model due to LS-DYNA bug in R16
+        bachmann_bundle = ConductionPath.create_from_keypoints(
+            name=ConductionPathType.BACHMANN_BUNDLE,
+            keypoints=[bachmann_start.xyz, bachmann_end.xyz],
+            id=9,
+            base_mesh=atrial_epi_surface,
+            connection="all",  
+            line_length=None,
+        )
+
         return [
             left_purkinje,
             right_purkinje,

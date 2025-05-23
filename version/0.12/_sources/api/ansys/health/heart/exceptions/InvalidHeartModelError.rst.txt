@@ -1,0 +1,48 @@
+
+
+
+
+
+
+:class:`InvalidHeartModelError`
+===============================
+
+.. py:exception:: ansys.health.heart.exceptions.InvalidHeartModelError
+
+   Bases: :py:obj:`Exception`
+
+
+   
+   Exception raised when the heart model is invalid.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.exceptions import InvalidHeartModelError
+
+
+
+
+

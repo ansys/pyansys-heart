@@ -1,0 +1,49 @@
+
+
+
+
+
+
+:class:`Myocardium`
+===================
+
+
+.. py:class:: ansys.health.heart.parts.Myocardium(name: str = None)
+
+   Bases: :py:obj:`Part`
+
+
+   
+   Myocardium part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.parts import Myocardium
+
+
+
+
+

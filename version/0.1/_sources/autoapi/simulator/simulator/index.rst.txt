@@ -1,0 +1,670 @@
+:py:mod:`simulator.simulator`
+=============================
+
+.. py:module:: simulator.simulator
+
+.. autoapi-nested-parse::
+
+   Simulator module.
+
+   Options for simulation:
+   - EP-only
+       with/without fbers
+       with/without purkinje
+   - Electro-mechanics
+       simplified EP (imposed activation)
+       coupled electro-mechanics
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   simulator.simulator.BaseSimulator
+   simulator.simulator.EPSimulator
+   simulator.simulator.MechanicsSimulator
+   simulator.simulator.EPMechanicsSimulator
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   simulator.simulator.which
+   simulator.simulator.run_lsdyna
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   simulator.simulator.LOGGER
+
+
+.. py:data:: LOGGER
+
+   
+
+.. py:function:: which(program)
+
+   
+   Return path if program exists, else None.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:class:: BaseSimulator(model: ansys.heart.preprocessor.models.HeartModel, dyna_settings: ansys.heart.simulator.settings.settings.DynaSettings = None, simulation_directory: pathlib = '')
+
+
+   
+   Base class for the simulator.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: model
+      :type: ansys.heart.preprocessor.models.HeartModel
+
+      
+      HeartModel to simulate.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: directories
+      :type: dict
+
+      
+      Dictionary of all defined directories.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: root_directory
+
+      
+      Root simulation directory.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: settings
+      :type: ansys.heart.simulator.settings.settings.SimulationSettings
+
+      
+      Simulation settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: load_default_settings() -> ansys.heart.simulator.settings.settings.SimulationSettings
+
+      
+      Load default simulation settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_fibers()
+
+      
+      Compute the fiber direction on the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_uhc() -> pyvista.UnstructuredGrid
+
+      
+      Compute universal 'heart' coordinates system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_right_atrial_fiber(appendage: List[float]) -> pyvista.UnstructuredGrid
+
+      
+      Compute right atrium fiber with LDRBD method.
+
+
+      :Parameters:
+
+          **appendage**
+              Right atrium appendage apex coordinates.
+
+      :Returns:
+
+          :obj:`right` :obj:`atrium` :obj:`UnstructuredGrid` :obj:`with` :obj:`related` information.
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_left_atrial_fiber() -> pyvista.UnstructuredGrid
+
+      
+      Compute left atrium fiber with LDRBD method.
+
+
+
+      :Returns:
+
+          :obj:`right` :obj:`atrium` :obj:`UnstructuredGrid` :obj:`with` :obj:`related` information.
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: run_laplace_problem(export_directory, type, **kwargs)
+
+      
+      Run Laplace-Dirichlet (thermal) problem in LSDYNA.
+
+
+      :Parameters:
+
+          **export_directory: str**
+              LSDYNA directory
+
+          **type: str**
+              Simulation type.
+
+          **kwargs**
+              ..
+
+      :Returns:
+
+          :obj:`UnstructuredGrid` :obj:`with` :obj:`array <numpy.ndarray>` :obj:`to` :obj:`map` :obj:`data` :obj:`back` :obj:`to` :obj:`full` mesh.
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: EPSimulator(model: ansys.heart.preprocessor.models.HeartModel, dyna_settings: ansys.heart.simulator.settings.settings.DynaSettings, simulation_directory: pathlib = '')
+
+
+   Bases: :py:obj:`BaseSimulator`
+
+   
+   EP Simulator.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:method:: simulate(folder_name='main-ep')
+
+      
+      Launch the main simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_purkinje()
+
+      
+      Compute the purkinje network.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_conduction_system()
+
+      
+      Compute the conduction system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: MechanicsSimulator(model: ansys.heart.preprocessor.models.HeartModel, dyna_settings: ansys.heart.simulator.settings.settings.DynaSettings, simulation_directory: pathlib = '', initial_stress: bool = True)
+
+
+   Bases: :py:obj:`BaseSimulator`
+
+   
+   Mechanics simulator with imposed active stress.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: initial_stress
+
+      
+      If stress free computation is taken into considered.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: stress_free_report
+
+      
+      A dictionary save stress free computation information
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: simulate(folder_name='main-mechanics', zerop_folder=None, auto_post=True)
+
+      
+      Launch the main simulation.
+
+
+      :Parameters:
+
+          **zerop_folder** : :class:`python:str`
+              folder contains stress free simulation.
+              Default is "zeropressure" under roo_directory.
+
+          **auto_post** : :ref:`bool <python:bltin-boolean-values>`
+              if run post-process scripts.
+
+          **folder_name: str**
+              main simulation folder name.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_stress_free_configuration(folder_name='zeropressure')
+
+      
+      Compute the stress-free configuration of the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: EPMechanicsSimulator(model: ansys.heart.preprocessor.models.HeartModel, dyna_settings: ansys.heart.simulator.settings.settings.DynaSettings, simulation_directory: pathlib = '')
+
+
+   Bases: :py:obj:`EPSimulator`, :py:obj:`MechanicsSimulator`
+
+   
+   Coupled EP-mechanics simulator with computed Electrophysiology.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:method:: simulate(folder_name='ep_meca')
+
+      
+      Launch the main simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: run_lsdyna(path_to_input: pathlib, settings: ansys.heart.simulator.settings.settings.DynaSettings = None, simulation_directory: pathlib = None)
+
+   
+   Standalone function for running LS-DYNA.
+
+
+   :Parameters:
+
+       **path_to_input** : :obj:`Path`
+           Input file for LS-DYNA.
+
+       **settings** : :obj:`DynaSettings`, :obj:`optional`
+           LS-DYNA settings, such as path to executable, executable type, platform, by default None
+
+       **simulation_directory** : :obj:`Path`, :obj:`optional`
+           Directory where to simulate, by default None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

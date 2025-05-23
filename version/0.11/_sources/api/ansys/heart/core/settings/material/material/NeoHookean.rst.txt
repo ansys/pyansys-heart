@@ -1,0 +1,219 @@
+
+
+
+
+
+
+:class:`NeoHookean`
+===================
+
+.. py:class:: ansys.heart.core.settings.material.material.NeoHookean
+
+   Bases: :py:obj:`MechanicalMaterialModel`
+
+
+   
+   Passive isotropic material with MAT_77H.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: NeoHookean
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~rho`
+            - Density of the material.
+          * - :py:attr:`~c10`
+            - c10.
+          * - :py:attr:`~kappa`
+            - Bulk modulus.
+          * - :py:attr:`~nu`
+            - Poisson's ratio.
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__post_init__`
+            - Deduce Poisson's ratio if not given.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.settings.material.material import NeoHookean
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: rho
+   :type:  float
+
+   
+   Density of the material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: c10
+   :type:  float
+
+   
+   c10.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: kappa
+   :type:  float
+   :value: None
+
+
+   
+   Bulk modulus.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: nu
+   :type:  float
+   :value: None
+
+
+   
+   Poisson's ratio.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: __post_init__()
+
+   
+   Deduce Poisson's ratio if not given.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

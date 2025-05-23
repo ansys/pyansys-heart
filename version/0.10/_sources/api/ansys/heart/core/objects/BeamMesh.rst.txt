@@ -1,0 +1,249 @@
+
+
+
+
+
+
+:class:`BeamMesh`
+=================
+
+.. py:class:: ansys.heart.core.objects.BeamMesh(name: str = None, edges: numpy.ndarray = None, nodes: numpy.ndarray = None, beam_nodes_mask: numpy.ndarray = None, pid: int = None, nsid: int = -1)
+
+   Bases: :py:obj:`pyvista.UnstructuredGrid`, :py:obj:`Feature`
+
+
+   
+   Beam class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: BeamMesh
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+   .. tab-item:: Properties
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~nodes`
+            - Node coordinates.
+          * - :py:attr:`~edges`
+            - Tetrahedrons num_tetra x 4.
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~all_beam_nodes`
+            - 
+          * - :py:attr:`~beam_nodes_mask`
+            - True for beam nodes, False for solid nodes.
+          * - :py:attr:`~pid`
+            - Part id associated with the network.
+          * - :py:attr:`~nsid`
+            - Surface id associated with the network.
+          * - :py:attr:`~ep_material`
+            - Initialize dummy ep material model
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.objects import BeamMesh
+
+Property detail
+---------------
+
+.. py:property:: nodes
+
+   
+   Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: edges
+
+   
+   Tetrahedrons num_tetra x 4.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: all_beam_nodes
+   :value: []
+
+
+.. py:attribute:: beam_nodes_mask
+   :value: None
+
+
+   
+   True for beam nodes, False for solid nodes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: pid
+   :value: None
+
+
+   
+   Part id associated with the network.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: nsid
+   :type:  int
+   :value: -1
+
+
+   
+   Surface id associated with the network.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: ep_material
+   :type:  ansys.heart.simulator.settings.material.ep_material.EPMaterial
+
+   
+   Initialize dummy ep material model
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

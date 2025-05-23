@@ -1,0 +1,80 @@
+
+
+
+
+
+
+The ``klotz_curve.py`` module
+=============================
+
+.. py:module:: ansys.heart.postprocessor.klotz_curve
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: klotz_curve
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.postprocessor.klotz_curve.EDPVR`
+            - End diastolic pressure-volume relation.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> EDPVR</api/ansys/heart/postprocessor/klotz_curve/EDPVR>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Klotz curve module.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

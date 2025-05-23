@@ -1,0 +1,218 @@
+
+
+
+
+
+
+:class:`MechanicsDynaWriter`
+============================
+
+
+.. py:class:: ansys.health.heart.writer.mechanics_writer.MechanicsDynaWriter(model: ansys.health.heart.models.HeartModel, settings: Optional[ansys.health.heart.settings.settings.SimulationSettings] = None)
+
+   Bases: :py:obj:`ansys.health.heart.writer.base_writer.BaseDynaWriter`
+
+
+   
+   Class for preparing the input for a mechanics LS-DYNA simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: MechanicsDynaWriter
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~update`
+            - Update the keyword database.
+          * - :py:attr:`~write_robin_bc`
+            - Create Robin boundary condition on a given surface.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~kw_database`
+            - Collection of keyword decks relevant for mechanics.
+          * - :py:attr:`~set_flow_area`
+            - Flag indicating if the flow area is set for control volume.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.mechanics_writer import MechanicsDynaWriter
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: kw_database
+
+   
+   Collection of keyword decks relevant for mechanics.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: set_flow_area
+   :type:  bool
+   :value: True
+
+
+   
+   Flag indicating if the flow area is set for control volume.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: update(dynain_name: Optional[str] = None, robin_bcs: list[Callable] = None) -> None
+
+   
+   Update the keyword database.
+
+
+   :Parameters:
+
+       **dynain_name** : :class:`python:str`, default: :data:`python:None`
+           Dynain file from stress-free configuration computation.
+
+       **robin_bcs** : :class:`python:list`\[:obj:`Callable`], default: :data:`python:None`
+           List of lambda functions to apply Robin-type coundary conditions.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   You do not need to write mesh files if a Dynain file is given.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: write_robin_bc(robin_type: Literal['spring', 'damper'], constant: float, surface: pyvista.PolyData, normal: Optional[numpy.ndarray] = None) -> list
+
+   
+   Create Robin boundary condition on a given surface.
+
+
+   :Parameters:
+
+       **robin_type** : :obj:`Literal`\["spring", "damper"]
+           Create spring or damper.
+
+       **constant** : :class:`python:float`
+           Stiffness (MPa/mm) or viscosity (MPa/mm*ms).
+
+       **surface** : :obj:`pv.PolyData`
+           Surface to apply boundary condition to. It must contain point data
+           ``_global-point-ids``. It is scaled by the nodal area and point data
+           scale factor if it exists.
+
+       **normal** : :obj:`np.ndarray <numpy.ndarray>`, default: :data:`python:None`
+           Normal values. If no normal values are given, nodal normals are used.
+
+
+
+   :Returns:
+
+       :class:`python:list`
+           List of the DYNA input deck.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

@@ -1,0 +1,273 @@
+
+
+
+
+Mesh
+====
+
+.. py:class:: Mesh(*args)
+   :canonical: ansys.heart.preprocessor.mesh.objects.Mesh
+
+
+
+Bases: :py:obj:`pyvista.UnstructuredGrid`
+
+
+   Mesh class: inherits from pyvista UnstructuredGrid.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Only tetrahedrons are supported.
+   Additional attributes are added on top of the pyvista UnstructuredGrid class
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: Mesh
+.. tab-set::
+
+
+
+    .. tab-item:: Methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_surface_from_name`
+            - Return a list of surfaces that match the given list of names.
+
+
+    .. tab-item:: Properties
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~nodes`
+            - Node coordinates.
+          * - :py:attr:`~tetrahedrons`
+            - Tetrahedrons num_tetra x 4.
+          * - :py:attr:`~part_ids`
+            - Array of part ids indicating to which part the tetrahedron belongs.
+          * - :py:attr:`~boundary_names`
+            - Iterate over boundaries and returns their names.
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~boundaries`
+            - List of boundary surface meshes within the part.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.mesh.objects import Mesh
+
+
+Property detail
+---------------
+.. py:property:: nodes
+   :canonical: ansys.heart.preprocessor.mesh.objects.Mesh.nodes
+   :type: None
+
+
+   
+   Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: tetrahedrons
+   :canonical: ansys.heart.preprocessor.mesh.objects.Mesh.tetrahedrons
+   :type: None
+
+
+   
+   Tetrahedrons num_tetra x 4.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: part_ids
+   :canonical: ansys.heart.preprocessor.mesh.objects.Mesh.part_ids
+   :type: numpy.ndarray
+
+
+   
+   Array of part ids indicating to which part the tetrahedron belongs.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   This is derived from the "part-id" field in cell data
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: boundary_names
+   :canonical: ansys.heart.preprocessor.mesh.objects.Mesh.boundary_names
+   :type: List[str]
+
+
+   
+   Iterate over boundaries and returns their names.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: boundaries
+   :type: List[SurfaceMesh]
+   :value: []
+
+   
+   List of boundary surface meshes within the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+Method detail
+-------------
+.. py:method:: get_surface_from_name(name: str = None)
+
+   
+   Return a list of surfaces that match the given list of names.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Returns single surface. When multiple matches are found returns list of surfaces
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

@@ -1,0 +1,194 @@
+
+
+:class:`ICVoutReader`
+=====================
+
+.. py:class:: ansys.heart.postprocessor.dpf_utils.ICVoutReader(fn: str)
+
+   
+   Read control volume data from binout.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: ICVoutReader
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_time`
+            - Get time array.
+          * - :py:attr:`~get_pressure`
+            - Get pressure array.
+          * - :py:attr:`~get_volume`
+            - Get volume array.
+          * - :py:attr:`~get_flowrate`
+            - Get flow rate array.
+
+
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.postprocessor.dpf_utils import ICVoutReader
+
+
+
+
+
+Method detail
+-------------
+.. py:method:: get_time() -> numpy.ndarray
+
+   
+   Get time array.
+
+
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           time array
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_pressure(icv_id: int) -> numpy.ndarray
+
+   
+   Get pressure array.
+
+
+   :Parameters:
+
+       **icv_id** : :class:`python:int`
+           control volume id
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           pressure array
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_volume(icv_id: int) -> numpy.ndarray
+
+   
+   Get volume array.
+
+
+   :Parameters:
+
+       **icv_id** : :class:`python:int`
+           control volume id
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           volume array
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_flowrate(icvi_id: int) -> numpy.ndarray
+
+   
+   Get flow rate array.
+
+
+   :Parameters:
+
+       **icvi_id** : :class:`python:int`
+           control volume interaction id
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           flowrate array
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

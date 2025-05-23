@@ -1,0 +1,109 @@
+
+
+
+
+
+
+The ``ansys.heart.postprocessor`` library
+=========================================
+
+.. py:module:: ansys.heart.postprocessor
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: postprocessor
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.postprocessor.EPpostprocessor`
+            - D3plot parser using Ansys-dpf.
+
+
+          * - :py:obj:`~ansys.heart.postprocessor.Klotz_curve`
+            - Klotz curve module.
+
+
+          * - :py:obj:`~ansys.heart.postprocessor.SystemModelPost`
+            - Module for postprocessing system model data.
+
+
+          * - :py:obj:`~ansys.heart.postprocessor.aha17_strain`
+            - Compute myocardial strain.
+
+
+          * - :py:obj:`~ansys.heart.postprocessor.auto_process`
+            - Script used to post process simulations automatically.
+
+
+          * - :py:obj:`~ansys.heart.postprocessor.dpf_utils`
+            - D3plot parser using Ansys-dpf.
+
+
+          * - :py:obj:`~ansys.heart.postprocessor.exporter`
+            - Export information from d3plot.
+
+
+          * - :py:obj:`~ansys.heart.postprocessor.laplace_post`
+            - Post process script related to Laplace solving (UHC, fibers).
+
+
+          * - :py:obj:`~ansys.heart.postprocessor.pvloop`
+            - Get PV loop from ls-dyna icvout file.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> EPpostprocessor</api/ansys/heart/postprocessor/EPpostprocessor/index>
+    <span class="nf nf-fa-file"></span> Klotz_curve</api/ansys/heart/postprocessor/Klotz_curve/index>
+    <span class="nf nf-fa-file"></span> SystemModelPost</api/ansys/heart/postprocessor/SystemModelPost/index>
+    <span class="nf nf-fa-file"></span> aha17_strain</api/ansys/heart/postprocessor/aha17_strain/index>
+    <span class="nf nf-fa-file"></span> auto_process</api/ansys/heart/postprocessor/auto_process/index>
+    <span class="nf nf-fa-file"></span> dpf_utils</api/ansys/heart/postprocessor/dpf_utils/index>
+    <span class="nf nf-fa-file"></span> exporter</api/ansys/heart/postprocessor/exporter/index>
+    <span class="nf nf-fa-file"></span> laplace_post</api/ansys/heart/postprocessor/laplace_post/index>
+    <span class="nf nf-fa-file"></span> pvloop</api/ansys/heart/postprocessor/pvloop/index>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

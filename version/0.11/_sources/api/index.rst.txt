@@ -1,0 +1,11 @@
+API reference
+=============
+
+This section describes ansys-heart endpoints, their capabilities, and how
+to interact with them programmatically.
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   <span class="nf nf-md-package"></span> ansys.heart.core</api/ansys/heart/core/index>

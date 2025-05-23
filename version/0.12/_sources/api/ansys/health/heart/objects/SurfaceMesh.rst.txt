@@ -1,0 +1,360 @@
+
+
+
+
+
+
+:class:`SurfaceMesh`
+====================
+
+.. py:class:: ansys.health.heart.objects.SurfaceMesh(var_inp: Union[pyvista.PolyData, numpy.ndarray, list, str, pathlib.Path] = None, name: str = None, triangles: numpy.ndarray = None, nodes: numpy.ndarray = None, id: int = None, **kwargs)
+
+   Bases: :py:obj:`pyvista.PolyData`
+
+
+   
+   Surface class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: SurfaceMesh
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~force_normals_inwards`
+            - Force the cell ordering of the closed surface such that normals point inward.
+
+
+   .. tab-item:: Properties
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~nodes`
+            - Node coordinates.
+          * - :py:attr:`~triangles`
+            - Triangular faces of the surface ``num_faces`` x 3.
+          * - :py:attr:`~triangles_global`
+            - Global triangle IDs.
+          * - :py:attr:`~boundary_edges`
+            - Boundary edges of self.
+          * - :py:attr:`~boundary_edges_global`
+            - Global point IDs of boundary edges.
+          * - :py:attr:`~node_ids_triangles`
+            - Local node IDs sorted by earliest occurrence.
+          * - :py:attr:`~global_node_ids_triangles`
+            - Global node IDs from point data.
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~name`
+            - Name of the surface.
+          * - :py:attr:`~id`
+            - ID of the surface.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.objects import SurfaceMesh
+
+Property detail
+---------------
+
+.. py:property:: nodes
+
+   
+   Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: triangles
+
+   
+   Triangular faces of the surface ``num_faces`` x 3.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: triangles_global
+
+   
+   Global triangle IDs.
+
+
+
+
+
+   :Returns:
+
+       :obj:`Tries` :obj:`to` :obj:`use` ``point_data["_global-point-ids"]`` :obj:`to` :obj:`retrieve`
+           ..
+
+       :obj:`triangle` :obj:`definitions` :obj:`in` :obj:`global` IDs.
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: boundary_edges
+
+   
+   Boundary edges of self.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: boundary_edges_global
+
+   
+   Global point IDs of boundary edges.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: node_ids_triangles
+   :type: numpy.ndarray
+
+
+   
+   Local node IDs sorted by earliest occurrence.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: global_node_ids_triangles
+
+   
+   Global node IDs from point data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: name
+   :value: None
+
+
+   
+   Name of the surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: id
+   :type:  int
+   :value: None
+
+
+   
+   ID of the surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: force_normals_inwards()
+
+   
+   Force the cell ordering of the closed surface such that normals point inward.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

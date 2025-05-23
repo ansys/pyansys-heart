@@ -1,0 +1,175 @@
+
+
+
+
+LVContourExporter
+=================
+
+.. py:class:: LVContourExporter(d3plot_file: str, model: ansys.heart.preprocessor.models.HeartModel)
+   :canonical: ansys.heart.postprocessor.exporter.LVContourExporter
+
+
+
+
+
+   Export Left ventricle surface and Post-process.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: LVContourExporter
+.. tab-set::
+
+
+
+    .. tab-item:: Methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~export_contour_to_vtk`
+            - Cut and save the contour in vtk.
+          * - :py:attr:`~plot_lvls`
+            - Get lvls figure.
+          * - :py:attr:`~export_lvls_to_vtk`
+            - Export lvls as vtk Polyline.
+
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.postprocessor.exporter import LVContourExporter
+
+
+
+
+Method detail
+-------------
+.. py:method:: export_contour_to_vtk(folder, cutter) -> [vtk.vtkPolyData]
+
+   
+   Cut and save the contour in vtk.
+
+
+   :Parameters:
+
+       **cutter: dict contain 'center' and 'normal'**
+           ..
+
+       **folder: output folder**
+           ..
+
+   :Returns:
+
+       :obj:`List` :obj:`of` :obj:`contour` :obj:`data`
+           ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: plot_lvls()
+
+   
+   Get lvls figure.
+
+
+
+   :Returns:
+
+       fig: :obj:`figure` :obj:`handle`
+           ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: export_lvls_to_vtk(folder='lvls_vtk')
+
+   
+   Export lvls as vtk Polyline.
+
+
+   :Parameters:
+
+       **folder: out folder**
+           ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

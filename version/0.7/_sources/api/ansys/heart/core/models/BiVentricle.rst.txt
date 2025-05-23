@@ -1,0 +1,159 @@
+
+
+:class:`BiVentricle`
+====================
+
+.. py:class:: ansys.heart.core.models.BiVentricle(info: ModelInfo = None, working_directory: pathlib.Path | str = None)
+
+   Bases: :py:obj:`HeartModel`
+
+
+   
+   Model of the left and right ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: BiVentricle
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~left_ventricle`
+            - Left ventricle part.
+          * - :py:attr:`~right_ventricle`
+            - Right ventricle part.
+          * - :py:attr:`~septum`
+            - Septum.
+          * - :py:attr:`~fiber`
+            - 
+          * - :py:attr:`~active`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.models import BiVentricle
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: left_ventricle
+   :type:  ansys.heart.core.objects.Part
+
+   
+   Left ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: right_ventricle
+   :type:  ansys.heart.core.objects.Part
+
+   
+   Right ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: septum
+   :type:  ansys.heart.core.objects.Part
+
+   
+   Septum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: fiber
+   :value: True
+
+
+.. py:attribute:: active
+   :value: True
+
+
+
+
+

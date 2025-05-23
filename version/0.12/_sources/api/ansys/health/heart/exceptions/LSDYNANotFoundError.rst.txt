@@ -1,0 +1,48 @@
+
+
+
+
+
+
+:class:`LSDYNANotFoundError`
+============================
+
+.. py:exception:: ansys.health.heart.exceptions.LSDYNANotFoundError
+
+   Bases: :py:obj:`FileNotFoundError`
+
+
+   
+   Exception raised when the LS-DYNA executable file is not found.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.exceptions import LSDYNANotFoundError
+
+
+
+
+

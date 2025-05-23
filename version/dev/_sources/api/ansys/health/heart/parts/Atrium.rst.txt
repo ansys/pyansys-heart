@@ -1,0 +1,49 @@
+
+
+
+
+
+
+:class:`Atrium`
+===============
+
+
+.. py:class:: ansys.health.heart.parts.Atrium(name: str = None)
+
+   Bases: :py:obj:`Chamber`
+
+
+   
+   Atrium part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.parts import Atrium
+
+
+
+
+

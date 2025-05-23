@@ -1,0 +1,25 @@
+:py:mod:`simulator`
+===================
+
+.. py:module:: simulator
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   settings/index.rst
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   simulator/index.rst
+   support/index.rst
+
+

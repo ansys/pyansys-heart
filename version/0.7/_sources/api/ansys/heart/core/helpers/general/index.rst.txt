@@ -1,0 +1,144 @@
+
+
+
+
+
+
+The ``general.py`` module
+=========================
+
+.. py:module:: ansys.heart.core.helpers.general
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: general
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~clean_directory`
+            - Remove files with extension present in the working directory.
+
+
+          * - :py:obj:`~model_summary`
+            - Generate a dictionary with model information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing some general methods.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: clean_directory(directory: str, extensions_to_remove: list[str] = ['.stl', '.vtk', '.msh.h5'], remove_all: bool = False) -> None
+
+   
+   Remove files with extension present in the working directory.
+
+
+   :Parameters:
+
+       **extensions_to_remove** : :obj:`List`\[:class:`python:str`], :obj:`optional`
+           List of extensions to remove, by default [".stl", ".vtk", ".msh.h5"]
+
+       **remove_all: bool, optional**
+           Flag indicating whether to remove files with any extension.
+           Keeps files/folder without extension
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: model_summary(model: ansys.heart.core.models.HeartModel, attributes: list = None) -> dict
+
+   
+   Generate a dictionary with model information.
+
+
+   :Parameters:
+
+       **model** : :obj:`HeartModel`
+           HeartModel for which to generate the summary dictionary
+
+       **attributes** : :class:`python:list`
+           List of attributes to try to add to the dict.
+
+
+
+   :Returns:
+
+       :class:`python:dict`
+           Dictionary with model information.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

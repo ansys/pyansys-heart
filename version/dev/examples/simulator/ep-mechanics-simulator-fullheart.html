@@ -1,0 +1,896 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta property="og:site_name" content="PyAnsys" />
+    <title>Run a full-heart EP mechanics simulation &#8212; PyAnsys Heart</title>
+  
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/ansys-sphinx-theme.css?v=fbf3eb5d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles\ansys-sphinx-theme.css?v=fbf3eb5d" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://www.nerdfonts.com/assets/css/webfont.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=7c3339d6" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+
+  <!-- Include desired assets -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  
+
+  
+    <link href="../../_static/css/breadcrumbs.css" rel="stylesheet" />
+  
+    <script src="../../_static/documentation_options.js?v=769e5e19"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/simulator/ep-mechanics-simulator-fullheart';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://heart.health.docs.pyansys.com/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../../_static/ansys-favicon.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Run a full-heart electrophysiology simulation" href="ep-simulator-fullheart_rodero.html" />
+    <link rel="prev" title="Simulator examples" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="main" />
+  <link rel="canonical" href="https://heart.health.docs.pyansys.com/version/stable/examples/simulator/ep-mechanics-simulator-fullheart.html" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="https://docs.pyansys.com/">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/pyansys_logo_transparent_black.png" class="logo__image only-light" alt="PyAnsys Heart - Home"/>
+    <img src="../../_static/pyansys_logo_transparent_white.png" class="logo__image only-dark pst-js-only" alt="PyAnsys Heart - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting-started.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../user-guide.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contribute
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../changelog.html">
+    Release notes
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../acknowledgements.html">
+    Acknowledgements
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+</div>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+</div>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+  
+    <div id="announcement_msg"></div>
+<script>
+  fetch("announcement.html")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(
+      (text) => (document.getElementById("announcement_msg").innerHTML = text),
+    )
+    .catch((error) => console.error(`Fetch problem: ${error.message}`));
+</script>
+  
+
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting-started.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../user-guide.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contribute
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Release notes
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../acknowledgements.html">
+    Acknowledgements
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../preprocessor/index.html">Preprocessor examples</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Simulator examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Run a full-heart EP mechanics simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ep-simulator-fullheart_rodero.html">Run a full-heart electrophysiology simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mechanics-simulator-leftventricle_pr.html">Run a left ventricle mechanical simulation</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessor/index.html">Postprocessor examples</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+         
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="https://health.docs.pyansys.com/" class="nav-link">PyAnsys Health</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a
+        href="../../index.html"
+        class="nav-link"
+        aria-label="Home"
+      >
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a href="../index.html" class="nav-link">Examples</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a href="index.html" class="nav-link">Simulator examples</a>
+    </li>
+      
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Run a full-heart EP mechanics simulation</span></li>
+    
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-examples-simulator-ep-mechanics-simulator-fullheart-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code.</p>
+</div>
+<section class="sphx-glr-example-title" id="run-a-full-heart-ep-mechanics-simulation">
+<span id="sphx-glr-examples-simulator-ep-mechanics-simulator-fullheart-py"></span><h1>Run a full-heart EP mechanics simulation<a class="headerlink" href="#run-a-full-heart-ep-mechanics-simulation" title="Link to this heading">#</a></h1>
+<p>This example shows how to consume a full-heart model and
+set it up for a coupled electromechanical simulation.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When using a standalone version of the DPF Server, you must accept the <a class="reference external" href="https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html">license terms</a>. To
+accept these terms, you can set this environment variable:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;ANSYS_DPF_ACCEPT_LA&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Y&quot;</span>
+</pre></div>
+</div>
+</div>
+<section id="perform-the-required-imports">
+<h2>Perform the required imports<a class="headerlink" href="#perform-the-required-imports" title="Link to this heading">#</a></h2>
+<p>Import the required modules.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pint</span><span class="w"> </span><span class="kn">import</span> <a href="https://docs.python.org/dev/library/typing.html#typing.Generic" title="typing.Generic" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-class"><span class="n">Quantity</span></a>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">ansys.health.heart.examples</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_preprocessed_fullheart</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ansys.health.heart.models</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">models</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ansys.health.heart.settings.material.ep_material</span><span class="w"> </span><span class="kn">import</span> <span class="n">EPMaterial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ansys.health.heart.settings.material.material</span><span class="w"> </span><span class="kn">import</span> <span class="n">ISO</span><span class="p">,</span> <span class="n">Mat295</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ansys.health.heart.simulator</span><span class="w"> </span><span class="kn">import</span> <span class="n">DynaSettings</span><span class="p">,</span> <span class="n">EPMechanicsSimulator</span>
+</pre></div>
+</div>
+</section>
+<section id="set-the-required-paths">
+<h2>Set the required paths<a class="headerlink" href="#set-the-required-paths" title="Link to this heading">#</a></h2>
+<p>Set the working directory and path to the model.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the path to a preprocessed full-heart model.</span>
+<a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">path_to_model</span></a><span class="p">,</span> <a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">path_to_partinfo</span></a><span class="p">,</span> <a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_</span></a> <span class="o">=</span> <span class="n">get_preprocessed_fullheart</span><span class="p">(</span><span class="n">resolution</span><span class="o">=</span><span class="s2">&quot;2.0mm&quot;</span><span class="p">)</span>
+
+<span class="c1"># Set the working directory.</span>
+<a href="https://docs.python.org/dev/library/pathlib.html#pathlib.WindowsPath" title="pathlib.WindowsPath" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">workdir</span></a> <span class="o">=</span> <a href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path.home" title="pathlib.Path.home" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-method"><span class="n">Path</span><span class="o">.</span><span class="n">home</span></a><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;pyansys-heart&quot;</span> <span class="o">/</span> <span class="s2">&quot;downloads&quot;</span> <span class="o">/</span> <span class="s2">&quot;Rodero2021&quot;</span> <span class="o">/</span> <span class="s2">&quot;01&quot;</span> <span class="o">/</span> <span class="s2">&quot;FullHeart&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="load-the-full-heart-model">
+<h2>Load the full-heart model<a class="headerlink" href="#load-the-full-heart-model" title="Link to this heading">#</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load the full-heart model.</span>
+<span class="n">model</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">FullHeart</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FullHeart</span><span class="p">(</span><span class="n">working_directory</span><span class="o">=</span><a href="https://docs.python.org/dev/library/pathlib.html#pathlib.WindowsPath" title="pathlib.WindowsPath" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">workdir</span></a><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">load_model_from_mesh</span><span class="p">(</span><a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">path_to_model</span></a><span class="p">,</span> <a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">path_to_partinfo</span></a><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="instantiate-the-simulator">
+<h2>Instantiate the simulator<a class="headerlink" href="#instantiate-the-simulator" title="Link to this heading">#</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create and instantiate a DYNA settings object. Modify where necessary.</span>
+<a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lsdyna_path</span></a> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;your_dyna_exe&quot;</span>
+<span class="n">dyna_settings</span> <span class="o">=</span> <span class="n">DynaSettings</span><span class="p">(</span>
+    <a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lsdyna_path</span></a><span class="o">=</span><a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lsdyna_path</span></a><span class="p">,</span> <span class="n">dynatype</span><span class="o">=</span><span class="s2">&quot;intelmpi&quot;</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="s2">&quot;wsl&quot;</span><span class="p">,</span> <span class="n">num_cpus</span><span class="o">=</span><span class="mi">4</span>
+<span class="p">)</span>
+
+<span class="c1"># Instantiate the simulator.</span>
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">EPMechanicsSimulator</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+    <span class="n">dyna_settings</span><span class="o">=</span><span class="n">dyna_settings</span><span class="p">,</span>
+    <span class="n">simulation_directory</span><span class="o">=</span><a href="https://docs.python.org/dev/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><a href="https://docs.python.org/dev/library/pathlib.html#pathlib.WindowsPath" title="pathlib.WindowsPath" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">workdir</span></a><span class="p">,</span> <span class="s2">&quot;ep-mechanics&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Load default simulation settings.</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">load_defaults</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="compute-the-fiber-orientation">
+<h2>Compute the fiber orientation<a class="headerlink" href="#compute-the-fiber-orientation" title="Link to this heading">#</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Compute fiber orientation in the ventricles and atria.</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">compute_fibers</span><span class="p">()</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">compute_left_atrial_fiber</span><span class="p">()</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">compute_right_atrial_fiber</span><span class="p">(</span><span class="n">appendage</span><span class="o">=</span><span class="p">[</span><span class="mi">39</span><span class="p">,</span> <span class="mi">29</span><span class="p">,</span> <span class="mi">98</span><span class="p">])</span>
+
+<span class="c1"># Switch the atria to active.</span>
+<a href="https://docs.python.org/dev/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">simulator</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">left_atrium</span><span class="o">.</span><span class="n">fiber</span></a> <span class="o">=</span> <span class="kc">True</span>
+<a href="https://docs.python.org/dev/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">simulator</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">left_atrium</span><span class="o">.</span><span class="n">active</span></a> <span class="o">=</span> <span class="kc">True</span>
+
+<a href="https://docs.python.org/dev/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">simulator</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">right_atrium</span><span class="o">.</span><span class="n">fiber</span></a> <span class="o">=</span> <span class="kc">True</span>
+<a href="https://docs.python.org/dev/library/functions.html#bool" title="builtins.bool" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">simulator</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">right_atrium</span><span class="o">.</span><span class="n">active</span></a> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+</section>
+<section id="set-up-the-simulation-for-the-mechanical-simulations">
+<h2>Set up the simulation for the mechanical simulations<a class="headerlink" href="#set-up-the-simulation-for-the-mechanical-simulations" title="Link to this heading">#</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Extract elements around atrial caps and assign as a passive material.</span>
+<span class="n">ring</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">create_atrial_stiff_ring</span><span class="p">(</span><span class="n">radius</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="c1"># Assign a material that is stiffer than the surrounding material.</span>
+<span class="n">stiff_iso</span> <span class="o">=</span> <span class="n">Mat295</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">iso</span><span class="o">=</span><span class="n">ISO</span><span class="p">(</span><span class="n">itype</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">kappa</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">mu1</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">alpha1</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">ring</span><span class="o">.</span><span class="n">meca_material</span> <span class="o">=</span> <span class="n">stiff_iso</span>
+
+<span class="c1"># Assign the default EP material</span>
+<span class="n">ring</span><span class="o">.</span><span class="n">ep_material</span> <span class="o">=</span> <span class="n">EPMaterial</span><span class="o">.</span><span class="n">Active</span><span class="p">()</span>
+
+<span class="c1"># plot the mesh</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">plot_mesh</span><span class="p">()</span>
+
+<span class="c1"># Compute UHCs (Universal Heart Coordinates).</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">compute_uhc</span><span class="p">()</span>
+
+<span class="c1"># Extract elements close to the valves and assign these a passive material.</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">create_stiff_ventricle_base</span><span class="p">(</span><span class="n">stiff_material</span><span class="o">=</span><span class="n">stiff_iso</span><span class="p">)</span>
+
+<span class="c1"># Compute the stress-free configuration.</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">compute_stress_free_configuration</span><span class="p">(</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../../_images/sphx_glr_ep-mechanics-simulator-fullheart_001.png" srcset="../../_images/sphx_glr_ep-mechanics-simulator-fullheart_001.png" alt="ep mechanics simulator fullheart" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Interactive Scene</label><div class="sd-tab-content docutils">
+
+    <iframe src='../../_static/static_viewer.html?fileURL=../_images/examples/simulator/images/sphx_glr_ep-mechanics-simulator-fullheart_001.vtksz' width='100%%' height='400px' frameborder='0'></iframe>
+</div>
+</div>
+<img src="../../_images/sphx_glr_ep-mechanics-simulator-fullheart_002.png" srcset="../../_images/sphx_glr_ep-mechanics-simulator-fullheart_002.png" alt="EDVPR" class = "sphx-glr-single-img"/><div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Computing the stress-free configuration is required since the geometry is imaged
+at end-of-diastole. The <code class="docutils literal notranslate"><span class="pre">compute_stress_free_configuration()</span></code> method runs a
+sequence of static simulations to estimate the stress-free state of the model and
+the initial stresses present. This step is computationally expensive and can take
+relatively long. You can consider reusing earlier runs by setting the <code class="docutils literal notranslate"><span class="pre">overwrite</span></code>
+flag to <code class="docutils literal notranslate"><span class="pre">False</span></code>. This reuses the results of the previous run.</p>
+</div>
+</section>
+<section id="compute-a-conduction-system">
+<h2>Compute a conduction system<a class="headerlink" href="#compute-a-conduction-system" title="Link to this heading">#</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Compute the conduction system.</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">compute_purkinje</span><span class="p">()</span>
+
+<span class="c1"># Use landmarks to compute the rest of the conduction system.</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">compute_conduction_system</span><span class="p">()</span>
+
+<span class="c1"># Plot the computed conduction system.</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">plot_purkinje</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-2">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../../_images/sphx_glr_ep-mechanics-simulator-fullheart_003.png" srcset="../../_images/sphx_glr_ep-mechanics-simulator-fullheart_003.png" alt="ep mechanics simulator fullheart" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-3">
+Interactive Scene</label><div class="sd-tab-content docutils">
+
+    <iframe src='../../_static/static_viewer.html?fileURL=../_images/examples/simulator/images/sphx_glr_ep-mechanics-simulator-fullheart_003.vtksz' width='100%%' height='400px' frameborder='0'></iframe>
+</div>
+</div>
+</section>
+<section id="start-the-main-simulation">
+<h2>Start the main simulation<a class="headerlink" href="#start-the-main-simulation" title="Link to this heading">#</a></h2>
+<p>Set the simulation end time and frequency of output files.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">simulator</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">mechanics</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">end_time</span> <span class="o">=</span> <a href="https://docs.python.org/dev/library/typing.html#typing.Generic" title="typing.Generic" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-class"><span class="n">Quantity</span></a><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="s2">&quot;ms&quot;</span><span class="p">)</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">mechanics</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">dt_d3plot</span> <span class="o">=</span> <a href="https://docs.python.org/dev/library/typing.html#typing.Generic" title="typing.Generic" class="sphx-glr-backref-module-typing sphx-glr-backref-type-py-class"><span class="n">Quantity</span></a><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;ms&quot;</span><span class="p">)</span>
+
+<span class="c1"># Save the model to a file.</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><a href="https://docs.python.org/dev/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><a href="https://docs.python.org/dev/library/pathlib.html#pathlib.WindowsPath" title="pathlib.WindowsPath" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">workdir</span></a><span class="p">,</span> <span class="s2">&quot;heart_fib_beam.vtu&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A constant pressure is prescribed to the atria.
+No circulation system is coupled with the atria.</p>
+</div>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use the ReactionEikonal solver for the electrophysiology simulation.</span>
+<a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">simulator</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">electrophysiology</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">solvertype</span></a> <span class="o">=</span> <span class="s2">&quot;ReactionEikonal&quot;</span>
+
+<span class="c1"># Start main simulation. The ``auto_post`` option is set to ``False`` to avoid</span>
+<span class="c1"># automatic postprocessing.</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">auto_post</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ReactionEikonal</span></code> solver is suitable for coarse meshes and is
+included here for demonstration purposes. However, it currently supports
+only a single cardiac cycle. To simulate multiple cardiac cycles, use the
+<code class="docutils literal notranslate"><span class="pre">Monodomain</span></code> solver, which requires a fine mesh and small time step size.</p>
+</div>
+</section>
+<section id="visualize-and-animate-results-ls-prepost">
+<h2>Visualize and animate results LS-PrePost<a class="headerlink" href="#visualize-and-animate-results-ls-prepost" title="Link to this heading">#</a></h2>
+<div  class="sphinx-contrib-video-container align-left"><video controls="True" loop="True" preload="auto" width="600" class="center"><source src="../../_images/rodero_epmechanics_fullheart.mp4" type="video/mp4"></video></div><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (60 minutes 4.222 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-simulator-ep-mechanics-simulator-fullheart-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/190a2d228742f1f36793d332d2cccf37/ep-mechanics-simulator-fullheart.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">ep-mechanics-simulator-fullheart.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/37628e50365b53a63601cca52e139795/ep-mechanics-simulator-fullheart.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">ep-mechanics-simulator-fullheart.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-zip docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/9969a894387ec1db3611c190027f3e85/ep-mechanics-simulator-fullheart.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">ep-mechanics-simulator-fullheart.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#perform-the-required-imports">Perform the required imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-the-required-paths">Set the required paths</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#load-the-full-heart-model">Load the full-heart model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#instantiate-the-simulator">Instantiate the simulator</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compute-the-fiber-orientation">Compute the fiber orientation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-up-the-simulation-for-the-mechanical-simulations">Set up the simulation for the mechanical simulations</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compute-a-conduction-system">Compute a conduction system</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#start-the-main-simulation">Start the main simulation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-and-animate-results-ls-prepost">Visualize and animate results LS-PrePost</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+<!-- If there is no fix edit button function, use the PyData edit-this-button-->
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/examples/simulator/ep-mechanics-simulator-fullheart.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+
+  <!-- Include desired assets -->
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.min.js"></script>
+
+<script>
+// Passing the search options to the search.js file
+const SEARCH_OPTIONS = JSON.parse('{"keys": ["title", "text"], "limit": 10, "threshold": 0.2}');
+const SEARCH_FILE = "../../_static/search.json";
+</script>
+
+
+<script src="../../_static/js/search.js"></script>
+  
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright (c) 2025 ANSYS, Inc. All rights reserved.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the
+  <a href="https://sphinxdocs.ansys.com/version/stable/index.html"
+    >Ansys Sphinx Theme</a
+  >
+  1.4.4. <br />Last updated on
+  <span id="ast_build_date"></span>
+</p>
+<script>
+  var options = { day: "numeric", month: "long", year: "numeric" };
+  var ast_lastModifiedDate = new Date(document.lastModified);
+  var ast_build_date = ast_lastModifiedDate.toLocaleDateString("en-US", options);
+  document.getElementById("ast_build_date").innerHTML = ast_build_date;
+</script></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,292 @@
+
+
+
+
+ANISO
+=====
+
+.. py:class:: ANISO
+   :canonical: ansys.heart.simulator.settings.material.material.ANISO
+
+
+
+
+
+   Anisotropic module of MAT_295.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+   HGO_Fiber
+   =========
+
+   .. py:class:: HGO_Fiber
+      :canonical: ansys.heart.simulator.settings.material.material.ANISO.HGO_Fiber
+
+
+
+
+
+      Define HGO type fiber from k1 and k2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+   Overview
+   --------
+   .. py:currentmodule:: HGO_Fiber
+   .. tab-set::
+
+
+
+
+
+       .. tab-item:: Attributes
+
+           .. list-table::
+             :header-rows: 0
+             :widths: auto
+
+             * - :py:attr:`~k1`
+               - 
+             * - :py:attr:`~k2`
+               - 
+             * - :py:attr:`~a`
+               - 
+             * - :py:attr:`~b`
+               - 
+         
+
+
+
+
+   Import detail
+   -------------
+
+   .. code-block:: python
+
+       from ansys.heart.simulator.settings.material.material.ANISO import HGO_Fiber
+
+
+
+   Attribute detail
+   ----------------
+   .. py:attribute:: k1
+      :type: float
+
+      
+
+   .. py:attribute:: k2
+      :type: float
+
+      
+
+   .. py:attribute:: a
+      :type: float
+      :value: 0.0
+
+      
+
+   .. py:attribute:: b
+      :type: float
+      :value: 1.0
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: ANISO
+.. tab-set::
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~atype`
+            - 
+          * - :py:attr:`~fibers`
+            - 
+          * - :py:attr:`~k1fs`
+            - 
+          * - :py:attr:`~k2fs`
+            - 
+          * - :py:attr:`~vec_a`
+            - 
+          * - :py:attr:`~vec_d`
+            - 
+      
+
+
+    .. tab-item:: Special methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__post_init__`
+            - Check and deduce other parameters from input.
+          * - :py:attr:`~__repr__`
+            - Make sure print contains field in __post_init__.
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.material import ANISO
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: atype
+   :type: int
+
+   
+
+.. py:attribute:: fibers
+   :type: List[ANISO.HGO_Fiber]
+
+   
+
+.. py:attribute:: k1fs
+   :type: Optional[float]
+
+   
+
+.. py:attribute:: k2fs
+   :type: Optional[float]
+
+   
+
+.. py:attribute:: vec_a
+   :type: tuple
+   :value: (1.0, 0.0, 0.0)
+
+   
+
+.. py:attribute:: vec_d
+   :type: tuple
+   :value: (0.0, 1.0, 0.0)
+
+   
+
+
+Method detail
+-------------
+.. py:method:: __post_init__()
+
+   
+   Check and deduce other parameters from input.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: __repr__()
+
+   
+   Make sure print contains field in __post_init__.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

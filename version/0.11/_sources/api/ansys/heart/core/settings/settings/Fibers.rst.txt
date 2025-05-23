@@ -1,0 +1,242 @@
+
+
+
+
+
+
+:class:`Fibers`
+===============
+
+.. py:class:: ansys.heart.core.settings.settings.Fibers
+
+   Bases: :py:obj:`Settings`
+
+
+   
+   Class for keeping track of fiber settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Fibers
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~alpha_endo`
+            - Helical angle in endocardium.
+          * - :py:attr:`~alpha_epi`
+            - Helical angle in epicardium.
+          * - :py:attr:`~beta_endo`
+            - Angle to the outward transmural axis of the heart in endocardium.
+          * - :py:attr:`~beta_epi`
+            - Angle to the outward transmural axis of the heart in epicardium.
+          * - :py:attr:`~beta_endo_septum`
+            - Angle to the outward transmural axis of the heart in left septum.
+          * - :py:attr:`~beta_epi_septum`
+            - Angle to the outward transmural axis of the heart in right septum.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.settings.settings import Fibers
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: alpha_endo
+   :type:  pint.Quantity
+   :value: 0
+
+
+   
+   Helical angle in endocardium.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: alpha_epi
+   :type:  pint.Quantity
+   :value: 0
+
+
+   
+   Helical angle in epicardium.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: beta_endo
+   :type:  pint.Quantity
+   :value: 0
+
+
+   
+   Angle to the outward transmural axis of the heart in endocardium.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: beta_epi
+   :type:  pint.Quantity
+   :value: 0
+
+
+   
+   Angle to the outward transmural axis of the heart in epicardium.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: beta_endo_septum
+   :type:  pint.Quantity
+   :value: 0
+
+
+   
+   Angle to the outward transmural axis of the heart in left septum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: beta_epi_septum
+   :type:  pint.Quantity
+   :value: 0
+
+
+   
+   Angle to the outward transmural axis of the heart in right septum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

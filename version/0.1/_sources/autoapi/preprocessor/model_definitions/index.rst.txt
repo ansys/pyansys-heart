@@ -1,0 +1,28 @@
+:py:mod:`preprocessor.model_definitions`
+========================================
+
+.. py:module:: preprocessor.model_definitions
+
+.. autoapi-nested-parse::
+
+   Model definitions.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+.. py:data:: HEART_PARTS
+
+   
+
+.. py:data:: MODELS
+
+   
+
+.. py:data:: LABELS_TO_ID
+
+   
+

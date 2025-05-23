@@ -1,0 +1,110 @@
+
+
+
+
+
+
+The ``ansys.heart.simulator`` library
+=====================================
+
+.. py:module:: ansys.heart.simulator
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: simulator
+.. tab-set::
+
+    .. tab-item:: Subpackages
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings`
+            - Initialise the settings module.
+
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.simulator.simulator`
+            - Simulator module.
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-md-package"></span> settings</api/ansys/heart/simulator/settings/index>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> simulator</api/ansys/heart/simulator/simulator/index>
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+
+Initialise heart simulator.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+

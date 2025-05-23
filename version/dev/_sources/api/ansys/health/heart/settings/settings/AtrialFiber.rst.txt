@@ -1,0 +1,153 @@
+
+
+
+
+
+
+:class:`AtrialFiber`
+====================
+
+
+.. py:class:: ansys.health.heart.settings.settings.AtrialFiber
+
+   Bases: :py:obj:`Settings`
+
+
+   
+   Class for keeping track of atrial fiber settings.
+
+   Default parameters are from doi.org/10.1016/j.cma.2020.113468 for idealized geometry.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: AtrialFiber
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~tau_mv`
+            - 
+          * - :py:attr:`~tau_lpv`
+            - 
+          * - :py:attr:`~tau_rpv`
+            - 
+          * - :py:attr:`~tau_tv`
+            - 
+          * - :py:attr:`~tau_raw`
+            - 
+          * - :py:attr:`~tau_ct_minus`
+            - 
+          * - :py:attr:`~tau_ct_plus`
+            - 
+          * - :py:attr:`~tau_icv`
+            - 
+          * - :py:attr:`~tau_scv`
+            - 
+          * - :py:attr:`~tau_ib`
+            - 
+          * - :py:attr:`~tau_ras`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import AtrialFiber
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: tau_mv
+   :type:  float
+   :value: 0
+
+
+.. py:attribute:: tau_lpv
+   :type:  float
+   :value: 0
+
+
+.. py:attribute:: tau_rpv
+   :type:  float
+   :value: 0
+
+
+.. py:attribute:: tau_tv
+   :type:  float
+   :value: 0
+
+
+.. py:attribute:: tau_raw
+   :type:  float
+   :value: 0
+
+
+.. py:attribute:: tau_ct_minus
+   :type:  float
+   :value: 0
+
+
+.. py:attribute:: tau_ct_plus
+   :type:  float
+   :value: 0
+
+
+.. py:attribute:: tau_icv
+   :type:  float
+   :value: 0
+
+
+.. py:attribute:: tau_scv
+   :type:  float
+   :value: 0
+
+
+.. py:attribute:: tau_ib
+   :type:  float
+   :value: 0
+
+
+.. py:attribute:: tau_ras
+   :type:  float
+   :value: 0
+
+
+
+
+
+

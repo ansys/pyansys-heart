@@ -1,0 +1,20 @@
+:py:mod:`simulator.settings.defaults.purkinje`
+==============================================
+
+.. py:module:: simulator.settings.defaults.purkinje
+
+.. autoapi-nested-parse::
+
+   Module contains default values for Purkinje generation.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+.. py:data:: build
+
+   
+

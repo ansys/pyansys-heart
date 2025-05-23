@@ -1,0 +1,61 @@
+
+
+:class:`CellModel`
+==================
+
+.. toctree::
+   :hidden:
+
+    /api/ansys/heart/simulator/settings/material/ep_material/CellModel.Tentusscher
+    /api/ansys/heart/simulator/settings/material/ep_material/CellModel.Tentusscher_endo
+    /api/ansys/heart/simulator/settings/material/ep_material/CellModel.Tentusscher_epi
+    /api/ansys/heart/simulator/settings/material/ep_material/CellModel.Tentusscher_mid
+
+.. py:class:: ansys.heart.simulator.settings.material.ep_material.CellModel
+
+   
+   Abstract class for different cell models.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.ep_material import CellModel
+
+
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   ansys.heart.simulator.settings.material.ep_material.CellModel.Tentusscher
+   ansys.heart.simulator.settings.material.ep_material.CellModel.Tentusscher_endo
+   ansys.heart.simulator.settings.material.ep_material.CellModel.Tentusscher_epi
+   ansys.heart.simulator.settings.material.ep_material.CellModel.Tentusscher_mid
+
+
+

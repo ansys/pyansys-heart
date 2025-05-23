@@ -1,0 +1,80 @@
+
+
+
+
+
+
+The ``ep_mechanics_writer.py`` module
+=====================================
+
+.. py:module:: ansys.health.heart.writer.ep_mechanics_writer
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: ep_mechanics_writer
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.writer.ep_mechanics_writer.ElectroMechanicsDynaWriter`
+            - Class for preparing the input for LS-DYNA electromechanical simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> ElectroMechanicsDynaWriter</api/ansys/health/heart/writer/ep_mechanics_writer/ElectroMechanicsDynaWriter>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing classes for writing LS-DYNA keyword files for ep-mechanics simulations.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

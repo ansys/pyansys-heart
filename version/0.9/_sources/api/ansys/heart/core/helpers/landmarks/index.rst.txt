@@ -1,0 +1,205 @@
+
+
+
+
+
+
+The ``landmarks.py`` module
+===========================
+
+.. py:module:: ansys.heart.core.helpers.landmarks
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: landmarks
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~compute_anatomy_axis`
+            - Compute the long and short axes of the left ventricle.
+
+
+          * - :py:obj:`~compute_aha17`
+            - Compute AHA17 label for left ventricle elements.
+
+
+          * - :py:obj:`~compute_element_cs`
+            - Compute elemental coordinate system for AHA elements.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module for computing hear anatomical landmarks.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: compute_anatomy_axis(mv_center: numpy.ndarray, av_center: numpy.ndarray, apex: numpy.ndarray, first_cut_short_axis: float = 0.2) -> tuple[dict, dict, dict]
+
+   
+   Compute the long and short axes of the left ventricle.
+
+
+   :Parameters:
+
+       **mv_center** : :obj:`np.ndarray <numpy.ndarray>`
+           Mitral valve center
+
+       **av_center** : :obj:`np.ndarray <numpy.ndarray>`
+           Aortic valve center
+
+       **apex** : :obj:`np.ndarray <numpy.ndarray>`
+           left ventricle epicardium apex point
+
+       **first_cut_short_axis** : :class:`python:float`, :obj:`optional`
+           relative distance between mv_center and apex, by default 0.2
+           Used for defining short axis center
+
+
+
+   :Returns:
+
+       :class:`python:tuple`\[:class:`python:dict`, :class:`python:dict`, :class:`python:dict`]
+           4CV,2CV and Short-axis, each dict contains `center` and `normal`
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: compute_aha17(model: ansys.heart.core.models.HeartModel, short_axis: dict, l4cv_axis: dict, seg: Literal[16, 17] = 17, p_junction: numpy.ndarray = None) -> numpy.ndarray
+
+   
+   Compute AHA17 label for left ventricle elements.
+
+
+   :Parameters:
+
+       **model** : :obj:`HeartModel`
+           heart model
+
+       **short_axis** : :class:`python:dict`
+           short axis
+
+       **l4cv_axis** : :class:`python:dict`
+           long 4cv axis
+
+       **seg** : :obj:`Literal`\[16, 17], :obj:`optional`
+           compute 16 or 17 segments, by default 17
+
+       **p_junction** : :obj:`np.ndarray <numpy.ndarray>`, :obj:`optional`
+           LV and RV junction points, if given, it defines the start of segment 1, by default None
+           If not given, start point is defined by rotating 60 degrees from 4CV axis
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           AHA17 ids, no concerned elements will be assigned with np.nan
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: compute_element_cs(model: ansys.heart.core.models.HeartModel, short_axis: dict, aha_element: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]
+
+   
+   Compute elemental coordinate system for AHA elements.
+
+
+   :Parameters:
+
+       **model** : :obj:`HeartModel`
+           heart model
+
+       **short_axis** : :class:`python:dict`
+           short axis
+
+       **aha_element** : :obj:`np.ndarray <numpy.ndarray>`
+           elements with AHA labels, compute only on these elements
+
+
+
+   :Returns:
+
+       :class:`python:tuple`\[:obj:`np.ndarray <numpy.ndarray>`, :obj:`np.ndarray <numpy.ndarray>`, :obj:`np.ndarray <numpy.ndarray>`]
+           longitudinal, radial, circufenrential vecotors of each AHA element
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

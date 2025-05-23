@@ -1,0 +1,336 @@
+
+
+
+
+
+
+:class:`ConductionPath`
+=======================
+
+
+.. py:class:: ansys.health.heart.pre.conduction_path.ConductionPath(name: ConductionPathType, mesh: ansys.health.heart.objects.Mesh, id: int, is_connected: numpy.ndarray, relying_surface: pyvista.PolyData, material: ansys.health.heart.settings.material.ep_material.EPMaterial = EPMaterial.DummyMaterial(), up_path: ConductionPath | None = None, down_path: ConductionPath | None = None)
+
+   
+   Conduction path class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+.. py:currentmodule:: ConductionPath
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~plot`
+            - Plot the conduction path with underlying surface.
+
+
+   .. tab-item:: Properties
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~up_path`
+            - Get upstream conduction path.
+          * - :py:attr:`~down_path`
+            - Get downstream conduction path.
+          * - :py:attr:`~length`
+            - Length of the conduction path.
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~name`
+            - 
+          * - :py:attr:`~mesh`
+            - 
+          * - :py:attr:`~id`
+            - 
+          * - :py:attr:`~is_connected`
+            - 
+          * - :py:attr:`~relying_surface`
+            - 
+          * - :py:attr:`~ep_material`
+            - 
+
+
+   .. tab-item:: Static methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~create_from_keypoints`
+            - Create a conduction path on a base mesh through a set of keypoints.
+          * - :py:attr:`~create_from_k_file`
+            - Build conduction path from LS-DYNA k-file.
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.pre.conduction_path import ConductionPath
+
+Property detail
+---------------
+
+.. py:property:: up_path
+   :type: ConductionPath | None
+
+
+   
+   Get upstream conduction path.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: down_path
+   :type: ConductionPath | None
+
+
+   
+   Get downstream conduction path.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: length
+
+   
+   Length of the conduction path.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: name
+
+.. py:attribute:: mesh
+
+.. py:attribute:: id
+
+.. py:attribute:: is_connected
+
+.. py:attribute:: relying_surface
+
+.. py:attribute:: ep_material
+
+
+
+Method detail
+-------------
+
+.. py:method:: plot()
+
+   
+   Plot the conduction path with underlying surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: create_from_keypoints(name: ConductionPathType, keypoints: list[numpy.ndarray], id: int, base_mesh: pyvista.PolyData | pyvista.UnstructuredGrid, connection: Literal['none', 'first', 'last', 'all'] = 'none', line_length: float | None = 1.5) -> ConductionPath
+   :staticmethod:
+
+
+   
+   Create a conduction path on a base mesh through a set of keypoints.
+
+
+   :Parameters:
+
+       **name** : :obj:`ConductionPathType`
+           Name of the conduction path.
+
+       **keypoints** : :class:`python:list`\[:obj:`np.ndarray <numpy.ndarray>`]
+           Keypoints used to construct the path on the base mesh.
+
+       **id** : :class:`python:int`
+           ID of the conduction path.
+
+       **base_mesh** : :obj:`pv.PolyData` | :obj:`pv.UnstructuredGrid`
+           Base mesh where the conductionn path is created. If ``PolyData``, then the
+           result is a geodesic path on the surface. If ``pv.UnstructuredGrid``, then the
+           result the shortest path in the solid.
+
+       **connection** : :obj:`Literal`\[&quot;none&quot;, &quot;first&quot;, &quot;last&quot;, &quot;all&quot;]
+           ..
+
+       **, default: "none"**
+           Describes how the path is connected to the solid mesh.
+
+       **line_length** : :class:`python:float` | :data:`python:None`, default: 1.5
+           Length of line element in case of refinement.
+
+
+
+   :Returns:
+
+       :obj:`ConductionPath`
+           Conduction path.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: create_from_k_file(name: ConductionPathType, k_file: str, id: int, base_mesh: pyvista.PolyData, model, merge_apex: bool = True) -> ConductionPath
+   :staticmethod:
+
+
+   
+   Build conduction path from LS-DYNA k-file.
+
+
+   :Parameters:
+
+       **name** : :obj:`ConductionPathType`
+           Conduction path name.
+
+       **k_file** : :class:`python:str`
+           Path to LS-DYNA k-file.
+
+       **id** : :class:`python:int`
+           ID of the conduction path.
+
+       **base_mesh** : :obj:`pv.PolyData`
+           Surface mesh that the conduction path is relying on.
+
+       **model** : :obj:`HeartModel`
+           HeartModel object.
+
+       **merge_apex** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:True`
+           Whether to merge the apex node with the solid mesh.
+
+
+
+   :Returns:
+
+       :obj:`ConductionPath`
+           Conduction path.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

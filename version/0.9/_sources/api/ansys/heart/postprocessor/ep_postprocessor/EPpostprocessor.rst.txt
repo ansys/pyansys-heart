@@ -1,0 +1,428 @@
+
+
+:class:`EPpostprocessor`
+========================
+
+.. py:class:: ansys.heart.postprocessor.ep_postprocessor.EPpostprocessor(results_path: pathlib.Path, model: ansys.heart.core.models.HeartModel = None)
+
+   
+   Postprocess Electrophysiology results.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: EPpostprocessor
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~load_ep_fields`
+            - Load all EP fields.
+          * - :py:attr:`~get_activation_times`
+            - Get activation times field.
+          * - :py:attr:`~get_transmembrane_potential`
+            - Get transmembrane potential.
+          * - :py:attr:`~get_extracellular_potential`
+            - Get extracellular potential.
+          * - :py:attr:`~get_intracellular_potential`
+            - Get intracellular potential.
+          * - :py:attr:`~get_calcium`
+            - Get calcium concentration.
+          * - :py:attr:`~read_ep_nodout`
+            - Read Electrophysiology results.
+          * - :py:attr:`~create_post_folder`
+            - Create Postprocessing folder.
+          * - :py:attr:`~animate_transmembrane`
+            - Animate transmembrane potentials and export to vtk.
+          * - :py:attr:`~export_transmembrane_to_vtk`
+            - Export transmembrane potentials to vtk.
+          * - :py:attr:`~compute_ECGs`
+            - Compute ECGs.
+          * - :py:attr:`~read_ECGs`
+            - Read ECG text file produced by LS-DYNA simulation.
+          * - :py:attr:`~compute_12_lead_ECGs`
+            - Compute 12-Lead ECGs from 10 electrodes.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~reader`
+            - 
+          * - :py:attr:`~fields`
+            - 
+          * - :py:attr:`~model`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.postprocessor.ep_postprocessor import EPpostprocessor
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: reader
+
+.. py:attribute:: fields
+   :value: None
+
+
+.. py:attribute:: model
+
+
+
+Method detail
+-------------
+.. py:method:: load_ep_fields()
+
+   
+   Load all EP fields.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_activation_times(at_step: int = None)
+
+   
+   Get activation times field.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_transmembrane_potential(node_id=None, plot: bool = False)
+
+   
+   Get transmembrane potential.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_extracellular_potential(node_id=None, plot: bool = False)
+
+   
+   Get extracellular potential.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_intracellular_potential(node_id=None, plot: bool = False)
+
+   
+   Get intracellular potential.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_calcium(node_id=None, plot: bool = False)
+
+   
+   Get calcium concentration.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: read_ep_nodout()
+
+   
+   Read Electrophysiology results.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: create_post_folder(path: pathlib.Path = None)
+
+   
+   Create Postprocessing folder.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: animate_transmembrane()
+
+   
+   Animate transmembrane potentials and export to vtk.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: export_transmembrane_to_vtk()
+
+   
+   Export transmembrane potentials to vtk.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_ECGs(electrodes: numpy.ndarray)
+
+   
+   Compute ECGs.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: read_ECGs(path: pathlib.Path)
+
+   
+   Read ECG text file produced by LS-DYNA simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_12_lead_ECGs(ECGs: numpy.ndarray, times: numpy.ndarray, plot: bool = True) -> numpy.ndarray
+
+   
+   Compute 12-Lead ECGs from 10 electrodes.
+
+
+   :Parameters:
+
+       **ECGs** : :obj:`np.ndarray <numpy.ndarray>`
+           mxn array containing ECGs, where m is the number of time steps
+           and n the 10 electrodes in this order:
+           "V1" "V2" "V3" "V4" "V5" "V6" "RA" "LA" "RL" "LL"
+
+       **plot** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           plot option, by default True
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           12-Lead ECGs in this order:
+           "I" "II" "III" "aVR" "aVL" "aVF" "V1" "V2" "V3" "V4" "V5" "V6"
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

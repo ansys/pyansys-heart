@@ -1,0 +1,125 @@
+
+
+
+
+
+
+The ``parts.py`` module
+=======================
+
+.. py:module:: ansys.health.heart.parts
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: parts
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.parts.Part`
+            - Base part class.
+
+
+          * - :py:obj:`~ansys.health.heart.parts.Septum`
+            - Septum part.
+
+
+          * - :py:obj:`~ansys.health.heart.parts.Chamber`
+            - Intermediate class for heart chambers with endocardium and epicardium.
+
+
+          * - :py:obj:`~ansys.health.heart.parts.Ventricle`
+            - Ventricle part.
+
+
+          * - :py:obj:`~ansys.health.heart.parts.Atrium`
+            - Atrium part.
+
+
+          * - :py:obj:`~ansys.health.heart.parts.Artery`
+            - Artery part.
+
+
+          * - :py:obj:`~ansys.health.heart.parts.Myocardium`
+            - Myocardium part.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> Part</api/ansys/health/heart/parts/Part>
+    <span class="nf nf-cod-symbol_class"></span> Septum</api/ansys/health/heart/parts/Septum>
+    <span class="nf nf-cod-symbol_class"></span> Chamber</api/ansys/health/heart/parts/Chamber>
+    <span class="nf nf-cod-symbol_class"></span> Ventricle</api/ansys/health/heart/parts/Ventricle>
+    <span class="nf nf-cod-symbol_class"></span> Atrium</api/ansys/health/heart/parts/Atrium>
+    <span class="nf nf-cod-symbol_class"></span> Artery</api/ansys/health/heart/parts/Artery>
+    <span class="nf nf-cod-symbol_class"></span> Myocardium</api/ansys/health/heart/parts/Myocardium>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Define classes for anatomical parts.
+
+Each class extends the base Part class and provides specialized attributes for different
+heart structures.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

@@ -1,0 +1,87 @@
+
+
+
+
+
+
+The ``models_utils.py`` module
+==============================
+
+.. py:module:: ansys.health.heart.models_utils
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: models_utils
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.models_utils.LandMarks`
+            - Heart anatomical points.
+
+
+          * - :py:obj:`~ansys.health.heart.models_utils.HeartModelUtils`
+            - Stateless methods for the heart model.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> LandMarks</api/ansys/health/heart/models_utils/LandMarks>
+    <span class="nf nf-cod-symbol_class"></span> HeartModelUtils</api/ansys/health/heart/models_utils/HeartModelUtils>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Stateless methods for the heart model.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

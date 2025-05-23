@@ -1,0 +1,76 @@
+
+
+
+
+
+
+:class:`Part`
+=============
+
+
+.. py:class:: ansys.health.heart.objects.Part(*args, **kwargs)
+
+   
+   Part class for backward compatibility.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Part
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__class__`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.objects import Part
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: __class__
+
+
+
+
+

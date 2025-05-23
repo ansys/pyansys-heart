@@ -1,0 +1,49 @@
+
+
+
+
+
+
+:class:`MPIProgamNotFoundError`
+===============================
+
+
+.. py:exception:: ansys.health.heart.exceptions.MPIProgamNotFoundError
+
+   Bases: :py:obj:`FileNotFoundError`
+
+
+   
+   Exception raised when MPI program is not found.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.exceptions import MPIProgamNotFoundError
+
+
+
+
+

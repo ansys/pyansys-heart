@@ -1,0 +1,94 @@
+
+
+
+
+
+
+The ``mesh`` package
+========================
+
+.. py:module:: ansys.heart.preprocessor.mesh
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: mesh
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.connectivity`
+            - Module containing methods for mesh connectivity.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.fluenthdf5`
+            - Module containing functions to read/write fluent meshes in HDF5 format.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.geodisc`
+            - Module for computing paths.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.mesher`
+            - Module contains methods for interaction with Fluent meshing.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.objects`
+            - Module that contains classes relevant for the mesh.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.vtkmethods`
+            - Module contains methods for mesh operations related to the vtk library.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> connectivity</api/ansys/heart/preprocessor/mesh/connectivity/index>
+    <span class="nf nf-fa-file"></span> fluenthdf5</api/ansys/heart/preprocessor/mesh/fluenthdf5/index>
+    <span class="nf nf-fa-file"></span> geodisc</api/ansys/heart/preprocessor/mesh/geodisc/index>
+    <span class="nf nf-fa-file"></span> mesher</api/ansys/heart/preprocessor/mesh/mesher/index>
+    <span class="nf nf-fa-file"></span> objects</api/ansys/heart/preprocessor/mesh/objects/index>
+    <span class="nf nf-fa-file"></span> vtkmethods</api/ansys/heart/preprocessor/mesh/vtkmethods/index>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,108 @@
+
+
+
+
+
+
+The ``models.py`` module
+========================
+
+.. py:module:: ansys.health.heart.models
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: models
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.models.HeartModel`
+            - Parent class for heart models.
+
+
+          * - :py:obj:`~ansys.health.heart.models.LeftVentricle`
+            - Model of only the left ventricle.
+
+
+          * - :py:obj:`~ansys.health.heart.models.BiVentricle`
+            - Model of the left and right ventricles.
+
+
+          * - :py:obj:`~ansys.health.heart.models.FourChamber`
+            - Model of the left/right ventricle and left/right atrium.
+
+
+          * - :py:obj:`~ansys.health.heart.models.FullHeart`
+            - Model of both ventricles, both atria, the aorta, and the pulmonary artery.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> HeartModel</api/ansys/health/heart/models/HeartModel>
+    <span class="nf nf-cod-symbol_class"></span> LeftVentricle</api/ansys/health/heart/models/LeftVentricle>
+    <span class="nf nf-cod-symbol_class"></span> BiVentricle</api/ansys/health/heart/models/BiVentricle>
+    <span class="nf nf-cod-symbol_class"></span> FourChamber</api/ansys/health/heart/models/FourChamber>
+    <span class="nf nf-cod-symbol_class"></span> FullHeart</api/ansys/health/heart/models/FullHeart>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing classes for the various heart models.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

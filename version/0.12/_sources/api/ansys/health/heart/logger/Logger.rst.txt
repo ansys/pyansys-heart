@@ -1,0 +1,361 @@
+
+
+
+
+
+
+:class:`Logger`
+===============
+
+.. py:class:: ansys.health.heart.logger.Logger(level: LOG_LEVEL_TYPE = logging.DEBUG, to_file: bool = False, to_stdout: bool = True, filename: str = FILE_NAME)
+
+   
+   Provides the logger used for each PyAnsys Heart session.
+
+   This class lets you add handlers to the logger to output messages to a file or
+   to the standard output (stdout).
+
+   :Parameters:
+
+       **level** : :class:`python:int`, default: :obj:`logging.DEBUG`
+           Logging level to filter the message severity allowed in the logger.
+
+       **to_file** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:False`
+           Whether to write log messages to a file.
+
+       **to_stdout** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:True`
+           Whether to write the log messages to stdout.
+
+       **filename** : :class:`python:str`, default: :obj:`FILE_NAME`
+           Name of the file to write log messages to.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   Demonstrate logger usage from a PyAnsys Heart instance, which is automatically
+   created when a PyAnsys Heart instance is created.
+
+   Import the global PyAnsys Heart logger and add a file output handler.
+
+   >>> import os
+   >>> from ansys.health.heart import LOG
+   >>> file_path = os.path.join(os.getcwd(), "PyAnsys Heart.log")
+   >>> LOG.log_to_file(file_path)
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: Logger
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~log_to_file`
+            - Add a file handler to the logger.
+          * - :py:attr:`~log_to_stdout`
+            - Add a stdout handler to the logger.
+          * - :py:attr:`~setLevel`
+            - Set the log level for the logger and its handlers.
+          * - :py:attr:`~add_child_logger`
+            - Add a child logger to the main logger.
+          * - :py:attr:`~add_handling_uncaught_expections`
+            - Redirect the output of an exception to a logger.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~file_handler`
+            - 
+          * - :py:attr:`~std_out_handler`
+            - 
+          * - :py:attr:`~logger`
+            - 
+          * - :py:attr:`~level`
+            - 
+          * - :py:attr:`~debug`
+            - 
+          * - :py:attr:`~info`
+            - 
+          * - :py:attr:`~warning`
+            - 
+          * - :py:attr:`~error`
+            - 
+          * - :py:attr:`~critical`
+            - 
+          * - :py:attr:`~log`
+            - 
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__getitem__`
+            - Overload the access method by item for the ``Logger`` class.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.logger import Logger
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: file_handler
+   :type:  Optional[logging.FileHandler]
+   :value: None
+
+
+.. py:attribute:: std_out_handler
+   :type:  Optional[logging.StreamHandler]
+   :value: None
+
+
+.. py:attribute:: logger
+   :type:  logging.Logger
+
+.. py:attribute:: level
+   :value: 0
+
+
+.. py:attribute:: debug
+
+.. py:attribute:: info
+
+.. py:attribute:: warning
+
+.. py:attribute:: error
+
+.. py:attribute:: critical
+
+.. py:attribute:: log
+
+
+
+Method detail
+-------------
+
+.. py:method:: log_to_file(filename: str = FILE_NAME, level: LOG_LEVEL_TYPE = LOG_LEVEL_FILE, remove_other_file_handlers: bool = False) -> None
+
+   
+   Add a file handler to the logger.
+
+
+   :Parameters:
+
+       **filename** : :class:`python:str`, default:
+           Name of the file to record logs to, which is ``'PyAnsys Heart.log'`` by default.
+
+       **level** : :class:`python:str` or :class:`python:int`, default: :obj:`LOG_LEVEL_FILE`
+           Level of logging, which is ``'DEBUG'`` by default.
+
+       **remove_other_file_handlers** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:False`
+           Whether to remove all other file handlers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   Write to the ``PyAnsys Heart.log`` file in the current working directory.
+
+   >>> from ansys.health.heart import LOG
+   >>> import os
+   >>> file_path = os.path.join(os.getcwd(), "PyAnsys Heart.log")
+   >>> LOG.log_to_file(file_path)
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: log_to_stdout(level: LOG_LEVEL_TYPE = LOG_LEVEL_STDOUT)
+
+   
+   Add a stdout handler to the logger.
+
+
+   :Parameters:
+
+       **level** : :class:`python:str` or :class:`python:int`, default: :obj:`LOG_LEVEL_STDOUT`
+           Level of logging record, which is ``'DEBUG'`` by default.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: setLevel(level: LOG_LEVEL_TYPE = 'DEBUG')
+
+   
+   Set the log level for the logger and its handlers.
+
+
+   :Parameters:
+
+       **level** : :class:`python:str` or :class:`python:int`, default: "DEBUG"
+           Logging level to set.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: add_child_logger(suffix: str, level: Optional[LOG_LEVEL_TYPE] = None)
+
+   
+   Add a child logger to the main logger.
+
+   This logger is more general than an instance logger, which is designed to
+   track the state of PyAnsys Heart instances.
+
+   If the logging level is in the arguments, a new logger with a reference
+   to the ``_global`` logger handlers is created instead of a child logger.
+
+   :Parameters:
+
+       **suffix** : :class:`python:str`
+           Name of the logger.
+
+       **level** : :class:`python:str` or :class:`python:int`, default: :data:`python:None`
+           Level of logging.
+
+
+
+   :Returns:
+
+       :obj:`logging.logger`
+           Logger class.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: __getitem__(key)
+
+   
+   Overload the access method by item for the ``Logger`` class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: add_handling_uncaught_expections(logger: logging.Logger)
+
+   
+   Redirect the output of an exception to a logger.
+
+
+   :Parameters:
+
+       **logger** : :class:`python:str`
+           Name of the logger.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

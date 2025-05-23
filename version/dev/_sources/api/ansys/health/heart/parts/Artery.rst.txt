@@ -1,0 +1,79 @@
+
+
+
+
+
+
+:class:`Artery`
+===============
+
+
+.. py:class:: ansys.health.heart.parts.Artery(name: str = None)
+
+   Bases: :py:obj:`Part`
+
+
+   
+   Artery part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Artery
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~wall`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.parts import Artery
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: wall
+
+
+
+
+

@@ -1,0 +1,237 @@
+
+
+
+
+
+The ``mesher.py`` module
+========================
+
+.. py:module:: ansys.heart.preprocessor.mesh.mesher
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: mesher
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~mesh_fluid_cavities`
+            - Mesh the fluid cavities.
+
+
+          * - :py:attr:`~mesh_from_manifold_input_model`
+            - Create mesh from good-quality manifold input model.
+
+
+          * - :py:attr:`~mesh_from_non_manifold_input_model`
+            - Generate mesh from non-manifold poor quality input model.
+
+
+          * - :py:attr:`~mesh_heart_model_by_fluent`
+            - Use Fluent meshing to wrap the surface and create tetrahedral volume mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module contains methods for interaction with Fluent meshing.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: mesh_fluid_cavities(fluid_boundaries: List[ansys.heart.preprocessor.mesh.objects.SurfaceMesh], caps: List[ansys.heart.preprocessor.mesh.objects.SurfaceMesh], workdir: str, remesh_caps: bool = True) -> ansys.heart.preprocessor.mesh.fluenthdf5.FluentMesh
+
+   
+   Mesh the fluid cavities.
+
+
+   :Parameters:
+
+       **fluid_boundaries** : :obj:`List`\[:obj:`SurfaceMesh`]
+           List of fluid boundaries used for meshing.
+
+       **caps** : :obj:`List`\[:obj:`SurfaceMesh`]
+           List of caps that close each of the cavities.
+
+       **workdir** : :class:`python:str`
+           Working directory
+
+       **remesh_caps** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Flag indicating whether to remesh the caps, by default True
+
+   :Returns:
+
+       :obj:`Path`
+           Path to the .msh.h5 volume mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: mesh_from_manifold_input_model(model: ansys.heart.preprocessor.input._InputModel, workdir: Union[str, pathlib.Path], path_to_output: Union[str, pathlib.Path], mesh_size: float = 2.0, overwrite_existing_mesh: bool = True) -> ansys.heart.preprocessor.mesh.fluenthdf5.FluentMesh
+
+   
+   Create mesh from good-quality manifold input model.
+
+
+   :Parameters:
+
+       **model** : :obj:`_InputModel`
+           Input model.
+
+       **workdir** : :obj:`Union`\[:class:`python:str`, :obj:`Path`]
+           Working directory.
+
+       **path_to_output** : :obj:`Union`\[:class:`python:str`, :obj:`Path`]
+           Path to the resulting Fluent mesh file.
+
+       **mesh_size** : :class:`python:float`, :obj:`optional`
+           Uniform mesh size to use for both wrapping and filling the volume, by default 2.0
+
+   :Returns:
+
+       :obj:`FluentMesh`
+           The volume mesh with cell and face zones.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: mesh_from_non_manifold_input_model(model: ansys.heart.preprocessor.input._InputModel, workdir: Union[str, pathlib.Path], path_to_output: Union[str, pathlib.Path], mesh_size: float = 2.0, overwrite_existing_mesh: bool = True) -> ansys.heart.preprocessor.mesh.fluenthdf5.FluentMesh
+
+   
+   Generate mesh from non-manifold poor quality input model.
+
+
+   :Parameters:
+
+       **model** : :obj:`_InputModel`
+           Input model.
+
+       **workdir** : :obj:`Union`\[:class:`python:str`, :obj:`Path`]
+           Working directory.
+
+       **path_to_output** : :obj:`Union`\[:class:`python:str`, :obj:`Path`]
+           Path to the resulting Fluent mesh file.
+
+       **mesh_size** : :class:`python:float`, :obj:`optional`
+           Uniform mesh size to use for both wrapping and filling the volume, by default 2.0
+
+   :Returns:
+
+       :obj:`FluentMesh`
+           The volume mesh with cell and face zones.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Uses Fluent wrapping technology to wrap the individual parts first to create manifold
+   parts. Consequently wrap the entire model and use the manifold parts to split the
+   wrapped model into the different cell zones.
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: mesh_heart_model_by_fluent(path_to_stl_directory: str, path_to_output: str, mesh_size: float = 2.0, add_blood_pool: bool = False, show_gui: bool = False)
+
+   
+   Use Fluent meshing to wrap the surface and create tetrahedral volume mesh.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Optionally extracts the blood pool.
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

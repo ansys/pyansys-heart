@@ -1,0 +1,232 @@
+
+
+
+
+
+
+:class:`AhaStrainCalculator`
+============================
+
+
+.. py:class:: ansys.health.heart.post.strain_calculator.AhaStrainCalculator(model: ansys.health.heart.models.HeartModel, d3plot_file)
+
+   
+   Compute longitudinal, radial, and circumferential strain for the left ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: AhaStrainCalculator
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~compute_aha_strain`
+            - Compute AHA 17 segment strain values from the deformation gradient.
+          * - :py:attr:`~compute_aha_strain_at`
+            - Export AHA strain and/or save a VTK file for a given frame.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~model`
+            - 
+          * - :py:attr:`~aha_labels`
+            - 
+          * - :py:attr:`~d3plot`
+            - 
+
+
+   .. tab-item:: Static methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~bullseye_17_segments`
+            - Bullseye representation of the 17 segments of the left ventricle.
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.post.strain_calculator import AhaStrainCalculator
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: model
+
+.. py:attribute:: aha_labels
+
+.. py:attribute:: d3plot
+
+
+
+Method detail
+-------------
+
+.. py:method:: compute_aha_strain(out_dir: str = None, write_vtk: bool = False, t_to_keep: float = 100000000000.0) -> numpy.ndarray
+
+   
+   Compute AHA 17 segment strain values from the deformation gradient.
+
+
+   :Parameters:
+
+       **out_dir** : :class:`python:str`, default: :data:`python:None`
+           Output folder.
+
+       **write_vtk** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:False`
+           Whether to write to VTK files.
+
+       **t_to_keep** : :class:`python:float`, default: 10e10
+           Time to stop.
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Array of N_time * (1+17*3). Columns represent time and
+           longitudinal, radial, and circumferential strain averaged of each segment.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_aha_strain_at(frame: int = 0, out_dir: pathlib.Path = None) -> numpy.ndarray
+
+   
+   Export AHA strain and/or save a VTK file for a given frame.
+
+
+   :Parameters:
+
+       **frame: int, default: 0**
+           Frame number to compute strain.
+
+       **out_dir: pathlib.Path, default: None**
+           Directory to save VTK file to. No VTK file is saved by default.
+
+
+
+   :Returns:
+
+       :obj:`np.ndarry`
+           AHA LRC strain matrix (17 * 3).
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: bullseye_17_segments(ax, data) -> None
+   :staticmethod:
+
+
+   
+   Bullseye representation of the 17 segments of the left ventricle.
+
+
+   :Parameters:
+
+       **ax** : :obj:`axes`
+           ..
+
+       **data** : :class:`python:list` :obj:`of` :class:`python:int` :obj:`and` :class:`python:float`
+           Intensity values for each of the 17 segments.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   This function creates the 17-segment model for the left ventricle according
+   to the American Heart Association (AHA) [R8d46ef35a193-1]_.
+
+   This method is modified from the ``Matplotlibs`` `bullseye <https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html>`_
+   example. Copyright |copy| 2012- Matplotlib Development Team; All Rights Reserved.
+   Modifications consisted of removing colors and including the values for each segment.
+
+   .. rubric:: References
+
+   .. [R8d46ef35a193-1] M. D. Cerqueira, N. J. Weissman, V. Dilsizian, A. K. Jacobs,
+       S. Kaul, W. K. Laskey, D. J. Pennell, J. A. Rumberger, T. Ryan,
+       and M. S. Verani, "Standardized myocardial segmentation and
+       nomenclature for tomographic imaging of the heart",
+       Circulation, vol. 105, no. 4, pp. 539-542, 2002.
+
+   .. only:: latex
+
+      [R8d46ef35a193-1]_
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

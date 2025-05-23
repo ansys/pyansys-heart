@@ -1,0 +1,173 @@
+
+
+
+
+
+
+:class:`MechanicsSimulator`
+===========================
+
+.. py:class:: ansys.heart.simulator.simulator.MechanicsSimulator(model: ansys.heart.core.models.HeartModel, dyna_settings: ansys.heart.simulator.settings.settings.DynaSettings, simulation_directory: pathlib = '', initial_stress: bool = True)
+
+   Bases: :py:obj:`BaseSimulator`
+
+
+   
+   Mechanics simulator with imposed active stress.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: MechanicsSimulator
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~simulate`
+            - Launch the main simulation.
+          * - :py:attr:`~compute_stress_free_configuration`
+            - Compute the stress-free configuration of the model.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~initial_stress`
+            - If stress free computation is taken into considered.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.simulator import MechanicsSimulator
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: initial_stress
+   :value: True
+
+
+   
+   If stress free computation is taken into considered.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: simulate(folder_name: str = 'main-mechanics', zerop_folder: str | None = None, auto_post: bool = True)
+
+   
+   Launch the main simulation.
+
+
+   :Parameters:
+
+       **zerop_folder** : :class:`python:str`
+           folder contains stress free simulation.
+           Default is "zeropressure" under roo_directory.
+
+       **auto_post** : :ref:`bool <python:bltin-boolean-values>`
+           if run post-process scripts.
+
+       **folder_name: str**
+           main simulation folder name.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_stress_free_configuration(folder_name='zeropressure', overwrite: bool = True)
+
+   
+   Compute the stress-free configuration of the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

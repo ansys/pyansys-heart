@@ -1,0 +1,169 @@
+:py:mod:`postprocessor.Klotz_curve`
+===================================
+
+.. py:module:: postprocessor.Klotz_curve
+
+.. autoapi-nested-parse::
+
+   Klotz curve module.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   postprocessor.Klotz_curve.EDPVR
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   postprocessor.Klotz_curve.v_ed
+
+
+.. py:class:: EDPVR(vm, pm)
+
+
+   
+   End diastolic pressure-volume relation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: An
+      :value: 27.78
+
+      
+
+   .. py:attribute:: Bn
+      :value: 2.76
+
+      
+
+   .. py:method:: get_constants()
+
+      
+      Get constants.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: get_pressure(volume)
+
+      
+      Get pressure.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: get_volume(pressure)
+
+      
+      Get volume.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: plot_EDPVR(simulation_data=None)
+
+      
+      Plot end-diastolic pressure-volume relation.
+
+
+      :Parameters:
+
+          **simulation_data: optional, plot if exist.**
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:data:: v_ed
+   :value: 175.2
+
+   
+

@@ -1,0 +1,100 @@
+
+
+.. _sphx_glr_examples_simulator:
+
+Simulator examples
+==================
+These examples show you how you can use the simulator module
+to consume preprocessed models and consequently use these to run various
+simulations.
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Full-heart mechanics">
+
+.. only:: html
+
+  .. image:: /examples/simulator/images/thumb/sphx_glr_doc_mechanics_simulator_fullheart_rodero_01_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_simulator_doc_mechanics_simulator_fullheart_rodero_01.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Full-heart mechanics</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Full heart EP-mechanics">
+
+.. only:: html
+
+  .. image:: /examples/simulator/images/thumb/sphx_glr_doc_EP-mechanics_simulator_fullheart_rodero_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_simulator_doc_EP-mechanics_simulator_fullheart_rodero.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Full heart EP-mechanics</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Full-heart EP-simulator example">
+
+.. only:: html
+
+  .. image:: /examples/simulator/images/thumb/sphx_glr_doc_EP_simulator_FullHeart_rodero_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_simulator_doc_EP_simulator_FullHeart_rodero.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Full-heart EP-simulator example</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Four-chamber EP-simulator example">
+
+.. only:: html
+
+  .. image:: /examples/simulator/images/thumb/sphx_glr_doc_EP_simulator_fourchamber_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_simulator_doc_EP_simulator_fourchamber.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Four-chamber EP-simulator example</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /examples/simulator/doc_mechanics_simulator_fullheart_rodero_01
+   /examples/simulator/doc_EP-mechanics_simulator_fullheart_rodero
+   /examples/simulator/doc_EP_simulator_FullHeart_rodero
+   /examples/simulator/doc_EP_simulator_fourchamber
+

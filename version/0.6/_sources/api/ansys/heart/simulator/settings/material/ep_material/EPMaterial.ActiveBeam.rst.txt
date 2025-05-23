@@ -1,0 +1,82 @@
+
+
+:class:`ActiveBeam`
+===================
+
+.. py:class:: ansys.heart.simulator.settings.material.ep_material.EPMaterial.ActiveBeam
+
+   Bases: :py:obj:`Active`
+
+
+   
+   Hold data for beam active EP material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: ActiveBeam
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~sigma_fiber`
+            - 
+          * - :py:attr:`~cell_model`
+            - 
+          * - :py:attr:`~pmjres`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.ep_material.EPMaterial import ActiveBeam
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: sigma_fiber
+
+.. py:attribute:: cell_model
+
+.. py:attribute:: pmjres
+   :type:  float
+
+
+
+

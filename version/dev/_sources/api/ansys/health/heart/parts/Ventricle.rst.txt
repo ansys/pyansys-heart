@@ -1,0 +1,103 @@
+
+
+
+
+
+
+:class:`Ventricle`
+==================
+
+
+.. py:class:: ansys.health.heart.parts.Ventricle(name: str = None)
+
+   Bases: :py:obj:`Chamber`
+
+
+   
+   Ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Ventricle
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~apex_points`
+            - List of apex points.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.parts import Ventricle
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: apex_points
+   :type:  list[ansys.health.heart.objects.Point]
+   :value: []
+
+
+   
+   List of apex points.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

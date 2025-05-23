@@ -1,0 +1,101 @@
+
+
+
+
+
+
+:class:`LeftVentricle`
+======================
+
+
+.. py:class:: ansys.health.heart.models.LeftVentricle(working_directory: pathlib.Path | str = None)
+
+   Bases: :py:obj:`HeartModel`
+
+
+   
+   Model of only the left ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: LeftVentricle
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~left_ventricle`
+            - Left ventricle part.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.models import LeftVentricle
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: left_ventricle
+   :type:  ansys.health.heart.parts.Part
+
+   
+   Left ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

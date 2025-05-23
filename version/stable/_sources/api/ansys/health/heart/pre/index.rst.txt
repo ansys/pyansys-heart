@@ -1,0 +1,107 @@
+
+
+
+
+
+
+The ``pre`` package
+=======================
+
+.. py:module:: ansys.health.heart.pre
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: pre
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.pre.conduction_path`
+            - Conduction system class.
+
+
+          * - :py:obj:`~ansys.health.heart.pre.database_utils`
+            - Some helper methods to process cases from Strocchi and Rodero databases.
+
+
+          * - :py:obj:`~ansys.health.heart.pre.input`
+            - Module to manage input.
+
+
+          * - :py:obj:`~ansys.health.heart.pre.mesher`
+            - Module containing methods for interaction with Fluent meshing.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> conduction_path</api/ansys/health/heart/pre/conduction_path/index>
+    <span class="nf nf-fa-file"></span> database_utils</api/ansys/health/heart/pre/database_utils/index>
+    <span class="nf nf-fa-file"></span> input</api/ansys/health/heart/pre/input/index>
+    <span class="nf nf-fa-file"></span> mesher</api/ansys/health/heart/pre/mesher/index>
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+
+Preprocessing subpackage.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+

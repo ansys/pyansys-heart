@@ -1,0 +1,505 @@
+
+
+
+
+
+
+:class:`BaseDynaWriter`
+=======================
+
+
+.. py:class:: ansys.health.heart.writer.base_writer.BaseDynaWriter(model: ansys.health.heart.models.HeartModel, settings: ansys.health.heart.settings.settings.SimulationSettings = None)
+
+   
+   Base class that contains essential features for all LS-DYNA heart models.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: BaseDynaWriter
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_unique_part_id`
+            - Suggest a unique non-used part ID.
+          * - :py:attr:`~get_unique_mat_id`
+            - Suggest a unique non-used material ID.
+          * - :py:attr:`~get_unique_section_id`
+            - Suggest a unique non-used section ID.
+          * - :py:attr:`~get_unique_segmentset_id`
+            - Suggest a unique non-used segment set ID.
+          * - :py:attr:`~get_unique_nodeset_id`
+            - Suggest a unique non-used nodeset ID.
+          * - :py:attr:`~get_unique_partset_id`
+            - Suggest a unique non-used part ID.
+          * - :py:attr:`~get_unique_curve_id`
+            - Suggest a unique curve ID.
+          * - :py:attr:`~include_to_main`
+            - Add *INCLUDE keywords into the main decl.
+          * - :py:attr:`~export`
+            - Write the model to files.
+          * - :py:attr:`~export_databases`
+            - Export each non-empty database to a specified directory.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~model`
+            - Model information necessary for creating the LS-DYNA K files.
+          * - :py:attr:`~kw_database`
+            - 
+          * - :py:attr:`~max_node_id`
+            - Max node id.
+          * - :py:attr:`~section_ids`
+            - List of used section ids.
+          * - :py:attr:`~mat_ids`
+            - List of used mat ids.
+          * - :py:attr:`~volume_mesh`
+            - Volume mesh information.
+          * - :py:attr:`~id_offset`
+            - ID offset for several relevant keywords.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.base_writer import BaseDynaWriter
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: model
+
+   
+   Model information necessary for creating the LS-DYNA K files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: kw_database
+
+.. py:attribute:: max_node_id
+   :type:  int
+   :value: 0
+
+
+   
+   Max node id.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: section_ids
+   :value: []
+
+
+   
+   List of used section ids.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: mat_ids
+   :value: []
+
+
+   
+   List of used mat ids.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: volume_mesh
+
+   
+   Volume mesh information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: id_offset
+
+   
+   ID offset for several relevant keywords.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: get_unique_part_id() -> int
+
+   
+   Suggest a unique non-used part ID.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_unique_mat_id() -> int
+
+   
+   Suggest a unique non-used material ID.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_unique_section_id() -> int
+
+   
+   Suggest a unique non-used section ID.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_unique_segmentset_id() -> int
+
+   
+   Suggest a unique non-used segment set ID.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_unique_nodeset_id() -> int
+
+   
+   Suggest a unique non-used nodeset ID.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_unique_partset_id() -> int
+
+   
+   Suggest a unique non-used part ID.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_unique_curve_id() -> int
+
+   
+   Suggest a unique curve ID.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: include_to_main(file_list: list[str] | str = []) -> None
+
+   
+   Add *INCLUDE keywords into the main decl.
+
+
+   :Parameters:
+
+       **file_list** : :class:`python:list`\[:class:`python:str`] | :class:`python:str`, default: []
+           Files to include.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: export(export_directory: str, user_k: list[str] | None = None) -> None
+
+   
+   Write the model to files.
+
+
+   :Parameters:
+
+       **export_directory** : :class:`python:str`
+           Export directory.
+
+       **user_k** : :class:`python:list`\[:class:`python:str`], default: :data:`python:None`
+           User-provided K files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: export_databases(export_directory: str) -> None
+
+   
+   Export each non-empty database to a specified directory.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

@@ -1,0 +1,121 @@
+
+
+
+
+
+
+The ``ansys.heart.core`` library
+================================
+
+.. py:module:: ansys.heart.core
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: core
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.core.logger`
+            - Logging module.
+
+
+          * - :py:obj:`~ansys.heart.core.models`
+            - Module containing classes for the various heart models.
+
+
+          * - :py:obj:`~ansys.heart.core.objects`
+            - Module that contains classes relevant for the mesh.
+
+
+
+
+
+
+
+
+
+    .. tab-item:: Constants
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~LOG`
+            - 
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> logger</api/ansys/heart/core/logger/index>
+    <span class="nf nf-fa-file"></span> models</api/ansys/heart/core/models/index>
+    <span class="nf nf-fa-file"></span> objects</api/ansys/heart/core/objects/index>
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+
+Initialise core module.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: LOG
+
+
+

@@ -1,0 +1,146 @@
+
+
+:class:`Feature`
+================
+
+.. py:class:: ansys.heart.preprocessor.mesh.objects.Feature(name: str = None)
+
+   
+   Feature class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Feature
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~name`
+            - Name of feature.
+          * - :py:attr:`~type`
+            - Type of feature.
+          * - :py:attr:`~pid`
+            - Part id associated with the feature.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.mesh.objects import Feature
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: name
+
+   
+   Name of feature.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: type
+   :value: None
+
+
+   
+   Type of feature.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: pid
+   :type:  int
+   :value: None
+
+
+   
+   Part id associated with the feature.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

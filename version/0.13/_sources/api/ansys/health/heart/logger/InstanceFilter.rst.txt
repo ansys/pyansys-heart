@@ -1,0 +1,100 @@
+
+
+
+
+
+
+:class:`InstanceFilter`
+=======================
+
+
+.. py:class:: ansys.health.heart.logger.InstanceFilter(name='')
+
+   Bases: :py:obj:`logging.Filter`
+
+
+   
+   Ensures that the ``instance_name`` record always exists.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: InstanceFilter
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~filter`
+            - Filter record.
+
+
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.logger import InstanceFilter
+
+
+
+Method detail
+-------------
+
+.. py:method:: filter(record: logging.LogRecord)
+
+   
+   Filter record.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

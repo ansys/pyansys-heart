@@ -1,0 +1,80 @@
+
+
+
+
+
+
+:class:`ElectroMechanicsDecks`
+==============================
+
+
+.. py:class:: ansys.health.heart.writer.heart_decks.ElectroMechanicsDecks
+
+   Bases: :py:obj:`ElectrophysiologyDecks`, :py:obj:`MechanicsDecks`
+
+
+   
+   Useful decks for a electromechanics simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: ElectroMechanicsDecks
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~duplicate_nodes`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.heart_decks import ElectroMechanicsDecks
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: duplicate_nodes
+   :type:  ansys.dyna.core.Deck
+
+
+
+
+

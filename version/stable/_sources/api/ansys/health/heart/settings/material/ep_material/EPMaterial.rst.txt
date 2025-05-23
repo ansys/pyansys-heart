@@ -1,0 +1,74 @@
+
+
+
+
+
+
+:class:`EPMaterial`
+===================
+
+.. toctree::
+   :hidden:
+
+    Insulator</api/ansys/health/heart/settings/material/ep_material/EPMaterial.Insulator>
+    Active</api/ansys/health/heart/settings/material/ep_material/EPMaterial.Active>
+    ActiveBeam</api/ansys/health/heart/settings/material/ep_material/EPMaterial.ActiveBeam>
+    Passive</api/ansys/health/heart/settings/material/ep_material/EPMaterial.Passive>
+    DummyMaterial</api/ansys/health/heart/settings/material/ep_material/EPMaterial.DummyMaterial>
+
+
+.. py:class:: ansys.health.heart.settings.material.ep_material.EPMaterial
+
+   Bases: :py:obj:`EPMaterialModel`
+
+
+   
+   EP material module.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.ep_material import EPMaterial
+
+
+
+
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+    ansys.health.heart.settings.material.ep_material.EPMaterial.Insulator
+    ansys.health.heart.settings.material.ep_material.EPMaterial.Active
+    ansys.health.heart.settings.material.ep_material.EPMaterial.ActiveBeam
+    ansys.health.heart.settings.material.ep_material.EPMaterial.Passive
+    ansys.health.heart.settings.material.ep_material.EPMaterial.DummyMaterial
+
+
+
+

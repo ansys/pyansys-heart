@@ -1,0 +1,114 @@
+
+
+
+
+
+
+The ``slerp.py`` module
+=======================
+
+.. py:module:: ansys.heart.core.helpers.slerp
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: slerp
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~interpolate_slerp`
+            - Spherical linear interpolation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Functions for fibers interpolation.
+
+Note: if interpolate both fiber and sheet, make sure they should be orthogonal.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: interpolate_slerp(source_pos: numpy.ndarray, source_vec: numpy.ndarray, target_pos: numpy.ndarray) -> numpy.ndarray
+
+   
+   Spherical linear interpolation.
+
+
+   :Parameters:
+
+       **source_pos** : :obj:`np.ndarray <numpy.ndarray>`
+           N x 3 array of source points coordinates
+
+       **source_vec** : :obj:`np.ndarray <numpy.ndarray>`
+           N x 3 array of source vectors
+
+       **target_pos** : :obj:`np.ndarray <numpy.ndarray>`
+           M x 3 array of target points coordinates
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           M x 3 array of target vectors
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

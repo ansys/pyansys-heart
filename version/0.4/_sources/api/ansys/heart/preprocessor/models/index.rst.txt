@@ -1,0 +1,115 @@
+
+
+
+
+
+
+The ``models.py`` module
+========================
+
+.. py:module:: ansys.heart.preprocessor.models
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: models
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.models.ModelInfo`
+            - Contains model information.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.models.HeartModel`
+            - Parent class for heart models.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.models.LeftVentricle`
+            - Model of just the left ventricle.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.models.BiVentricle`
+            - Model of the left and right ventricle.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.models.FourChamber`
+            - Model of the left/right ventricle and left/right atrium.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.models.FullHeart`
+            - Model of both ventricles, both atria, aorta and pulmonary artery.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> ModelInfo</api/ansys/heart/preprocessor/models/ModelInfo>
+    <span class="nf nf-cod-symbol_class"></span> HeartModel</api/ansys/heart/preprocessor/models/HeartModel>
+    <span class="nf nf-cod-symbol_class"></span> LeftVentricle</api/ansys/heart/preprocessor/models/LeftVentricle>
+    <span class="nf nf-cod-symbol_class"></span> BiVentricle</api/ansys/heart/preprocessor/models/BiVentricle>
+    <span class="nf nf-cod-symbol_class"></span> FourChamber</api/ansys/heart/preprocessor/models/FourChamber>
+    <span class="nf nf-cod-symbol_class"></span> FullHeart</api/ansys/heart/preprocessor/models/FullHeart>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing classes for the various heart models.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

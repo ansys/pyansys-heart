@@ -1,0 +1,187 @@
+
+
+
+
+AnalysisZeroPressure
+====================
+
+.. py:class:: AnalysisZeroPressure
+   :canonical: ansys.heart.simulator.settings.settings.AnalysisZeroPressure
+
+
+
+Bases: :py:obj:`Analysis`
+
+
+   Class for keeping track of zero pressure analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: AnalysisZeroPressure
+.. tab-set::
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~dt_nodout`
+            - Time interval of nodeout export.
+          * - :py:attr:`~max_iters`
+            - Maximum iterations for stress-free-configuration algorithm.
+          * - :py:attr:`~method`
+            - Method to use.
+          * - :py:attr:`~tolerance`
+            - Tolerance to use for iterative algorithm.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.settings import AnalysisZeroPressure
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: dt_nodout
+   :type: pint.Quantity
+   :value: 0
+
+   
+   Time interval of nodeout export.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: max_iters
+   :type: int
+   :value: 3
+
+   
+   Maximum iterations for stress-free-configuration algorithm.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: method
+   :type: int
+   :value: 2
+
+   
+   Method to use.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: tolerance
+   :type: float
+   :value: 5.0
+
+   
+   Tolerance to use for iterative algorithm.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

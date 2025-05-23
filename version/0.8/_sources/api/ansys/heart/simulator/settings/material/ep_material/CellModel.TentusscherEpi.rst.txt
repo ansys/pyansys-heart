@@ -1,0 +1,214 @@
+
+
+:class:`TentusscherEpi`
+=======================
+
+.. py:class:: ansys.heart.simulator.settings.material.ep_material.CellModel.TentusscherEpi
+
+   Bases: :py:obj:`Tentusscher`
+
+
+   
+   Hold data for Tentusscher cell model in its epicardium version.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: TentusscherEpi
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~gks`
+            - 
+          * - :py:attr:`~gto`
+            - 
+          * - :py:attr:`~v`
+            - 
+          * - :py:attr:`~ki`
+            - 
+          * - :py:attr:`~nai`
+            - 
+          * - :py:attr:`~cai`
+            - 
+          * - :py:attr:`~cass`
+            - 
+          * - :py:attr:`~casr`
+            - 
+          * - :py:attr:`~rpri`
+            - 
+          * - :py:attr:`~xr1`
+            - 
+          * - :py:attr:`~xr2`
+            - 
+          * - :py:attr:`~xs`
+            - 
+          * - :py:attr:`~m`
+            - 
+          * - :py:attr:`~h`
+            - 
+          * - :py:attr:`~j`
+            - 
+          * - :py:attr:`~d`
+            - 
+          * - :py:attr:`~f`
+            - 
+          * - :py:attr:`~f2`
+            - 
+          * - :py:attr:`~fcass`
+            - 
+          * - :py:attr:`~s`
+            - 
+          * - :py:attr:`~r`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.ep_material.CellModel import TentusscherEpi
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: gks
+   :type:  float
+   :value: 0.392
+
+
+.. py:attribute:: gto
+   :type:  float
+   :value: 0.294
+
+
+.. py:attribute:: v
+   :type:  float
+
+.. py:attribute:: ki
+   :type:  float
+   :value: 136.89
+
+
+.. py:attribute:: nai
+   :type:  float
+   :value: 8.604
+
+
+.. py:attribute:: cai
+   :type:  float
+   :value: 0.000126
+
+
+.. py:attribute:: cass
+   :type:  float
+   :value: 0.00036
+
+
+.. py:attribute:: casr
+   :type:  float
+   :value: 3.64
+
+
+.. py:attribute:: rpri
+   :type:  float
+   :value: 0.9073
+
+
+.. py:attribute:: xr1
+   :type:  float
+   :value: 0.00621
+
+
+.. py:attribute:: xr2
+   :type:  float
+   :value: 0.4712
+
+
+.. py:attribute:: xs
+   :type:  float
+   :value: 0.0095
+
+
+.. py:attribute:: m
+   :type:  float
+   :value: 0.00172
+
+
+.. py:attribute:: h
+   :type:  float
+   :value: 0.7444
+
+
+.. py:attribute:: j
+   :type:  float
+   :value: 0.7045
+
+
+.. py:attribute:: d
+   :type:  float
+   :value: 3.373e-05
+
+
+.. py:attribute:: f
+   :type:  float
+   :value: 0.7888
+
+
+.. py:attribute:: f2
+   :type:  float
+   :value: 0.9755
+
+
+.. py:attribute:: fcass
+   :type:  float
+   :value: 0.9953
+
+
+.. py:attribute:: s
+   :type:  float
+   :value: 0.999998
+
+
+.. py:attribute:: r
+   :type:  float
+   :value: 2.42e-08
+
+
+
+
+

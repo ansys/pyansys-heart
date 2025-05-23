@@ -1,0 +1,257 @@
+:py:mod:`preprocessor.mesh.geodisc`
+===================================
+
+.. py:module:: preprocessor.mesh.geodisc
+
+.. autoapi-nested-parse::
+
+   Module for computing paths.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   preprocessor.mesh.geodisc.get_closed_path
+   preprocessor.mesh.geodisc.vtk_geodesic
+   preprocessor.mesh.geodisc.order_nodes_edgeloop
+   preprocessor.mesh.geodisc.sort_edgeloop_anti_clockwise
+   preprocessor.mesh.geodisc.rodrigues_rot
+   preprocessor.mesh.geodisc.carttopolar
+   preprocessor.mesh.geodisc.sort_aniclkwise
+   preprocessor.mesh.geodisc.project_3d_points
+
+
+
+.. py:function:: get_closed_path(start_indices: Union[numpy.ndarray, list], surface: vtk.vtkPolyData) -> numpy.ndarray
+
+   
+   Get closed geodesic path on a surface from a list of start indices.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: vtk_geodesic(input: vtk.vtkPolyData, start_idx: int, end_idx: int) -> List[int]
+
+   
+   Compute the geodesic path between two vertices on a vtkPolyData surface.
+
+
+   :Parameters:
+
+       **input** : :obj:`vtk.vtkPolyData`
+           Input surface mesh in vtk.vtkPolyData form
+
+       **start** : :class:`python:int`
+           Index of start vertex
+
+       **end** : :class:`python:int`
+           Index of end vertex
+
+   :Returns:
+
+       **ids** : :obj:`List`\[:class:`python:int`]
+           Array of indices which define the shortest path from start index to end index
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: order_nodes_edgeloop(node_indices: numpy.ndarray, node_coords: numpy.ndarray) -> numpy.ndarray
+
+   
+   Order node indices to form closed/continuous loop.
+
+
+   :Parameters:
+
+       **node_indices** : :obj:`np.ndarray <numpy.ndarray>`
+           Array of node indices.
+
+       **node_coords** : :obj:`np.ndarray <numpy.ndarray>`
+           Array of node coordinates.
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Reordered list of node indices that form a edge loop.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   May not work if mesh density is very anisotropic and does
+   not change gradually.
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: sort_edgeloop_anti_clockwise(points_to_sort: numpy.ndarray, reference_point: numpy.ndarray) -> bool
+
+   
+   Sort the points of an edge-loop in anti-clockwise direction.
+
+
+   :Parameters:
+
+       **points_to_sort** : :obj:`np.bdarray`
+           Point coordinates used for sorting.
+
+       **reference_point** : :obj:`np.ndarray <numpy.ndarray>`
+           Reference point.
+
+   :Returns:
+
+       :ref:`bool <python:bltin-boolean-values>`
+           Flag indicating whether the point order should be reversed or not
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: rodrigues_rot(P, n0, n1)
+
+   
+   Rodrigues rotation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: carttopolar(x, y, x0=0, y0=0)
+
+   
+   Cartisian to polar coordinate system with origin shift to x0,y0.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: sort_aniclkwise(xy_list, x0=None, y0=None)
+
+   
+   Sort points anti clockwise with x0 y0 as origin.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: project_3d_points(p_set)
+
+   
+   Project points on representative plane.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

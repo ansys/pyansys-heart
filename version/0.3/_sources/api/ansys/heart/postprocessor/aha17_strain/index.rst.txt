@@ -1,0 +1,79 @@
+
+
+
+
+
+The ``aha17_strain.py`` module
+==============================
+
+.. py:module:: ansys.heart.postprocessor.aha17_strain
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: aha17_strain
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~AhaStrainCalculator`
+            - Compute Longitudinal, Radial, Circumferential strain for left ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🝆 AhaStrainCalculator<AhaStrainCalculator>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Compute myocardial strain.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

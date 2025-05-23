@@ -1,0 +1,1355 @@
+
+
+
+
+
+
+:class:`HeartModel`
+===================
+
+
+.. py:class:: ansys.health.heart.models.HeartModel(working_directory: pathlib.Path | str = None)
+
+   
+   Parent class for heart models.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: HeartModel
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~assign_conduction_paths`
+            - Assign conduction paths to the model.
+          * - :py:attr:`~create_part_by_ids`
+            - Create a part by element IDs.
+          * - :py:attr:`~load_input`
+            - Load an input model.
+          * - :py:attr:`~mesh_volume`
+            - Remesh the input model and fill the volume.
+          * - :py:attr:`~get_part`
+            - Get a specific part based on a part name.
+          * - :py:attr:`~add_part`
+            - Dynamically add a part as an attribute to the object.
+          * - :py:attr:`~remove_part`
+            - Remove a part with a specific name from the model.
+          * - :py:attr:`~summary`
+            - Get summary information of the model as a dictionary.
+          * - :py:attr:`~plot_mesh`
+            - Plot the volume mesh of the heart model.
+          * - :py:attr:`~plot_part`
+            - Plot a part in the mesh.
+          * - :py:attr:`~plot_fibers`
+            - Plot the mesh and fibers as streamlines.
+          * - :py:attr:`~plot_surfaces`
+            - Plot all surfaces in the model.
+          * - :py:attr:`~plot_purkinje`
+            - Plot the mesh and Purkinje network.
+          * - :py:attr:`~save_model`
+            - Save the model and necessary information to reconstruct.
+          * - :py:attr:`~load_model_from_mesh`
+            - Load a model from an existing VTU file and part information dictionary.
+          * - :py:attr:`~update`
+            - Update the model and add required features.
+          * - :py:attr:`~get_apex_node_set`
+            - Get a nodeset around the apex point.
+          * - :py:attr:`~create_stiff_ventricle_base`
+            - Use universal coordinates to generate a stiff base region.
+          * - :py:attr:`~create_atrial_stiff_ring`
+            - Create a part for solids close to the atrial caps.
+
+
+   .. tab-item:: Properties
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~parts`
+            - List of parts.
+          * - :py:attr:`~part_names`
+            - List of part names.
+          * - :py:attr:`~part_ids`
+            - List of used part IDs.
+          * - :py:attr:`~surfaces`
+            - List of all defined surfaces.
+          * - :py:attr:`~surface_names`
+            - List of all defined surface names.
+          * - :py:attr:`~surface_ids`
+            - List of all defined surface IDs.
+          * - :py:attr:`~cavities`
+            - List of all cavities in the model.
+          * - :py:attr:`~part_name_to_part_id`
+            - Dictionary that maps the part name to the part ID.
+          * - :py:attr:`~part_id_to_part_name`
+            - Dictionary that maps the part ID to the part name.
+          * - :py:attr:`~surface_name_to_surface_id`
+            - Dictionary that maps the surface name to the surface ID.
+          * - :py:attr:`~surface_id_to_surface_name`
+            - Dictionary that maps the surface ID to the surface name.
+          * - :py:attr:`~l4cv_axis`
+            - l4cv axis.
+          * - :py:attr:`~l2cv_axis`
+            - l2cv axis.
+          * - :py:attr:`~short_axis`
+            - l2cv axis.
+          * - :py:attr:`~cap_centroids`
+            - List of cap centroids.
+          * - :py:attr:`~conduction_paths`
+            - List of conduction paths.
+          * - :py:attr:`~conduction_mesh`
+            - Conduction mesh.
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~workdir`
+            - Working directory.
+          * - :py:attr:`~mesh`
+            - Computational mesh.
+          * - :py:attr:`~fluid_mesh`
+            - Generated fluid mesh.
+          * - :py:attr:`~electrodes`
+            - Electrodes positions for ECG computing.
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__str__`
+            - Represent self as string.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.models import HeartModel
+
+Property detail
+---------------
+
+.. py:property:: parts
+   :type: List[ansys.health.heart.objects.Part]
+
+
+   
+   List of parts.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: part_names
+   :type: List[str]
+
+
+   
+   List of part names.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: part_ids
+   :type: List[int]
+
+
+   
+   List of used part IDs.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: surfaces
+   :type: List[ansys.health.heart.objects.SurfaceMesh]
+
+
+   
+   List of all defined surfaces.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: surface_names
+   :type: List[str]
+
+
+   
+   List of all defined surface names.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: surface_ids
+   :type: List[str]
+
+
+   
+   List of all defined surface IDs.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: cavities
+   :type: List[ansys.health.heart.objects.Cavity]
+
+
+   
+   List of all cavities in the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: part_name_to_part_id
+   :type: dict
+
+
+   
+   Dictionary that maps the part name to the part ID.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: part_id_to_part_name
+   :type: dict
+
+
+   
+   Dictionary that maps the part ID to the part name.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: surface_name_to_surface_id
+   :type: dict
+
+
+   
+   Dictionary that maps the surface name to the surface ID.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: surface_id_to_surface_name
+   :type: dict
+
+
+   
+   Dictionary that maps the surface ID to the surface name.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: l4cv_axis
+   :type: dict
+
+
+   
+   l4cv axis.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: l2cv_axis
+   :type: dict
+
+
+   
+   l2cv axis.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: short_axis
+   :type: dict
+
+
+   
+   l2cv axis.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: cap_centroids
+
+   
+   List of cap centroids.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: conduction_paths
+
+   
+   List of conduction paths.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: conduction_mesh
+
+   
+   Conduction mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: workdir
+
+   
+   Working directory.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: mesh
+
+   
+   Computational mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: fluid_mesh
+
+   
+   Generated fluid mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: electrodes
+   :type:  List[ansys.health.heart.objects.Point]
+   :value: []
+
+
+   
+   Electrodes positions for ECG computing.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: assign_conduction_paths(paths: ansys.health.heart.pre.conduction_path.ConductionPath | list[ansys.health.heart.pre.conduction_path.ConductionPath])
+
+   
+   Assign conduction paths to the model.
+
+
+   :Parameters:
+
+       **beams** : :obj:`ConductionBeams` | :class:`python:list`\[:obj:`ConductionBeams`]
+           List of conduction beams.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   If conduction paths are already defined, they are removed.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: __str__()
+
+   
+   Represent self as string.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: create_part_by_ids(eids: List[int], name: str) -> Union[None, ansys.health.heart.objects.Part]
+
+   
+   Create a part by element IDs.
+
+
+   :Parameters:
+
+       **eids** : :obj:`List`\[:class:`python:int`]
+           List of element IDs.
+
+       **name** : :class:`python:str`
+           Part name.
+
+
+
+   :Returns:
+
+       :obj:`Union`\[:data:`python:None`, :obj:`Part`]
+           Part if successful.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: load_input(input_vtp: pyvista.PolyData, part_definitions: dict, scalar: str)
+
+   
+   Load an input model.
+
+
+   :Parameters:
+
+       **input_vtp** : :obj:`pv.PolyData`
+           Input surface mesh represented by a VTK ``PolyData`` object.
+
+       **part_definitions** : :class:`python:dict`
+           Part definitions of the input model. Each part is enclosed by N number of boundaries.
+
+       **scalar** : :class:`python:str`
+           Scalar used to identify boundaries.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: mesh_volume(use_wrapper: bool = False, overwrite_existing_mesh: bool = True, global_mesh_size: float = 1.5, path_to_fluent_mesh: str = None, mesh_size_per_part: dict = None, _global_wrap_size: float = 1.5, _wrap_size_per_part: dict = None) -> ansys.health.heart.objects.Mesh
+
+   
+   Remesh the input model and fill the volume.
+
+
+   :Parameters:
+
+       **use_wrapper** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:False`
+           Whether to use the non-manifold mesher.
+
+       **overwrite_existing_mesh** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:True`
+           Whether to overwrite the existing MSH.H5 mesh.
+
+       **global_mesh_size** : :class:`python:float`, default: 1.5
+           Global mesh size for the generated mesh.
+
+       **path_to_fluent_mesh** : :class:`python:str`, default: :data:`python:None`
+           Path to the generated Fluent MSH.H5 mesh.
+
+       **mesh_size_per_part** : :class:`python:dict`, default: :data:`python:None`
+           Dictionary specifying the target mesh size for each part.
+
+       **_global_wrap_size** : :class:`python:float`, default: 1.5
+           Global size for setting up the size-field for the shrink-wrap algorithm.
+
+       **_wrap_size_per_part** : :class:`python:dict`, default: :data:`python:None`
+           Per part size for setting up the size-field for the shrink-wrap algorithm.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   When the input surfaces are non-manifold, the wrapper tries
+   to reconstruct the surface and parts. Inevitably this leads to
+   reconstruction errors. Nevertheless, in many instances, this approach is
+   more robust than meshing from a manifold surface. Moreover, any clear interface
+   between parts is potentially lost.
+
+   When the ``mesh_size_per_part`` attribute is incomplete, remaining part sizes
+   default to the global mesh size. This is an experimental setting. Any wrap
+   sizes given as input arguments are ignored when the wrapper is not used.
+
+
+   .. rubric:: Examples
+
+   >>> from ansys.health.heart.models import HeartModel
+   >>> model = HeartModel()
+   >>> model.load_input(geom, part_definitions, scalar)
+   >>> # mesh the volume with a global size of 1.5 and size of 1 for the left ventricle.
+   >>> model.mesh_volume(
+   ...     use_wrapper=True,
+   ...     global_mesh_size=1.5,
+   ...     path_to_fluent_mesh="simulation-mesh.msh.h5",
+   ...     mesh_size_per_part={"Left ventricle": 1},
+   ... )
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_part(name: str, by_substring: bool = False) -> Union[ansys.health.heart.objects.Part, None]
+
+   
+   Get a specific part based on a part name.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: add_part(part_name: str) -> None
+
+   
+   Dynamically add a part as an attribute to the object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: remove_part(part_name: str) -> None
+
+   
+   Remove a part with a specific name from the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: summary() -> dict
+
+   
+   Get summary information of the model as a dictionary.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: plot_mesh(show_edges: bool = True, color_by: str = '_volume-id')
+
+   
+   Plot the volume mesh of the heart model.
+
+
+   :Parameters:
+
+       **show_edges** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:True`
+           Whether to plot the edges.
+
+       **color_by** : :class:`python:str`, default: ``'_volume-id'``
+           Color by cell/point data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> import ansys.health.heart.models as models
+   >>> model = models.HeartModel.load_model("heart_model.pickle")
+   >>> model.plot_mesh(show_edges=True)
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: plot_part(part: ansys.health.heart.objects.Part)
+
+   
+   Plot a part in the mesh.
+
+
+   :Parameters:
+
+       **part** : :obj:`Part`
+           Part to highlight in the mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> import ansys.health.heart.models as models
+   >>> model = models.HeartModel.load_model("my_model.pickle")
+   >>> model.part(model.left_ventricle)
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: plot_fibers(n_seed_points: int = 1000)
+
+   
+   Plot the mesh and fibers as streamlines.
+
+
+   :Parameters:
+
+       **plot_raw_mesh** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:False`
+           Whether to plot the streamlines on the raw mesh.
+
+       **n_seed_points** : :class:`python:int`, default: 1000
+           Number of seed points. While the default is ``1000``, using ``5000``
+           is recommended.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> import ansys.health.heart.models as models
+   >>> model = models.HeartModel.load_model("my_model.pickle")
+   >>> model.plot_fibers(n_seed_points=5000)
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: plot_surfaces(show_edges: bool = True)
+
+   
+   Plot all surfaces in the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   Import modules and load model.
+
+   >>> import ansys.health.heart.models as models
+   >>> model = models.HeartModel.load_model("my_model.pickle")
+
+   Plot the model.
+
+   >>> model.plot(show_edges=True)
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: plot_purkinje()
+
+   
+   Plot the mesh and Purkinje network.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: save_model(filename: str)
+
+   
+   Save the model and necessary information to reconstruct.
+
+
+   :Parameters:
+
+       **filename** : :class:`python:str`
+           Path to the model.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   The mesh of the heart model is saved as a VTU file. An
+   additional ``partinfo.json`` file is written to reconstruct
+   the heart model from the VTU file.
+
+
+   .. rubric:: Examples
+
+   >>> model.save_model("my-heart-model.vtu")
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: load_model_from_mesh(filename_mesh: str, filename_part_info: str)
+
+   
+   Load a model from an existing VTU file and part information dictionary.
+
+
+   :Parameters:
+
+       **filename_mesh** : :class:`python:str`
+           Path to the VTU file containing the mesh.
+
+       **filename_part_info** : :class:`python:str`
+           Path to the JSON file that contains the part information for reconstructing the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> from ansys.health.heart.models import FullHeart
+   >>> model: FullHeart = FullHeart()
+   >>> model.load_model_from_mesh("mesh.vtu", "mesh.partinfo.json")
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: update()
+
+   
+   Update the model and add required features.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   - Synchronize input parts to model parts.
+   - Extract septum elements from the left ventricle.
+   - Assign elements to parts.
+   - Assign surfaces to each part.
+   - Validate parts and surfaces.
+   - Assign cavities to parts.
+   - Update cap types.
+   - Validate cap names.
+   - Extract apical points.
+   - Compute heart axis.
+   - Add placeholder data for fiber and sheet directions.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_apex_node_set(part: Literal['left', 'right'] = 'left', option: Literal['endocardium', 'epicardium', 'myocardium'] = 'epicardium', radius: float = 3) -> numpy.ndarray
+
+   
+   Get a nodeset around the apex point.
+
+
+   :Parameters:
+
+       **part** : :obj:`Literal`\["left", "right"], default: "left"
+           On which part.
+
+       **option** : :obj:`Literal`\["endocardium", "epicardium", "myocardium"], default: "epicardium"
+           On surface or in mesh.
+
+       **radius** : :class:`python:float`, default: 3
+           Search in radius.
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Apex nodeset
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: create_stiff_ventricle_base(threshold_left_ventricle: float = 0.9, threshold_right_ventricle: float = 0.95, stiff_material: ansys.health.heart.settings.material.material.MechanicalMaterialModel = Mat295(rho=0.001, iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2))) -> None | ansys.health.heart.objects.Part
+
+   
+   Use universal coordinates to generate a stiff base region.
+
+
+   :Parameters:
+
+       **threshold_left_ventricle** : :class:`python:float`, default: 0.9
+           If the ``uvc_l`` value is larger than this threshold in the left ventricle,
+           it is set as stiff material.
+
+       **threshold_right_ventricle** : :class:`python:float`, default: 0.95
+           If the ``uvc_l`` value is larger than this threshold in the right ventricle,
+           it is set to a stiff
+           material.
+
+       **stiff_material** : :obj:`MechanicalMaterialModel`, default: :obj:`MAT295`\(rho=0.001,
+           iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2)
+           Material to assign.
+
+
+
+   :Returns:
+
+       :obj:`Part`
+           Part associated with the stiff base region.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: create_atrial_stiff_ring(radius: float = 2) -> None | ansys.health.heart.objects.Part
+
+   
+   Create a part for solids close to the atrial caps.
+
+
+   :Parameters:
+
+       **radius** : :obj:`foat`, default: 2
+           Influence region.
+
+
+
+   :Returns:
+
+       :obj:`Union`\[:data:`python:None`, :obj:`Part`]
+           Part of atrial rings if created.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Part created is passive and isotropic. The material must be defined.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

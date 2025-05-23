@@ -1,0 +1,250 @@
+
+
+
+
+
+The ``mechanics.py`` module
+===========================
+
+.. py:module:: ansys.heart.simulator.settings.defaults.mechanics
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: mechanics
+.. tab-set::
+
+
+
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~heart`
+            - Generic analysis settings.
+
+
+          * - :py:attr:`~analysis`
+            - Material settings.
+
+
+          * - :py:attr:`~material`
+            - Boundary condition settings.
+
+
+          * - :py:attr:`~boundary_conditions`
+            - System model parameters.
+
+
+          * - :py:attr:`~co`
+            - 
+
+
+          * - :py:attr:`~tau`
+            - 
+
+
+          * - :py:attr:`~pee`
+            - 
+
+
+          * - :py:attr:`~rp`
+            - 
+
+
+          * - :py:attr:`~ca`
+            - 
+
+
+          * - :py:attr:`~ra`
+            - 
+
+
+          * - :py:attr:`~rv`
+            - 
+
+
+          * - :py:attr:`~system_model`
+            - 
+
+
+          * - :py:attr:`~system_model3`
+            - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module contains default values for mechanics simulations.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: heart
+
+   
+   Generic analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: analysis
+
+   
+   Material settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: material
+
+   
+   Boundary condition settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: boundary_conditions
+
+   
+   System model parameters.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: co
+
+   
+
+.. py:data:: tau
+
+   
+
+.. py:data:: pee
+
+   
+
+.. py:data:: rp
+
+   
+
+.. py:data:: ca
+
+   
+
+.. py:data:: ra
+
+   
+
+.. py:data:: rv
+
+   
+
+.. py:data:: system_model
+
+   
+
+.. py:data:: system_model3
+
+   
+
+
+

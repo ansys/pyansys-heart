@@ -1,0 +1,174 @@
+
+
+
+
+
+
+The ``objects.py`` module
+=========================
+
+.. py:module:: ansys.heart.preprocessor.mesh.objects
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: objects
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.objects.Feature`
+            - Feature class.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.objects.SurfaceMesh`
+            - Surface class.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.objects.BeamMesh`
+            - Beam class.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.objects.Cavity`
+            - Cavity class.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.objects.Cap`
+            - Cap class.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.objects.Point`
+            - Point class. Can be used to collect relevant points in the mesh.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.objects.Mesh`
+            - Mesh class: inherits from pyvista UnstructuredGrid.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.objects.Part`
+            - Part class.
+
+
+
+    .. tab-item:: Enums
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.objects.PartType`
+            - Stores valid part types.
+
+
+
+
+
+
+    .. tab-item:: Constants
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~SURFACE_CELL_TYPES`
+            - 
+
+
+          * - :py:obj:`~VOLUME_CELL_TYPES`
+            - 
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> Feature</api/ansys/heart/preprocessor/mesh/objects/Feature>
+    <span class="nf nf-cod-symbol_class"></span> SurfaceMesh</api/ansys/heart/preprocessor/mesh/objects/SurfaceMesh>
+    <span class="nf nf-cod-symbol_class"></span> BeamMesh</api/ansys/heart/preprocessor/mesh/objects/BeamMesh>
+    <span class="nf nf-cod-symbol_class"></span> Cavity</api/ansys/heart/preprocessor/mesh/objects/Cavity>
+    <span class="nf nf-cod-symbol_class"></span> Cap</api/ansys/heart/preprocessor/mesh/objects/Cap>
+    <span class="nf nf-cod-symbol_class"></span> Point</api/ansys/heart/preprocessor/mesh/objects/Point>
+    <span class="nf nf-cod-symbol_class"></span> Mesh</api/ansys/heart/preprocessor/mesh/objects/Mesh>
+    <span class="nf nf-cod-symbol_class"></span> Part</api/ansys/heart/preprocessor/mesh/objects/Part>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_enum"></span> PartType</api/ansys/heart/preprocessor/mesh/objects/PartType>
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module that contains classes relevant for the mesh.
+
+Such as a Mesh object, Part object, Features, etc.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: SURFACE_CELL_TYPES
+
+.. py:data:: VOLUME_CELL_TYPES
+
+
+

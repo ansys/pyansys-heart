@@ -1,0 +1,169 @@
+
+
+.. _sphx_glr_examples_preprocessor:
+
+Preprocessor examples
+=====================
+These examples show you how you can use the preprocessor module
+to generate different kinds of heart models. For instance, a
+biventricular, four chamber, or full heart model.
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Download a PyAnsys - Heart compatible case from Zenodo.">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_doc_download_case_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_doc_download_case.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Download a PyAnsys - Heart compatible case from Zenodo.</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="UHC example">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_doc_example_uhc_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_doc_example_uhc.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">UHC example</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Atrial fiber">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_doc_example_atrial_fiber_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_doc_example_atrial_fiber.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Atrial fiber</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Stimulation definition example">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_doc_example_stimulation_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_doc_example_stimulation.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Stimulation definition example</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Create a four chamber heart model">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_doc_preprocess_fourchamber_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_doc_preprocess_fourchamber.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Create a four chamber heart model</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Create a full heart model">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_doc_preprocess_fullheart_rodero_01_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_doc_preprocess_fullheart_rodero_01.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Create a full heart model</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Create a truncated ellipsoid model">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_doc_preprocess_truncated_LV_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_doc_preprocess_truncated_LV.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Create a truncated ellipsoid model</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Define materials">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_doc_demo_material_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_doc_demo_material.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Define materials</div>
+    </div>
+
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /examples/preprocessor/doc_download_case
+   /examples/preprocessor/doc_example_uhc
+   /examples/preprocessor/doc_example_atrial_fiber
+   /examples/preprocessor/doc_example_stimulation
+   /examples/preprocessor/doc_preprocess_fourchamber
+   /examples/preprocessor/doc_preprocess_fullheart_rodero_01
+   /examples/preprocessor/doc_preprocess_truncated_LV
+   /examples/preprocessor/doc_demo_material
+

@@ -1,0 +1,291 @@
+
+
+
+
+ConductionSystem
+================
+
+.. py:class:: ConductionSystem(model: ansys.heart.preprocessor.models.FourChamber)
+   :canonical: ansys.heart.preprocessor.conduction_beam.ConductionSystem
+
+
+
+
+
+   Methods to generate conduction system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: ConductionSystem
+.. tab-set::
+
+
+
+    .. tab-item:: Methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~compute_SA_node`
+            - Compute SinoAtrial node.
+          * - :py:attr:`~compute_AV_node`
+            - Compute Atrio-Ventricular node.
+          * - :py:attr:`~compute_av_conduction`
+            - Compute Atrio-Ventricular conduction by means of beams following a geodesic path.
+          * - :py:attr:`~compute_His_conduction`
+            - Compute His bundle conduction.
+          * - :py:attr:`~compute_left_right_bundle`
+            - Bundle brunch.
+          * - :py:attr:`~compute_Bachman_bundle`
+            - Compute Bachman bundle conduction system.
+
+
+
+
+    .. tab-item:: Static methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~find_path`
+            - Find shortest path between two nodes.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.conduction_beam import ConductionSystem
+
+
+
+
+Method detail
+-------------
+.. py:method:: compute_SA_node(target_coord=None) -> ansys.heart.preprocessor.mesh.objects.Point
+
+   
+   Compute SinoAtrial node.
+
+   SinoAtrial node is defined on the endocardium of the right atrium and
+   between sup vena cava and inf vena cave.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_AV_node(target_coord=None) -> ansys.heart.preprocessor.mesh.objects.Point
+
+   
+   Compute Atrio-Ventricular node.
+
+   AtrioVentricular node is on right artrium endocardium surface and closest to septum.
+
+
+   :Returns:
+
+       :obj:`Point`
+           returns the AV node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_av_conduction(beam_length: float = 1.5) -> ansys.heart.preprocessor.mesh.objects.BeamMesh
+
+   
+   Compute Atrio-Ventricular conduction by means of beams following a geodesic path.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_His_conduction(beam_length: float = 1.5)
+
+   
+   Compute His bundle conduction.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: find_path(mesh: pyvista.UnstructuredGrid, start: numpy.ndarray, end: numpy.ndarray, return_segment=True)
+   :staticmethod:
+
+   
+   Find shortest path between two nodes.
+
+
+   :Parameters:
+
+       **mesh** : :obj:`pv.UnstructuredGrid`
+           Must be with tetra cells.
+
+       **start** : :obj:`np.ndarray <numpy.ndarray>`
+           Start point coordinates.
+
+       **end** : :obj:`np.ndarray <numpy.ndarray>`
+           End point coordinates
+
+       **return_segment** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Return a segment set (list of triangles) on which the path relies, by default True
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Unlike geodesic, this method searches a path inside of a 3D mesh.
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_left_right_bundle(start_coord, start_id, side: str, beam_length: float = 1.5)
+
+   
+   Bundle brunch.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_Bachman_bundle(start_coord, end_coord, beam_length: float = 1.5)
+
+   
+   Compute Bachman bundle conduction system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

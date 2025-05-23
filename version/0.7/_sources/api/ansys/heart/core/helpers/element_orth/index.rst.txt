@@ -1,0 +1,46 @@
+
+
+
+
+
+
+The ``element_orth.py`` module
+==============================
+
+.. py:module:: ansys.heart.core.helpers.element_orth
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+parse LSDYNA *ELEMENT_SOLID_ORTHO keywords.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+

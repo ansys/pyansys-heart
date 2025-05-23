@@ -1,0 +1,1433 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta property="og:site_name" content="PyAnsys" />
+    <title>HeartModel &#8212; PyAnsys Heart</title>
+  
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/ansys-sphinx-theme.css?v=fbf3eb5d" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/styles\ansys-sphinx-theme.css?v=fbf3eb5d" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://www.nerdfonts.com/assets/css/webfont.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/custom.css?v=7c3339d6" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+
+  <!-- Include desired assets -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  
+
+  
+    <link href="../../../../../_static/css/breadcrumbs.css" rel="stylesheet" />
+  
+    <script src="../../../../../_static/documentation_options.js?v=769e5e19"></script>
+    <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script src="../../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/ansys/health/heart/models/HeartModel';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://heart.health.docs.pyansys.com/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../../../../../_static/ansys-favicon.png"/>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+    <link rel="next" title="LeftVentricle" href="LeftVentricle.html" />
+    <link rel="prev" title="The models.py module" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="main" />
+  <link rel="canonical" href="https://heart.health.docs.pyansys.com/version/stable/api/ansys/health/heart/models/HeartModel.html" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="https://docs.pyansys.com/">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../../_static/pyansys_logo_transparent_black.png" class="logo__image only-light" alt="PyAnsys Heart - Home"/>
+    <img src="../../../../../_static/pyansys_logo_transparent_white.png" class="logo__image only-dark pst-js-only" alt="PyAnsys Heart - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../getting-started.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../user-guide.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../contributing.html">
+    Contribute
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../../changelog.html">
+    Release notes
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../../acknowledgements.html">
+    Acknowledgements
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="../../../../../search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+</div>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="../../../../../search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+</div>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+  
+    <div id="announcement_msg"></div>
+<script>
+  fetch("announcement.html")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(
+      (text) => (document.getElementById("announcement_msg").innerHTML = text),
+    )
+    .catch((error) => console.error(`Fetch problem: ${error.message}`));
+</script>
+  
+
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../getting-started.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../user-guide.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../contributing.html">
+    Contribute
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../changelog.html">
+    Release notes
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../acknowledgements.html">
+    Acknowledgements
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html"><span class="nf nf-md-package"></span> ansys.health.heart</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../post/index.html"> <span class="nf nf-md-package"></span> post</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../pre/index.html"> <span class="nf nf-md-package"></span> pre</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../settings/index.html"> <span class="nf nf-md-package"></span> settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../utils/index.html"> <span class="nf nf-md-package"></span> utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../writer/index.html"> <span class="nf nf-md-package"></span> writer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/index.html"> <span class="nf nf-fa-file"></span> examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../exceptions/index.html"> <span class="nf nf-fa-file"></span> exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../logger/index.html"> <span class="nf nf-fa-file"></span> logger</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html"> <span class="nf nf-fa-file"></span> models</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3 current active"><a class="current reference internal" href="#"> <span class="nf nf-cod-symbol_class"></span> HeartModel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="LeftVentricle.html"> <span class="nf nf-cod-symbol_class"></span> LeftVentricle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="BiVentricle.html"> <span class="nf nf-cod-symbol_class"></span> BiVentricle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="FourChamber.html"> <span class="nf nf-cod-symbol_class"></span> FourChamber</a></li>
+<li class="toctree-l3"><a class="reference internal" href="FullHeart.html"> <span class="nf nf-cod-symbol_class"></span> FullHeart</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="../models_utils/index.html"> <span class="nf nf-fa-file"></span> models_utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../objects/index.html"> <span class="nf nf-fa-file"></span> objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../parts/index.html"> <span class="nf nf-fa-file"></span> parts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../simulator/index.html"> <span class="nf nf-fa-file"></span> simulator</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+         
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="https://health.docs.pyansys.com/" class="nav-link">PyAnsys Health</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a
+        href="../../../../../index.html"
+        class="nav-link"
+        aria-label="Home"
+      >
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a href="../../../../index.html" class="nav-link">API reference</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a href="../index.html" class="nav-link">The <code class="docutils literal notranslate"><span class="pre">ansys.health.heart</span></code> library</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a href="index.html" class="nav-link">The <code class="docutils literal notranslate"><span class="pre">models.py</span></code> module</a>
+    </li>
+      
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><code class="xref py py-class docutils literal notranslate"><span class="pre">HeartModel</span></code></span></li>
+    
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="heartmodel">
+<h1><code class="xref py py-class docutils literal notranslate"><span class="pre">HeartModel</span></code><a class="headerlink" href="#heartmodel" title="Link to this heading">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="ansys.health.heart.models.HeartModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ansys.health.heart.models.</span></span><span class="sig-name descname"><span class="pre">HeartModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">working_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.15)"><span class="pre">pathlib.Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ansys.health.heart.models.HeartModel" title="Link to this definition">#</a></dt>
+<dd><p>Parent class for heart models.</p>
+</dd></dl>
+
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Methods</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.assign_conduction_paths" title="HeartModel.assign_conduction_paths"><code class="xref py py-attr docutils literal notranslate"><span class="pre">assign_conduction_paths</span></code></a></p></td>
+<td><p>Assign conduction paths to the model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.create_part_by_ids" title="HeartModel.create_part_by_ids"><code class="xref py py-attr docutils literal notranslate"><span class="pre">create_part_by_ids</span></code></a></p></td>
+<td><p>Create a part by element IDs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.load_input" title="HeartModel.load_input"><code class="xref py py-attr docutils literal notranslate"><span class="pre">load_input</span></code></a></p></td>
+<td><p>Load an input model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.mesh_volume" title="HeartModel.mesh_volume"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mesh_volume</span></code></a></p></td>
+<td><p>Remesh the input model and fill the volume.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.get_part" title="HeartModel.get_part"><code class="xref py py-attr docutils literal notranslate"><span class="pre">get_part</span></code></a></p></td>
+<td><p>Get a specific part based on a part name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.add_part" title="HeartModel.add_part"><code class="xref py py-attr docutils literal notranslate"><span class="pre">add_part</span></code></a></p></td>
+<td><p>Dynamically add a part as an attribute to the object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.remove_part" title="HeartModel.remove_part"><code class="xref py py-attr docutils literal notranslate"><span class="pre">remove_part</span></code></a></p></td>
+<td><p>Remove a part with a specific name from the model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.summary" title="HeartModel.summary"><code class="xref py py-attr docutils literal notranslate"><span class="pre">summary</span></code></a></p></td>
+<td><p>Get summary information of the model as a dictionary.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.plot_mesh" title="HeartModel.plot_mesh"><code class="xref py py-attr docutils literal notranslate"><span class="pre">plot_mesh</span></code></a></p></td>
+<td><p>Plot the volume mesh of the heart model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.plot_part" title="HeartModel.plot_part"><code class="xref py py-attr docutils literal notranslate"><span class="pre">plot_part</span></code></a></p></td>
+<td><p>Plot a part in the mesh.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.plot_fibers" title="HeartModel.plot_fibers"><code class="xref py py-attr docutils literal notranslate"><span class="pre">plot_fibers</span></code></a></p></td>
+<td><p>Plot the mesh and fibers as streamlines.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.plot_surfaces" title="HeartModel.plot_surfaces"><code class="xref py py-attr docutils literal notranslate"><span class="pre">plot_surfaces</span></code></a></p></td>
+<td><p>Plot all surfaces in the model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.plot_purkinje" title="HeartModel.plot_purkinje"><code class="xref py py-attr docutils literal notranslate"><span class="pre">plot_purkinje</span></code></a></p></td>
+<td><p>Plot the mesh and Purkinje network.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.save_model" title="HeartModel.save_model"><code class="xref py py-attr docutils literal notranslate"><span class="pre">save_model</span></code></a></p></td>
+<td><p>Save the model and necessary information to reconstruct.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.load_model_from_mesh" title="HeartModel.load_model_from_mesh"><code class="xref py py-attr docutils literal notranslate"><span class="pre">load_model_from_mesh</span></code></a></p></td>
+<td><p>Load a model from an existing VTU file and part information dictionary.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.update" title="HeartModel.update"><code class="xref py py-attr docutils literal notranslate"><span class="pre">update</span></code></a></p></td>
+<td><p>Update the model and add required features.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.get_apex_node_set" title="HeartModel.get_apex_node_set"><code class="xref py py-attr docutils literal notranslate"><span class="pre">get_apex_node_set</span></code></a></p></td>
+<td><p>Get a nodeset around the apex point.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.create_stiff_ventricle_base" title="HeartModel.create_stiff_ventricle_base"><code class="xref py py-attr docutils literal notranslate"><span class="pre">create_stiff_ventricle_base</span></code></a></p></td>
+<td><p>Use universal coordinates to generate a stiff base region.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.create_atrial_stiff_ring" title="HeartModel.create_atrial_stiff_ring"><code class="xref py py-attr docutils literal notranslate"><span class="pre">create_atrial_stiff_ring</span></code></a></p></td>
+<td><p>Create a part for solids close to the atrial caps.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Properties</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.parts" title="HeartModel.parts"><code class="xref py py-attr docutils literal notranslate"><span class="pre">parts</span></code></a></p></td>
+<td><p>List of parts.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.part_names" title="HeartModel.part_names"><code class="xref py py-attr docutils literal notranslate"><span class="pre">part_names</span></code></a></p></td>
+<td><p>List of part names.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.part_ids" title="HeartModel.part_ids"><code class="xref py py-attr docutils literal notranslate"><span class="pre">part_ids</span></code></a></p></td>
+<td><p>List of used part IDs.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.surfaces" title="HeartModel.surfaces"><code class="xref py py-attr docutils literal notranslate"><span class="pre">surfaces</span></code></a></p></td>
+<td><p>List of all defined surfaces.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.surface_names" title="HeartModel.surface_names"><code class="xref py py-attr docutils literal notranslate"><span class="pre">surface_names</span></code></a></p></td>
+<td><p>List of all defined surface names.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.surface_ids" title="HeartModel.surface_ids"><code class="xref py py-attr docutils literal notranslate"><span class="pre">surface_ids</span></code></a></p></td>
+<td><p>List of all defined surface IDs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.cavities" title="HeartModel.cavities"><code class="xref py py-attr docutils literal notranslate"><span class="pre">cavities</span></code></a></p></td>
+<td><p>List of all cavities in the model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.all_caps" title="HeartModel.all_caps"><code class="xref py py-attr docutils literal notranslate"><span class="pre">all_caps</span></code></a></p></td>
+<td><p>List of all caps in the model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.part_name_to_part_id" title="HeartModel.part_name_to_part_id"><code class="xref py py-attr docutils literal notranslate"><span class="pre">part_name_to_part_id</span></code></a></p></td>
+<td><p>Dictionary that maps the part name to the part ID.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.part_id_to_part_name" title="HeartModel.part_id_to_part_name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">part_id_to_part_name</span></code></a></p></td>
+<td><p>Dictionary that maps the part ID to the part name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.surface_name_to_surface_id" title="HeartModel.surface_name_to_surface_id"><code class="xref py py-attr docutils literal notranslate"><span class="pre">surface_name_to_surface_id</span></code></a></p></td>
+<td><p>Dictionary that maps the surface name to the surface ID.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.surface_id_to_surface_name" title="HeartModel.surface_id_to_surface_name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">surface_id_to_surface_name</span></code></a></p></td>
+<td><p>Dictionary that maps the surface ID to the surface name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.l4cv_axis" title="HeartModel.l4cv_axis"><code class="xref py py-attr docutils literal notranslate"><span class="pre">l4cv_axis</span></code></a></p></td>
+<td><p>l4cv axis.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.l2cv_axis" title="HeartModel.l2cv_axis"><code class="xref py py-attr docutils literal notranslate"><span class="pre">l2cv_axis</span></code></a></p></td>
+<td><p>l2cv axis.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.short_axis" title="HeartModel.short_axis"><code class="xref py py-attr docutils literal notranslate"><span class="pre">short_axis</span></code></a></p></td>
+<td><p>l2cv axis.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.cap_centroids" title="HeartModel.cap_centroids"><code class="xref py py-attr docutils literal notranslate"><span class="pre">cap_centroids</span></code></a></p></td>
+<td><p>List of cap centroids.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.conduction_paths" title="HeartModel.conduction_paths"><code class="xref py py-attr docutils literal notranslate"><span class="pre">conduction_paths</span></code></a></p></td>
+<td><p>List of conduction paths.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.conduction_mesh" title="HeartModel.conduction_mesh"><code class="xref py py-attr docutils literal notranslate"><span class="pre">conduction_mesh</span></code></a></p></td>
+<td><p>Conduction mesh.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-2" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-2">
+Attributes</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.workdir" title="HeartModel.workdir"><code class="xref py py-attr docutils literal notranslate"><span class="pre">workdir</span></code></a></p></td>
+<td><p>Working directory.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.mesh" title="HeartModel.mesh"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mesh</span></code></a></p></td>
+<td><p>Computational mesh.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.fluid_mesh" title="HeartModel.fluid_mesh"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fluid_mesh</span></code></a></p></td>
+<td><p>Generated fluid mesh.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#HeartModel.electrodes" title="HeartModel.electrodes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">electrodes</span></code></a></p></td>
+<td><p>Electrodes positions for ECG computing.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-3" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-3">
+Special methods</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#HeartModel.__str__" title="HeartModel.__str__"><code class="xref py py-attr docutils literal notranslate"><span class="pre">__str__</span></code></a></p></td>
+<td><p>Represent self as string.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="import-detail">
+<h2>Import detail<a class="headerlink" href="#import-detail" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ansys.health.heart.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">HeartModel</span>
+</pre></div>
+</div>
+</section>
+<section id="property-detail">
+<h2>Property detail<a class="headerlink" href="#property-detail" title="Link to this heading">#</a></h2>
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.parts">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">parts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../parts/Part.html#ansys.health.heart.parts.Part" title="ansys.health.heart.parts.Part"><span class="pre">ansys.health.heart.parts.Part</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#HeartModel.parts" title="Link to this definition">#</a></dt>
+<dd><p>List of parts.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.part_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">part_names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#HeartModel.part_names" title="Link to this definition">#</a></dt>
+<dd><p>List of part names.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.part_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">part_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#HeartModel.part_ids" title="Link to this definition">#</a></dt>
+<dd><p>List of used part IDs.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.surfaces">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">surfaces</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../objects/SurfaceMesh.html#ansys.health.heart.objects.SurfaceMesh" title="ansys.health.heart.objects.SurfaceMesh"><span class="pre">ansys.health.heart.objects.SurfaceMesh</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#HeartModel.surfaces" title="Link to this definition">#</a></dt>
+<dd><p>List of all defined surfaces.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.surface_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">surface_names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#HeartModel.surface_names" title="Link to this definition">#</a></dt>
+<dd><p>List of all defined surface names.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.surface_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">surface_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#HeartModel.surface_ids" title="Link to this definition">#</a></dt>
+<dd><p>List of all defined surface IDs.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.cavities">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">cavities</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../objects/Cavity.html#ansys.health.heart.objects.Cavity" title="ansys.health.heart.objects.Cavity"><span class="pre">ansys.health.heart.objects.Cavity</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#HeartModel.cavities" title="Link to this definition">#</a></dt>
+<dd><p>List of all cavities in the model.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.all_caps">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">all_caps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../objects/Cap.html#ansys.health.heart.objects.Cap" title="ansys.health.heart.objects.Cap"><span class="pre">ansys.health.heart.objects.Cap</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#HeartModel.all_caps" title="Link to this definition">#</a></dt>
+<dd><p>List of all caps in the model.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.part_name_to_part_id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">part_name_to_part_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></em><a class="headerlink" href="#HeartModel.part_name_to_part_id" title="Link to this definition">#</a></dt>
+<dd><p>Dictionary that maps the part name to the part ID.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.part_id_to_part_name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">part_id_to_part_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></em><a class="headerlink" href="#HeartModel.part_id_to_part_name" title="Link to this definition">#</a></dt>
+<dd><p>Dictionary that maps the part ID to the part name.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.surface_name_to_surface_id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">surface_name_to_surface_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></em><a class="headerlink" href="#HeartModel.surface_name_to_surface_id" title="Link to this definition">#</a></dt>
+<dd><p>Dictionary that maps the surface name to the surface ID.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.surface_id_to_surface_name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">surface_id_to_surface_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></em><a class="headerlink" href="#HeartModel.surface_id_to_surface_name" title="Link to this definition">#</a></dt>
+<dd><p>Dictionary that maps the surface ID to the surface name.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.l4cv_axis">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">l4cv_axis</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></em><a class="headerlink" href="#HeartModel.l4cv_axis" title="Link to this definition">#</a></dt>
+<dd><p>l4cv axis.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.l2cv_axis">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">l2cv_axis</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></em><a class="headerlink" href="#HeartModel.l2cv_axis" title="Link to this definition">#</a></dt>
+<dd><p>l2cv axis.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.short_axis">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">short_axis</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></em><a class="headerlink" href="#HeartModel.short_axis" title="Link to this definition">#</a></dt>
+<dd><p>l2cv axis.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.cap_centroids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">cap_centroids</span></span><a class="headerlink" href="#HeartModel.cap_centroids" title="Link to this definition">#</a></dt>
+<dd><p>List of cap centroids.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.conduction_paths">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">conduction_paths</span></span><a class="headerlink" href="#HeartModel.conduction_paths" title="Link to this definition">#</a></dt>
+<dd><p>List of conduction paths.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="HeartModel.conduction_mesh">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">conduction_mesh</span></span><a class="headerlink" href="#HeartModel.conduction_mesh" title="Link to this definition">#</a></dt>
+<dd><p>Conduction mesh.</p>
+</dd></dl>
+
+</section>
+<section id="attribute-detail">
+<h2>Attribute detail<a class="headerlink" href="#attribute-detail" title="Link to this heading">#</a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HeartModel.workdir">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">workdir</span></span><a class="headerlink" href="#HeartModel.workdir" title="Link to this definition">#</a></dt>
+<dd><p>Working directory.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HeartModel.mesh">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">mesh</span></span><a class="headerlink" href="#HeartModel.mesh" title="Link to this definition">#</a></dt>
+<dd><p>Computational mesh.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HeartModel.fluid_mesh">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">fluid_mesh</span></span><a class="headerlink" href="#HeartModel.fluid_mesh" title="Link to this definition">#</a></dt>
+<dd><p>Generated fluid mesh.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="HeartModel.electrodes">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">electrodes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../objects/Point.html#ansys.health.heart.objects.Point" title="ansys.health.heart.objects.Point"><span class="pre">ansys.health.heart.objects.Point</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#HeartModel.electrodes" title="Link to this definition">#</a></dt>
+<dd><p>Electrodes positions for ECG computing.</p>
+</dd></dl>
+
+</section>
+<section id="method-detail">
+<h2>Method detail<a class="headerlink" href="#method-detail" title="Link to this heading">#</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.assign_conduction_paths">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">assign_conduction_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../pre/conduction_path/ConductionPath.html#ansys.health.heart.pre.conduction_path.ConductionPath" title="ansys.health.heart.pre.conduction_path.ConductionPath"><span class="pre">ansys.health.heart.pre.conduction_path.ConductionPath</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#list" title="(in Python v3.15)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../pre/conduction_path/ConductionPath.html#ansys.health.heart.pre.conduction_path.ConductionPath" title="ansys.health.heart.pre.conduction_path.ConductionPath"><span class="pre">ansys.health.heart.pre.conduction_path.ConductionPath</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HeartModel.assign_conduction_paths" title="Link to this definition">#</a></dt>
+<dd><p>Assign conduction paths to the model.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>beams</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConductionBeams</span></code> | <a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#list" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">ConductionBeams</span></code>]</span></dt><dd><p>List of conduction beams.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If conduction paths are already defined, they are removed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.__str__">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HeartModel.__str__" title="Link to this definition">#</a></dt>
+<dd><p>Represent self as string.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.create_part_by_ids">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">create_part_by_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">eids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../parts/Part.html#ansys.health.heart.parts.Part" title="ansys.health.heart.parts.Part"><span class="pre">ansys.health.heart.parts.Part</span></a></span></span><a class="headerlink" href="#HeartModel.create_part_by_ids" title="Link to this definition">#</a></dt>
+<dd><p>Create a part by element IDs.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>eids</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>]</span></dt><dd><p>List of element IDs.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Part name.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">anatomy.Part</span></code>]</dt><dd><p>Part if successful.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.load_input">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">load_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_vtp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pyvista.PolyData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part_definitions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">scalar</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HeartModel.load_input" title="Link to this definition">#</a></dt>
+<dd><p>Load an input model.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>input_vtp</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pv.PolyData</span></code></span></dt><dd><p>Input surface mesh represented by a VTK <code class="docutils literal notranslate"><span class="pre">PolyData</span></code> object.</p>
+</dd>
+<dt><strong>part_definitions</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a></span></dt><dd><p>Part definitions of the input model. Each part is enclosed by N number of boundaries.</p>
+</dd>
+<dt><strong>scalar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Scalar used to identify boundaries.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.mesh_volume">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">mesh_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_wrapper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_existing_mesh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_mesh_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_to_fluent_mesh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_size_per_part</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_global_wrap_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_wrap_size_per_part</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../objects/Mesh.html#ansys.health.heart.objects.Mesh" title="ansys.health.heart.objects.Mesh"><span class="pre">ansys.health.heart.objects.Mesh</span></a></span></span><a class="headerlink" href="#HeartModel.mesh_volume" title="Link to this definition">#</a></dt>
+<dd><p>Remesh the input model and fill the volume.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>use_wrapper</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.15)"><span class="xref std std-ref">bool</span></a>, default: <a class="reference external" href="https://docs.python.org/dev/library/constants.html#False" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">False</span></code></a></span></dt><dd><p>Whether to use the non-manifold mesher.</p>
+</dd>
+<dt><strong>overwrite_existing_mesh</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.15)"><span class="xref std std-ref">bool</span></a>, default: <a class="reference external" href="https://docs.python.org/dev/library/constants.html#True" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">True</span></code></a></span></dt><dd><p>Whether to overwrite the existing MSH.H5 mesh.</p>
+</dd>
+<dt><strong>global_mesh_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">float</span></code></a>, default: 1.5</span></dt><dd><p>Global mesh size for the generated mesh.</p>
+</dd>
+<dt><strong>path_to_fluent_mesh</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default: <a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>Path to the generated Fluent MSH.H5 mesh.</p>
+</dd>
+<dt><strong>mesh_size_per_part</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, default: <a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>Dictionary specifying the target mesh size for each part.</p>
+</dd>
+<dt><strong>_global_wrap_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">float</span></code></a>, default: 1.5</span></dt><dd><p>Global size for setting up the size-field for the shrink-wrap algorithm.</p>
+</dd>
+<dt><strong>_wrap_size_per_part</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">dict</span></code></a>, default: <a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a></span></dt><dd><p>Per part size for setting up the size-field for the shrink-wrap algorithm.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>When the input surfaces are non-manifold, the wrapper tries
+to reconstruct the surface and parts. Inevitably this leads to
+reconstruction errors. Nevertheless, in many instances, this approach is
+more robust than meshing from a manifold surface. Moreover, any clear interface
+between parts is potentially lost.</p>
+<p>When the <code class="docutils literal notranslate"><span class="pre">mesh_size_per_part</span></code> attribute is incomplete, remaining part sizes
+default to the global mesh size. This is an experimental setting. Any wrap
+sizes given as input arguments are ignored when the wrapper is not used.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">>>> </span><span class="kn">from</span><span class="w"> </span><span class="nn">ansys.health.heart.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">HeartModel</span>
+<span class="gp">>>> </span><span class="n">model</span> <span class="o">=</span> <span class="n">HeartModel</span><span class="p">()</span>
+<span class="gp">>>> </span><span class="n">model</span><span class="o">.</span><span class="n">load_input</span><span class="p">(</span><span class="n">geom</span><span class="p">,</span> <span class="n">part_definitions</span><span class="p">,</span> <span class="n">scalar</span><span class="p">)</span>
+<span class="gp">>>> </span><span class="c1"># mesh the volume with a global size of 1.5 and size of 1 for the left ventricle.</span>
+<span class="gp">>>> </span><span class="n">model</span><span class="o">.</span><span class="n">mesh_volume</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">use_wrapper</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">global_mesh_size</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">path_to_fluent_mesh</span><span class="o">=</span><span class="s2">&quot;simulation-mesh.msh.h5&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">mesh_size_per_part</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Left ventricle&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.get_part">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">get_part</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_substring</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../parts/Part.html#ansys.health.heart.parts.Part" title="ansys.health.heart.parts.Part"><span class="pre">ansys.health.heart.parts.Part</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#HeartModel.get_part" title="Link to this definition">#</a></dt>
+<dd><p>Get a specific part based on a part name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.add_part">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">add_part</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">part_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#HeartModel.add_part" title="Link to this definition">#</a></dt>
+<dd><p>Dynamically add a part as an attribute to the object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.remove_part">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">remove_part</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">part_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#HeartModel.remove_part" title="Link to this definition">#</a></dt>
+<dd><p>Remove a part with a specific name from the model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.summary">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a></span></span><a class="headerlink" href="#HeartModel.summary" title="Link to this definition">#</a></dt>
+<dd><p>Get summary information of the model as a dictionary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.plot_mesh">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">plot_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_by</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'_volume-id'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HeartModel.plot_mesh" title="Link to this definition">#</a></dt>
+<dd><p>Plot the volume mesh of the heart model.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>show_edges</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.15)"><span class="xref std std-ref">bool</span></a>, default: <a class="reference external" href="https://docs.python.org/dev/library/constants.html#True" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">True</span></code></a></span></dt><dd><p>Whether to plot the edges.</p>
+</dd>
+<dt><strong>color_by</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, default: <code class="docutils literal notranslate"><span class="pre">'_volume-id'</span></code></span></dt><dd><p>Color by cell/point data.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">>>> </span><span class="kn">import</span><span class="w"> </span><span class="nn">ansys.health.heart.models</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">models</span>
+<span class="gp">>>> </span><span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">HeartModel</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;heart_model.pickle&quot;</span><span class="p">)</span>
+<span class="gp">>>> </span><span class="n">model</span><span class="o">.</span><span class="n">plot_mesh</span><span class="p">(</span><span class="n">show_edges</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.plot_part">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">plot_part</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">part</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../parts/Part.html#ansys.health.heart.parts.Part" title="ansys.health.heart.parts.Part"><span class="pre">ansys.health.heart.parts.Part</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HeartModel.plot_part" title="Link to this definition">#</a></dt>
+<dd><p>Plot a part in the mesh.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>part</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">anatomy.Part</span></code></span></dt><dd><p>Part to highlight in the mesh.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">>>> </span><span class="kn">import</span><span class="w"> </span><span class="nn">ansys.health.heart.models</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">models</span>
+<span class="gp">>>> </span><span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">HeartModel</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;my_model.pickle&quot;</span><span class="p">)</span>
+<span class="gp">>>> </span><span class="n">model</span><span class="o">.</span><span class="n">part</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">left_ventricle</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.plot_fibers">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">plot_fibers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_seed_points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HeartModel.plot_fibers" title="Link to this definition">#</a></dt>
+<dd><p>Plot the mesh and fibers as streamlines.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>plot_raw_mesh</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.15)"><span class="xref std std-ref">bool</span></a>, default: <a class="reference external" href="https://docs.python.org/dev/library/constants.html#False" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">False</span></code></a></span></dt><dd><p>Whether to plot the streamlines on the raw mesh.</p>
+</dd>
+<dt><strong>n_seed_points</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, default: 1000</span></dt><dd><p>Number of seed points. While the default is <code class="docutils literal notranslate"><span class="pre">1000</span></code>, using <code class="docutils literal notranslate"><span class="pre">5000</span></code>
+is recommended.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">>>> </span><span class="kn">import</span><span class="w"> </span><span class="nn">ansys.health.heart.models</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">models</span>
+<span class="gp">>>> </span><span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">HeartModel</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;my_model.pickle&quot;</span><span class="p">)</span>
+<span class="gp">>>> </span><span class="n">model</span><span class="o">.</span><span class="n">plot_fibers</span><span class="p">(</span><span class="n">n_seed_points</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.plot_surfaces">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">plot_surfaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.15)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HeartModel.plot_surfaces" title="Link to this definition">#</a></dt>
+<dd><p>Plot all surfaces in the model.</p>
+<p class="rubric">Examples</p>
+<p>Import modules and load model.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">>>> </span><span class="kn">import</span><span class="w"> </span><span class="nn">ansys.health.heart.models</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">models</span>
+<span class="gp">>>> </span><span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">HeartModel</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;my_model.pickle&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Plot the model.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">>>> </span><span class="n">model</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show_edges</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.plot_purkinje">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">plot_purkinje</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HeartModel.plot_purkinje" title="Link to this definition">#</a></dt>
+<dd><p>Plot the mesh and Purkinje network.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.save_model">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HeartModel.save_model" title="Link to this definition">#</a></dt>
+<dd><p>Save the model and necessary information to reconstruct.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Path to the model.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The mesh of the heart model is saved as a VTU file. An
+additional <code class="docutils literal notranslate"><span class="pre">partinfo.json</span></code> file is written to reconstruct
+the heart model from the VTU file.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">>>> </span><span class="n">model</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="s2">&quot;my-heart-model.vtu&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.load_model_from_mesh">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">load_model_from_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename_mesh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename_part_info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#HeartModel.load_model_from_mesh" title="Link to this definition">#</a></dt>
+<dd><p>Load a model from an existing VTU file and part information dictionary.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename_mesh</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Path to the VTU file containing the mesh.</p>
+</dd>
+<dt><strong>filename_part_info</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>Path to the JSON file that contains the part information for reconstructing the model.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">>>> </span><span class="kn">from</span><span class="w"> </span><span class="nn">ansys.health.heart.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">FullHeart</span>
+<span class="gp">>>> </span><span class="n">model</span><span class="p">:</span> <span class="n">FullHeart</span> <span class="o">=</span> <span class="n">FullHeart</span><span class="p">()</span>
+<span class="gp">>>> </span><span class="n">model</span><span class="o">.</span><span class="n">load_model_from_mesh</span><span class="p">(</span><span class="s2">&quot;mesh.vtu&quot;</span><span class="p">,</span> <span class="s2">&quot;mesh.partinfo.json&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.update">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#HeartModel.update" title="Link to this definition">#</a></dt>
+<dd><p>Update the model and add required features.</p>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Synchronize input parts to model parts.</p></li>
+<li><p>Extract septum elements from the left ventricle.</p></li>
+<li><p>Assign elements to parts.</p></li>
+<li><p>Assign surfaces to each part.</p></li>
+<li><p>Validate parts and surfaces.</p></li>
+<li><p>Assign cavities to parts.</p></li>
+<li><p>Update cap types.</p></li>
+<li><p>Validate cap names.</p></li>
+<li><p>Extract apical points.</p></li>
+<li><p>Compute heart axis.</p></li>
+<li><p>Add placeholder data for fiber and sheet directions.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.get_apex_node_set">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">get_apex_node_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">part</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'left'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'right'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'left'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'endocardium'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'epicardium'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'myocardium'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'epicardium'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#HeartModel.get_apex_node_set" title="Link to this definition">#</a></dt>
+<dd><p>Get a nodeset around the apex point.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>part</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code>[“left”, “right”], default: “left”</span></dt><dd><p>On which part.</p>
+</dd>
+<dt><strong>option</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code>[“endocardium”, “epicardium”, “myocardium”], default: “epicardium”</span></dt><dd><p>On surface or in mesh.</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">float</span></code></a>, default: 3</span></dt><dd><p>Search in radius.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">np.ndarray</span></code></dt><dd><p>Apex nodeset</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.create_stiff_ventricle_base">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">create_stiff_ventricle_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold_left_ventricle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold_right_ventricle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stiff_material</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../settings/material/material/MechanicalMaterialModel.html#ansys.health.heart.settings.material.material.MechanicalMaterialModel" title="ansys.health.heart.settings.material.material.MechanicalMaterialModel"><span class="pre">ansys.health.heart.settings.material.material.MechanicalMaterialModel</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Mat295(rho=0.001,</span> <span class="pre">iso=ISO(itype=1,</span> <span class="pre">beta=2,</span> <span class="pre">kappa=10,</span> <span class="pre">mu1=0.1,</span> <span class="pre">alpha1=2))</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../parts/Part.html#ansys.health.heart.parts.Part" title="ansys.health.heart.parts.Part"><span class="pre">ansys.health.heart.parts.Part</span></a></span></span><a class="headerlink" href="#HeartModel.create_stiff_ventricle_base" title="Link to this definition">#</a></dt>
+<dd><p>Use universal coordinates to generate a stiff base region.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>threshold_left_ventricle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">float</span></code></a>, default: 0.9</span></dt><dd><p>If the <code class="docutils literal notranslate"><span class="pre">uvc_l</span></code> value is larger than this threshold in the left ventricle,
+it is set as stiff material.</p>
+</dd>
+<dt><strong>threshold_right_ventricle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">float</span></code></a>, default: 0.95</span></dt><dd><p>If the <code class="docutils literal notranslate"><span class="pre">uvc_l</span></code> value is larger than this threshold in the right ventricle,
+it is set to a stiff
+material.</p>
+</dd>
+<dt><strong>stiff_material</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MechanicalMaterialModel</span></code>, default: <code class="xref py py-obj docutils literal notranslate"><span class="pre">MAT295</span></code>(rho=0.001,</span></dt><dd><p>iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2)
+Material to assign.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">anatomy.Part</span></code></dt><dd><p>Part associated with the stiff base region.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="HeartModel.create_atrial_stiff_ring">
+<span class="sig-prename descclassname"><span class="pre">HeartModel.</span></span><span class="sig-name descname"><span class="pre">create_atrial_stiff_ring</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../parts/Part.html#ansys.health.heart.parts.Part" title="ansys.health.heart.parts.Part"><span class="pre">ansys.health.heart.parts.Part</span></a></span></span><a class="headerlink" href="#HeartModel.create_atrial_stiff_ring" title="Link to this definition">#</a></dt>
+<dd><p>Create a part for solids close to the atrial caps.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>radius</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">foat</span></code>, default: 2</span></dt><dd><p>Influence region.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.15)"><code class="docutils literal notranslate"><span class="pre">None</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">anatomy.Part</span></code>]</dt><dd><p>Part of atrial rings if created.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Part created is passive and isotropic. The material must be defined.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ansys.health.heart.models.HeartModel"><code class="docutils literal notranslate"><span class="pre">ansys.health.heart.models.HeartModel</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#import-detail">Import detail</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#property-detail">Property detail</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.parts"><code class="docutils literal notranslate"><span class="pre">parts</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.part_names"><code class="docutils literal notranslate"><span class="pre">part_names</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.part_ids"><code class="docutils literal notranslate"><span class="pre">part_ids</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.surfaces"><code class="docutils literal notranslate"><span class="pre">surfaces</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.surface_names"><code class="docutils literal notranslate"><span class="pre">surface_names</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.surface_ids"><code class="docutils literal notranslate"><span class="pre">surface_ids</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.cavities"><code class="docutils literal notranslate"><span class="pre">cavities</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.all_caps"><code class="docutils literal notranslate"><span class="pre">all_caps</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.part_name_to_part_id"><code class="docutils literal notranslate"><span class="pre">part_name_to_part_id</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.part_id_to_part_name"><code class="docutils literal notranslate"><span class="pre">part_id_to_part_name</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.surface_name_to_surface_id"><code class="docutils literal notranslate"><span class="pre">surface_name_to_surface_id</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.surface_id_to_surface_name"><code class="docutils literal notranslate"><span class="pre">surface_id_to_surface_name</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.l4cv_axis"><code class="docutils literal notranslate"><span class="pre">l4cv_axis</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.l2cv_axis"><code class="docutils literal notranslate"><span class="pre">l2cv_axis</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.short_axis"><code class="docutils literal notranslate"><span class="pre">short_axis</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.cap_centroids"><code class="docutils literal notranslate"><span class="pre">cap_centroids</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.conduction_paths"><code class="docutils literal notranslate"><span class="pre">conduction_paths</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.conduction_mesh"><code class="docutils literal notranslate"><span class="pre">conduction_mesh</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attribute-detail">Attribute detail</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.workdir"><code class="docutils literal notranslate"><span class="pre">workdir</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.mesh"><code class="docutils literal notranslate"><span class="pre">mesh</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.fluid_mesh"><code class="docutils literal notranslate"><span class="pre">fluid_mesh</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.electrodes"><code class="docutils literal notranslate"><span class="pre">electrodes</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#method-detail">Method detail</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.assign_conduction_paths"><code class="docutils literal notranslate"><span class="pre">assign_conduction_paths()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.__str__"><code class="docutils literal notranslate"><span class="pre">__str__()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.create_part_by_ids"><code class="docutils literal notranslate"><span class="pre">create_part_by_ids()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.load_input"><code class="docutils literal notranslate"><span class="pre">load_input()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.mesh_volume"><code class="docutils literal notranslate"><span class="pre">mesh_volume()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.get_part"><code class="docutils literal notranslate"><span class="pre">get_part()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.add_part"><code class="docutils literal notranslate"><span class="pre">add_part()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.remove_part"><code class="docutils literal notranslate"><span class="pre">remove_part()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.summary"><code class="docutils literal notranslate"><span class="pre">summary()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.plot_mesh"><code class="docutils literal notranslate"><span class="pre">plot_mesh()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.plot_part"><code class="docutils literal notranslate"><span class="pre">plot_part()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.plot_fibers"><code class="docutils literal notranslate"><span class="pre">plot_fibers()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.plot_surfaces"><code class="docutils literal notranslate"><span class="pre">plot_surfaces()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.plot_purkinje"><code class="docutils literal notranslate"><span class="pre">plot_purkinje()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.save_model"><code class="docutils literal notranslate"><span class="pre">save_model()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.load_model_from_mesh"><code class="docutils literal notranslate"><span class="pre">load_model_from_mesh()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.update"><code class="docutils literal notranslate"><span class="pre">update()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.get_apex_node_set"><code class="docutils literal notranslate"><span class="pre">get_apex_node_set()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.create_stiff_ventricle_base"><code class="docutils literal notranslate"><span class="pre">create_stiff_ventricle_base()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#HeartModel.create_atrial_stiff_ring"><code class="docutils literal notranslate"><span class="pre">create_atrial_stiff_ring()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+<!-- If there is no fix edit button function, use the PyData edit-this-button-->
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <ul class="this-page-menu">
+      <li><a href="../../../../../_sources/api/ansys/health/heart/models/HeartModel.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+
+  <!-- Include desired assets -->
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.min.js"></script>
+
+<script>
+// Passing the search options to the search.js file
+const SEARCH_OPTIONS = JSON.parse('{"keys": ["title", "text"], "limit": 10, "threshold": 0.2}');
+const SEARCH_FILE = "../../../../../_static/search.json";
+</script>
+
+
+<script src="../../../../../_static/js/search.js"></script>
+  
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright (c) 2025 ANSYS, Inc. All rights reserved.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the
+  <a href="https://sphinxdocs.ansys.com/version/stable/index.html"
+    >Ansys Sphinx Theme</a
+  >
+  1.4.4. <br />Last updated on
+  <span id="ast_build_date"></span>
+</p>
+<script>
+  var options = { day: "numeric", month: "long", year: "numeric" };
+  var ast_lastModifiedDate = new Date(document.lastModified);
+  var ast_build_date = ast_lastModifiedDate.toLocaleDateString("en-US", options);
+  document.getElementById("ast_build_date").innerHTML = ast_build_date;
+</script></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

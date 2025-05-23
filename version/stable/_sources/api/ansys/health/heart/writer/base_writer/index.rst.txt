@@ -1,0 +1,87 @@
+
+
+
+
+
+
+The ``base_writer.py`` module
+=============================
+
+.. py:module:: ansys.health.heart.writer.base_writer
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: base_writer
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.writer.base_writer.BaseDynaWriter`
+            - Base class that contains essential features for all LS-DYNA heart models.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.base_writer.FiberGenerationDynaWriter`
+            - Class for preparing the input for a fiber-generation LS-DYNA simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> BaseDynaWriter</api/ansys/health/heart/writer/base_writer/BaseDynaWriter>
+    <span class="nf nf-cod-symbol_class"></span> FiberGenerationDynaWriter</api/ansys/health/heart/writer/base_writer/FiberGenerationDynaWriter>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Base module containing classes for writing LS-DYNA keyword files.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

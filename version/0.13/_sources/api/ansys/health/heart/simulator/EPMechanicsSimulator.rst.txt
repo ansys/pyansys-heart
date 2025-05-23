@@ -1,0 +1,114 @@
+
+
+
+
+
+
+:class:`EPMechanicsSimulator`
+=============================
+
+
+.. py:class:: ansys.health.heart.simulator.EPMechanicsSimulator(model: ansys.health.heart.models.HeartModel, dyna_settings: ansys.health.heart.settings.settings.DynaSettings, simulation_directory: pathlib = '')
+
+   Bases: :py:obj:`EPSimulator`, :py:obj:`MechanicsSimulator`
+
+
+   
+   Coupled EP-mechanics simulator with computed electrophysiology.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: EPMechanicsSimulator
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~simulate`
+            - Launch the main electro-mechanical simulation.
+
+
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.simulator import EPMechanicsSimulator
+
+
+
+Method detail
+-------------
+
+.. py:method:: simulate(folder_name: str = 'ep_meca', zerop_folder: str | None = None, auto_post: bool = True, extra_k_files: list[str] | None = None)
+
+   
+   Launch the main electro-mechanical simulation.
+
+
+   :Parameters:
+
+       **folder_name** : :class:`python:str`, default: ``'main-mechanics'``
+           Simulation folder name.
+
+       **zerop_folder** : :class:`python:str` | :data:`python:None`, default: :data:`python:None`
+           Folder containing stress-free simulation.
+           If ``None``, the ``zeropressure`` folder under the root directory is used.
+
+       **auto_post** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:True`
+           Whether to run postprocessing scripts.
+
+       **extra_k_files** : :class:`python:list`\[:class:`python:str`], default: :data:`python:None`
+           User-defined k files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

@@ -1,0 +1,99 @@
+
+
+
+
+
+
+:class:`HGOFiber`
+=================
+
+.. py:class:: ansys.heart.simulator.settings.material.material.ANISO.HGOFiber
+
+   
+   Define HGO type fiber from k1 and k2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: HGOFiber
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~k1`
+            - 
+          * - :py:attr:`~k2`
+            - 
+          * - :py:attr:`~a`
+            - 
+          * - :py:attr:`~b`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.material.ANISO import HGOFiber
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: k1
+   :type:  float
+   :value: None
+
+
+.. py:attribute:: k2
+   :type:  float
+   :value: None
+
+
+.. py:attribute:: a
+   :type:  float
+   :value: 0.0
+
+
+.. py:attribute:: b
+   :type:  float
+   :value: 1.0
+
+
+
+
+
+

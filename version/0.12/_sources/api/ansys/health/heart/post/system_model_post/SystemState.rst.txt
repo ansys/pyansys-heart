@@ -1,0 +1,89 @@
+
+
+
+
+
+
+:class:`SystemState`
+====================
+
+.. py:class:: ansys.health.heart.post.system_model_post.SystemState
+
+   
+   System state including pressure, flow, and volume.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Future development.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: SystemState
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~pressure`
+            - 
+          * - :py:attr:`~flow`
+            - 
+          * - :py:attr:`~volume`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.post.system_model_post import SystemState
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: pressure
+   :type:  Pressure
+
+.. py:attribute:: flow
+   :type:  Flow
+
+.. py:attribute:: volume
+   :type:  Volume
+
+
+
+
+

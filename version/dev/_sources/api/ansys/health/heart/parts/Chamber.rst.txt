@@ -1,0 +1,287 @@
+
+
+
+
+
+
+:class:`Chamber`
+================
+
+
+.. py:class:: ansys.health.heart.parts.Chamber(name: str = None, part_type: _PartType = None)
+
+   Bases: :py:obj:`Part`
+
+
+   
+   Intermediate class for heart chambers with endocardium and epicardium.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Chamber
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~endocardium`
+            - Endocardial surface.
+          * - :py:attr:`~epicardium`
+            - Epicardial surface.
+          * - :py:attr:`~septum`
+            - Septal surface.
+          * - :py:attr:`~myocardium`
+            - Myocardial part.
+          * - :py:attr:`~caps`
+            - List of caps belonging to the part.
+          * - :py:attr:`~cavity`
+            - Cavity belonging to the part.
+          * - :py:attr:`~active`
+            - Flag indicating if active stress should be included.
+          * - :py:attr:`~fiber`
+            - Flag indicating if fiber/sheet data should be included.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.parts import Chamber
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: endocardium
+
+   
+   Endocardial surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: epicardium
+
+   
+   Epicardial surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: septum
+
+   
+   Septal surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: myocardium
+
+   
+   Myocardial part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: caps
+   :type:  list[ansys.health.heart.objects.Cap]
+   :value: []
+
+
+   
+   List of caps belonging to the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: cavity
+   :type:  ansys.health.heart.objects.Cavity
+   :value: None
+
+
+   
+   Cavity belonging to the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: active
+   :type:  bool
+   :value: True
+
+
+   
+   Flag indicating if active stress should be included.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: fiber
+   :type:  bool
+   :value: True
+
+
+   
+   Flag indicating if fiber/sheet data should be included.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

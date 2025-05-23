@@ -1,0 +1,137 @@
+
+
+
+
+
+The ``objects.py`` module
+=========================
+
+.. py:module:: ansys.heart.preprocessor.mesh.objects
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: objects
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~Feature`
+            - Feature class.
+
+
+          * - :py:attr:`~EdgeGroup`
+            - Edge group class, contains info on connected edges.
+
+
+          * - :py:attr:`~SurfaceMesh`
+            - Surface class.
+
+
+          * - :py:attr:`~BeamMesh`
+            - Beam class.
+
+
+          * - :py:attr:`~Cavity`
+            - Cavity class.
+
+
+          * - :py:attr:`~Cap`
+            - Cap class.
+
+
+          * - :py:attr:`~Point`
+            - Point class. Can be used to collect relevant points in the mesh.
+
+
+          * - :py:attr:`~Mesh`
+            - Mesh class: inherits from pyvista UnstructuredGrid.
+
+
+          * - :py:attr:`~Part`
+            - Part class.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🝆 Feature<Feature>
+    🝆 EdgeGroup<EdgeGroup>
+    🝆 SurfaceMesh<SurfaceMesh>
+    🝆 BeamMesh<BeamMesh>
+    🝆 Cavity<Cavity>
+    🝆 Cap<Cap>
+    🝆 Point<Point>
+    🝆 Mesh<Mesh>
+    🝆 Part<Part>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module that contains classes relevant for the mesh.
+
+Such as a Mesh object, Part object, Features, etc.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

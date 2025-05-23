@@ -1,0 +1,80 @@
+
+
+
+
+
+
+The ``conduction_beam.py`` module
+=================================
+
+.. py:module:: ansys.heart.core.pre.conduction_beam
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: conduction_beam
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.core.pre.conduction_beam.ConductionSystem`
+            - Methods to generate conduction system.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> ConductionSystem</api/ansys/heart/core/pre/conduction_beam/ConductionSystem>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing class for creating conduxtion system.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

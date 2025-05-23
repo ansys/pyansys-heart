@@ -1,0 +1,179 @@
+
+
+:class:`Settings`
+=================
+
+.. py:class:: ansys.heart.simulator.settings.settings.Settings
+
+   
+   Generic settings class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: Settings
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~set_values`
+            - Read default settings from dictionary.
+          * - :py:attr:`~serialize`
+            - Serialize the settings, that is formats the Quantity as str(<value> <unit>).
+          * - :py:attr:`~to_consistent_unit_system`
+            - Convert units to consistent unit system.
+
+
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__repr__`
+            - Represent object in as dictionary in YAML style.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.settings import Settings
+
+
+
+
+
+Method detail
+-------------
+.. py:method:: __repr__()
+
+   
+   Represent object in as dictionary in YAML style.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: set_values(defaults: dict)
+
+   
+   Read default settings from dictionary.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: serialize(remove_units: bool = False) -> dict
+
+   
+   Serialize the settings, that is formats the Quantity as str(<value> <unit>).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: to_consistent_unit_system()
+
+   
+   Convert units to consistent unit system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Currently the only supported unit system is ["MPa", "mm", "N", "ms", "g"]
+   For instance:
+   Quantity(10, "mm/s") --> Quantity(0.01, "mm/ms")
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

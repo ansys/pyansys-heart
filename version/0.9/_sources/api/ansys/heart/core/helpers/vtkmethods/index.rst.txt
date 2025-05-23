@@ -1,0 +1,449 @@
+
+
+
+
+
+
+The ``vtkmethods.py`` module
+============================
+
+.. py:module:: ansys.heart.core.helpers.vtkmethods
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: vtkmethods
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~compute_surface_nodal_area_pyvista`
+            - Compute an average nodal area by summing surface areas of connected elements.
+
+
+          * - :py:obj:`~extrude_polydata`
+            - Extrude a given polydata surface in a given direction.
+
+
+          * - :py:obj:`~cell_ids_inside_enclosed_surface`
+            - Get cell ids of cells of which the centroids are inside a given surface.
+
+
+          * - :py:obj:`~find_cells_close_to_nodes`
+            - Find cell IDs close to nodes.
+
+
+          * - :py:obj:`~get_boundary_edges`
+            - Get the boundary edges from an input surface.
+
+
+          * - :py:obj:`~get_boundary_edge_loops`
+            - Get the closed/open boundary edge loops of a surface mesh.
+
+
+          * - :py:obj:`~get_patches_delaunay`
+            - Patch boundary edges with a delaunay algorithm.
+
+
+          * - :py:obj:`~get_patches_with_centroid`
+            - Patch boundary edges with a custom algorithm using a central node.
+
+
+          * - :py:obj:`~are_connected`
+            - Check whether two PolyData or UnstructuredGrids are connected.
+
+
+          * - :py:obj:`~add_solid_name_to_stl`
+            - Add name of solid to stl file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module contains methods for mesh operations related to the vtk library.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: compute_surface_nodal_area_pyvista(surface: pyvista.PolyData) -> numpy.ndarray
+
+   
+   Compute an average nodal area by summing surface areas of connected elements.
+
+
+   :Parameters:
+
+       **vtk_surface** : :obj:`vtk.vtkPolyData`
+           Vtk object describing the object
+
+
+
+   :Returns:
+
+       :obj:`np.array`
+           Numpy array with nodal areas of length number of points
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Adds the partial areas of connected elements/cells to each node.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: extrude_polydata(surface: pyvista.PolyData, extrude_by: float = 1, extrude_direction: numpy.array = np.empty(0)) -> pyvista.PolyData
+
+   
+   Extrude a given polydata surface in a given direction.
+
+
+   :Parameters:
+
+       **surface** : :obj:`pv.PolyData`
+           Surface to extrude
+
+       **extrude_by** : :class:`python:float`, :obj:`optional`
+           Extrude by this much, by default 1
+
+       **extrude_direction** : :obj:`np.array`, :obj:`optional`
+           Direction of extrusion, should have three components if not specified
+           extrudes in normal direction
+
+
+
+   :Returns:
+
+       :obj:`pv.PolyData`
+           Extruded PolyData object
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: cell_ids_inside_enclosed_surface(source: pyvista.UnstructuredGrid, surface: pyvista.PolyData) -> numpy.ndarray
+
+   
+   Get cell ids of cells of which the centroids are inside a given surface.
+
+
+   :Parameters:
+
+       **source** : :obj:`pv.UnstructuredGrid`
+           Source object of which to check which cells are inside/outside
+           the specified surface
+
+       **surface** : :obj:`pv.PolyData`
+           Surface used to check whether cells are inside/outside.
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Array with cell ids that are inside the enclosed surface.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: find_cells_close_to_nodes(mesh: pyvista.UnstructuredGrid, node_ids: list[int], radius: float = 2) -> numpy.ndarray
+
+   
+   Find cell IDs close to nodes.
+
+
+   :Parameters:
+
+       **mesh** : :obj:`pv.UnstructuredGrid`
+           target mesh
+
+       **node_ids** : :class:`python:list`\[:class:`python:int`]
+           node IDs
+
+       **radius** : :class:`python:float`, :obj:`optional`
+           influence radius, by default 2
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           cell IDs
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_boundary_edges(surface: pyvista.PolyData) -> pyvista.MultiBlock
+
+   
+   Get the boundary edges from an input surface.
+
+
+   :Parameters:
+
+       **surface** : :obj:`pv.PolyData`
+           Surface to check for boundary edges.
+
+
+
+   :Returns:
+
+       :obj:`pv.MultiBlock`
+           Multi-block data, where each block represents connected edges.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_boundary_edge_loops(surface: pyvista.PolyData, remove_open_edge_loops: bool = True, return_types: bool = False) -> dict
+
+   
+   Get the closed/open boundary edge loops of a surface mesh.
+
+
+   :Parameters:
+
+       **surface** : :obj:`pv.PolyData`
+           Surface mesh to check for boundary edges
+
+       **remove_open_edge_loops** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Removes open edge loops from the return dictionary, by default True
+
+
+
+   :Returns:
+
+       :class:`python:dict`
+           dictionary with the edges that make up the open/closed loop
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_patches_delaunay(surface: pyvista.PolyData, closed_only: bool = True) -> list[pyvista.PolyData]
+
+   
+   Patch boundary edges with a delaunay algorithm.
+
+
+   :Parameters:
+
+       **surface** : :obj:`pv.PolyData`
+           Surface with boundary edges for which to find patches.
+
+       **closed_only** : :ref:`bool <python:bltin-boolean-values>`
+           Flag indicating whether to return patches for closed loops of boundary edges,
+           by default True
+
+
+
+   :Returns:
+
+       :obj:`List`\[:obj:`pv.PolyData`]
+           List of patches that close the open surface.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_patches_with_centroid(surface: pyvista.PolyData, closed_only: bool = True) -> list[pyvista.PolyData]
+
+   
+   Patch boundary edges with a custom algorithm using a central node.
+
+
+   :Parameters:
+
+       **surface** : :obj:`pv.PolyData`
+           Surface with boundary edges for which to find patches.
+
+       **closed_only** : :ref:`bool <python:bltin-boolean-values>`
+           Flag indicating whether to return patches for closed loops of boundary edges,
+           by default True
+
+
+
+   :Returns:
+
+       :obj:`List`\[:obj:`pv.PolyData`]
+           List of patches that close the open surface.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Edges need to be sorted properly for this method to return sensible patches.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: are_connected(mesh1: pyvista.PolyData | pyvista.UnstructuredGrid, mesh2: pyvista.PolyData | pyvista.UnstructuredGrid)
+
+   
+   Check whether two PolyData or UnstructuredGrids are connected.
+
+
+   :Parameters:
+
+       **mesh1** : :obj:`Union`\[:obj:`pv.PolyData`, :obj:`pv.UnstructuredGrid`]
+           First mesh.
+
+       **mesh2** : :obj:`Union`\[:obj:`pv.PolyData`, :obj:`pv.UnstructuredGrid`]
+           Second mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: add_solid_name_to_stl(filename, solid_name, file_type: str = 'ascii') -> None
+
+   
+   Add name of solid to stl file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Supports only single block.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

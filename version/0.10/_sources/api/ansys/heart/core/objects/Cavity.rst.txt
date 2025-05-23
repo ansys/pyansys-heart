@@ -1,0 +1,200 @@
+
+
+
+
+
+
+:class:`Cavity`
+===============
+
+.. py:class:: ansys.heart.core.objects.Cavity(surface: SurfaceMesh = None, centroid: numpy.ndarray = None, name=None)
+
+   Bases: :py:obj:`Feature`
+
+
+   
+   Cavity class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Cavity
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~compute_centroid`
+            - Compute the centroid of the cavity.
+
+
+   .. tab-item:: Properties
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~volume`
+            - Volume of the cavity.
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~surface`
+            - Surface mesh making up the cavity.
+          * - :py:attr:`~centroid`
+            - Centroid of the cavity.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.objects import Cavity
+
+Property detail
+---------------
+
+.. py:property:: volume
+
+   
+   Volume of the cavity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: surface
+   :type:  SurfaceMesh
+
+   
+   Surface mesh making up the cavity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: centroid
+   :type:  numpy.ndarray
+   :value: None
+
+
+   
+   Centroid of the cavity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: compute_centroid()
+
+   
+   Compute the centroid of the cavity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

@@ -1,0 +1,462 @@
+
+
+
+
+
+
+The ``logger.py`` module
+========================
+
+.. py:module:: ansys.health.heart.logger
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: logger
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.logger.PyAnsysHeartCustomAdapter`
+            - Keeps the reference to the PyAnsys Heart service instance dynamic.
+
+
+          * - :py:obj:`~ansys.health.heart.logger.InstanceFilter`
+            - Ensures that the ``instance_name`` record always exists.
+
+
+          * - :py:obj:`~ansys.health.heart.logger.Logger`
+            - Provides the logger used for each PyAnsys Heart session.
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~addfile_handler`
+            - Add a file handler to the input.
+
+
+          * - :py:obj:`~add_stdout_handler`
+            - Add a stdout handler to the logger.
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~string_to_loglevel`
+            - 
+
+
+
+    .. tab-item:: Constants
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~LOG_LEVEL_STDOUT`
+            - 
+
+
+          * - :py:obj:`~LOG_LEVEL_FILE`
+            - 
+
+
+          * - :py:obj:`~FILE_NAME`
+            - 
+
+
+          * - :py:obj:`~DEBUG`
+            - 
+
+
+          * - :py:obj:`~INFO`
+            - 
+
+
+          * - :py:obj:`~WARN`
+            - 
+
+
+          * - :py:obj:`~ERROR`
+            - 
+
+
+          * - :py:obj:`~CRITICAL`
+            - 
+
+
+          * - :py:obj:`~STDOUT_MSG_FORMAT`
+            - 
+
+
+          * - :py:obj:`~DATEFORMAT`
+            - 
+
+
+          * - :py:obj:`~FILE_MSG_FORMAT`
+            - 
+
+
+          * - :py:obj:`~DEFAULT_STDOUT_HEADER`
+            - 
+
+
+          * - :py:obj:`~DEFAULT_FILE_HEADER`
+            - 
+
+
+          * - :py:obj:`~NEW_SESSION_HEADER`
+            - 
+
+
+          * - :py:obj:`~LOG_LEVEL_STRING_TYPE`
+            - 
+
+
+          * - :py:obj:`~LOG_LEVEL_TYPE`
+            - 
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> PyAnsysHeartCustomAdapter</api/ansys/health/heart/logger/PyAnsysHeartCustomAdapter>
+    <span class="nf nf-cod-symbol_class"></span> InstanceFilter</api/ansys/health/heart/logger/InstanceFilter>
+    <span class="nf nf-cod-symbol_class"></span> Logger</api/ansys/health/heart/logger/Logger>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Logging module.
+
+The logging module supplies a general framework for logging in PyAnsys Heart.
+This module is built on the Python `logging <https://docs.python.org/3/library/logging.html>`_
+library. It does not intend to replace it but rather provide a way to interact between
+the Python ``logging`` library and PyAnsys Heart.
+
+The loggers used in the module include the name of the instance, which
+is intended to be unique. This name is printed in all the active
+outputs and is used to track the different PyAnsys Heart modules.
+
+
+Usage
+-----
+
+Global logger
+~~~~~~~~~~~~~
+There is a global logger named ``PyAnsys Heart_global`` that is created when
+``ansys.health.heart.__init__`` is called.  If you want to use this global logger,
+you must call it at the top of your module:
+
+.. code:: python
+
+   from ansys.health.heart import LOG
+
+You can rename this logger to avoid conflicts with other loggers (if any):
+
+.. code:: python
+
+   from ansys.health.heart import LOG as logger
+
+
+The default logging level of ``LOG`` is ``ERROR``.
+You can change this level and output lower-level messages:
+
+.. code:: python
+
+   LOG.logger.setLevel("DEBUG")
+   LOG.file_handler.setLevel("DEBUG")  # If present.
+   LOG.std_out_handler.setLevel("DEBUG")  # If present.
+
+
+Alternatively, you can ensure all the handlers are set to the input log level
+with this code:
+
+.. code:: python
+
+   LOG.setLevel("DEBUG")
+
+This logger does not log to a file by default. If you want, you can
+add a file handler with this code:
+
+.. code:: python
+
+   import os
+
+   file_path = os.path.join(os.getcwd(), "pymapdl.log")
+   LOG.log_to_file(file_path)
+
+This also sets the logger to be redirected to this file. If you want
+to change the characteristics of this global logger from the beginning
+of the execution, you must edit the file ``__init__`` file in the
+``ansys.health.heart`` directory.
+
+To log using this logger, call the desired method as a normal logger:
+
+.. code:: pycon
+
+    >>> import logging
+    >>> from ansys.health.heart.logging import Logger
+    >>> LOG = Logger(level=logging.DEBUG, to_file=False, to_stdout=True)
+    >>> LOG.debug("This is LOG debug message.")
+
+    DEBUG -  -  <ipython-input-24-80df150fe31f> - <module> - This is LOG debug message.
+
+Other loggers
+~~~~~~~~~~~~~
+You can create your own loggers using the Python ``logging`` library as
+you would do in any other script.  There would be no conflicts between
+these loggers.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: addfile_handler(logger, filename=FILE_NAME, level=LOG_LEVEL_STDOUT, write_headers=False)
+
+   
+   Add a file handler to the input.
+
+
+   :Parameters:
+
+       **logger** : :obj:`logging.Logger`
+           Logger to add the file handler to.
+
+       **filename** : :class:`python:str`, default: :obj:`FILE_NAME`
+           Name of the output file, which is ``'pyconv-de.log'`` by default.
+
+       **level** : :class:`python:int`, default: 10
+           Level of logging. The default is ``10``, in which case the
+           ``logging.DEBUG`` level is used.
+
+       **write_headers** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:False`
+           Whether to write headers to the file.
+
+
+
+   :Returns:
+
+       :obj:`Logger`
+           :class:`Logger` or :class:`logging.Logger` object.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: add_stdout_handler(logger, level=LOG_LEVEL_STDOUT, write_headers=False)
+
+   
+   Add a stdout handler to the logger.
+
+
+   :Parameters:
+
+       **logger** : :obj:`logging.Logger`
+           Logger to add the stdout handler to.
+
+       **level** : :class:`python:int`, default: ``10``
+           Level of logging. The default is ``10``, in which case the
+           ``logging.DEBUG`` level is used.
+
+       **write_headers** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:False`
+           Whether to write headers to the file.
+
+
+
+   :Returns:
+
+       :obj:`Logger`
+           :class:`Logger` or :class:`logging.Logger` object.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: LOG_LEVEL_STDOUT
+   :value: 20
+
+
+.. py:data:: LOG_LEVEL_FILE
+   :value: 10
+
+
+.. py:data:: FILE_NAME
+   :value: 'PyAnsys Heart.log'
+
+
+.. py:data:: DEBUG
+   :value: 10
+
+
+.. py:data:: INFO
+   :value: 20
+
+
+.. py:data:: WARN
+   :value: 30
+
+
+.. py:data:: ERROR
+   :value: 40
+
+
+.. py:data:: CRITICAL
+   :value: 50
+
+
+.. py:data:: STDOUT_MSG_FORMAT
+   :value: '%(asctime)s - %(levelname)s - %(instance_name)s - %(module)s - %(funcName)s - %(message)s'
+
+
+.. py:data:: DATEFORMAT
+   :value: '%Y/%m/%d %H:%M:%S'
+
+
+.. py:data:: FILE_MSG_FORMAT
+   :value: '%(asctime)s - %(levelname)s - %(instance_name)s - %(module)s - %(funcName)s - %(message)s'
+
+
+.. py:data:: DEFAULT_STDOUT_HEADER
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """
+      LEVEL - INSTANCE NAME - MODULE - FUNCTION - MESSAGE
+      """
+
+   .. raw:: html
+
+      </details>
+
+
+
+.. py:data:: DEFAULT_FILE_HEADER
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """
+      LEVEL - INSTANCE NAME - MODULE - FUNCTION - MESSAGE
+      """
+
+   .. raw:: html
+
+      </details>
+
+
+
+.. py:data:: NEW_SESSION_HEADER
+   :value: Multiline-String
+
+   .. raw:: html
+
+      <details><summary>Show Value</summary>
+
+   .. code-block:: python
+
+      """
+      ===============================================================================
+             NEW SESSION - Uninferable
+      ==============================================================================="""
+
+   .. raw:: html
+
+      </details>
+
+
+
+.. py:data:: LOG_LEVEL_STRING_TYPE
+
+.. py:data:: LOG_LEVEL_TYPE
+
+.. py:data:: string_to_loglevel
+   :type:  Dict[LOG_LEVEL_STRING_TYPE, int]
+
+
+

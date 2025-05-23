@@ -1,0 +1,205 @@
+
+
+:class:`EDPVR`
+==============
+
+.. py:class:: ansys.heart.postprocessor.klotz_curve.EDPVR(vm: float, pm: float)
+
+   
+   End diastolic pressure-volume relation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Ref: Klotz, et al. Nature protocols 2.9 (2007): 2152-2158.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: EDPVR
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_pressure`
+            - Compute pressure from volume.
+          * - :py:attr:`~get_volume`
+            - Compute volume from pressure.
+          * - :py:attr:`~plot_EDPVR`
+            - Plot klotz curve,  with simulation data if exists.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~An`
+            - 
+          * - :py:attr:`~Bn`
+            - 
+          * - :py:attr:`~vm`
+            - 
+          * - :py:attr:`~pm`
+            - 
+          * - :py:attr:`~v0`
+            - 
+          * - :py:attr:`~v30`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.postprocessor.klotz_curve import EDPVR
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: An
+   :value: 27.78
+
+
+.. py:attribute:: Bn
+   :value: 2.76
+
+
+.. py:attribute:: vm
+
+.. py:attribute:: pm
+
+.. py:attribute:: v0
+
+.. py:attribute:: v30
+
+
+
+Method detail
+-------------
+.. py:method:: get_pressure(volume: float | numpy.ndarray) -> float | numpy.ndarray
+
+   
+   Compute pressure from volume.
+
+
+   :Parameters:
+
+       **volume** : :class:`python:float` | :obj:`np.ndarray <numpy.ndarray>`
+           volume in mL
+
+
+
+   :Returns:
+
+       float| :obj:`np.ndarray <numpy.ndarray>`
+           pressure in mmHg
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_volume(pressure: numpy.ndarray) -> numpy.ndarray
+
+   
+   Compute volume from pressure.
+
+
+   :Parameters:
+
+       **pressure** : :obj:`np.ndarray <numpy.ndarray>`
+           pressure in mmHg
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           volume in mmL
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: plot_EDPVR(simulation_data: list = None) -> matplotlib.figure.Figure
+
+   
+   Plot klotz curve,  with simulation data if exists.
+
+
+   :Parameters:
+
+       **simulation_data** : :class:`python:list`, :obj:`optional`
+           [volume, pressure] from simulation, by default None
+
+
+
+   :Returns:
+
+       :obj:`matplotlib.figure.Figure`
+           figure
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

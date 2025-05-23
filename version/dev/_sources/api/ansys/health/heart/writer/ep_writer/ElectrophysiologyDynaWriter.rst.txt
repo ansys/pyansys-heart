@@ -1,0 +1,168 @@
+
+
+
+
+
+
+:class:`ElectrophysiologyDynaWriter`
+====================================
+
+
+.. py:class:: ansys.health.heart.writer.ep_writer.ElectrophysiologyDynaWriter(model: Union[ansys.health.heart.models.HeartModel, ansys.health.heart.models.FullHeart, ansys.health.heart.models.FourChamber, ansys.health.heart.models.BiVentricle, ansys.health.heart.models.LeftVentricle], settings: ansys.health.heart.settings.settings.SimulationSettings = None)
+
+   Bases: :py:obj:`ansys.health.heart.writer.base_writer.BaseDynaWriter`
+
+
+   
+   Class for preparing the input for an electrophysiology LS-DYNA simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: ElectrophysiologyDynaWriter
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~update`
+            - Update keyword database for electrophysiology.
+          * - :py:attr:`~get_default_stimulus_nodes`
+            - Get default stiumulus nodes.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~kw_database`
+            - Collection of keywords relevant for electrophysiology.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.ep_writer import ElectrophysiologyDynaWriter
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: kw_database
+
+   
+   Collection of keywords relevant for electrophysiology.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: update() -> None
+
+   
+   Update keyword database for electrophysiology.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_default_stimulus_nodes() -> list[int]
+
+   
+   Get default stiumulus nodes.
+
+   1/2 apex points for the left/bi-ventricle model.
+
+   Sinoatrial node for four-chamber or full-heart model.
+
+
+
+
+   :Returns:
+
+       :class:`python:list`\[:class:`python:int`]
+           List of 0-based node IDs to stimulate.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

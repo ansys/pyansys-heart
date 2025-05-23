@@ -1,0 +1,155 @@
+
+
+
+
+
+
+:class:`Model1`
+===============
+
+.. py:class:: ansys.heart.core.settings.material.material.ActiveModel.Model1
+
+   
+   Hold data for active model 1, check manual for details.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Model1
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~t0`
+            - 
+          * - :py:attr:`~ca2ion`
+            - 
+          * - :py:attr:`~ca2ionm`
+            - 
+          * - :py:attr:`~n`
+            - 
+          * - :py:attr:`~taumax`
+            - 
+          * - :py:attr:`~stf`
+            - 
+          * - :py:attr:`~b`
+            - 
+          * - :py:attr:`~l0`
+            - 
+          * - :py:attr:`~l`
+            - 
+          * - :py:attr:`~dtmax`
+            - 
+          * - :py:attr:`~mr`
+            - 
+          * - :py:attr:`~tr`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.settings.material.material.ActiveModel import Model1
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: t0
+   :type:  float
+   :value: None
+
+
+.. py:attribute:: ca2ion
+   :type:  float
+   :value: None
+
+
+.. py:attribute:: ca2ionm
+   :type:  float
+   :value: 4.35
+
+
+.. py:attribute:: n
+   :type:  int
+   :value: 2
+
+
+.. py:attribute:: taumax
+   :type:  float
+   :value: 0.125
+
+
+.. py:attribute:: stf
+   :type:  float
+   :value: 0.0
+
+
+.. py:attribute:: b
+   :type:  float
+   :value: 4.75
+
+
+.. py:attribute:: l0
+   :type:  float
+   :value: 1.58
+
+
+.. py:attribute:: l
+   :type:  float
+   :value: 1.85
+
+
+.. py:attribute:: dtmax
+   :type:  float
+   :value: 150
+
+
+.. py:attribute:: mr
+   :type:  float
+   :value: 1048.9
+
+
+.. py:attribute:: tr
+   :type:  float
+   :value: -1629.0
+
+
+
+
+
+

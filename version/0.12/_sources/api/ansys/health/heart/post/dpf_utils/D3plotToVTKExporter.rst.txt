@@ -1,0 +1,126 @@
+
+
+
+
+
+
+:class:`D3plotToVTKExporter`
+============================
+
+.. py:class:: ansys.health.heart.post.dpf_utils.D3plotToVTKExporter(d3plot_file: str, t_to_keep: float = 100000000000.0)
+
+   
+   Read d3plot and save the deformed mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: D3plotToVTKExporter
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~convert_to_pvgrid_at_t`
+            - Convert d3plot data into a PyVista ``UnstructuredGrid`` object.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~data`
+            - 
+          * - :py:attr:`~save_time`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.post.dpf_utils import D3plotToVTKExporter
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: data
+
+.. py:attribute:: save_time
+
+
+
+Method detail
+-------------
+
+.. py:method:: convert_to_pvgrid_at_t(time: float, fname: str = None) -> pyvista.UnstructuredGrid
+
+   
+   Convert d3plot data into a PyVista ``UnstructuredGrid`` object.
+
+
+   :Parameters:
+
+       **time** : :class:`python:float`
+           Time to convert.
+
+       **fname** : :class:`python:str`, default: :data:`python:None`
+           Name of file to save data to.
+
+
+
+   :Returns:
+
+       :obj:`pv.UnstructuredGrid`
+           Result in PyVista object.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

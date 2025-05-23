@@ -1,0 +1,354 @@
+
+
+:class:`BaseSimulator`
+======================
+
+.. py:class:: ansys.heart.simulator.simulator.BaseSimulator(model: ansys.heart.core.models.HeartModel, dyna_settings: ansys.heart.simulator.settings.settings.DynaSettings = None, simulation_directory: pathlib = '')
+
+   
+   Base class for the simulator.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: BaseSimulator
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~load_default_settings`
+            - Load default simulation settings.
+          * - :py:attr:`~compute_fibers`
+            - Compute the fiber direction on the model.
+          * - :py:attr:`~compute_uhc`
+            - Compute universal 'heart' coordinates system.
+          * - :py:attr:`~compute_right_atrial_fiber`
+            - Compute right atrium fiber with LDRBD method.
+          * - :py:attr:`~compute_left_atrial_fiber`
+            - Compute left atrium fiber with LDRBD method.
+          * - :py:attr:`~run_laplace_problem`
+            - Run Laplace-Dirichlet (thermal) problem in LSDYNA.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~model`
+            - HeartModel to simulate.
+          * - :py:attr:`~directories`
+            - Dictionary of all defined directories.
+          * - :py:attr:`~root_directory`
+            - Root simulation directory.
+          * - :py:attr:`~settings`
+            - Simulation settings.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.simulator import BaseSimulator
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: model
+   :type:  ansys.heart.core.models.HeartModel
+
+   
+   HeartModel to simulate.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: directories
+   :type:  dict
+
+   
+   Dictionary of all defined directories.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: root_directory
+
+   
+   Root simulation directory.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: settings
+   :type:  ansys.heart.simulator.settings.settings.SimulationSettings
+
+   
+   Simulation settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+.. py:method:: load_default_settings() -> ansys.heart.simulator.settings.settings.SimulationSettings
+
+   
+   Load default simulation settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_fibers()
+
+   
+   Compute the fiber direction on the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_uhc() -> pyvista.UnstructuredGrid
+
+   
+   Compute universal 'heart' coordinates system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_right_atrial_fiber(appendage: List[float]) -> pyvista.UnstructuredGrid
+
+   
+   Compute right atrium fiber with LDRBD method.
+
+
+   :Parameters:
+
+       **appendage**
+           Right atrium appendage apex coordinates.
+
+
+
+   :Returns:
+
+       :obj:`right` :obj:`atrium` :obj:`UnstructuredGrid` :obj:`with` :obj:`related` information.
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_left_atrial_fiber(appendage: List[float] = None) -> pyvista.UnstructuredGrid
+
+   
+   Compute left atrium fiber with LDRBD method.
+
+
+
+
+
+   :Returns:
+
+       :obj:`right` :obj:`atrium` :obj:`UnstructuredGrid` :obj:`with` :obj:`related` information.
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: run_laplace_problem(export_directory, type: Literal['uvc', 'la_fiber', 'ra_fiber'], **kwargs)
+
+   
+   Run Laplace-Dirichlet (thermal) problem in LSDYNA.
+
+
+   :Parameters:
+
+       **export_directory: str**
+           LSDYNA directory
+
+       **type: str**
+           Simulation type.
+
+       **kwargs** : :class:`python:dict`
+           Additional arguments.
+
+
+
+   :Returns:
+
+       :obj:`UnstructuredGrid` :obj:`with` :obj:`array <numpy.ndarray>` :obj:`to` :obj:`map` :obj:`data` :obj:`back` :obj:`to` :obj:`full` mesh.
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

@@ -1,0 +1,1211 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>simulator.settings.settings &#8212; pyansys-heart</title>
+
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="../../../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/css/ansys_sphinx_theme.css?v=068850c2" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=7c3339d6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+ 
+<link href="../../../../_static/css/breadcrumbs.css" rel="stylesheet" />
+
+    <script src="../../../../_static/documentation_options.js?v=38b66d78"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../_static/js/table.js?v=b64f5182"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/simulator/settings/settings/index';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://heart.health.docs.pyansys.com/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.1';
+        </script>
+    <link rel="icon" href="../../../../_static/ansys-favicon.png"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="simulator.simulator" href="../../simulator/index.html" />
+    <link rel="prev" title="simulator.settings.defaults.zeropressure" href="../defaults/zeropressure/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <link rel="canonical" href="https://heart.health.docs.pyansys.com/version/stable/autoapi/simulator/settings/settings/index.html" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container"><!-- Debugging: html_theme_options =  -->
+
+<!-- If there is no MiliSearch enabled, use the PyData search -->
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+   
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  <div class="navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../_static/pyansys-logo-black-cropped.png" class="logo__image only-light" alt="Logo image"/>
+    <script>document.write(`<img src="../../../../_static/pyansys-logo-black-cropped.png" class="logo__image only-dark" alt="Logo image"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../getting_started/index.html">
+                        Getting started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../user_guide/index.html">
+                        User guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../../../index.html">
+                        API Reference
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../examples/index.html">
+                        Examples
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../contributing.html">
+                        Contribute
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
+      0.1  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
+</div>
+
+    </nav>
+    <div id="announcement_msg"></div>
+<script>
+  fetch("announcement.html")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(
+      (text) => (document.getElementById("announcement_msg").innerHTML = text),
+    )
+    .catch((error) => console.error(`Fetch problem: ${error.message}`));
+</script>   <div class="container-xl">
+  <div class="row">
+    <div class="col-12 col-md-3" id="breadcrumbs-spacer"></div>
+    <div class="col-12 col-md-11 col-xl-9" id="breadcrumbs">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul> 
+<li class="nav-item nav-item-additional-breadcrumb">
+  <a href="https://docs.pyansys.com/">PyAnsys</a> » 
+</li>
+ 
+<li class="nav-item nav-item-0">
+  <a href="../../../../index.html">pyansys-heart</a> » 
+</li>
+ 
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >API Reference</a> » </li>
+          <li class="nav-item nav-item-2"><a href="../../index.html" ><code class="xref py py-mod docutils literal notranslate"><span class="pre">simulator</span></code></a> » </li>
+          <li class="nav-item nav-item-3"><a href="../index.html" accesskey="U"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simulator.settings</span></code></a> » </li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref py py-mod docutils literal notranslate"><span class="pre">simulator.settings.settings</span></code></a></li> 
+      </ul>
+    </div></div>
+  </div>
+</div>
+ 
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../getting_started/index.html">
+                        Getting started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../user_guide/index.html">
+                        User guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../../../index.html">
+                        API Reference
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../examples/index.html">
+                        Examples
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../contributing.html">
+                        Contribute
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
+      0.1  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../preprocessor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor</span></code></a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simulator</span></code></a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simulator.settings</span></code></a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../defaults/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simulator.settings.defaults</span></code></a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simulator.settings.settings</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../simulator/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simulator.simulator</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../support/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simulator.support</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">postprocessor</span></code></a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article"></div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <section id="simulator-settings-settings">
+<h1><a class="reference internal" href="#module-simulator.settings.settings" title="simulator.settings.settings"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simulator.settings.settings</span></code></a><a class="headerlink" href="#simulator-settings-settings" title="Link to this heading">#</a></h1>
+<p id="module-simulator.settings.settings">Module that defines some classes for settings.</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h3>
+<table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#simulator.settings.settings.AttrDict" title="simulator.settings.settings.AttrDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AttrDict</span></code></a></p></td>
+<td><p>Dict subclass whose entries can be accessed by attributes as well as normally.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#simulator.settings.settings.Settings" title="simulator.settings.settings.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p></td>
+<td><p>Generic settings class.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#simulator.settings.settings.Analysis" title="simulator.settings.settings.Analysis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Analysis</span></code></a></p></td>
+<td><p>Class for analysis settings.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#simulator.settings.settings.Material" title="simulator.settings.settings.Material"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Material</span></code></a></p></td>
+<td><p>Class for storing material settings.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#simulator.settings.settings.EpMaterial" title="simulator.settings.settings.EpMaterial"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EpMaterial</span></code></a></p></td>
+<td><p>Class for storing ep material settings.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#simulator.settings.settings.BoundaryConditions" title="simulator.settings.settings.BoundaryConditions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BoundaryConditions</span></code></a></p></td>
+<td><p>Stores settings/parameters for boundary conditions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#simulator.settings.settings.SystemModel" title="simulator.settings.settings.SystemModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SystemModel</span></code></a></p></td>
+<td><p>Stores settings/parameters for system model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#simulator.settings.settings.Mechanics" title="simulator.settings.settings.Mechanics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mechanics</span></code></a></p></td>
+<td><p>Class for keeping track of settings.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#simulator.settings.settings.AnalysisZeroPressure" title="simulator.settings.settings.AnalysisZeroPressure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AnalysisZeroPressure</span></code></a></p></td>
+<td><p>Class for keeping track of zero pressure analysis settings.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#simulator.settings.settings.ZeroPressure" title="simulator.settings.settings.ZeroPressure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZeroPressure</span></code></a></p></td>
+<td><p>Class for keeping track of settings for stress-free-configuration computation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#simulator.settings.settings.Electrophysiology" title="simulator.settings.settings.Electrophysiology"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Electrophysiology</span></code></a></p></td>
+<td><p>Class for keeping track of electrophysiology settings.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#simulator.settings.settings.Fibers" title="simulator.settings.settings.Fibers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Fibers</span></code></a></p></td>
+<td><p>Class for keeping track of fiber settings.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#simulator.settings.settings.Purkinje" title="simulator.settings.settings.Purkinje"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Purkinje</span></code></a></p></td>
+<td><p>Class for keeping track of purkinje settings.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#simulator.settings.settings.SimulationSettings" title="simulator.settings.settings.SimulationSettings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimulationSettings</span></code></a></p></td>
+<td><p>Class for keeping track of settings.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#simulator.settings.settings.DynaSettings" title="simulator.settings.settings.DynaSettings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DynaSettings</span></code></a></p></td>
+<td><p>Class for collecting, managing and validating LS-DYNA settings.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.AttrDict">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">AttrDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simulator.settings.settings.AttrDict" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+<p>Dict subclass whose entries can be accessed by attributes as well as normally.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.Settings">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">Settings</span></span><a class="headerlink" href="#simulator.settings.settings.Settings" title="Link to this definition">#</a></dt>
+<dd><p>Generic settings class.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="simulator.settings.settings.Settings.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simulator.settings.settings.Settings.__repr__" title="Link to this definition">#</a></dt>
+<dd><p>Represent object in as dictionary in YAML style.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simulator.settings.settings.Settings.set_values">
+<span class="sig-name descname"><span class="pre">set_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defaults</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simulator.settings.settings.Settings.set_values" title="Link to this definition">#</a></dt>
+<dd><p>Read default settings from dictionary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simulator.settings.settings.Settings.serialize">
+<span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remove_units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a></span></span><a class="headerlink" href="#simulator.settings.settings.Settings.serialize" title="Link to this definition">#</a></dt>
+<dd><p>Serialize the settings, that is formats the Quantity as str(&lt;value&gt; &lt;unit&gt;).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simulator.settings.settings.Settings.to_consistent_unit_system">
+<span class="sig-name descname"><span class="pre">to_consistent_unit_system</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simulator.settings.settings.Settings.to_consistent_unit_system" title="Link to this definition">#</a></dt>
+<dd><p>Convert units to consistent unit system.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.Analysis">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">Analysis</span></span><a class="headerlink" href="#simulator.settings.settings.Analysis" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simulator.settings.settings.Settings" title="simulator.settings.settings.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
+<p>Class for analysis settings.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Analysis.end_time">
+<span class="sig-name descname"><span class="pre">end_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Analysis.end_time" title="Link to this definition">#</a></dt>
+<dd><p>End time of the simulation.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Analysis.dtmin">
+<span class="sig-name descname"><span class="pre">dtmin</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Analysis.dtmin" title="Link to this definition">#</a></dt>
+<dd><p>Minimum time-step of simulation.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Analysis.dtmax">
+<span class="sig-name descname"><span class="pre">dtmax</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Analysis.dtmax" title="Link to this definition">#</a></dt>
+<dd><p>Maximum time-step of simulation.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Analysis.dt_d3plot">
+<span class="sig-name descname"><span class="pre">dt_d3plot</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Analysis.dt_d3plot" title="Link to this definition">#</a></dt>
+<dd><p>Time-step of d3plot export.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Analysis.dt_icvout">
+<span class="sig-name descname"><span class="pre">dt_icvout</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Analysis.dt_icvout" title="Link to this definition">#</a></dt>
+<dd><p>Time-step of icvout export.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Analysis.global_damping">
+<span class="sig-name descname"><span class="pre">global_damping</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Analysis.global_damping" title="Link to this definition">#</a></dt>
+<dd><p>Global damping constant.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.Material">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">Material</span></span><a class="headerlink" href="#simulator.settings.settings.Material" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simulator.settings.settings.Settings" title="simulator.settings.settings.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
+<p>Class for storing material settings.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Material.myocardium">
+<span class="sig-name descname"><span class="pre">myocardium</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.AttrDict" title="simulator.settings.settings.AttrDict"><span class="pre">AttrDict</span></a></em><a class="headerlink" href="#simulator.settings.settings.Material.myocardium" title="Link to this definition">#</a></dt>
+<dd><p>Myocardium material.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Material.atrium">
+<span class="sig-name descname"><span class="pre">atrium</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.AttrDict" title="simulator.settings.settings.AttrDict"><span class="pre">AttrDict</span></a></em><a class="headerlink" href="#simulator.settings.settings.Material.atrium" title="Link to this definition">#</a></dt>
+<dd><p>Atrial material.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Material.cap">
+<span class="sig-name descname"><span class="pre">cap</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.AttrDict" title="simulator.settings.settings.AttrDict"><span class="pre">AttrDict</span></a></em><a class="headerlink" href="#simulator.settings.settings.Material.cap" title="Link to this definition">#</a></dt>
+<dd><p>Cap material.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.EpMaterial">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">EpMaterial</span></span><a class="headerlink" href="#simulator.settings.settings.EpMaterial" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simulator.settings.settings.Settings" title="simulator.settings.settings.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
+<p>Class for storing ep material settings.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.EpMaterial.myocardium">
+<span class="sig-name descname"><span class="pre">myocardium</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.AttrDict" title="simulator.settings.settings.AttrDict"><span class="pre">AttrDict</span></a></em><a class="headerlink" href="#simulator.settings.settings.EpMaterial.myocardium" title="Link to this definition">#</a></dt>
+<dd><p>Myocardium material.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.EpMaterial.atrium">
+<span class="sig-name descname"><span class="pre">atrium</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.AttrDict" title="simulator.settings.settings.AttrDict"><span class="pre">AttrDict</span></a></em><a class="headerlink" href="#simulator.settings.settings.EpMaterial.atrium" title="Link to this definition">#</a></dt>
+<dd><p>Atrial material.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.EpMaterial.cap">
+<span class="sig-name descname"><span class="pre">cap</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.AttrDict" title="simulator.settings.settings.AttrDict"><span class="pre">AttrDict</span></a></em><a class="headerlink" href="#simulator.settings.settings.EpMaterial.cap" title="Link to this definition">#</a></dt>
+<dd><p>Cap material.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.EpMaterial.beam">
+<span class="sig-name descname"><span class="pre">beam</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.AttrDict" title="simulator.settings.settings.AttrDict"><span class="pre">AttrDict</span></a></em><a class="headerlink" href="#simulator.settings.settings.EpMaterial.beam" title="Link to this definition">#</a></dt>
+<dd><p>beam material.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.BoundaryConditions">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">BoundaryConditions</span></span><a class="headerlink" href="#simulator.settings.settings.BoundaryConditions" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simulator.settings.settings.Settings" title="simulator.settings.settings.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
+<p>Stores settings/parameters for boundary conditions.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.BoundaryConditions.pericardium">
+<span class="sig-name descname"><span class="pre">pericardium</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.AttrDict" title="simulator.settings.settings.AttrDict"><span class="pre">AttrDict</span></a></em><a class="headerlink" href="#simulator.settings.settings.BoundaryConditions.pericardium" title="Link to this definition">#</a></dt>
+<dd><p>Parameters for pericardium spring b.c.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.BoundaryConditions.valve">
+<span class="sig-name descname"><span class="pre">valve</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.AttrDict" title="simulator.settings.settings.AttrDict"><span class="pre">AttrDict</span></a></em><a class="headerlink" href="#simulator.settings.settings.BoundaryConditions.valve" title="Link to this definition">#</a></dt>
+<dd><p>Parameters for valve spring b.c.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.BoundaryConditions.end_diastolic_cavity_pressure">
+<span class="sig-name descname"><span class="pre">end_diastolic_cavity_pressure</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.AttrDict" title="simulator.settings.settings.AttrDict"><span class="pre">AttrDict</span></a></em><a class="headerlink" href="#simulator.settings.settings.BoundaryConditions.end_diastolic_cavity_pressure" title="Link to this definition">#</a></dt>
+<dd><p>End-diastolic pressure.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.SystemModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">SystemModel</span></span><a class="headerlink" href="#simulator.settings.settings.SystemModel" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simulator.settings.settings.Settings" title="simulator.settings.settings.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
+<p>Stores settings/parameters for system model.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.SystemModel.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ConstantPreloadWindkesselAfterload'</span></em><a class="headerlink" href="#simulator.settings.settings.SystemModel.name" title="Link to this definition">#</a></dt>
+<dd><p>Name of the system model.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.SystemModel.left_ventricle">
+<span class="sig-name descname"><span class="pre">left_ventricle</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.AttrDict" title="simulator.settings.settings.AttrDict"><span class="pre">AttrDict</span></a></em><a class="headerlink" href="#simulator.settings.settings.SystemModel.left_ventricle" title="Link to this definition">#</a></dt>
+<dd><p>Parameters for left ventricle.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.SystemModel.right_ventricle">
+<span class="sig-name descname"><span class="pre">right_ventricle</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.AttrDict" title="simulator.settings.settings.AttrDict"><span class="pre">AttrDict</span></a></em><a class="headerlink" href="#simulator.settings.settings.SystemModel.right_ventricle" title="Link to this definition">#</a></dt>
+<dd><p>Parameters for right ventricle.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.Mechanics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">Mechanics</span></span><a class="headerlink" href="#simulator.settings.settings.Mechanics" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simulator.settings.settings.Settings" title="simulator.settings.settings.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
+<p>Class for keeping track of settings.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Mechanics.analysis">
+<span class="sig-name descname"><span class="pre">analysis</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.Analysis" title="simulator.settings.settings.Analysis"><span class="pre">Analysis</span></a></em><a class="headerlink" href="#simulator.settings.settings.Mechanics.analysis" title="Link to this definition">#</a></dt>
+<dd><p>Generic analysis settings.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Mechanics.material">
+<span class="sig-name descname"><span class="pre">material</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.Material" title="simulator.settings.settings.Material"><span class="pre">Material</span></a></em><a class="headerlink" href="#simulator.settings.settings.Mechanics.material" title="Link to this definition">#</a></dt>
+<dd><p>Material settings/configuration.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Mechanics.boundary_conditions">
+<span class="sig-name descname"><span class="pre">boundary_conditions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.BoundaryConditions" title="simulator.settings.settings.BoundaryConditions"><span class="pre">BoundaryConditions</span></a></em><a class="headerlink" href="#simulator.settings.settings.Mechanics.boundary_conditions" title="Link to this definition">#</a></dt>
+<dd><p>Boundary condition specifications.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Mechanics.system">
+<span class="sig-name descname"><span class="pre">system</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.SystemModel" title="simulator.settings.settings.SystemModel"><span class="pre">SystemModel</span></a></em><a class="headerlink" href="#simulator.settings.settings.Mechanics.system" title="Link to this definition">#</a></dt>
+<dd><p>System model settings.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.AnalysisZeroPressure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">AnalysisZeroPressure</span></span><a class="headerlink" href="#simulator.settings.settings.AnalysisZeroPressure" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simulator.settings.settings.Analysis" title="simulator.settings.settings.Analysis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Analysis</span></code></a></p>
+<p>Class for keeping track of zero pressure analysis settings.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.AnalysisZeroPressure.dt_nodout">
+<span class="sig-name descname"><span class="pre">dt_nodout</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.AnalysisZeroPressure.dt_nodout" title="Link to this definition">#</a></dt>
+<dd><p>Time interval of nodeout export.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.AnalysisZeroPressure.max_iters">
+<span class="sig-name descname"><span class="pre">max_iters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#simulator.settings.settings.AnalysisZeroPressure.max_iters" title="Link to this definition">#</a></dt>
+<dd><p>Maximum iterations for stress-free-configuration algorithm.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.AnalysisZeroPressure.method">
+<span class="sig-name descname"><span class="pre">method</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#simulator.settings.settings.AnalysisZeroPressure.method" title="Link to this definition">#</a></dt>
+<dd><p>Method to use.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.AnalysisZeroPressure.tolerance">
+<span class="sig-name descname"><span class="pre">tolerance</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5.0</span></em><a class="headerlink" href="#simulator.settings.settings.AnalysisZeroPressure.tolerance" title="Link to this definition">#</a></dt>
+<dd><p>Tolerance to use for iterative algorithm.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.ZeroPressure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">ZeroPressure</span></span><a class="headerlink" href="#simulator.settings.settings.ZeroPressure" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simulator.settings.settings.Settings" title="simulator.settings.settings.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
+<p>Class for keeping track of settings for stress-free-configuration computation.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.ZeroPressure.analysis">
+<span class="sig-name descname"><span class="pre">analysis</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.AnalysisZeroPressure" title="simulator.settings.settings.AnalysisZeroPressure"><span class="pre">AnalysisZeroPressure</span></a></em><a class="headerlink" href="#simulator.settings.settings.ZeroPressure.analysis" title="Link to this definition">#</a></dt>
+<dd><p>Generic analysis settings.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.Electrophysiology">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">Electrophysiology</span></span><a class="headerlink" href="#simulator.settings.settings.Electrophysiology" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simulator.settings.settings.Settings" title="simulator.settings.settings.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
+<p>Class for keeping track of electrophysiology settings.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Electrophysiology.material">
+<span class="sig-name descname"><span class="pre">material</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.EpMaterial" title="simulator.settings.settings.EpMaterial"><span class="pre">EpMaterial</span></a></em><a class="headerlink" href="#simulator.settings.settings.Electrophysiology.material" title="Link to this definition">#</a></dt>
+<dd><p>Material settings/configuration.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Electrophysiology.analysis">
+<span class="sig-name descname"><span class="pre">analysis</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#simulator.settings.settings.Analysis" title="simulator.settings.settings.Analysis"><span class="pre">Analysis</span></a></em><a class="headerlink" href="#simulator.settings.settings.Electrophysiology.analysis" title="Link to this definition">#</a></dt>
+<dd><p>Generic analysis settings.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.Fibers">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">Fibers</span></span><a class="headerlink" href="#simulator.settings.settings.Fibers" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simulator.settings.settings.Settings" title="simulator.settings.settings.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
+<p>Class for keeping track of fiber settings.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Fibers.alpha_endo">
+<span class="sig-name descname"><span class="pre">alpha_endo</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Fibers.alpha_endo" title="Link to this definition">#</a></dt>
+<dd><p>Helical angle in endocardium.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Fibers.alpha_epi">
+<span class="sig-name descname"><span class="pre">alpha_epi</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Fibers.alpha_epi" title="Link to this definition">#</a></dt>
+<dd><p>Helical angle in epicardium.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Fibers.beta_endo">
+<span class="sig-name descname"><span class="pre">beta_endo</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Fibers.beta_endo" title="Link to this definition">#</a></dt>
+<dd><p>Angle to the outward transmural axis of the heart in endocardium.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Fibers.beta_epi">
+<span class="sig-name descname"><span class="pre">beta_epi</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Fibers.beta_epi" title="Link to this definition">#</a></dt>
+<dd><p>Angle to the outward transmural axis of the heart in epicardium.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Fibers.beta_endo_septum">
+<span class="sig-name descname"><span class="pre">beta_endo_septum</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Fibers.beta_endo_septum" title="Link to this definition">#</a></dt>
+<dd><p>Angle to the outward transmural axis of the heart in left septum.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Fibers.beta_epi_septum">
+<span class="sig-name descname"><span class="pre">beta_epi_septum</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Fibers.beta_epi_septum" title="Link to this definition">#</a></dt>
+<dd><p>Angle to the outward transmural axis of the heart in right septum.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.Purkinje">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">Purkinje</span></span><a class="headerlink" href="#simulator.settings.settings.Purkinje" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#simulator.settings.settings.Settings" title="simulator.settings.settings.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p>
+<p>Class for keeping track of purkinje settings.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Purkinje.edgelen">
+<span class="sig-name descname"><span class="pre">edgelen</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Purkinje.edgelen" title="Link to this definition">#</a></dt>
+<dd><p>Edge length.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Purkinje.ngen">
+<span class="sig-name descname"><span class="pre">ngen</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Purkinje.ngen" title="Link to this definition">#</a></dt>
+<dd><p>Number of generations.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Purkinje.nbrinit">
+<span class="sig-name descname"><span class="pre">nbrinit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Purkinje.nbrinit" title="Link to this definition">#</a></dt>
+<dd><p>Number of beams from origin point.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Purkinje.nsplit">
+<span class="sig-name descname"><span class="pre">nsplit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Purkinje.nsplit" title="Link to this definition">#</a></dt>
+<dd><p>Number of splits at each leaf.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Purkinje.pmjtype">
+<span class="sig-name descname"><span class="pre">pmjtype</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Purkinje.pmjtype" title="Link to this definition">#</a></dt>
+<dd><p>Purkinje muscle junction type.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.Purkinje.pmjradius">
+<span class="sig-name descname"><span class="pre">pmjradius</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pint.Quantity</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#simulator.settings.settings.Purkinje.pmjradius" title="Link to this definition">#</a></dt>
+<dd><p>Purkinje muscle junction radius.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.SimulationSettings">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">SimulationSettings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mechanics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">electrophysiology</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fiber</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">purkinje</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stress_free</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simulator.settings.settings.SimulationSettings" title="Link to this definition">#</a></dt>
+<dd><p>Class for keeping track of settings.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="simulator.settings.settings.SimulationSettings.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simulator.settings.settings.SimulationSettings.__repr__" title="Link to this definition">#</a></dt>
+<dd><p>Represent object as list of relevant attribute names.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simulator.settings.settings.SimulationSettings.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_units</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simulator.settings.settings.SimulationSettings.save" title="Link to this definition">#</a></dt>
+<dd><p>Save simulation settings to disk.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Path to target .json or .yml file</p>
+</dd>
+<dt><strong>remove_units</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>Flag indicating whether to remove units before writing, by default False</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simulator.settings.settings.SimulationSettings.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simulator.settings.settings.SimulationSettings.load" title="Link to this definition">#</a></dt>
+<dd><p>Load simulation settings.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Path to yaml or json file.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simulator.settings.settings.SimulationSettings.load_defaults">
+<span class="sig-name descname"><span class="pre">load_defaults</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simulator.settings.settings.SimulationSettings.load_defaults" title="Link to this definition">#</a></dt>
+<dd><p>Load the default simulation settings.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simulator.settings.settings.SimulationSettings.to_consistent_unit_system">
+<span class="sig-name descname"><span class="pre">to_consistent_unit_system</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simulator.settings.settings.SimulationSettings.to_consistent_unit_system" title="Link to this definition">#</a></dt>
+<dd><p>Convert all settings to consistent unit-system [“MPa”, “mm”, “N”, “ms”, “g”].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="simulator.settings.settings.DynaSettings">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">simulator.settings.settings.</span></span><span class="sig-name descname"><span class="pre">DynaSettings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lsdyna_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynatype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">smp</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">intelmpi</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">platformmpi</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">msmpi</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'intelmpi'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_cpus</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">windows</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">wsl</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">linux</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'windows'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dyna_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpi_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#simulator.settings.settings.DynaSettings" title="Link to this definition">#</a></dt>
+<dd><p>Class for collecting, managing and validating LS-DYNA settings.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.DynaSettings.lsdyna_path">
+<span class="sig-name descname"><span class="pre">lsdyna_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></em><a class="headerlink" href="#simulator.settings.settings.DynaSettings.lsdyna_path" title="Link to this definition">#</a></dt>
+<dd><p>Path to LS-DYNA executable.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.DynaSettings.dynatype">
+<span class="sig-name descname"><span class="pre">dynatype</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#simulator.settings.settings.DynaSettings.dynatype" title="Link to this definition">#</a></dt>
+<dd><p>Type of dyna executable.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.DynaSettings.num_cpus">
+<span class="sig-name descname"><span class="pre">num_cpus</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="headerlink" href="#simulator.settings.settings.DynaSettings.num_cpus" title="Link to this definition">#</a></dt>
+<dd><p>Number of CPU’s requested.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.DynaSettings.platform">
+<span class="sig-name descname"><span class="pre">platform</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#simulator.settings.settings.DynaSettings.platform" title="Link to this definition">#</a></dt>
+<dd><p>Platform on which dyna is executed.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="simulator.settings.settings.DynaSettings.dyna_options">
+<span class="sig-name descname"><span class="pre">dyna_options</span></span><a class="headerlink" href="#simulator.settings.settings.DynaSettings.dyna_options" title="Link to this definition">#</a></dt>
+<dd><p>Additional command line options for dyna.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simulator.settings.settings.DynaSettings.get_commands">
+<span class="sig-name descname"><span class="pre">get_commands</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#simulator.settings.settings.DynaSettings.get_commands" title="Link to this definition">#</a></dt>
+<dd><p>Get command line arguments from the defined settings.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>path_to_input</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd><p>Path to the LS-DYNA input file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>]</dt><dd><p>List of strings of each of the commands.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="simulator.settings.settings.DynaSettings.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#simulator.settings.settings.DynaSettings.__repr__" title="Link to this definition">#</a></dt>
+<dd><p>Represent self as string.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.AttrDict"><code class="docutils literal notranslate"><span class="pre">AttrDict</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Settings"><code class="docutils literal notranslate"><span class="pre">Settings</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Settings.__repr__"><code class="docutils literal notranslate"><span class="pre">Settings.__repr__()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Settings.set_values"><code class="docutils literal notranslate"><span class="pre">Settings.set_values()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Settings.serialize"><code class="docutils literal notranslate"><span class="pre">Settings.serialize()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Settings.to_consistent_unit_system"><code class="docutils literal notranslate"><span class="pre">Settings.to_consistent_unit_system()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Analysis"><code class="docutils literal notranslate"><span class="pre">Analysis</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Analysis.end_time"><code class="docutils literal notranslate"><span class="pre">Analysis.end_time</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Analysis.dtmin"><code class="docutils literal notranslate"><span class="pre">Analysis.dtmin</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Analysis.dtmax"><code class="docutils literal notranslate"><span class="pre">Analysis.dtmax</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Analysis.dt_d3plot"><code class="docutils literal notranslate"><span class="pre">Analysis.dt_d3plot</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Analysis.dt_icvout"><code class="docutils literal notranslate"><span class="pre">Analysis.dt_icvout</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Analysis.global_damping"><code class="docutils literal notranslate"><span class="pre">Analysis.global_damping</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Material"><code class="docutils literal notranslate"><span class="pre">Material</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Material.myocardium"><code class="docutils literal notranslate"><span class="pre">Material.myocardium</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Material.atrium"><code class="docutils literal notranslate"><span class="pre">Material.atrium</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Material.cap"><code class="docutils literal notranslate"><span class="pre">Material.cap</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.EpMaterial"><code class="docutils literal notranslate"><span class="pre">EpMaterial</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.EpMaterial.myocardium"><code class="docutils literal notranslate"><span class="pre">EpMaterial.myocardium</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.EpMaterial.atrium"><code class="docutils literal notranslate"><span class="pre">EpMaterial.atrium</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.EpMaterial.cap"><code class="docutils literal notranslate"><span class="pre">EpMaterial.cap</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.EpMaterial.beam"><code class="docutils literal notranslate"><span class="pre">EpMaterial.beam</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.BoundaryConditions"><code class="docutils literal notranslate"><span class="pre">BoundaryConditions</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.BoundaryConditions.pericardium"><code class="docutils literal notranslate"><span class="pre">BoundaryConditions.pericardium</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.BoundaryConditions.valve"><code class="docutils literal notranslate"><span class="pre">BoundaryConditions.valve</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.BoundaryConditions.end_diastolic_cavity_pressure"><code class="docutils literal notranslate"><span class="pre">BoundaryConditions.end_diastolic_cavity_pressure</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.SystemModel"><code class="docutils literal notranslate"><span class="pre">SystemModel</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.SystemModel.name"><code class="docutils literal notranslate"><span class="pre">SystemModel.name</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.SystemModel.left_ventricle"><code class="docutils literal notranslate"><span class="pre">SystemModel.left_ventricle</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.SystemModel.right_ventricle"><code class="docutils literal notranslate"><span class="pre">SystemModel.right_ventricle</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Mechanics"><code class="docutils literal notranslate"><span class="pre">Mechanics</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Mechanics.analysis"><code class="docutils literal notranslate"><span class="pre">Mechanics.analysis</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Mechanics.material"><code class="docutils literal notranslate"><span class="pre">Mechanics.material</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Mechanics.boundary_conditions"><code class="docutils literal notranslate"><span class="pre">Mechanics.boundary_conditions</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Mechanics.system"><code class="docutils literal notranslate"><span class="pre">Mechanics.system</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.AnalysisZeroPressure"><code class="docutils literal notranslate"><span class="pre">AnalysisZeroPressure</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.AnalysisZeroPressure.dt_nodout"><code class="docutils literal notranslate"><span class="pre">AnalysisZeroPressure.dt_nodout</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.AnalysisZeroPressure.max_iters"><code class="docutils literal notranslate"><span class="pre">AnalysisZeroPressure.max_iters</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.AnalysisZeroPressure.method"><code class="docutils literal notranslate"><span class="pre">AnalysisZeroPressure.method</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.AnalysisZeroPressure.tolerance"><code class="docutils literal notranslate"><span class="pre">AnalysisZeroPressure.tolerance</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.ZeroPressure"><code class="docutils literal notranslate"><span class="pre">ZeroPressure</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.ZeroPressure.analysis"><code class="docutils literal notranslate"><span class="pre">ZeroPressure.analysis</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Electrophysiology"><code class="docutils literal notranslate"><span class="pre">Electrophysiology</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Electrophysiology.material"><code class="docutils literal notranslate"><span class="pre">Electrophysiology.material</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Electrophysiology.analysis"><code class="docutils literal notranslate"><span class="pre">Electrophysiology.analysis</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Fibers"><code class="docutils literal notranslate"><span class="pre">Fibers</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Fibers.alpha_endo"><code class="docutils literal notranslate"><span class="pre">Fibers.alpha_endo</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Fibers.alpha_epi"><code class="docutils literal notranslate"><span class="pre">Fibers.alpha_epi</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Fibers.beta_endo"><code class="docutils literal notranslate"><span class="pre">Fibers.beta_endo</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Fibers.beta_epi"><code class="docutils literal notranslate"><span class="pre">Fibers.beta_epi</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Fibers.beta_endo_septum"><code class="docutils literal notranslate"><span class="pre">Fibers.beta_endo_septum</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Fibers.beta_epi_septum"><code class="docutils literal notranslate"><span class="pre">Fibers.beta_epi_septum</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Purkinje"><code class="docutils literal notranslate"><span class="pre">Purkinje</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Purkinje.edgelen"><code class="docutils literal notranslate"><span class="pre">Purkinje.edgelen</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Purkinje.ngen"><code class="docutils literal notranslate"><span class="pre">Purkinje.ngen</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Purkinje.nbrinit"><code class="docutils literal notranslate"><span class="pre">Purkinje.nbrinit</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Purkinje.nsplit"><code class="docutils literal notranslate"><span class="pre">Purkinje.nsplit</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Purkinje.pmjtype"><code class="docutils literal notranslate"><span class="pre">Purkinje.pmjtype</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.Purkinje.pmjradius"><code class="docutils literal notranslate"><span class="pre">Purkinje.pmjradius</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.SimulationSettings"><code class="docutils literal notranslate"><span class="pre">SimulationSettings</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.SimulationSettings.__repr__"><code class="docutils literal notranslate"><span class="pre">SimulationSettings.__repr__()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.SimulationSettings.save"><code class="docutils literal notranslate"><span class="pre">SimulationSettings.save()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.SimulationSettings.load"><code class="docutils literal notranslate"><span class="pre">SimulationSettings.load()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.SimulationSettings.load_defaults"><code class="docutils literal notranslate"><span class="pre">SimulationSettings.load_defaults()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.SimulationSettings.to_consistent_unit_system"><code class="docutils literal notranslate"><span class="pre">SimulationSettings.to_consistent_unit_system()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.DynaSettings"><code class="docutils literal notranslate"><span class="pre">DynaSettings</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.DynaSettings.lsdyna_path"><code class="docutils literal notranslate"><span class="pre">DynaSettings.lsdyna_path</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.DynaSettings.dynatype"><code class="docutils literal notranslate"><span class="pre">DynaSettings.dynatype</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.DynaSettings.num_cpus"><code class="docutils literal notranslate"><span class="pre">DynaSettings.num_cpus</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.DynaSettings.platform"><code class="docutils literal notranslate"><span class="pre">DynaSettings.platform</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.DynaSettings.dyna_options"><code class="docutils literal notranslate"><span class="pre">DynaSettings.dyna_options</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.DynaSettings.get_commands"><code class="docutils literal notranslate"><span class="pre">DynaSettings.get_commands()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#simulator.settings.settings.DynaSettings.__repr__"><code class="docutils literal notranslate"><span class="pre">DynaSettings.__repr__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+<!-- If there is no fix edit button function, use the PyData edit-this-button--></div>
+
+  <div class="sidebar-secondary-item">
+  <div class="tocsection sourcelink">
+    <a href="../../../../_sources/autoapi/simulator/settings/settings/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+  <p class="copyright">
+    
+      © Copyright (c) 2024 ANSYS, Inc. All rights reserved.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.2.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the
+  <a href="https://sphinxdocs.ansys.com/version/stable/index.html"
+    >Ansys Sphinx Theme</a
+  >
+  0.10.3. <br />Last updated on
+  <span id="date"></span>
+</p>
+<script>
+  var options = { day: "numeric", month: "long", year: "numeric" };
+  var lastModifiedDate = new Date(document.lastModified);
+  var date = lastModifiedDate.toLocaleDateString("en-US", options);
+  document.getElementById("date").innerHTML = date;
+</script></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

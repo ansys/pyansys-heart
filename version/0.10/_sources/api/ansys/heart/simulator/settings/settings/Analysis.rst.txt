@@ -1,0 +1,230 @@
+
+
+
+
+
+
+:class:`Analysis`
+=================
+
+.. py:class:: ansys.heart.simulator.settings.settings.Analysis
+
+   Bases: :py:obj:`Settings`
+
+
+   
+   Class for analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Analysis
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~end_time`
+            - End time of the simulation.
+          * - :py:attr:`~dtmin`
+            - Minimum time-step of simulation.
+          * - :py:attr:`~dtmax`
+            - Maximum time-step of simulation.
+          * - :py:attr:`~dt_d3plot`
+            - Time-step of d3plot export.
+          * - :py:attr:`~dt_icvout`
+            - Time-step of icvout export.
+          * - :py:attr:`~global_damping`
+            - Global damping constant.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.settings import Analysis
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: end_time
+   :type:  pint.Quantity
+
+   
+   End time of the simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: dtmin
+   :type:  pint.Quantity
+
+   
+   Minimum time-step of simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: dtmax
+   :type:  pint.Quantity
+
+   
+   Maximum time-step of simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: dt_d3plot
+   :type:  pint.Quantity
+
+   
+   Time-step of d3plot export.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: dt_icvout
+   :type:  pint.Quantity
+
+   
+   Time-step of icvout export.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: global_damping
+   :type:  pint.Quantity
+
+   
+   Global damping constant.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

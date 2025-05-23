@@ -1,0 +1,210 @@
+
+
+
+
+
+
+:class:`Mat295`
+===============
+
+.. py:class:: ansys.heart.core.settings.material.material.Mat295
+
+   Bases: :py:obj:`MechanicalMaterialModel`
+
+
+   
+   Hold data for MAT_ANISOTROPIC_HYPERELASTIC (MAT_295).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Mat295
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~rho`
+            - Density of the material.
+          * - :py:attr:`~iso`
+            - Isotropic module.
+          * - :py:attr:`~aopt`
+            - Matrerial axe option, don't change it.
+          * - :py:attr:`~aniso`
+            - Anisotropic module.
+          * - :py:attr:`~active`
+            - Active module.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.settings.material.material import Mat295
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: rho
+   :type:  float
+
+   
+   Density of the material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: iso
+   :type:  ISO
+
+   
+   Isotropic module.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: aopt
+   :type:  float
+   :value: 2.0
+
+
+   
+   Matrerial axe option, don't change it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: aniso
+   :type:  Optional[ANISO]
+   :value: None
+
+
+   
+   Anisotropic module.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: active
+   :type:  Optional[ACTIVE]
+   :value: None
+
+
+   
+   Active module.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

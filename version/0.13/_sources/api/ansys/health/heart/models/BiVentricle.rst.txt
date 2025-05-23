@@ -1,0 +1,153 @@
+
+
+
+
+
+
+:class:`BiVentricle`
+====================
+
+
+.. py:class:: ansys.health.heart.models.BiVentricle(working_directory: pathlib.Path | str = None)
+
+   Bases: :py:obj:`HeartModel`
+
+
+   
+   Model of the left and right ventricles.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: BiVentricle
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~left_ventricle`
+            - Left ventricle part.
+          * - :py:attr:`~right_ventricle`
+            - Right ventricle part.
+          * - :py:attr:`~septum`
+            - Septum.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.models import BiVentricle
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: left_ventricle
+   :type:  ansys.health.heart.objects.Part
+
+   
+   Left ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: right_ventricle
+   :type:  ansys.health.heart.objects.Part
+
+   
+   Right ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: septum
+   :type:  ansys.health.heart.objects.Part
+
+   
+   Septum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

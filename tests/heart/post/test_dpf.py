@@ -78,19 +78,6 @@ def test_d3plot_reader2():
     assert d3plot.get_displacement_at(0.0).shape == (8598, 3)
 
 
-@pytest.mark.requires_dpf
-def test_d3plot_reader_init_supported_versions():
-    """Test d3plot reader init."""
-    fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")
-
-    with mock.patch(
-        "ansys.health.heart.post.dpf_utils._SUPPORTED_DPF_SERVERS"
-    ) as mock_supported_versions:
-        mock_supported_versions.return_value = []
-        with pytest.raises(Exception):
-            D3plotReader(fn)
-
-
 @pytest.mark.parametrize(
     "fake_servers, expected, raises",
     [

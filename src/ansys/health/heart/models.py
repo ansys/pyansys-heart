@@ -27,7 +27,7 @@ import json
 import os
 import pathlib
 import re
-from typing import List, Literal, Union
+from typing import Literal
 
 from deprecated import deprecated
 import numpy as np
@@ -125,7 +125,7 @@ class HeartModel:
     """Parent class for heart models."""
 
     @property
-    def parts(self) -> List[anatomy.Part]:
+    def parts(self) -> list[anatomy.Part]:
         """List of parts."""
         parts = []
         for key, value in self.__dict__.items():
@@ -135,35 +135,32 @@ class HeartModel:
         return parts
 
     @property
-    def part_names(self) -> List[str]:
+    def part_names(self) -> list[str]:
         """List of part names."""
-        part_names = []
-        for part in self.parts:
-            part_names.append(part.name)
-        return part_names
+        return [part.name for part in self.parts]
 
     @property
-    def part_ids(self) -> List[int]:
+    def part_ids(self) -> list[int]:
         """List of used part IDs."""
         return [part.pid for part in self.parts]
 
     @property
-    def surfaces(self) -> List[SurfaceMesh]:
+    def surfaces(self) -> list[SurfaceMesh]:
         """List of all defined surfaces."""
         return [s for p in self.parts for s in p.surfaces]
 
     @property
-    def surface_names(self) -> List[str]:
+    def surface_names(self) -> list[str]:
         """List of all defined surface names."""
         return [s.name for s in self.surfaces]
 
     @property
-    def surface_ids(self) -> List[str]:
+    def surface_ids(self) -> list[str]:
         """List of all defined surface IDs."""
         return [s.id for s in self.surfaces]
 
     @property
-    def cavities(self) -> List[Cavity]:
+    def cavities(self) -> list[Cavity]:
         """List of all cavities in the model."""
         return [
             part.cavity for part in self.parts if isinstance(part, anatomy.Chamber) if part.cavity
@@ -231,8 +228,7 @@ class HeartModel:
         """List of cap centroids."""
         return [
             Point(name=c.name + "_center", xyz=c.centroid, node_id=c.global_centroid_id)
-            for p in self.parts
-            for c in p.caps
+            for c in self.all_caps
         ]
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:
@@ -266,7 +262,7 @@ class HeartModel:
         self._set_part_ids()
         """Set incremental part IDs."""
 
-        self.electrodes: List[Point] = []
+        self.electrodes: list[Point] = []
         """Electrodes positions for ECG computing."""
 
         self._conduction_paths: list[ConductionPath] = []
@@ -384,12 +380,12 @@ class HeartModel:
             self._part_info.update(part._get_info())
         return self._part_info
 
-    def create_part_by_ids(self, eids: List[int], name: str) -> Union[None, anatomy.Part]:
+    def create_part_by_ids(self, eids: list[int], name: str) -> None | anatomy.Part:
         """Create a part by element IDs.
 
         Parameters
         ----------
-        eids : List[int]
+        eids : list[int]
             List of element IDs.
         name : str
             Part name.
@@ -599,7 +595,7 @@ class HeartModel:
 
         return
 
-    def get_part(self, name: str, by_substring: bool = False) -> Union[anatomy.Part, None]:
+    def get_part(self, name: str, by_substring: bool = False) -> anatomy.Part | None:
         """Get a specific part based on a part name."""
         found = False
         for part in self.parts:
@@ -770,8 +766,8 @@ class HeartModel:
             beams = self._conduction_mesh
             plotter.add_mesh(beams, line_width=2)
             plotter.show()
-        except Exception:
-            LOGGER.warning("Failed to plot the mesh.")
+        except Exception as e:
+            LOGGER.warning(f"Failed to plot the mesh. {e}")
         return
 
     def save_model(self, filename: str):
@@ -870,9 +866,8 @@ class HeartModel:
                 part_1.element_ids = np.argwhere(
                     np.isin(self.mesh.cell_data["_volume-id"], part_1.pid)
                 ).flatten()
-            except Exception:
-                LOGGER.warning(f"Failed to set element IDs for {part_1.name}.")
-                pass
+            except Exception as e:
+                LOGGER.warning(f"Failed to set element IDs for {part_1.name}. {e}")
 
             # try to initialize cavity object.
             if isinstance(part_1, anatomy.Chamber):
@@ -896,17 +891,17 @@ class HeartModel:
         # NOTE: #? add validation method to make sure all essential components are present?
         try:
             self._extract_apex()
-        except Exception:
-            LOGGER.warning("Failed to extract apex. Consider setting apex manually.")
+        except Exception as e:
+            LOGGER.warning(f"Failed to extract apex. Consider setting apex manually. {e}")
 
         if any(v is None for v in [self.short_axis, self.l4cv_axis, self.l2cv_axis]):
             LOGGER.warning("Heart is not defined in the VTU file.")
             try:
                 LOGGER.warning("Computing heart axis...")
                 self._define_anatomy_axis()
-            except Exception:
+            except Exception as e:
                 LOGGER.error(
-                    "Failed to extract heart axis. Consider computing and setting manually."
+                    f"Failed to extract heart axis. Consider computing and setting manually. {e}"
                 )
         else:
             LOGGER.info("Heart axis defined in the VTU file is reused...")
@@ -1495,7 +1490,132 @@ class HeartModel:
                 self.mesh.get_surface(part.epicardium.id).global_node_ids_triangles, apex_set
             )
 
-    def _create_atrioventricular_isolation(self) -> Union[None, anatomy.Part]:
+    def create_stiff_ventricle_base(
+        self,
+        threshold_left_ventricle: float = 0.9,
+        threshold_right_ventricle: float = 0.95,
+        stiff_material: MechanicalMaterialModel = Mat295(
+            rho=0.001, iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2)
+        ),
+    ) -> None | anatomy.Part:
+        """Use universal coordinates to generate a stiff base region.
+
+        Parameters
+        ----------
+        threshold_left_ventricle : float, default: 0.9
+            If the ``uvc_l`` value is larger than this threshold in the left ventricle,
+            it is set as stiff material.
+        threshold_right_ventricle : float, default: 0.95
+            If the ``uvc_l`` value is larger than this threshold in the right ventricle,
+            it is set to a stiff
+            material.
+        stiff_material : MechanicalMaterialModel, default: MAT295(rho=0.001,
+            iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2)
+            Material to assign.
+
+        Returns
+        -------
+        anatomy.Part
+            Part associated with the stiff base region.
+        """
+        try:
+            v = self.mesh.point_data_to_cell_data()["apico-basal"]
+        except KeyError:
+            LOGGER.error("Array named 'apico-basal' is not found. Cannot create base part.")
+            LOGGER.error("Call simulator.compute_uhc() first.")
+            return
+
+        eids = np.intersect1d(
+            np.where(v > threshold_left_ventricle)[0], self.left_ventricle.element_ids
+        )
+        if not isinstance(self, LeftVentricle):
+            # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
+            eid_r = np.intersect1d(
+                np.where(v > threshold_right_ventricle)[0],
+                self.right_ventricle.element_ids,
+            )
+            eids = np.hstack((eids, eid_r))
+
+        part: anatomy.Part = self.create_part_by_ids(eids, "base")
+        part._part_type = anatomy._PartType.VENTRICLE
+        part.fiber = False
+        part.active = False
+        part.meca_material = stiff_material
+        # assign default EP material as for ventricles
+        part.ep_material = EPMaterial.Active()
+
+        return part
+
+
+class LeftVentricle(HeartModel):
+    """Model of only the left ventricle."""
+
+    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
+        self.left_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Left ventricle")
+        """Left ventricle part."""
+        # remove septum - not used in left ventricle only model
+        del self.left_ventricle.septum
+
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+
+        super().__init__(working_directory=working_directory)
+
+        return
+
+
+class BiVentricle(HeartModel):
+    """Model of the left and right ventricles."""
+
+    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
+        self.left_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Left ventricle")
+        """Left ventricle part."""
+        self.right_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Right ventricle")
+        """Right ventricle part."""
+        self.septum: anatomy.Septum = anatomy.Septum(name="Septum")
+        """Septum."""
+
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+        self.right_ventricle.fiber = True
+        self.right_ventricle.active = True
+        self.septum.fiber = True
+        self.septum.active = True
+
+        super().__init__(working_directory=working_directory)
+
+
+class FourChamber(HeartModel):
+    """Model of the left/right ventricle and left/right atrium."""
+
+    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
+        self.left_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Left ventricle")
+        """Left ventricle part."""
+        self.right_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Right ventricle")
+        """Right ventricle part."""
+        self.septum: anatomy.Septum = anatomy.Septum(name="Septum")
+        """Septum."""
+
+        self.left_atrium: anatomy.Atrium = anatomy.Atrium(name="Left atrium")
+        """Left atrium part."""
+        self.right_atrium: anatomy.Atrium = anatomy.Atrium(name="Right atrium")
+        """Right atrium part."""
+
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+        self.right_ventricle.fiber = True
+        self.right_ventricle.active = True
+        self.septum.fiber = True
+        self.septum.active = True
+
+        self.left_atrium.fiber = False
+        self.left_atrium.active = False
+        self.right_atrium.fiber = False
+        self.right_atrium.active = False
+
+        super().__init__(working_directory=working_directory)
+
+    def _create_atrioventricular_isolation(self) -> None | anatomy.Part:
         """
         Extract a layer of element to isolate between the ventricles and atrium.
 
@@ -1508,11 +1628,6 @@ class HeartModel:
         anatomy.Part
             Part of isolation elements.
         """
-        # TODO: move this method to FourChamber class.
-        if not isinstance(self, FourChamber):
-            LOGGER.error("This method is only for the four-chamber heart model.")
-            return
-
         # find interface nodes between ventricles and atrial
         v_ele = np.array([], dtype=int)
         a_ele = np.array([], dtype=int)
@@ -1578,62 +1693,6 @@ class HeartModel:
 
         return isolation
 
-    def create_stiff_ventricle_base(
-        self,
-        threshold_left_ventricle: float = 0.9,
-        threshold_right_ventricle: float = 0.95,
-        stiff_material: MechanicalMaterialModel = Mat295(
-            rho=0.001, iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2)
-        ),
-    ) -> None | anatomy.Part:
-        """Use universal coordinates to generate a stiff base region.
-
-        Parameters
-        ----------
-        threshold_left_ventricle : float, default: 0.9
-            If the ``uvc_l`` value is larger than this threshold in the left ventricle,
-            it is set as stiff material.
-        threshold_right_ventricle : float, default: 0.95
-            If the ``uvc_l`` value is larger than this threshold in the right ventricle,
-            it is set to a stiff
-            material.
-        stiff_material : MechanicalMaterialModel, default: MAT295(rho=0.001,
-            iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2)
-            Material to assign.
-
-        Returns
-        -------
-        anatomy.Part
-            Part associated with the stiff base region.
-        """
-        try:
-            v = self.mesh.point_data_to_cell_data()["apico-basal"]
-        except KeyError:
-            LOGGER.error("Array named 'apico-basal' is not found. Cannot create base part.")
-            LOGGER.error("Call simulator.compute_uhc() first.")
-            return
-
-        eids = np.intersect1d(
-            np.where(v > threshold_left_ventricle)[0], self.left_ventricle.element_ids
-        )
-        if not isinstance(self, LeftVentricle):
-            # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
-            eid_r = np.intersect1d(
-                np.where(v > threshold_right_ventricle)[0],
-                self.right_ventricle.element_ids,
-            )
-            eids = np.hstack((eids, eid_r))
-
-        part: anatomy.Part = self.create_part_by_ids(eids, "base")
-        part._part_type = anatomy._PartType.VENTRICLE
-        part.fiber = False
-        part.active = False
-        part.meca_material = stiff_material
-        # assign default EP material as for ventricles
-        part.ep_material = EPMaterial.Active()
-
-        return part
-
     def create_atrial_stiff_ring(self, radius: float = 2) -> None | anatomy.Part:
         """Create a part for solids close to the atrial caps.
 
@@ -1651,11 +1710,6 @@ class HeartModel:
         Union[None, anatomy.Part]
             Part of atrial rings if created.
         """
-        # TODO: @mhoeijm move this to FourChamber class
-        if not isinstance(self, FourChamber):
-            LOGGER.error("This method is only for the four-chamber heart model.")
-            return
-
         # get ring cells from cap node list
         ring_nodes = []
         for cap in self.left_atrium.caps:
@@ -1694,95 +1748,24 @@ class HeartModel:
         return ring
 
 
-class LeftVentricle(HeartModel):
-    """Model of only the left ventricle."""
-
-    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: anatomy.Part = anatomy.Ventricle(name="Left ventricle")
-        """Left ventricle part."""
-        # remove septum - not used in left ventricle only model
-        del self.left_ventricle.septum
-
-        self.left_ventricle.fiber = True
-        self.left_ventricle.active = True
-
-        super().__init__(working_directory=working_directory)
-        pass
-
-
-class BiVentricle(HeartModel):
-    """Model of the left and right ventricles."""
-
-    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: anatomy.Part = anatomy.Ventricle(name="Left ventricle")
-        """Left ventricle part."""
-        self.right_ventricle: anatomy.Part = anatomy.Ventricle(name="Right ventricle")
-        """Right ventricle part."""
-        self.septum: anatomy.Part = anatomy.Septum(name="Septum")
-        """Septum."""
-
-        self.left_ventricle.fiber = True
-        self.left_ventricle.active = True
-        self.right_ventricle.fiber = True
-        self.right_ventricle.active = True
-        self.septum.fiber = True
-        self.septum.active = True
-
-        super().__init__(working_directory=working_directory)
-        pass
-
-
-class FourChamber(HeartModel):
-    """Model of the left/right ventricle and left/right atrium."""
-
-    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: anatomy.Part = anatomy.Ventricle(name="Left ventricle")
-        """Left ventricle part."""
-        self.right_ventricle: anatomy.Part = anatomy.Ventricle(name="Right ventricle")
-        """Right ventricle part."""
-        self.septum: anatomy.Part = anatomy.Septum(name="Septum")
-        """Septum."""
-
-        self.left_atrium: anatomy.Part = anatomy.Atrium(name="Left atrium")
-        """Left atrium part."""
-        self.right_atrium: anatomy.Part = anatomy.Atrium(name="Right atrium")
-        """Right atrium part."""
-
-        self.left_ventricle.fiber = True
-        self.left_ventricle.active = True
-        self.right_ventricle.fiber = True
-        self.right_ventricle.active = True
-        self.septum.fiber = True
-        self.septum.active = True
-
-        self.left_atrium.fiber = False
-        self.left_atrium.active = False
-        self.right_atrium.fiber = False
-        self.right_atrium.active = False
-
-        super().__init__(working_directory=working_directory)
-
-        pass
-
-
 class FullHeart(FourChamber):
     """Model of both ventricles, both atria, the aorta, and the pulmonary artery."""
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: anatomy.Part = anatomy.Ventricle(name="Left ventricle")
+        self.left_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Left ventricle")
         """Left ventricle part."""
-        self.right_ventricle: anatomy.Part = anatomy.Ventricle(name="Right ventricle")
+        self.right_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Right ventricle")
         """Right ventricle part."""
-        self.septum: anatomy.Part = anatomy.Septum(name="Septum")
+        self.septum: anatomy.Septum = anatomy.Septum(name="Septum")
         """Septum."""
-        self.left_atrium: anatomy.Part = anatomy.Atrium(name="Left atrium")
+        self.left_atrium: anatomy.Atrium = anatomy.Atrium(name="Left atrium")
         """Left atrium part."""
-        self.right_atrium: anatomy.Part = anatomy.Atrium(name="Right atrium")
+        self.right_atrium: anatomy.Atrium = anatomy.Atrium(name="Right atrium")
         """Right atrium part."""
 
-        self.aorta: anatomy.Part = anatomy.Artery(name="Aorta")
+        self.aorta: anatomy.Artery = anatomy.Artery(name="Aorta")
         """Aorta part."""
-        self.pulmonary_artery: anatomy.Part = anatomy.Artery(name="Pulmonary artery")
+        self.pulmonary_artery: anatomy.Artery = anatomy.Artery(name="Pulmonary artery")
         """Pulmonary artery part."""
 
         self.left_ventricle.fiber = True
@@ -1805,5 +1788,3 @@ class FullHeart(FourChamber):
         self.pulmonary_artery.ep_material = EPMaterial.Insulator()
 
         super().__init__(working_directory=working_directory)
-
-        pass

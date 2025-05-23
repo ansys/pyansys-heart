@@ -848,10 +848,8 @@ class HeartModel:
         # TODO: init part by:
         # TODO: part = Part(part_1.name, PartType(part_info[part_1.name]["part-type"]))
         for part_1 in self.parts:
-            try:
-                list(part_info.keys()).index(part_1.name)
-            except ValueError:
-                LOGGER.warning(f"{part_1.name} is not in the part information.")
+            if part_1.name not in part_info:
+                LOGGER.warning(f"Skipping {part_1.name}. Not defined in the part information.")
                 continue
 
             #! try to add surfaces to part by using the pre-defined surfaces

@@ -92,27 +92,26 @@ def test_d3plot_reader_init_supported_versions():
 
 
 @pytest.mark.parametrize(
-    "fake_servers, expected",
+    "fake_servers, expected, raises",
     [
         (
             {ver: ver for ver in reversed(_SUPPORTED_DPF_SERVERS)},
             _SUPPORTED_DPF_SERVERS[0],
+            None,
         ),
         (
             {"abc": "server_abc"},
+            None,
             SupportedDPFServerNotFoundError,
         ),
     ],
 )
-def test_get_dpf_server(fake_servers, expected):
+def test_get_dpf_server(fake_servers, expected, raises):
     """Test getting the supported DPF server version."""
-    with mock.patch("ansys.dpf.core.server.available_servers") as mock_servers:
-        mock_servers.return_value = fake_servers
+    with mock.patch("ansys.dpf.core.server.available_servers", return_value=fake_servers):
+        if expected:
+            assert expected == _get_dpf_server()
 
-        if isinstance(expected, str):
-            version = _get_dpf_server()
-            assert version == expected
-
-        if isinstance(expected, Exception):
-            with pytest.raises(expected):
-                version = _get_dpf_server()
+        if raises:
+            with pytest.raises(raises):
+                _get_dpf_server()

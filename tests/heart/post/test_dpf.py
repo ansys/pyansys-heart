@@ -23,17 +23,19 @@
 """unit test for dpf utils."""
 
 import os
-
-os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
-
-
 import unittest.mock as mock
 
 import numpy as np
 import pytest
 
 from ansys.dpf import core as dpf
-from ansys.health.heart.post.dpf_utils import D3plotReader, ICVoutReader
+from ansys.health.heart.exceptions import SupportedDPFServerNotFoundError
+from ansys.health.heart.post.dpf_utils import (
+    _SUPPORTED_DPF_SERVERS,
+    D3plotReader,
+    ICVoutReader,
+    _get_dpf_server,
+)
 from tests.heart.conftest import get_assets_folder
 
 
@@ -76,14 +78,27 @@ def test_d3plot_reader2():
     assert d3plot.get_displacement_at(0.0).shape == (8598, 3)
 
 
-@pytest.mark.requires_dpf
-def test_d3plot_reader_init_supported_versions():
-    """Test d3plot reader init."""
-    fn = os.path.join(get_assets_folder(), "post", "main", "d3plot")
+@pytest.mark.parametrize(
+    "fake_servers, expected, raises",
+    [
+        (
+            {ver: ver for ver in reversed(_SUPPORTED_DPF_SERVERS)},
+            _SUPPORTED_DPF_SERVERS[0],
+            None,
+        ),
+        (
+            {"abc": "server_abc"},
+            None,
+            SupportedDPFServerNotFoundError,
+        ),
+    ],
+)
+def test_get_dpf_server(fake_servers, expected, raises):
+    """Test getting the supported DPF server version."""
+    with mock.patch("ansys.dpf.core.server.available_servers", return_value=fake_servers):
+        if expected:
+            assert expected == _get_dpf_server()
 
-    with mock.patch(
-        "ansys.health.heart.post.dpf_utils._SUPPORTED_DPF_SERVERS"
-    ) as mock_supported_versions:
-        mock_supported_versions.return_value = []
-        with pytest.raises(Exception):
-            D3plotReader(fn)
+        if raises:
+            with pytest.raises(raises):
+                _get_dpf_server()

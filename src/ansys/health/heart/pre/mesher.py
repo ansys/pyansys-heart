@@ -42,7 +42,7 @@ from ansys.health.heart.utils.vtk_utils import (
     cell_ids_inside_enclosed_surface,
 )
 
-_supported_fluent_versions = ["25.1", "24.2", "24.1"]
+_supported_fluent_versions = ["25.2", "25.1", "24.2", "24.1"]
 """List of supported Fluent versions."""
 _num_cpus: bool = 2
 """Number of CPUs to use for meshing."""

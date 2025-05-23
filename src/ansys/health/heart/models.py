@@ -1634,65 +1634,6 @@ class HeartModel:
 
         return part
 
-    def create_atrial_stiff_ring(self, radius: float = 2) -> None | anatomy.Part:
-        """Create a part for solids close to the atrial caps.
-
-        Notes
-        -----
-        Part created is passive and isotropic. The material must be defined.
-
-        Parameters
-        ----------
-        radius : foat, default: 2
-            Influence region.
-
-        Returns
-        -------
-        Union[None, anatomy.Part]
-            Part of atrial rings if created.
-        """
-        # TODO: @mhoeijm move this to FourChamber class
-        if not isinstance(self, FourChamber):
-            LOGGER.error("This method is only for the four-chamber heart model.")
-            return
-
-        # get ring cells from cap node list
-        ring_nodes = []
-        for cap in self.left_atrium.caps:
-            # update cap mesh with up-to-date mesh
-            cap._mesh = self.mesh.get_surface(cap._mesh.id)
-            if cap.type is not CapType.MITRAL_VALVE_ATRIUM:
-                ring_nodes.extend(cap.global_node_ids_edge.tolist())
-        for cap in self.right_atrium.caps:
-            # update cap mesh with up-to-date mesh
-            cap._mesh = self.mesh.get_surface(cap._mesh.id)
-            if cap.type is not CapType.TRICUSPID_VALVE_ATRIUM:
-                ring_nodes.extend(cap.global_node_ids_edge.tolist())
-
-        ring_eles = vtk_utils.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)
-        #! remove any non-tetrahedron elements
-        ring_eles = ring_eles[np.isin(ring_eles, self.mesh._global_tetrahedron_ids)]
-        # above search may create orphan elements, pick them to rings
-        self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
-        unselect_eles = np.setdiff1d(
-            np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)), ring_eles
-        )
-        largest = self.mesh.extract_cells(unselect_eles).connectivity(extraction_mode="largest")
-        connected_cells = largest["cell_ids"]
-        orphan_cells = np.setdiff1d(unselect_eles, connected_cells)
-        if len(orphan_cells) > 0:
-            ring_eles = np.hstack((ring_eles, orphan_cells))
-
-        # Create ring part
-        ring: anatomy.Part = self.create_part_by_ids(ring_eles, name="atrial stiff rings")
-        ring._part_type = anatomy._PartType.ATRIUM
-        ring.fiber = False
-        ring.active = False
-        # assign default EP material
-        ring.ep_material = EPMaterial.Active()
-
-        return ring
-
 
 class LeftVentricle(HeartModel):
     """Model of only the left ventricle."""
@@ -1763,6 +1704,60 @@ class FourChamber(HeartModel):
         super().__init__(working_directory=working_directory)
 
         pass
+
+    def create_atrial_stiff_ring(self, radius: float = 2) -> None | anatomy.Part:
+        """Create a part for solids close to the atrial caps.
+
+        Notes
+        -----
+        Part created is passive and isotropic. The material must be defined.
+
+        Parameters
+        ----------
+        radius : foat, default: 2
+            Influence region.
+
+        Returns
+        -------
+        Union[None, anatomy.Part]
+            Part of atrial rings if created.
+        """
+        # get ring cells from cap node list
+        ring_nodes = []
+        for cap in self.left_atrium.caps:
+            # update cap mesh with up-to-date mesh
+            cap._mesh = self.mesh.get_surface(cap._mesh.id)
+            if cap.type is not CapType.MITRAL_VALVE_ATRIUM:
+                ring_nodes.extend(cap.global_node_ids_edge.tolist())
+        for cap in self.right_atrium.caps:
+            # update cap mesh with up-to-date mesh
+            cap._mesh = self.mesh.get_surface(cap._mesh.id)
+            if cap.type is not CapType.TRICUSPID_VALVE_ATRIUM:
+                ring_nodes.extend(cap.global_node_ids_edge.tolist())
+
+        ring_eles = vtk_utils.find_cells_close_to_nodes(self.mesh, ring_nodes, radius=radius)
+        #! remove any non-tetrahedron elements
+        ring_eles = ring_eles[np.isin(ring_eles, self.mesh._global_tetrahedron_ids)]
+        # above search may create orphan elements, pick them to rings
+        self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
+        unselect_eles = np.setdiff1d(
+            np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)), ring_eles
+        )
+        largest = self.mesh.extract_cells(unselect_eles).connectivity(extraction_mode="largest")
+        connected_cells = largest["cell_ids"]
+        orphan_cells = np.setdiff1d(unselect_eles, connected_cells)
+        if len(orphan_cells) > 0:
+            ring_eles = np.hstack((ring_eles, orphan_cells))
+
+        # Create ring part
+        ring: anatomy.Part = self.create_part_by_ids(ring_eles, name="atrial stiff rings")
+        ring._part_type = anatomy._PartType.ATRIUM
+        ring.fiber = False
+        ring.active = False
+        # assign default EP material
+        ring.ep_material = EPMaterial.Active()
+
+        return ring
 
 
 class FullHeart(FourChamber):

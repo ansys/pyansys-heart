@@ -35,7 +35,7 @@ from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import SupportedDPFServerNotFoundError
 from ansys.health.heart.models import HeartModel
 
-_SUPPORTED_DPF_SERVERS = ["2024.1", "2024.1rc1", "2024.2rc0"]
+_SUPPORTED_DPF_SERVERS = ["2025.2", "2024.1", "2024.1rc1", "2024.2rc0"]
 """List of supported DPF servers."""
 #! NOTE:
 #! 2024.1rc0: not supported due to missing ::tf operator
@@ -54,6 +54,29 @@ def _check_accept_dpf():
     return
 
 
+def _get_dpf_server():
+    """Get the DPF server."""
+    server = None
+
+    # sort available servers from latest to oldest version.
+    available_dpf_servers = dict(reversed(dpf.server.available_servers().items()))
+    LOGGER.info(f"Available DPF Servers: {available_dpf_servers.keys()}")
+
+    for version, available_server in available_dpf_servers.items():
+        if version in _SUPPORTED_DPF_SERVERS:
+            LOGGER.info(f"Trying to launch DPF server {version}.")
+            server = available_server
+            break
+
+    if server is None:
+        mess = f"""Failed to launch supported DPF server:
+                    Make sure one of {_SUPPORTED_DPF_SERVERS} is installed."""
+        LOGGER.error(mess)
+        raise SupportedDPFServerNotFoundError(mess)
+
+    return server
+
+
 class D3plotReader:
     """Use DPF to parse the d3plot."""
 
@@ -69,23 +92,7 @@ class D3plotReader:
         _check_accept_dpf()
 
         # TODO: retrieve version from docker
-        self._server = None
-
-        # sort available servers from latest to oldest version.
-        available_dpf_servers = dict(reversed(dpf.server.available_servers().items()))
-        LOGGER.info(f"Available DPF Servers: {available_dpf_servers.keys()}")
-
-        for version, server in available_dpf_servers.items():
-            if version in _SUPPORTED_DPF_SERVERS:
-                LOGGER.info(f"Trying to launch DPF server {version}.")
-                self._server = server()
-                break
-
-        if self._server is None:
-            mess = f"""Failed to launch supported DPF server:
-                        Make sure one of {_SUPPORTED_DPF_SERVERS} is installed."""
-            LOGGER.error(mess)
-            raise SupportedDPFServerNotFoundError(mess)
+        self._server = _get_dpf_server()
 
         self.ds = dpf.DataSources()
         self.ds.set_result_file_path(path, "d3plot")

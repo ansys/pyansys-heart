@@ -27,7 +27,7 @@ import json
 import os
 import pathlib
 import re
-from typing import List, Literal, Union
+from typing import List, Literal
 
 from deprecated import deprecated
 import numpy as np
@@ -384,7 +384,7 @@ class HeartModel:
             self._part_info.update(part._get_info())
         return self._part_info
 
-    def create_part_by_ids(self, eids: List[int], name: str) -> Union[None, anatomy.Part]:
+    def create_part_by_ids(self, eids: List[int], name: str) -> None | anatomy.Part:
         """Create a part by element IDs.
 
         Parameters
@@ -599,7 +599,7 @@ class HeartModel:
 
         return
 
-    def get_part(self, name: str, by_substring: bool = False) -> Union[anatomy.Part, None]:
+    def get_part(self, name: str, by_substring: bool = False) -> anatomy.Part | None:
         """Get a specific part based on a part name."""
         found = False
         for part in self.parts:
@@ -872,7 +872,6 @@ class HeartModel:
                 ).flatten()
             except Exception as e:
                 LOGGER.warning(f"Failed to set element IDs for {part_1.name}. {e}")
-                pass
 
             # try to initialize cavity object.
             if isinstance(part_1, anatomy.Chamber):
@@ -1565,7 +1564,8 @@ class LeftVentricle(HeartModel):
         self.left_ventricle.active = True
 
         super().__init__(working_directory=working_directory)
-        pass
+
+        return
 
 
 class BiVentricle(HeartModel):
@@ -1587,7 +1587,6 @@ class BiVentricle(HeartModel):
         self.septum.active = True
 
         super().__init__(working_directory=working_directory)
-        pass
 
 
 class FourChamber(HeartModel):
@@ -1620,9 +1619,7 @@ class FourChamber(HeartModel):
 
         super().__init__(working_directory=working_directory)
 
-        pass
-
-    def _create_atrioventricular_isolation(self) -> Union[None, anatomy.Part]:
+    def _create_atrioventricular_isolation(self) -> None | anatomy.Part:
         """
         Extract a layer of element to isolate between the ventricles and atrium.
 
@@ -1795,5 +1792,3 @@ class FullHeart(FourChamber):
         self.pulmonary_artery.ep_material = EPMaterial.Insulator()
 
         super().__init__(working_directory=working_directory)
-
-        pass

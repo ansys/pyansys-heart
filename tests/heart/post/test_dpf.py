@@ -105,14 +105,14 @@ def test_d3plot_reader_init_supported_versions():
     ],
 )
 def test_get_dpf_server(fake_servers, expected):
+    """Test getting the supported DPF server version."""
     with mock.patch("ansys.dpf.core.server.available_servers") as mock_servers:
-        # The function should return the first version in _SUPPORTED_DPF_SERVERS
         mock_servers.return_value = fake_servers
 
         if isinstance(expected, str):
             version = _get_dpf_server()
             assert version == expected
 
-        else:
+        if isinstance(expected, Exception):
             with pytest.raises(expected):
                 version = _get_dpf_server()

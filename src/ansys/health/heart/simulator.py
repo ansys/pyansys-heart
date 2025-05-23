@@ -50,7 +50,7 @@ import pyvista as pv
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import LSDYNANotFoundError, LSDYNATerminationError
-from ansys.health.heart.models import FourChamber, HeartModel, LeftVentricle
+import ansys.health.heart.models as models
 from ansys.health.heart.models_utils import HeartModelUtils
 from ansys.health.heart.objects import SurfaceMesh
 from ansys.health.heart.post.auto_process import mech_post, zerop_post
@@ -74,7 +74,7 @@ class BaseSimulator:
 
     def __init__(
         self,
-        model: HeartModel,
+        model: models.FullHeart | models.FourChamber | models.BiVentricle | models.LeftVentricle,
         dyna_settings: DynaSettings = None,
         simulation_directory: pathlib = "",
     ) -> None:
@@ -90,7 +90,7 @@ class BaseSimulator:
             Directory to start the simulation in.
 
         """
-        self.model: HeartModel = model
+        self.model = model
         """Heart model to simulate."""
         if not dyna_settings:
             LOGGER.warning("Setting default LS-DYNA settings.")
@@ -172,7 +172,7 @@ class BaseSimulator:
         grid = compute_ventricle_fiber_by_drbm(
             export_directory,
             settings=rotation_angles,
-            left_only=isinstance(self.model, LeftVentricle),
+            left_only=isinstance(self.model, models.LeftVentricle),
         )
         grid.save(os.path.join(export_directory, "drbm_fibers.vtu"))
 
@@ -413,7 +413,7 @@ class EPSimulator(BaseSimulator):
 
     def __init__(
         self,
-        model: HeartModel,
+        model: models.FullHeart | models.FourChamber | models.BiVentricle | models.LeftVentricle,
         dyna_settings: DynaSettings,
         simulation_directory: pathlib = "",
     ) -> None:
@@ -489,7 +489,7 @@ class EPSimulator(BaseSimulator):
             model=self.model,
         )
 
-        if isinstance(self.model, LeftVentricle):
+        if isinstance(self.model, models.LeftVentricle):
             self.model.assign_conduction_paths([left_purkinje])
             return left_purkinje
         else:
@@ -505,7 +505,7 @@ class EPSimulator(BaseSimulator):
 
     def compute_conduction_system(self):
         """Compute the conduction system."""
-        if isinstance(self.model, FourChamber):
+        if isinstance(self.model, models.FourChamber):
             # TODO: refinement is not correctly used
             # beam_length = self.settings.purkinje.edgelen.m
 
@@ -557,7 +557,7 @@ class MechanicsSimulator(BaseSimulator):
 
     def __init__(
         self,
-        model: HeartModel,
+        model: models.FullHeart | models.FourChamber | models.BiVentricle | models.LeftVentricle,
         dyna_settings: DynaSettings,
         simulation_directory: pathlib = "",
         initial_stress: bool = True,
@@ -720,7 +720,7 @@ class MechanicsSimulator(BaseSimulator):
 
         model = copy.deepcopy(self.model)
         # Isolation part need to be created in Zerop because main will use its dynain.lsda
-        if isinstance(model, FourChamber) and isinstance(self, EPMechanicsSimulator):
+        if isinstance(model, models.FourChamber) and isinstance(self, EPMechanicsSimulator):
             model._create_atrioventricular_isolation()
 
         dyna_writer = writers.ZeroPressureMechanicsDynaWriter(model, self.settings)
@@ -735,7 +735,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
 
     def __init__(
         self,
-        model: HeartModel,
+        model: models.FullHeart | models.FourChamber | models.BiVentricle | models.LeftVentricle,
         dyna_settings: DynaSettings,
         simulation_directory: pathlib = "",
     ) -> None:

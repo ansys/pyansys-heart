@@ -137,10 +137,7 @@ class HeartModel:
     @property
     def part_names(self) -> list[str]:
         """List of part names."""
-        part_names = []
-        for part in self.parts:
-            part_names.append(part.name)
-        return part_names
+        return [part.name for part in self.parts]
 
     @property
     def part_ids(self) -> list[int]:
@@ -231,8 +228,7 @@ class HeartModel:
         """List of cap centroids."""
         return [
             Point(name=c.name + "_center", xyz=c.centroid, node_id=c.global_centroid_id)
-            for p in self.parts
-            for c in p.caps
+            for c in self.all_caps
         ]
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:

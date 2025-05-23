@@ -381,7 +381,7 @@ class HeartModel:
     def _get_parts_info(self):
         """Get the ID to the model map that allows reconstructing the model from a mesh object."""
         for part in self.parts:
-            self._part_info.update(part._get_info())
+            self._part_info.update(part._to_dict())
         return self._part_info
 
     def create_part_by_ids(self, eids: List[int], name: str) -> Union[None, anatomy.Part]:
@@ -870,7 +870,6 @@ class HeartModel:
                 ).flatten()
             except Exception:
                 LOGGER.warning(f"Failed to set element IDs for {part_1.name}.")
-                pass
 
             # try to initialize cavity object.
             if isinstance(part_1, anatomy.Chamber):

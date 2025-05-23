@@ -104,11 +104,11 @@ class Part:
 
     def __str__(self) -> str:
         """Return a string representation of the part."""
-        return yaml.dump(self._get_info(), indent=4)
+        return yaml.dump(self._to_dict(), indent=4)
 
-    def _get_info(self):
+    def _to_dict(self) -> dict:
         """Get part information to reconstruct from a mesh file."""
-        info = {
+        data = {
             self.name: {
                 "part-id": self.pid,
                 "part-type": self._part_type.value,
@@ -116,27 +116,27 @@ class Part:
             }
         }
 
-        info2 = {}
-        info2["surfaces"] = {}
+        data2 = {}
+        data2["surfaces"] = {}
 
         for surface in self.surfaces:
             if isinstance(surface, SurfaceMesh):
                 if surface.id:
-                    info2["surfaces"][surface.name] = surface.id
+                    data2["surfaces"][surface.name] = surface.id
 
         if hasattr(self, "caps"):
-            info2["caps"] = {}
+            data2["caps"] = {}
             for cap in self.caps:
-                info2["caps"][cap.name] = cap._mesh.id
+                data2["caps"][cap.name] = cap._mesh.id
 
         if hasattr(self, "cavity"):
-            info2["cavity"] = {}
+            data2["cavity"] = {}
             if self.cavity is not None:
-                info2["cavity"][self.cavity.surface.name] = self.cavity.surface.id
+                data2["cavity"][self.cavity.surface.name] = self.cavity.surface.id
 
-        info[self.name].update(info2)
+        data[self.name].update(data2)
 
-        return info
+        return data
 
 
 class Septum(Part):

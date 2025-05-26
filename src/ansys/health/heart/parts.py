@@ -27,7 +27,6 @@ heart structures.
 """
 
 from enum import Enum
-from typing import List
 
 import numpy as np
 import yaml
@@ -53,7 +52,7 @@ class Part:
     """Base part class."""
 
     @property
-    def surfaces(self) -> List[SurfaceMesh]:
+    def surfaces(self) -> list[SurfaceMesh]:
         """List of surfaces belonging to the part."""
         surfaces = []
         for key, value in self.__dict__.items():
@@ -62,14 +61,14 @@ class Part:
         return surfaces
 
     @property
-    def surface_names(self) -> List[str]:
+    def surface_names(self) -> list[str]:
         """List of surface names belonging to the part."""
         surface_names = []
         for surface in self.surfaces:
             surface_names.append(surface.name)
         return surface_names
 
-    def get_point(self, pointname: str) -> Point:
+    def get_point(self, pointname: str) -> Point | None:
         """Get a point from the part."""
         for point in self.points:
             if point.name == pointname:
@@ -78,17 +77,17 @@ class Part:
         return None
 
     def __init__(self, name: str = None, part_type: _PartType = _PartType.UNDEFINED) -> None:
-        self.name = name
+        self.name: str = name
         """Part name."""
-        self.pid = None
+        self.pid: int | None = None
         """Part ID."""
-        self.mid = None
+        self.mid: int | None = None
         """Material ID associated with the part."""
         self._part_type: _PartType = part_type
         """Type of the part."""
         self.element_ids: np.ndarray = np.empty((0, 4), dtype=int)
         """Array holding element IDs that make up the part."""
-        self.points: List[Point] = []
+        self.points: list[Point] = []
         """Points of interest belonging to the part."""
 
         self.fiber: bool = False
@@ -142,28 +141,26 @@ class Part:
 class Septum(Part):
     """Septum part."""
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str = None) -> None:
         super().__init__(name=name, part_type=_PartType.SEPTUM)
 
 
 class Chamber(Part):
     """Intermediate class for heart chambers with endocardium and epicardium."""
 
-    def __init__(self, name: str = None, part_type: _PartType = None):
+    def __init__(self, name: str = None, part_type: _PartType = None) -> None:
         super().__init__(name=name, part_type=part_type)
-        self.endocardium = SurfaceMesh(name=f"{self.name} endocardium")
+        self.endocardium: SurfaceMesh = SurfaceMesh(name=f"{self.name} endocardium")
         """Endocardial surface."""
-        self.epicardium = SurfaceMesh(name=f"{self.name} epicardium")
+        self.epicardium: SurfaceMesh = SurfaceMesh(name=f"{self.name} epicardium")
         """Epicardial surface."""
-        self.septum = SurfaceMesh(name="{0} endocardium septum".format(self.name))
-        """Septal surface."""
 
-        self.myocardium = Myocardium(name="myocardium")
+        self.myocardium: Myocardium = Myocardium(name="myocardium")
         """Myocardial part."""
 
         self.caps: list[Cap] = []
         """List of caps belonging to the part."""
-        self.cavity: Cavity = None
+        self.cavity: Cavity | None = None
         """Cavity belonging to the part."""
 
         self.active: bool = True
@@ -175,8 +172,11 @@ class Chamber(Part):
 class Ventricle(Chamber):
     """Ventricle part."""
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str = None) -> None:
         super().__init__(name=name, part_type=_PartType.VENTRICLE)
+
+        self.septum: SurfaceMesh = SurfaceMesh(name="{0} endocardium septum".format(self.name))
+        """Septal surface."""
 
         self.apex_points: list[Point] = []
         """List of apex points."""
@@ -185,21 +185,21 @@ class Ventricle(Chamber):
 class Atrium(Chamber):
     """Atrium part."""
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str = None) -> None:
         super().__init__(name=name, part_type=_PartType.ATRIUM)
 
 
 class Artery(Part):
     """Artery part."""
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str = None) -> None:
         super().__init__(name=name, part_type=_PartType.ARTERY)
 
-        self.wall = SurfaceMesh(name="{0} wall".format(self.name))
+        self.wall: SurfaceMesh = SurfaceMesh(name="{0} wall".format(self.name))
 
 
 class Myocardium(Part):
     """Myocardium part."""
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str = None) -> None:
         super().__init__(name=name, part_type=_PartType.MYOCARDIUM)

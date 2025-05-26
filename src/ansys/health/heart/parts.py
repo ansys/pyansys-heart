@@ -155,8 +155,6 @@ class Chamber(Part):
         """Endocardial surface."""
         self.epicardium = SurfaceMesh(name=f"{self.name} epicardium")
         """Epicardial surface."""
-        self.septum = SurfaceMesh(name="{0} endocardium septum".format(self.name))
-        """Septal surface."""
 
         self.myocardium = Myocardium(name="myocardium")
         """Myocardial part."""
@@ -177,6 +175,9 @@ class Ventricle(Chamber):
 
     def __init__(self, name: str = None):
         super().__init__(name=name, part_type=_PartType.VENTRICLE)
+
+        self.septum = SurfaceMesh(name="{0} endocardium septum".format(self.name))
+        """Septal surface."""
 
         self.apex_points: list[Point] = []
         """List of apex points."""

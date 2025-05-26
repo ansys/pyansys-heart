@@ -104,9 +104,9 @@ class Part:
 
     def __str__(self) -> str:
         """Return a string representation of the part."""
-        return yaml.dump(self._get_info(), indent=4)
+        return yaml.dump(self._to_dict(), indent=4)
 
-    def _get_info(self):
+    def _to_dict(self):
         """Get part information to reconstruct from a mesh file."""
         info = {
             self.name: {

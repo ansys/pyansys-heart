@@ -54,7 +54,7 @@ def test_part_get_info(cls, name, expected_keys):
     """Test getting part info for each of the Part classes."""
     part: Part = cls(name)
 
-    info = part._get_info()
+    info = part._to_dict()
 
     assert list(info[name].keys()) == expected_keys
 
@@ -81,7 +81,7 @@ def test_part_get_info_with_data():
         )
     )
 
-    info = part._get_info()
+    info = part._to_dict()
 
     assert info["Part1"]["part-id"] == 1
     assert info["Part1"]["part-type"] == _PartType.VENTRICLE.value

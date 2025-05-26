@@ -109,9 +109,7 @@ def test_model_part_names(model_type, expected_part_names):
     assert model.part_names == expected_part_names
 
 
-def test_load_from_mesh():
-    """Test loading mesh from mesh file and id map."""
-    # generate a dummy mesh.
+def _get_test_model():
     #! Note, can modify to create something more meaningful,
     #! e.g. a sphere with inner/outer surface and caps.
     mesh = Mesh()
@@ -135,35 +133,44 @@ def test_load_from_mesh():
     mesh._surface_id_to_name[4] = "aortic-valve"
     mesh._surface_id_to_name[5] = "Left ventricle cavity"
 
+    part_info = {
+        "Left ventricle": {
+            "part-id": 10,
+            "part-type": _PartType.VENTRICLE.value,
+            "surfaces": {"Left ventricle endocardium": 1},
+            "caps": {"mitral-valve": 3, "aortic-valve": 4},
+            "cavity": {"Left ventricle endocardium": 1},
+        },
+        "Right ventricle": {
+            "part-id": 11,
+            "part-type": _PartType.VENTRICLE.value,
+            "surfaces": {"Right ventricle epicardium": 1},
+            "caps": {},
+            "cavity": {},
+        },
+        "Septum": {
+            "part-id": 12,
+            "part-type": _PartType.SEPTUM.value,
+            "surfaces": {},
+            "caps": {},
+            "cavity": {},
+        },
+    }
+
+    return mesh, part_info
+
+
+def test_load_from_mesh():
+    """Test loading mesh from mesh file and id map."""
+    # generate a dummy mesh.
+
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
         mesh_path = os.path.join(tmpdir, "mesh.vtu")
 
+        mesh, part_info = _get_test_model()
+
         mesh.save(mesh_path)
         model = models.BiVentricle(working_directory=tmpdir)
-
-        part_info = {
-            "Left ventricle": {
-                "part-id": 10,
-                "part-type": _PartType.VENTRICLE.value,
-                "surfaces": {"Left ventricle endocardium": 1},
-                "caps": {"mitral-valve": 3, "aortic-valve": 4},
-                "cavity": {"Left ventricle endocardium": 1},
-            },
-            "Right ventricle": {
-                "part-id": 11,
-                "part-type": _PartType.VENTRICLE.value,
-                "surfaces": {"Right ventricle epicardium": 1},
-                "caps": {},
-                "cavity": {},
-            },
-            "Septum": {
-                "part-id": 12,
-                "part-type": _PartType.SEPTUM.value,
-                "surfaces": {},
-                "caps": {},
-                "cavity": {},
-            },
-        }
 
         part_info_path = os.path.join(tmpdir, "partinfo.json")
         with open(part_info_path, "w") as f:

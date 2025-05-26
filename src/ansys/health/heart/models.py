@@ -774,7 +774,7 @@ class HeartModel:
             LOGGER.warning("Failed to plot the mesh.")
         return
 
-    def save_model(self, filename: str) -> tuple[str | pathlib.Path, str | pathlib.Path]:
+    def save_model(self, filename: str) -> tuple[str, str]:
         """Save the model and necessary information to reconstruct.
 
         Parameters

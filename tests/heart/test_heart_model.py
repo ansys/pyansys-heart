@@ -55,15 +55,22 @@ def test_set_workdir():
         assert workdir == os.path.join(tempdir, "test2")
 
 
-def test_dump_model_001():
+def test_save_model():
     """Test dumping of model to disk."""
 
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         model = models.BiVentricle(working_directory=workdir)
 
-        expected_path = os.path.join(os.path.join(workdir, "test.vtu"))
-        model.save_model(os.path.join(workdir, "test.vtu"))
-        assert os.path.isfile(expected_path)
+        expected_mesh_path = os.path.join(os.path.join(workdir, "test.vtu"))
+        expected_info_path = os.path.join(os.path.join(workdir, "test.partinfo.json"))
+
+        mesh_path, info_path = model.save_model(os.path.join(workdir, "test.vtu"))
+
+        assert mesh_path == expected_mesh_path
+        assert info_path == expected_info_path
+
+        assert os.path.isfile(expected_mesh_path)
+        assert os.path.isfile(expected_info_path)
 
 
 @pytest.mark.parametrize(

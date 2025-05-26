@@ -774,13 +774,18 @@ class HeartModel:
             LOGGER.warning("Failed to plot the mesh.")
         return
 
-    def save_model(self, filename: str):
+    def save_model(self, filename: str) -> tuple[str | pathlib.Path, str | pathlib.Path]:
         """Save the model and necessary information to reconstruct.
 
         Parameters
         ----------
         filename : str
             Path to the model.
+
+        Returns
+        -------
+        tuple[str | pathlib.Path, str | pathlib.Path]
+            Path to the mesh and partinfo files.
 
         Notes
         -----
@@ -796,17 +801,17 @@ class HeartModel:
         extension = pathlib.Path(filename).suffix
         if extension != "":
             mesh_path = filename.replace(extension, ".vtu")
-            map_path = filename.replace(extension, ".partinfo.json")
+            info_path = filename.replace(extension, ".partinfo.json")
         else:
             mesh_path = filename + ".vtu"
-            map_path = filename + ".partinfo.json"
+            info_path = filename + ".partinfo.json"
 
         self.mesh.save(mesh_path)
 
-        with open(map_path, "w") as f:
+        with open(info_path, "w") as f:
             json.dump(self._get_parts_info(), f, indent=4)
 
-        return
+        return mesh_path, info_path
 
     # TODO: could consider having this as a static method.
     # TODO: Right now this only reconstructs the surfaces and parts that

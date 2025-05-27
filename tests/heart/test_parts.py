@@ -38,16 +38,20 @@ from ansys.health.heart.parts import (
 @pytest.mark.parametrize(
     "cls, name, expected_keys",
     [
-        (Part, "Part", ["part-id", "part-type", "surfaces"]),
-        (Septum, "Septum", ["part-id", "part-type", "surfaces"]),
-        (Artery, "Artery", ["part-id", "part-type", "surfaces"]),
-        (Myocardium, "Myocardium", ["part-id", "part-type", "surfaces"]),
+        (Part, "Part", ["part-id", "part-type", "fiber", "active", "surfaces"]),
+        (Septum, "Septum", ["part-id", "part-type", "fiber", "active", "surfaces"]),
+        (Artery, "Artery", ["part-id", "part-type", "fiber", "active", "surfaces"]),
+        (Myocardium, "Myocardium", ["part-id", "part-type", "fiber", "active", "surfaces"]),
         (
             Ventricle,
             "Ventricle",
-            ["part-id", "part-type", "surfaces", "caps", "cavity"],
+            ["part-id", "part-type", "fiber", "active", "surfaces", "caps", "cavity"],
         ),
-        (Atrium, "Atrium", ["part-id", "part-type", "surfaces", "caps", "cavity"]),
+        (
+            Atrium,
+            "Atrium",
+            ["part-id", "part-type", "fiber", "active", "surfaces", "caps", "cavity"],
+        ),
     ],
 )
 def test_part_get_info(cls, name, expected_keys):
@@ -88,3 +92,53 @@ def test_part_get_info_with_data():
     assert info["Part1"]["surfaces"] == {"tube1": 10, "tube2": 11}
     assert info["Part1"]["caps"] == {"cap1": 100, "cap2": 101}
     assert info["Part1"]["cavity"] == {"cavity1": 1000}
+
+
+@pytest.mark.parametrize(
+    "part_type,expected_class,surfaces",
+    [
+        ("septum", Septum, {}),
+        ("ventricle", Ventricle, {"endocardium": 1, "epicardium": 2, "septum": 3}),
+        ("atrium", Atrium, {"endocardium": 1, "epicardium": 2}),
+        ("artery", Artery, {"wall": 1}),
+        ("myocardium", Myocardium, {}),
+        ("myocardium", Myocardium, {}),
+    ],
+)
+def test_set_from_dict_subclasses(part_type, expected_class, surfaces):
+    part_name = f"test_{part_type}"
+    test_dict = {
+        part_name: {
+            "part-id": 42,
+            "active": True,
+            "fiber": True,
+            "part-type": part_type,
+            "surfaces": surfaces,
+        }
+    }
+
+    part = Part._set_from_dict(test_dict)
+
+    assert isinstance(part, expected_class)
+    assert part.name == part_name
+    assert part.pid == 42
+    assert part.active is True
+    assert part.fiber is True
+
+    if surfaces != {}:
+        for surface_name, surface_id in surfaces.items():
+            assert hasattr(part, surface_name)
+            surface = getattr(part, surface_name)
+            assert isinstance(surface, SurfaceMesh)
+            assert surface.id == surface_id
+
+
+def test_set_from_dict_invalid_type():
+    assert Part._set_from_dict("not a dict") is None
+
+
+def test_set_from_dict_missing_part_type():
+    part_name = "test_missing_part_type"
+    test_dict = {part_name: {"part-id": 99, "surfaces": {"endo": 10}}}
+    with pytest.raises(KeyError):
+        Part._set_from_dict(test_dict)

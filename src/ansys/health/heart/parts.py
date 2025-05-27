@@ -26,6 +26,8 @@ Each class extends the base Part class and provides specialized attributes for d
 heart structures.
 """
 
+from __future__ import annotations
+
 from enum import Enum
 
 import numpy as np
@@ -111,6 +113,8 @@ class Part:
             self.name: {
                 "part-id": self.pid,
                 "part-type": self._part_type.value,
+                "fiber": self.fiber,
+                "active": self.active,
                 "surfaces": {},
             }
         }
@@ -136,6 +140,65 @@ class Part:
         data[self.name].update(data2)
 
         return data
+
+    def _get_allowed_surfaces(self) -> list[str]:
+        """Get a list of allowed attributes for the part."""
+        return [key for key, value in self.__dict__.items() if isinstance(value, SurfaceMesh)]
+
+    @staticmethod
+    def _set_from_dict(
+        data: dict,
+    ) -> Part | Septum | Chamber | Ventricle | Atrium | Artery | Myocardium:
+        """Reconstruct a part from a dictionary.
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary that describes the part in JSON format.
+
+        Returns
+        -------
+        Part | Septum | Chamber | Ventricle | Atrium | Artery | Myocardium
+            Reconstructed part.
+        """
+        if not isinstance(data, dict):
+            LOGGER.error("Data must be a dictionary.")
+            return None
+
+        name = next(iter(data), None)
+
+        part_data = data[name]
+        _part_type: str = _PartType(part_data.get("part-type", _PartType.UNDEFINED.value))
+
+        _part_type_to_class_map = {
+            _PartType.SEPTUM: Septum,
+            _PartType.VENTRICLE: Ventricle,
+            _PartType.ATRIUM: Atrium,
+            _PartType.ARTERY: Artery,
+            _PartType.MYOCARDIUM: Myocardium,
+        }
+
+        part_cls = _part_type_to_class_map[_part_type]
+        part = part_cls(name=name)
+
+        # assign part id, active, fiber, and surfaces
+        part.pid = part_data.get("part-id", None)
+        part.active = part_data.get("active", False)
+        part.fiber = part_data.get("fiber", False)
+
+        for surface_name, surface_id in part_data.get("surfaces", {}).items():
+            if surface_name not in part._get_allowed_surfaces():
+                LOGGER.error(f"Surface {surface_name} is not allowed for part {name}.")
+                continue
+            surface = SurfaceMesh(name=surface_name)
+            surface.id = surface_id
+            setattr(part, surface_name, surface)
+
+        if isinstance(part, Chamber):
+            pass
+            # add cavities.
+
+        return part
 
 
 class Septum(Part):

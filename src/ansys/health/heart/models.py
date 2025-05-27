@@ -22,6 +22,8 @@
 
 """Module containing classes for the various heart models."""
 
+from __future__ import annotations
+
 import copy
 import json
 import os
@@ -115,8 +117,6 @@ def _set_workdir(workdir: pathlib.Path | str = None) -> str:
     if not os.path.isdir(workdir1):
         LOGGER.info(f"Creating {workdir1}")
         os.makedirs(workdir1, exist_ok=True)
-    else:
-        LOGGER.warning(f"Working directory {workdir1} already exists.")
 
     return workdir1
 
@@ -813,12 +813,140 @@ class HeartModel:
 
         return mesh_path, info_path
 
+    @staticmethod
+    def _load_model(
+        filename_mesh: str, filename_part_info: str, working_directory: pathlib.Path | str = None
+    ) -> FullHeart | FourChamber | BiVentricle | LeftVentricle:
+        """Load a heart model from an existing VTU file and part information dictionary.
+
+        Parameters
+        ----------
+        filename_mesh : str
+            Path to the VTU file containing the mesh.
+        filename_part_info : str
+            Path to the JSON file that contains the part information for reconstructing the model..
+        working_directory : pathlib.Path | str, default: None
+            Working directory.
+
+        Returns
+        -------
+        FullHeart | FourChamber | BiVentricle | LeftVentricle
+            A instance of HeartModel.
+
+        Raises
+        ------
+        InvalidHeartModelError
+            Error if the inferred heart model type is invalid.
+
+        Notes
+        -----
+        This method differs from the `load_model_from_mesh` method in that it
+        automatically infers the type of heart model based on the parts that
+        exist in part information. Hence no HeartModel instance needs to be created
+        before calling this method.
+
+        """
+        # open part info
+        with open(filename_part_info, "r") as f:
+            part_info: dict = json.load(f)
+
+        part_names = set(part_info.keys())
+
+        # infer type of model from the parts that exist in the model.
+        from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, LeftVentricle
+
+        if set(FullHeart().part_names).issubset(part_names):
+            modeltype = FullHeart
+        elif set(FourChamber().part_names).issubset(part_names):
+            modeltype = FourChamber
+        elif set(BiVentricle().part_names).issubset(part_names):
+            modeltype = BiVentricle
+        elif set(LeftVentricle().part_names).issubset(part_names):
+            modeltype = LeftVentricle
+        else:
+            msg = "Failed to infer the type of heart model from the part names."
+            LOGGER.error(msg)
+            raise InvalidHeartModelError(msg)
+
+        # Create an instance of the model
+        model = modeltype(working_directory)
+
+        # set the part info.
+        model._part_info = part_info
+
+        # set the mesh.
+        model.mesh = Mesh()
+        model.mesh.load_mesh(filename_mesh)
+        model.mesh = _convert_int64_to_int32(model.mesh, ["_volume-id", "_surface-id", "_line-id"])
+
+        # TODO: Refactor
+        for part_1 in model.parts:
+            info: dict = part_info.get(part_1.name)
+
+            if info is None:
+                LOGGER.warning(f"Skipping {part_1.name}. Not defined in the part information.")
+                continue
+
+            #! try to add surfaces to each part by using the pre-defined surfaces
+            for surface in part_1.surfaces:
+                surface1 = model.mesh.get_surface_by_name(surface.name)
+                if not surface1:
+                    continue
+                super(SurfaceMesh, surface).__init__(surface1)
+                surface.id = surface1.id
+
+            part_1.pid = info.get("part-id")
+
+            try:
+                part_1.element_ids = np.argwhere(
+                    np.isin(model.mesh.cell_data["_volume-id"], part_1.pid)
+                ).flatten()
+            except Exception:
+                LOGGER.warning(f"Failed to set element IDs for {part_1.name}.")
+
+            # try to initialize cavity object.
+            if isinstance(part_1, anatomy.Chamber):
+                if info.get("cavity", {}) != {}:
+                    cavity_name, cavity_id = next(iter(info.get("cavity").items()))
+                    part_1.cavity = Cavity(
+                        surface=model.mesh.get_surface(cavity_id), name=cavity_name
+                    )
+
+                for cap_name, cap_id in info.get("caps", {}).items():
+                    #! note that we assume cap name equals cap type here.
+                    cap = Cap(cap_name, cap_type=CapType(cap_name))
+                    cap._mesh = model.mesh.get_surface(cap_id)
+                    part_1.caps.append(cap)
+
+        # TODO: add non-standard part by setattr(self, part_name_n, part)
+
+        # NOTE: #? add validation method to make sure all essential components are present?
+        try:
+            model._extract_apex()
+        except Exception:
+            LOGGER.warning("Failed to extract apex. Consider setting apex manually.")
+
+        if any(v is None for v in [model.short_axis, model.l4cv_axis, model.l2cv_axis]):
+            LOGGER.warning("Heart axis is not defined in the VTU file.")
+            try:
+                LOGGER.warning("Computing heart axis...")
+                model._define_anatomy_axis()
+            except Exception as e:
+                LOGGER.error(
+                    f"Failed to extract heart axis. Consider computing and setting manually. {e}"
+                )
+        else:
+            LOGGER.info("Reusing heart axis defined in the VTU file...")
+
+        return model
+
     # TODO: could consider having this as a static method.
     # TODO: Right now this only reconstructs the surfaces and parts that
     # TODO: are defined in the HeartModel classes:
     # TODO: LeftVentricle, BiVentricle, FourChamber and FullHeart.
     # TODO: Should consider to also reconstruct the parts that are not explicitly
     # TODO: defined in the class.
+    @deprecated(reason="Use `load_model` instead.")
     def load_model_from_mesh(self, filename_mesh: str, filename_part_info: str):
         """Load a model from an existing VTU file and part information dictionary.
 

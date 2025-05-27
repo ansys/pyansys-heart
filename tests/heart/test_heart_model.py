@@ -160,7 +160,57 @@ def _get_test_model():
     return mesh, part_info
 
 
-def test_load_from_mesh():
+def test_load_model():
+    """Test loading mesh from mesh file and id map."""
+    # generate a dummy mesh.
+
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
+        mesh_path = os.path.join(tmpdir, "mesh.vtu")
+
+        mesh, part_info = _get_test_model()
+
+        mesh.save(mesh_path)
+
+        part_info_path = os.path.join(tmpdir, "partinfo.json")
+        with open(part_info_path, "w") as f:
+            json.dump(part_info, f, indent=4)
+
+        with mock.patch("ansys.health.heart.models.HeartModel._extract_apex") as mock_extract_apex:
+            with mock.patch(
+                "ansys.health.heart.models.HeartModel._define_anatomy_axis"
+            ) as mock_define_axis:
+                model = models.HeartModel._load_model(mesh_path, part_info_path)
+
+                assert isinstance(model, models.BiVentricle)
+                assert model.mesh.n_cells == mesh.n_cells
+                assert model.mesh.n_points == mesh.n_points
+
+                assert model._part_info == part_info
+                mock_extract_apex.assert_called_once()
+                mock_define_axis.assert_called_once()
+
+        assert model.part_names == list(part_info.keys())
+
+        assert model.left_ventricle.element_ids.shape[0] == examples.load_tetbeam().n_cells
+        assert model.right_ventricle.element_ids.shape[0] == examples.load_tetbeam().n_cells
+        assert model.septum.element_ids.shape[0] == examples.load_tetbeam().n_cells
+
+        assert model.left_ventricle.endocardium.n_cells == pv.Sphere().n_cells
+        assert model.left_ventricle.endocardium.n_points == pv.Sphere().n_points
+
+        assert model.right_ventricle.epicardium.n_cells == pv.Box().n_cells
+        assert model.right_ventricle.epicardium.n_points == pv.Box().n_points
+
+        assert model.left_ventricle.caps[0]._mesh.n_cells == pv.Disc().n_cells
+        assert model.left_ventricle.caps[1]._mesh.n_cells == pv.Disc().n_cells
+
+        assert model.left_ventricle.cavity.surface.n_cells == pv.Sphere().n_cells
+        assert model.left_ventricle.cavity.surface.n_points == pv.Sphere().n_points
+
+    return
+
+
+def test_load_model_from_mesh():
     """Test loading mesh from mesh file and id map."""
     # generate a dummy mesh.
 

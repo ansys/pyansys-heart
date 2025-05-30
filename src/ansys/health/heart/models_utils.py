@@ -313,12 +313,12 @@ class HeartModelUtils:
         sa = HeartModelUtils.define_sino_atrial_node(model)
         av = HeartModelUtils.define_atrio_ventricular_node(model)
 
-        sa_av = ConductionPath.create_from_keypoints(
+        sa_av = ConductionPath.create_from_keypoints2(
             name=ConductionPathType.SAN_AVN,
             keypoints=[sa.xyz, av.xyz],
             id=3,
             base_mesh=model.right_atrium.endocardium,
-            connection="first",
+            pmj_range=(0, 1),
             line_length=None,
         )
 
@@ -353,17 +353,17 @@ class HeartModelUtils:
         )
         his_right.up_path = his_top
 
-        left_bundle = ConductionPath.create_from_keypoints(
+        left_bundle = ConductionPath.create_from_keypoints2(
             name=ConductionPathType.LEFT_BUNDLE_BRANCH,
             keypoints=[his_left_point.xyz, model.left_ventricle.apex_points[0].xyz],
             id=7,
             base_mesh=model.left_ventricle.endocardium,
-            connection="none",  # TODO: change to 'last'?
+            pmj_range=(0.5, 1),
             line_length=None,
         )
-        n_points = left_bundle.mesh.n_points
-        start_connect_id = int(n_points * 0.4)
-        left_bundle.is_connected[start_connect_id:-1] = 1
+        # n_points = left_bundle.mesh.n_points
+        # start_connect_id = int(n_points * 0.4)
+        # left_bundle.is_connected[start_connect_id:-1] = 1
         left_bundle.up_path = his_left
         left_bundle.down_path = left_purkinje
 

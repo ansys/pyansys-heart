@@ -249,6 +249,76 @@ class ConductionPath:
         return ConductionPath(name, path_mesh, id, is_connceted, under_surface)
 
     @staticmethod
+    def create_from_keypoints2(
+        name: ConductionPathType,
+        keypoints: list[np.ndarray],
+        id: int,
+        base_mesh: pv.PolyData | pv.UnstructuredGrid,
+        pmj_range: None | tuple = None,
+        line_length: float | None = 1.5,
+    ) -> ConductionPath:
+        """Create a conduction path on a base mesh through a set of keypoints."""
+        if isinstance(base_mesh, pv.PolyData):
+            under_surface = base_mesh
+            path_mesh = _create_path_on_surface0(keypoints, under_surface, line_length)
+
+        is_connceted = np.zeros(path_mesh.n_points)
+
+        if pmj_range is not None:
+            pmj_list = range(
+                int(np.ceil((pmj_range[0] + 0.001) * path_mesh.n_points)),  # avoid first node
+                int(np.floor((pmj_range[1] - 0.001) * path_mesh.n_points)),  # avoid last node
+                4,  # every 4 nodes on beam
+            )
+            points = path_mesh.points.copy()
+            lines = path_mesh.lines.copy().reshape(-1, 3)
+            orig_last_idx = len(points) - 1
+
+            new_points = []
+            new_lines = []
+            new_is_connected = []
+            for ii in pmj_list:
+                p0 = path_mesh.points[ii]
+                cell_id = under_surface.find_containing_cell(p0)
+                neighbour_ids = under_surface.get_cell(cell_id).point_ids
+                for i in range(len(neighbour_ids)):
+                    neigh_coord = under_surface.points[neighbour_ids[i]]
+                    new_points.append(neigh_coord)
+                    # The new point index will be len(points) + len(new_points) - 1
+                    new_idx = len(points) + len(new_points) - 1
+                    new_lines.append([2, ii, new_idx])
+                    new_is_connected.append(1)
+
+            # Add new points and lines
+            points = np.vstack([points, np.array(new_points)])
+            # Ensure last cell stay at last because it is assumed in merging method
+            lines = np.vstack([lines[0:-1], np.array(new_lines), lines[-1]])
+            is_connceted = np.concatenate([is_connceted, np.array(new_is_connected)])
+
+            # Swap last point in original points with last point in merged array
+            merged_last_idx = len(points) - 1
+            # Swap points
+            points[[orig_last_idx, merged_last_idx]] = points[[merged_last_idx, orig_last_idx]]
+
+            # Swap is_connceted
+            is_connceted[[orig_last_idx, merged_last_idx]] = is_connceted[
+                [merged_last_idx, orig_last_idx]
+            ]
+
+            # Update all references in lines
+            def swap_indices(arr, idx1, idx2):
+                arr[arr == idx1] = -1  # temp
+                arr[arr == idx2] = idx1
+                arr[arr == -1] = idx2
+
+            swap_indices(lines, orig_last_idx, merged_last_idx)
+
+            # Rebuild PolyData
+            path_mesh = pv.PolyData(points, lines=lines)
+
+        return ConductionPath(name, path_mesh, id, is_connceted, under_surface)
+
+    @staticmethod
     def create_from_k_file(
         name: ConductionPathType,
         k_file: str,
@@ -405,6 +475,49 @@ def _create_path_on_surface(
             path_points.append(point)
 
     path_points, mask = _refine_points(np.array(path_points), length=line_length)
+
+    path = pv.lines_from_points(path_points)
+    path.point_data["base_mesh_nodes"] = mask
+    return path
+
+
+def _create_path_on_surface0(
+    key_points: list[np.ndarray], surface: pv.PolyData, line_length: float
+) -> pv.PolyData:
+    cell_centers = surface.cell_centers().points
+
+    graph = nx.Graph()
+
+    for cell_id in range(surface.n_cells):
+        center = cell_centers[cell_id]
+        graph.add_node(cell_id, pos=center)
+
+        neighbors = surface.cell_neighbors(cell_id)
+
+        for neighbor_id in neighbors:
+            # distance is the weight
+            dist = np.linalg.norm(cell_centers[cell_id] - cell_centers[neighbor_id])
+            graph.add_edge(cell_id, neighbor_id, weight=dist)
+
+    path_points = []
+
+    for i in range(len(key_points) - 1):
+        start_cell = np.argmin(np.linalg.norm(cell_centers - key_points[i], axis=1))
+        end_cell = np.argmin(np.linalg.norm(cell_centers - key_points[i + 1], axis=1))
+
+        # Compute shortest path
+        path_cells = nx.shortest_path(graph, source=start_cell, target=end_cell, weight="weight")
+
+        # Get corresponding points
+        for point in cell_centers[path_cells]:
+            path_points.append(point)
+
+    path_points = np.array(path_points)
+    # # replace first and end points are on surface nodes
+    path_points[0] = surface.points[surface.find_closest_point(key_points[0])]
+    path_points[-1] = surface.points[surface.find_closest_point(key_points[-1])]
+
+    path_points, mask = _refine_points(path_points, length=line_length)
 
     path = pv.lines_from_points(path_points)
     path.point_data["base_mesh_nodes"] = mask

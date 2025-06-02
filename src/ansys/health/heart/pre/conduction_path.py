@@ -197,6 +197,54 @@ class ConductionPath:
         """Length of the conduction path."""
         return self.mesh.length
 
+    def add_pmj_path(
+        self, pmj_list: list[int], merge_with: Literal["node", "cell"] = "cell"
+    ) -> ConductionPath:
+        """Add PMJ (Purkinje-Myocardial Junction) to the current conduction path.
+
+        Parameters
+        ----------
+        pmj_list : list[int]
+            Point index to create pmj.
+        merge_with : Literal[&#39;node&#39;,&#39;cell&#39;], default: 'cell'
+              Whether to merge with neighbor node (1 split) or cell (3 split).
+
+        Returns
+        -------
+        ConductionPath
+            Updated conduction path.
+        """
+        new_points = []
+        new_lines = []
+        new_is_connected = []
+
+        for ii in pmj_list:
+            p0 = self.mesh.points[ii]
+            cell_id = self.relying_surface.find_containing_cell(p0)
+            neighbour_ids = self.relying_surface.get_cell(cell_id).point_ids
+
+            for i in range(len(neighbour_ids)):
+                neigh_coord = self.relying_surface.points[neighbour_ids[i]]
+                new_points.append(neigh_coord)
+                # The new point index will be len(points) + len(new_points) - 1
+                new_idx = self.relying_surface.n_points + len(new_points) - 1
+                new_lines.append([2, ii, new_idx])
+                new_is_connected.append(1)
+
+                if merge_with == "node":
+                    break  # stop with first node
+
+        pmj_mesh, is_connected = _line_merge(
+            self.mesh, new_points, new_lines, self.is_connected, new_is_connected
+        )
+
+        # Update self in-place
+        self.mesh = pmj_mesh
+        self.is_connected = is_connected
+        self._assign_data()
+
+        return self
+
     @staticmethod
     def create_from_keypoints(
         name: ConductionPathType,
@@ -270,34 +318,20 @@ class ConductionPath:
             path_mesh = _create_path_on_surface_center(keypoints, under_surface, line_length)
 
         is_connceted = np.zeros(path_mesh.n_points)
+        path = ConductionPath(name, path_mesh, id, is_connceted, under_surface)
 
         if pmj_range is not None:
-            pmj_list = range(
-                int(np.ceil((pmj_range[0] + 0.001) * path_mesh.n_points)),  # avoid first node
-                int(np.floor((pmj_range[1] - 0.001) * path_mesh.n_points)),  # avoid last node
-                4,  #  every 4 nodes of path
+            pmj_list = list(
+                range(
+                    int(np.ceil((pmj_range[0] + 0.001) * path_mesh.n_points)),  # avoid first node
+                    int(np.floor((pmj_range[1] - 0.001) * path_mesh.n_points)),  # avoid last node
+                    4,  #  every 4 nodes of path
+                )
             )
 
-            new_points = []
-            new_lines = []
-            new_is_connected = []
-            for ii in pmj_list:
-                p0 = path_mesh.points[ii]
-                cell_id = under_surface.find_containing_cell(p0)
-                neighbour_ids = under_surface.get_cell(cell_id).point_ids
-                for i in range(len(neighbour_ids)):  #  vary from 1 to 3, or more
-                    neigh_coord = under_surface.points[neighbour_ids[i]]
-                    new_points.append(neigh_coord)
-                    # The new point index will be len(points) + len(new_points) - 1
-                    new_idx = under_surface.n_points + len(new_points) - 1
-                    new_lines.append([2, ii, new_idx])
-                    new_is_connected.append(1)
+            path.add_pmj_path(pmj_list)
 
-            path_mesh, is_connceted = _line_merge(
-                path_mesh, new_points, new_lines, is_connceted, new_is_connected
-            )
-
-        return ConductionPath(name, path_mesh, id, is_connceted, under_surface)
+        return path
 
     @staticmethod
     def create_from_k_file(
@@ -400,7 +434,7 @@ def _line_merge(
     points = np.vstack([points, np.array(new_points)])
     # Ensure last cell stay at last because it is assumed in merging method
     lines = np.vstack([lines[0:-1], np.array(new_lines), lines[-1]])
-    is_connceted = np.concatenate([is_connected, np.array(new_is_connected)])
+    is_connected = np.concatenate([is_connected, np.array(new_is_connected)])
 
     # Swap last point in original points with last point in merged array
     merged_last_idx = len(points) - 1
@@ -408,7 +442,7 @@ def _line_merge(
     points[[orig_last_idx, merged_last_idx]] = points[[merged_last_idx, orig_last_idx]]
 
     # Swap is_connceted
-    is_connceted[[orig_last_idx, merged_last_idx]] = is_connceted[[merged_last_idx, orig_last_idx]]
+    is_connected[[orig_last_idx, merged_last_idx]] = is_connected[[merged_last_idx, orig_last_idx]]
 
     # Update all references in lines
     def swap_indices(arr, idx1, idx2):
@@ -421,7 +455,7 @@ def _line_merge(
     # Rebuild PolyData
     new_path = pv.PolyData(points, lines=lines)
 
-    return new_path, is_connceted
+    return new_path, is_connected
 
 
 def _fill_points(point_start: np.array, point_end: np.array, length: float) -> np.ndarray:

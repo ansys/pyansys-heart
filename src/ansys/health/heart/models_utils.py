@@ -358,7 +358,7 @@ class HeartModelUtils:
             keypoints=[his_left_point.xyz, model.left_ventricle.apex_points[0].xyz],
             id=7,
             base_mesh=model.left_ventricle.endocardium,
-            pmj_range=(0.5, 1),
+            pmj_range=(0.5, 0.9),
             line_length=None,
         )
         # n_points = left_bundle.mesh.n_points

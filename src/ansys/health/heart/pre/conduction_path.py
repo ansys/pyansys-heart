@@ -205,35 +205,42 @@ class ConductionPath:
         base_mesh: pv.PolyData | pv.UnstructuredGrid,
         connection: Literal["none", "first", "last", "all"] = "none",
         line_length: float | None = 1.5,
+        center: bool = False,
     ) -> ConductionPath:
         """Create a conduction path on a base mesh through a set of keypoints.
 
         Parameters
         ----------
-        name : ConductionPathType
-            Name of the conduction path.
-        keypoints : list[np.ndarray]
-            Keypoints used to construct the path on the base mesh.
-        id : int
-            ID of the conduction path.
-        base_mesh : pv.PolyData | pv.UnstructuredGrid
-            Base mesh where the conductionn path is created. If ``PolyData``, then the
-            result is a geodesic path on the surface. If ``pv.UnstructuredGrid``, then the
-            result the shortest path in the solid.
-        connection : Literal[&quot;none&quot;, &quot;first&quot;, &quot;last&quot;, &quot;all&quot;]
-        , default: "none"
-            Describes how the path is connected to the solid mesh.
-        line_length : float | None, default: 1.5
-            Length of line element in case of refinement.
+         name : ConductionPathType
+             Name of the conduction path.
+         keypoints : list[np.ndarray]
+             Keypoints used to construct the path on the base mesh.
+         id : int
+             ID of the conduction path.
+         base_mesh : pv.PolyData | pv.UnstructuredGrid
+             Base mesh where the conductionn path is created. If ``PolyData``, then the
+             result is a geodesic path on the surface. If ``pv.UnstructuredGrid``, then the
+             result the shortest path in the solid.
+         connection : Literal[&quot;none&quot;,
+                              &quot;first&quot;, &quot;last&quot;, &quot;all&quot;]
+         , default: "none"
+             Describes how the path is connected to the solid mesh.
+         line_length : float | None, default: 1.5
+             Length of line element in case of refinement.
+        center : bool, default: False
+             If True, geodesic path us on the center of surface cells.
 
         Returns
         -------
-        ConductionPath
-            Conduction path.
+         ConductionPath
+             Conduction path.
         """
         if isinstance(base_mesh, pv.PolyData):
             under_surface = base_mesh
-            path_mesh = _create_path_on_surface(keypoints, under_surface, line_length)
+            if center:
+                path_mesh = _create_path_on_surface_center(keypoints, under_surface, line_length)
+            else:
+                path_mesh = _create_path_on_surface(keypoints, under_surface, line_length)
         else:
             path_mesh, under_surface = _create_path_in_solid(keypoints, base_mesh, line_length)
 
@@ -260,7 +267,7 @@ class ConductionPath:
         """Create a conduction path on a base mesh through a set of keypoints."""
         if isinstance(base_mesh, pv.PolyData):
             under_surface = base_mesh
-            path_mesh = _create_path_on_surface0(keypoints, under_surface, line_length)
+            path_mesh = _create_path_on_surface_center(keypoints, under_surface, line_length)
 
         is_connceted = np.zeros(path_mesh.n_points)
 
@@ -268,11 +275,8 @@ class ConductionPath:
             pmj_list = range(
                 int(np.ceil((pmj_range[0] + 0.001) * path_mesh.n_points)),  # avoid first node
                 int(np.floor((pmj_range[1] - 0.001) * path_mesh.n_points)),  # avoid last node
-                4,  # every 4 nodes on beam
+                4,  #  every 4 nodes of path
             )
-            points = path_mesh.points.copy()
-            lines = path_mesh.lines.copy().reshape(-1, 3)
-            orig_last_idx = len(points) - 1
 
             new_points = []
             new_lines = []
@@ -281,40 +285,17 @@ class ConductionPath:
                 p0 = path_mesh.points[ii]
                 cell_id = under_surface.find_containing_cell(p0)
                 neighbour_ids = under_surface.get_cell(cell_id).point_ids
-                for i in range(len(neighbour_ids)):
+                for i in range(len(neighbour_ids)):  #  vary from 1 to 3, or more
                     neigh_coord = under_surface.points[neighbour_ids[i]]
                     new_points.append(neigh_coord)
                     # The new point index will be len(points) + len(new_points) - 1
-                    new_idx = len(points) + len(new_points) - 1
+                    new_idx = under_surface.n_points + len(new_points) - 1
                     new_lines.append([2, ii, new_idx])
                     new_is_connected.append(1)
 
-            # Add new points and lines
-            points = np.vstack([points, np.array(new_points)])
-            # Ensure last cell stay at last because it is assumed in merging method
-            lines = np.vstack([lines[0:-1], np.array(new_lines), lines[-1]])
-            is_connceted = np.concatenate([is_connceted, np.array(new_is_connected)])
-
-            # Swap last point in original points with last point in merged array
-            merged_last_idx = len(points) - 1
-            # Swap points
-            points[[orig_last_idx, merged_last_idx]] = points[[merged_last_idx, orig_last_idx]]
-
-            # Swap is_connceted
-            is_connceted[[orig_last_idx, merged_last_idx]] = is_connceted[
-                [merged_last_idx, orig_last_idx]
-            ]
-
-            # Update all references in lines
-            def swap_indices(arr, idx1, idx2):
-                arr[arr == idx1] = -1  # temp
-                arr[arr == idx2] = idx1
-                arr[arr == -1] = idx2
-
-            swap_indices(lines, orig_last_idx, merged_last_idx)
-
-            # Rebuild PolyData
-            path_mesh = pv.PolyData(points, lines=lines)
+            path_mesh, is_connceted = _line_merge(
+                path_mesh, new_points, new_lines, is_connceted, new_is_connected
+            )
 
         return ConductionPath(name, path_mesh, id, is_connceted, under_surface)
 
@@ -382,6 +363,65 @@ class ConductionPath:
         if merge_apex:
             is_connected[0] = 1
         return ConductionPath(name, path, id, is_connected, base_mesh)
+
+
+def _line_merge(
+    path: pv.PolyData,
+    new_points: np.ndarray,
+    new_lines: np.ndarray,
+    is_connected: np.ndarray,
+    new_is_connected: np.ndarray,
+) -> tuple[pv.PolyData, np.ndarray]:
+    """Merge new lines to path and keep the last line still at last.
+
+    Parameters
+    ----------
+    path : pv.PolyData
+        The original path mesh.
+    new_points : np.ndarray
+        Array of new points to add.
+    new_lines : np.ndarray
+        Array of new lines to add (shape: [n_lines, 3], where each row is [2, start_idx, end_idx]).
+    is_connected : np.ndarray
+        Array indicating which points in the original path are connected.
+    new_is_connected : np.ndarray
+        Array indicating which new points are connected.
+
+    Returns
+    -------
+    tuple[pv.PolyData, np.ndarray]
+        The merged path mesh and the updated is_connected array.
+    """
+    points = path.points.copy()
+    lines = path.lines.copy().reshape(-1, 3)
+    orig_last_idx = len(points) - 1
+
+    # Add new points and lines
+    points = np.vstack([points, np.array(new_points)])
+    # Ensure last cell stay at last because it is assumed in merging method
+    lines = np.vstack([lines[0:-1], np.array(new_lines), lines[-1]])
+    is_connceted = np.concatenate([is_connected, np.array(new_is_connected)])
+
+    # Swap last point in original points with last point in merged array
+    merged_last_idx = len(points) - 1
+    # Swap points
+    points[[orig_last_idx, merged_last_idx]] = points[[merged_last_idx, orig_last_idx]]
+
+    # Swap is_connceted
+    is_connceted[[orig_last_idx, merged_last_idx]] = is_connceted[[merged_last_idx, orig_last_idx]]
+
+    # Update all references in lines
+    def swap_indices(arr, idx1, idx2):
+        arr[arr == idx1] = -1  # temp
+        arr[arr == idx2] = idx1
+        arr[arr == -1] = idx2
+
+    swap_indices(lines, orig_last_idx, merged_last_idx)
+
+    # Rebuild PolyData
+    new_path = pv.PolyData(points, lines=lines)
+
+    return new_path, is_connceted
 
 
 def _fill_points(point_start: np.array, point_end: np.array, length: float) -> np.ndarray:
@@ -481,9 +521,25 @@ def _create_path_on_surface(
     return path
 
 
-def _create_path_on_surface0(
+def _create_path_on_surface_center(
     key_points: list[np.ndarray], surface: pv.PolyData, line_length: float
 ) -> pv.PolyData:
+    """Create a geodesic path between key points through the center.
+
+    Parameters
+    ----------
+    key_points : list[np.ndarray]
+        Points to be connected by the geodesic path.
+    surface : pv.PolyData
+        Surface on which the path is created.
+    refine_length : float
+        Length of the line element.
+
+    Returns
+    -------
+    pv.PolyData
+        Lines created by the geodesic path.
+    """
     cell_centers = surface.cell_centers().points
 
     graph = nx.Graph()

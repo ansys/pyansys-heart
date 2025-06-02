@@ -106,9 +106,10 @@ def test_create_conductionbeams_on_surface2():
         base_mesh=model.right_atrium.endocardium,
         pmj_range=(0.45, 1),
     )
-    sa_av.relying_surface.save("surface.vtp")
-    sa_av.mesh.save("path.vtp")
-    assert True
+
+    assert sa_av.mesh.lines.reshape(-1, 3)[-1, 1] == 45
+    assert sa_av.mesh.lines.reshape(-1, 3)[-1, 2] == 64
+    assert np.sum(sa_av.is_connected) == 18.0
 
 
 def test_create_conductionbeams_on_surface_with_refinement():

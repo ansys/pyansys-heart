@@ -40,12 +40,7 @@ from pathlib import Path
 
 import ansys.health.heart.models as models
 from ansys.health.heart.pre.database_utils import get_compatible_input
-
-# Use Fluent 2024 R1 for meshing
-import ansys.health.heart.pre.mesher as mesher
 from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
-
-mesher._fluent_version = "24.1"
 
 # specify a download directory
 download_folder = Path.home() / "pyansys-heart" / "downloads"

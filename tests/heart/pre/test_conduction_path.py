@@ -25,6 +25,7 @@
 import os
 
 import numpy as np
+import pytest
 import pyvista as pv
 
 from ansys.health.heart.models_utils import HeartModelUtils
@@ -254,3 +255,55 @@ def test_path_merge():
     assert np.array_equal(merged_is_connected, np.array([0, 1, 1, 0]))
     # The last point should be swapped with the original last point
     assert np.all(np.isclose(merged_mesh.points[-1], [2, 0, 0]), axis=-1)
+
+
+@pytest.fixture
+def simple_conduction_path():
+    # Create a simple surface mesh (triangle)
+    surface_points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]])
+    surface_faces = np.hstack([[3, 0, 1, 2]])
+    surface = pv.PolyData(surface_points, faces=surface_faces)
+
+    # Create a simple line mesh (2 points, 1 line)
+    line_points = np.array([[1, 1, 0], [0.3, 0.3, 0]])
+    line_lines = np.array([2, 0, 1])
+    mesh = pv.PolyData(line_points, lines=line_lines)
+    is_connected = np.array([0, 0])
+
+    # Dummy EPMaterial
+    class DummyMaterial:
+        pass
+
+    # Minimal ConductionPathType
+    class DummyType:
+        pass
+
+    # Create ConductionPath
+    cp = ConductionPath(
+        name=DummyType,
+        mesh=mesh,
+        id=1,
+        is_connected=is_connected,
+        relying_surface=surface,
+        material=DummyMaterial(),
+    )
+    return cp
+
+
+def test_add_pmj_path_cell(simple_conduction_path):
+    """Add PMJ with merge_with cell"""
+    cp = simple_conduction_path
+
+    cp.add_pmj_path([1], merge_with="cell")
+    assert cp.mesh.n_points == 5
+    assert cp.mesh.n_lines == 4
+    assert np.array_equal(cp.is_connected, np.array([0, 1, 1, 1, 0]))
+
+
+def test_add_pmj_path_node(simple_conduction_path):
+    """Add PMJ with merge_with node"""
+    cp = simple_conduction_path
+    cp.add_pmj_path([1], merge_with="node")
+    assert cp.mesh.n_points == 3
+    assert cp.mesh.n_lines == 2
+    assert np.array_equal(cp.is_connected, np.array([0, 1, 0]))

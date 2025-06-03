@@ -319,6 +319,7 @@ class HeartModelUtils:
             id=3,
             base_mesh=model.right_atrium.endocardium,
             line_length=None,
+            connection="first",
         )
 
         his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model)

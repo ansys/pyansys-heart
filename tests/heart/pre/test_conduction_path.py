@@ -191,7 +191,7 @@ def test_conduction():
     assert np.array_equal(res["_is-connected"], ref["_is-connected"])
 
     # test ID shift after merging to solid
-    assert np.sum(model.conduction_mesh.point_data["_shifted_id"]) == 587387303
+    assert np.sum(model.conduction_mesh.point_data["_shifted_id"]) == 587367719
 
 
 def test_conductionbeams_from_k():

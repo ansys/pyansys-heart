@@ -26,7 +26,6 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import Literal
-import warnings
 
 import networkx as nx
 import numpy as np
@@ -253,53 +252,41 @@ class ConductionPath:
         keypoints: list[np.ndarray],
         id: int,
         base_mesh: pv.PolyData | pv.UnstructuredGrid,
-        connection: Literal["none"] = "none",
+        connection: Literal["none", "first"] = "none",
         line_length: float | None = 1.5,
         center: bool = False,
     ) -> ConductionPath:
         """Create a conduction path on a base mesh through a set of keypoints.
 
-        .. deprecated:: 0.13.0
-           The ``connection`` argument is deprecated and will be removed in a future release.
-           Only 'none' is accepted.
-
-        .. note::
+        .. Note
+           ----
            To add PMJ (Purkinje-Myocardial Junction) points, use the :meth:`add_pmj_path` method
            after creating the path.
 
         Parameters
         ----------
-         name : ConductionPathType
-             Name of the conduction path.
-         keypoints : list[np.ndarray]
-             Keypoints used to construct the path on the base mesh.
-         id : int
-             ID of the conduction path.
-         base_mesh : pv.PolyData | pv.UnstructuredGrid
-             Base mesh where the conductionn path is created. If ``PolyData``, then the
-             result is a geodesic path on the surface. If ``pv.UnstructuredGrid``, then the
-             result the shortest path in the solid.
-         connection : Literal["none"], default: "none"
-             (Deprecated) Only "none" is accepted. Describes how the path is connected to the
-             solid mesh.
-         line_length : float | None, default: 1.5
-             Length of line element in case of refinement.
+        name : ConductionPathType
+            Name of the conduction path.
+        keypoints : list[np.ndarray]
+            Keypoints used to construct the path on the base mesh.
+        id : int
+            ID of the conduction path.
+        base_mesh : pv.PolyData | pv.UnstructuredGrid
+            Base mesh where the conductionn path is created. If ``PolyData``, then the
+            result is a geodesic path on the surface. If ``pv.UnstructuredGrid``, then the
+            result the shortest path in the solid.
+        connection : Literal["none", "first"], default: "none"
+            Describes how the path is connected to the solid mesh.
+        line_length : float | None, default: 1.5
+            Length of line element in case of refinement.
         center : bool, default: False
-             If True, geodesic path us on the center of surface cells.
+            If True, geodesic path us on the center of surface cells.
 
         Returns
         -------
-         ConductionPath
-             Conduction path.
+        ConductionPath
+            Conduction path.
         """
-        if connection != "none":
-            raise ValueError("The 'connection' argument is deprecated and only 'none' is accepted.")
-        warnings.warn(
-            "The 'connection' argument is deprecated and will be removed in a future release.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
         if isinstance(base_mesh, pv.PolyData):
             under_surface = base_mesh
             if center:
@@ -310,6 +297,9 @@ class ConductionPath:
             path_mesh, under_surface = _create_path_in_solid(keypoints, base_mesh, line_length)
 
         is_connceted = np.zeros(path_mesh.n_points)
+        if connection == "first":
+            is_connceted[0] = 1
+
         return ConductionPath(name, path_mesh, id, is_connceted, under_surface)
 
     @staticmethod

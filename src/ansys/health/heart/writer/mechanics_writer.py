@@ -32,7 +32,8 @@ import pyvista as pv
 from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
-from ansys.health.heart.objects import Cap, CapType, PartType, SurfaceMesh
+from ansys.health.heart.objects import Cap, CapType, SurfaceMesh
+import ansys.health.heart.parts as anatomy
 from ansys.health.heart.settings.material.material import (
     Mat295,
     MechanicalMaterialModel,
@@ -394,17 +395,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # create list of cap names where to add the spring b.c
         constraint_caps = self._get_contraint_caps()
 
-        if bc_type == _BoundaryConditionType.FIX:
-            for part in self.model.parts:
-                for cap in part.caps:
-                    if cap.type in constraint_caps:
-                        kw_fix = keywords.BoundarySpcSet()
-                        kw_fix.nsid = cap._node_set_id
-                        kw_fix.dofx = 1
-                        kw_fix.dofy = 1
-                        kw_fix.dofz = 1
+        self.model.all_caps
 
-                        self.kw_database.boundary_conditions.append(kw_fix)
+        if bc_type == _BoundaryConditionType.FIX:
+            for cap in self.model.all_caps:
+                if cap.type in constraint_caps:
+                    kw_fix = keywords.BoundarySpcSet()
+                    kw_fix.nsid = cap._node_set_id
+                    kw_fix.dofx = 1
+                    kw_fix.dofy = 1
+                    kw_fix.dofz = 1
+
+                    self.kw_database.boundary_conditions.append(kw_fix)
 
         # if bc type is springs -> add springs
         elif bc_type == _BoundaryConditionType.ROBIN:
@@ -436,8 +438,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             self.kw_database.boundary_conditions.append(mat_kw)
 
             # add springs for each cap
-            caps = [cap for part in self.model.parts for cap in part.caps]
-            for cap in caps:
+            for cap in self.model.all_caps:
                 if cap.type in constraint_caps:
                     self.kw_database.boundary_conditions.append(f"$$ spring at {cap.name}$$")
                     self._add_springs_cap_edge(
@@ -577,7 +578,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         robin_settings = boundary_conditions.robin
 
         # collect all pericardium nodes:
-        ventricles_epi = self._get_epi_surface(apply=PartType.VENTRICLE)
+        ventricles_epi = self._get_epi_surface(apply=anatomy._PartType.VENTRICLE)
 
         #! penalty function is defined on all nodes in the mesh: but just need the epicardial nodes.
         # penalty function
@@ -604,7 +605,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         )
 
         if isinstance(self.model, FourChamber):
-            atrial_epi = self._get_epi_surface(PartType.ATRIUM)
+            atrial_epi = self._get_epi_surface(anatomy._PartType.ATRIUM)
 
             k = robin_settings["atrial"]["stiffness"].to("MPa/mm").m
             self.kw_database.pericardium.extend(
@@ -618,12 +619,15 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _get_epi_surface(
-        self, apply: Literal[PartType.VENTRICLE, PartType.ATRIUM] = PartType.VENTRICLE
+        self,
+        apply: Literal[
+            anatomy._PartType.VENTRICLE, anatomy._PartType.ATRIUM
+        ] = anatomy._PartType.VENTRICLE,
     ) -> SurfaceMesh:
         """Get the epicardial surfaces of either the ventricle or atria."""
         LOGGER.debug(f"Collecting epicardium nodesets of {apply}:")
 
-        targets = [part for part in self.model.parts if apply == part.part_type]
+        targets = [part for part in self.model.parts if apply == part._part_type]
 
         # retrieve combined epicardial surface from the central mesh object:
         # this ensures that we can use the global-point-ids
@@ -811,10 +815,9 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.kw_database.cap_elements.append(material_kw)
         self.kw_database.cap_elements.append(section_kw)
 
-        caps = [cap for part in self.model.parts for cap in part.caps]
         # create new part for each cap
         cap_names_used = []
-        for cap in caps:
+        for cap in self.model.all_caps:
             if cap.name in cap_names_used:
                 # avoid to write mitral valve and triscupid valve twice
                 LOGGER.debug("Already created material for {}. Skipping.".format(cap.name))
@@ -857,7 +860,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             # ? Should we use the global cell-index from self.mesh? or start from 0?
             shell_id_offset = 0
             cap_names_used = []
-            for cap in caps:
+            for cap in self.model.all_caps:
                 if cap.name in cap_names_used:
                     continue
 
@@ -1032,8 +1035,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         for part in self.model.parts:
             save_part_ids.append(part.pid)
 
-        caps = [cap for part in self.model.parts for cap in part.caps]
-        for cap in caps:
+        for cap in self.model.all_caps:
             if cap.pid is not None:  # MV,TV for atrial parts get None
                 save_part_ids.append(cap.pid)
 
@@ -1238,7 +1240,7 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         self.kw_database.main.append(load_curve_kw)
 
         # create *LOAD_SEGMENT_SETS for each ventricular cavity
-        cavities = [part.cavity for part in self.model.parts if part.cavity]
+        cavities = self.model.cavities
         for cavity in cavities:
             if "Left ventricle" in cavity.name:
                 load = keywords.LoadSegmentSet(

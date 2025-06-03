@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: doc-build
     steps:
-      - uses: ansys/actions/doc-deploy-dev@90c8d3f174d3393c68bc2143088d60265275b8cc # v9.0.7
+      - uses: ansys/actions/doc-deploy-dev@2cf9a9c43235a000d613c2b13e64c954232a4553 # v9.0.9
         with:
           doc-artifact-name: "documentation-html"
           cname: ${{ env.DOCUMENTATION_CNAME }}

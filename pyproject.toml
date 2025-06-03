@@ -5,10 +5,10 @@ build-backend = "flit_core.buildapi"
 [project]
 # Check https://flit.readthedocs.io/en/latest/pyproject_toml.html for all available sections
 name = "ansys-health-heart"
-version = "0.13.dev0"
+version = "0.14.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
-requires-python = ">=3.11,<4"
+requires-python = ">=3.10,<4"
 license = { file = "LICENSE" }
 authors = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
 maintainers = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
@@ -30,7 +30,7 @@ dependencies = [
     "h5py>=3.6.0",
     "matplotlib>=3.10.1",
     "networkx>=3.2.1",
-    "numpy<=2.2.5",
+    "numpy<=2.2.6",
     "pandas<=3.0.0",
     "pint>=0.24.4",
     "pyvista>=0.44.1,<0.45",
@@ -68,7 +68,7 @@ tests = [
 [project.urls]
 source = "https://github.com/ansys/pyansys-heart"
 issues = "https://github.com/ansys/pyansys-heart/issues"
-documentation = "https://heart.docs.pyansys.com/"
+documentation = "https://heart.health.docs.pyansys.com/"
 releases = "https://github.com/ansys/pyansys-heart/releases"
 
 [tool.flit.module]

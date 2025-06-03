@@ -54,6 +54,12 @@ html_theme_options = {
     },
 }
 
+# Define copyright symbol
+rst_prolog = """
+.. |copy| unicode:: U+000A9
+   :ltrim:
+"""
+
 # Sphinx extensions
 extensions = [
     "numpydoc",

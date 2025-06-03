@@ -31,12 +31,11 @@ import os
 import pathlib
 from typing import List, Literal, Union
 
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.settings.material.ep_material import EPMaterial
-from ansys.health.heart.settings.material.material import MechanicalMaterialModel
 import ansys.health.heart.utils.vtk_utils as vtk_utils
 
 _SURFACE_CELL_TYPES = [pv.CellType.QUAD, pv.CellType.TRIANGLE]
@@ -1194,131 +1193,15 @@ class Mesh(pv.UnstructuredGrid):
         return Mesh(merged)
 
 
-class PartType(Enum):
-    """Stores valid part types."""
-
-    VENTRICLE = "ventricle"
-    ATRIUM = "atrium"
-    SEPTUM = "septum"
-    ARTERY = "artery"
-    MYOCARDIUM = "myocardium"
-    UNDEFINED = "undefined"
-
-
+@deprecated(
+    reason="""Importing Part class with ``from ansys.health.heart.objects import Part``
+    is deprecated. Import with ``from ansys.health.heart.parts import Part`` instead.""",
+)
 class Part:
-    """Part class."""
+    """Part class for backward compatibility."""
 
-    @property
-    def surfaces(self) -> List[SurfaceMesh]:
-        """List of surfaces belonging to the part."""
-        surfaces = []
-        for key, value in self.__dict__.items():
-            if isinstance(value, SurfaceMesh):
-                surfaces.append(value)
-        return surfaces
+    def __init__(self, *args, **kwargs):
+        from ansys.health.heart.parts import Part as RealPart
 
-    @property
-    def surface_names(self) -> List[str]:
-        """List of surface names belonging to the part."""
-        surface_names = []
-        for key, value in self.__dict__.items():
-            if isinstance(value, SurfaceMesh):
-                surface_names.append(value.name)
-        return surface_names
-
-    def get_point(self, pointname: str) -> Point:
-        """Get a point from the part."""
-        for point in self.points:
-            if point.name == pointname:
-                return point
-        LOGGER.error("Cannot find point {0:s}.".format(pointname))
-        return None
-
-    def __init__(self, name: str = None, part_type: PartType = PartType.UNDEFINED) -> None:
-        self.name = name
-        """Part name."""
-        self.pid = None
-        """Part ID."""
-        self.mid = None
-        """Material ID associated with the part."""
-        self.part_type: PartType = part_type
-        """Type of the part."""
-        self.element_ids: np.ndarray = np.empty((0, 4), dtype=int)
-        """Array holding element IDs that make up the part."""
-        self.points: List[Point] = []
-        """Points of interest belonging to the part."""
-        self.caps: List[Cap] = []
-        """List of caps belonging to the part."""
-        self.cavity: Cavity = None
-
-        self.fiber: bool = False
-        """Flag indicating if the part has fiber/sheet data."""
-        self.active: bool = False
-        """Flag indicating if active stress is established."""
-
-        self.meca_material: MechanicalMaterialModel = MechanicalMaterialModel.DummyMaterial()
-        """Material model to assign in the simulator."""
-
-        self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
-        """EP material model to assign in the simulator."""
-
-        """Cavity belonging to the part."""
-        if self.part_type in [PartType.VENTRICLE]:
-            self.apex_points: List[Point] = []
-            """Points on the apex."""
-
-        self._add_surfaces()
-
-    def _add_surfaces(self):
-        """Add surfaces to the part."""
-        if self.part_type in [PartType.VENTRICLE, PartType.ATRIUM]:
-            self.endocardium = SurfaceMesh(name="{0} endocardium".format(self.name))
-            """Endocardium."""
-            self.epicardium = SurfaceMesh(name="{0} epicardium".format(self.name))
-            """Epicardium."""
-            if self.part_type == PartType.VENTRICLE:
-                self.septum = SurfaceMesh(name="{0} endocardium septum".format(self.name))
-                """Septum surface."""
-        elif self.part_type in [PartType.ARTERY]:
-            self.wall = SurfaceMesh(name="{0} wall".format(self.name))
-            """Wall."""
-        return
-
-    def _add_myocardium_part(self):
-        self.myocardium = Part(name="myocardium", part_type=PartType.MYOCARDIUM)
-        return
-
-    def _add_septum_part(self):
-        self.septum = Part(name="septum", part_type=PartType.SEPTUM)
-        return
-
-    def _get_info(self):
-        """Get part information to reconstruct from a mesh file."""
-        info = {
-            self.name: {
-                "part-id": self.pid,
-                "part-type": self.part_type.value,
-                "surfaces": {},
-                "caps": {},
-                "cavity": {},
-            }
-        }
-
-        info2 = {}
-        info2["surfaces"] = {}
-        info2["caps"] = {}
-        info2["cavity"] = {}
-        for surface in self.surfaces:
-            if isinstance(surface, SurfaceMesh):
-                if surface.id:
-                    info2["surfaces"][surface.name] = surface.id
-
-        for cap in self.caps:
-            info2["caps"][cap.name] = cap._mesh.id
-
-        if self.cavity:
-            info2["cavity"][self.cavity.surface.name] = self.cavity.surface.id
-
-        info[self.name].update(info2)
-
-        return info
+        self.__class__ = RealPart
+        self.__init__(*args, **kwargs)

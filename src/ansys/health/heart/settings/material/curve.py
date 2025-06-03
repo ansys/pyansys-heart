@@ -149,8 +149,8 @@ class ActiveCurve:
         n : int, optional
             No. of heart beat will be written for LS-DYNA, by default 5
 
-        Note
-        ----
+        Notes
+        -----
         - If type=='stress', threshold is always 0.5e-6 and ca2+ will be shifted up with 1.0e-6
         except t=0. This ensures a continuous activation during simulation.
         """

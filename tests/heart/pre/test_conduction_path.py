@@ -87,27 +87,27 @@ def test_create_conductionbeams_on_surface():
         keypoints=[sa.xyz, av.xyz],
         id=2,
         base_mesh=model.right_atrium.endocardium,
-        connection="none",
     )
 
     assert sa_av.mesh.n_lines == 48
     assert np.isclose(sa_av.length, 64.36592438345)
 
 
-def test_create_conductionbeams_on_surface2():
-    """Test conductionbeams can be initialized correctly on a surface."""
+def test_create_conductionbeams_on_surface_pmj():
+    """Test conductionbeams with pmj creation."""
     model = get_fourchamber()
     sa = HeartModelUtils.define_sino_atrial_node(model)
     av = HeartModelUtils.define_atrio_ventricular_node(model)
 
-    sa_av = ConductionPath.create_from_keypoints2(
+    sa_av = ConductionPath.create_from_keypoints(
         name=ConductionPathType.SAN_AVN,
         keypoints=[sa.xyz, av.xyz],
         id=2,
         base_mesh=model.right_atrium.endocardium,
-        pmj_range=(0.45, 1),
+        center=True,
     )
 
+    sa_av.add_pmj_path([22, 26, 30, 34, 38, 42])
     assert sa_av.mesh.lines.reshape(-1, 3)[-1, 1] == 45
     assert sa_av.mesh.lines.reshape(-1, 3)[-1, 2] == 64
     assert np.sum(sa_av.is_connected) == 18.0
@@ -124,14 +124,14 @@ def test_create_conductionbeams_on_surface_with_refinement():
         keypoints=[sa.xyz, av.xyz],
         id=2,
         base_mesh=model.right_atrium.endocardium,
-        connection="all",
+        connection="none",
         line_length=0.5,
     )
 
     assert sa_av.mesh.n_lines == 140
     assert np.isclose(sa_av.length, 64.36592438345)
     # check only necessary points are connected
-    assert np.sum(sa_av.is_connected) == 49
+    assert np.sum(sa_av.is_connected) == 0
 
 
 def test_create_conductionbeams_in_solid():
@@ -143,7 +143,6 @@ def test_create_conductionbeams_in_solid():
         keypoints=[av.xyz, bif.xyz],
         id=1,
         base_mesh=model.mesh,
-        connection="none",
     )
     assert np.isclose(his_top.length, 14.276232139149878)
     assert his_top.relying_surface.n_cells == 9
@@ -192,7 +191,7 @@ def test_conduction():
     assert np.array_equal(res["_is-connected"], ref["_is-connected"])
 
     # test ID shift after merging to solid
-    assert np.sum(model.conduction_mesh.point_data["_shifted_id"]) == 585876812
+    assert np.sum(model.conduction_mesh.point_data["_shifted_id"]) == 587387303
 
 
 def test_conductionbeams_from_k():

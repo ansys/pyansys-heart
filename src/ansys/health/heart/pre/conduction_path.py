@@ -26,6 +26,7 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import Literal
+import warnings
 
 import networkx as nx
 import numpy as np
@@ -214,6 +215,7 @@ class ConductionPath:
         ConductionPath
             Updated conduction path.
         """
+        # TODO: make sure we won't create path with length of 0
         new_points = []
         new_lines = []
         new_is_connected = []
@@ -227,7 +229,7 @@ class ConductionPath:
                 neigh_coord = self.relying_surface.points[neighbour_ids[i]]
                 new_points.append(neigh_coord)
                 # The new point index will be len(points) + len(new_points) - 1
-                new_idx = self.relying_surface.n_points + len(new_points) - 1
+                new_idx = self.mesh.n_points + len(new_points) - 1
                 new_lines.append([2, ii, new_idx])
                 new_is_connected.append(1)
 
@@ -251,11 +253,19 @@ class ConductionPath:
         keypoints: list[np.ndarray],
         id: int,
         base_mesh: pv.PolyData | pv.UnstructuredGrid,
-        connection: Literal["none", "first", "last", "all"] = "none",
+        connection: Literal["none"] = "none",
         line_length: float | None = 1.5,
         center: bool = False,
     ) -> ConductionPath:
         """Create a conduction path on a base mesh through a set of keypoints.
+
+        .. deprecated:: 0.13.0
+           The ``connection`` argument is deprecated and will be removed in a future release.
+           Only 'none' is accepted.
+
+        .. note::
+           To add PMJ (Purkinje-Myocardial Junction) points, use the :meth:`add_pmj_path` method
+           after creating the path.
 
         Parameters
         ----------
@@ -269,10 +279,9 @@ class ConductionPath:
              Base mesh where the conductionn path is created. If ``PolyData``, then the
              result is a geodesic path on the surface. If ``pv.UnstructuredGrid``, then the
              result the shortest path in the solid.
-         connection : Literal[&quot;none&quot;,
-                              &quot;first&quot;, &quot;last&quot;, &quot;all&quot;]
-         , default: "none"
-             Describes how the path is connected to the solid mesh.
+         connection : Literal["none"], default: "none"
+             (Deprecated) Only "none" is accepted. Describes how the path is connected to the
+             solid mesh.
          line_length : float | None, default: 1.5
              Length of line element in case of refinement.
         center : bool, default: False
@@ -283,6 +292,14 @@ class ConductionPath:
          ConductionPath
              Conduction path.
         """
+        if connection != "none":
+            raise ValueError("The 'connection' argument is deprecated and only 'none' is accepted.")
+        warnings.warn(
+            "The 'connection' argument is deprecated and will be removed in a future release.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         if isinstance(base_mesh, pv.PolyData):
             under_surface = base_mesh
             if center:
@@ -293,45 +310,7 @@ class ConductionPath:
             path_mesh, under_surface = _create_path_in_solid(keypoints, base_mesh, line_length)
 
         is_connceted = np.zeros(path_mesh.n_points)
-        if connection == "first":
-            is_connceted[0] = 1
-        elif connection == "last":
-            is_connceted[-1] = 1
-        elif connection == "all":
-            # only connect nodes located on the basemesh (if there is an refinement)
-            is_connceted[path_mesh.point_data["base_mesh_nodes"]] = 1
-
         return ConductionPath(name, path_mesh, id, is_connceted, under_surface)
-
-    @staticmethod
-    def create_from_keypoints2(
-        name: ConductionPathType,
-        keypoints: list[np.ndarray],
-        id: int,
-        base_mesh: pv.PolyData | pv.UnstructuredGrid,
-        pmj_range: None | tuple = None,
-        line_length: float | None = 1.5,
-    ) -> ConductionPath:
-        """Create a conduction path on a base mesh through a set of keypoints."""
-        if isinstance(base_mesh, pv.PolyData):
-            under_surface = base_mesh
-            path_mesh = _create_path_on_surface_center(keypoints, under_surface, line_length)
-
-        is_connceted = np.zeros(path_mesh.n_points)
-        path = ConductionPath(name, path_mesh, id, is_connceted, under_surface)
-
-        if pmj_range is not None:
-            pmj_list = list(
-                range(
-                    int(np.ceil((pmj_range[0] + 0.001) * path_mesh.n_points)),  # avoid first node
-                    int(np.floor((pmj_range[1] - 0.001) * path_mesh.n_points)),  # avoid last node
-                    4,  #  every 4 nodes of path
-                )
-            )
-
-            path.add_pmj_path(pmj_list)
-
-        return path
 
     @staticmethod
     def create_from_k_file(

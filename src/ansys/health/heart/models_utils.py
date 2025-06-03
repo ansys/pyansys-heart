@@ -313,12 +313,11 @@ class HeartModelUtils:
         sa = HeartModelUtils.define_sino_atrial_node(model)
         av = HeartModelUtils.define_atrio_ventricular_node(model)
 
-        sa_av = ConductionPath.create_from_keypoints2(
+        sa_av = ConductionPath.create_from_keypoints(
             name=ConductionPathType.SAN_AVN,
             keypoints=[sa.xyz, av.xyz],
             id=3,
             base_mesh=model.right_atrium.endocardium,
-            pmj_range=(0, 1),
             line_length=None,
         )
 
@@ -331,7 +330,6 @@ class HeartModelUtils:
             keypoints=[av.xyz, his_bif.xyz],
             id=4,
             base_mesh=model.mesh,
-            connection="none",
         )
         his_top.up_path = sa_av
 
@@ -340,7 +338,6 @@ class HeartModelUtils:
             keypoints=[his_bif.xyz, his_left_point.xyz],
             id=5,
             base_mesh=model.mesh,
-            connection="none",
         )
         his_left.up_path = his_top
 
@@ -349,21 +346,25 @@ class HeartModelUtils:
             keypoints=[his_bif.xyz, his_right_point.xyz],
             id=6,
             base_mesh=model.mesh,
-            connection="none",
         )
         his_right.up_path = his_top
 
-        left_bundle = ConductionPath.create_from_keypoints2(
+        left_bundle = ConductionPath.create_from_keypoints(
             name=ConductionPathType.LEFT_BUNDLE_BRANCH,
             keypoints=[his_left_point.xyz, model.left_ventricle.apex_points[0].xyz],
             id=7,
             base_mesh=model.left_ventricle.endocardium,
-            pmj_range=(0.5, 0.9),
             line_length=None,
+            center=True,
         )
-        # n_points = left_bundle.mesh.n_points
-        # start_connect_id = int(n_points * 0.4)
-        # left_bundle.is_connected[start_connect_id:-1] = 1
+        pmj_list = list(
+            range(
+                int((0.4 * left_bundle.mesh.n_points)),
+                int((0.9 * left_bundle.mesh.n_points)),
+                4,  # every 4 nodes
+            )
+        )
+        left_bundle.add_pmj_path(pmj_list, merge_with="cell")
         left_bundle.up_path = his_left
         left_bundle.down_path = left_purkinje
 
@@ -375,7 +376,6 @@ class HeartModelUtils:
             keypoints=[his_right_point.xyz, model.right_ventricle.apex_points[0].xyz],
             id=8,
             base_mesh=endo_surface,
-            connection="none",  # TODO: change to 'last'?
             line_length=None,
         )
         right_bundle.up_path = his_right

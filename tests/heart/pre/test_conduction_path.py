@@ -28,7 +28,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.health.heart.models_utils import HeartModelUtils
-from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
+from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType, _path_merge
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 from tests.heart.conftest import get_assets_folder, get_fourchamber, get_fullheart
 
@@ -226,3 +226,31 @@ def test_conductionbeams_from_k():
         merge_apex=True,
     )
     assert l_pj2.is_connected.sum() == 1115
+
+
+def test_path_merge():
+    """Test path merge."""
+    # Create a simple line mesh with 3 points and 2 lines
+    points = np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0]])
+    lines = np.array([2, 0, 1, 2, 1, 2])  # two lines: 0-1 and 1-2
+    mesh = pv.PolyData(points, lines=lines)
+    is_connected = np.array([0, 1, 0])
+
+    # Add one new point and one new line from 1 to new point
+    new_points = np.array([[3, 0, 0]])
+    new_lines = np.array([[2, 2, 3]])
+    new_is_connected = np.array([1])
+
+    merged_mesh, merged_is_connected = _path_merge(
+        mesh, new_points, new_lines, is_connected, new_is_connected
+    )
+
+    # There should be 4 points now
+    assert merged_mesh.n_points == 4
+    # There should be 3 lines now
+    assert merged_mesh.n_lines == 3
+    # The merged is_connected should have length 4 and correct values
+    assert merged_is_connected.shape == (4,)
+    assert np.array_equal(merged_is_connected, np.array([0, 1, 1, 0]))
+    # The last point should be swapped with the original last point
+    assert np.all(np.isclose(merged_mesh.points[-1], [2, 0, 0]), axis=-1)

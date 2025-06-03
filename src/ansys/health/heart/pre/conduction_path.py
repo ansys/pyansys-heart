@@ -234,7 +234,7 @@ class ConductionPath:
                 if merge_with == "node":
                     break  # stop with first node
 
-        pmj_mesh, is_connected = _line_merge(
+        pmj_mesh, is_connected = _path_merge(
             self.mesh, new_points, new_lines, self.is_connected, new_is_connected
         )
 
@@ -399,7 +399,7 @@ class ConductionPath:
         return ConductionPath(name, path, id, is_connected, base_mesh)
 
 
-def _line_merge(
+def _path_merge(
     path: pv.PolyData,
     new_points: np.ndarray,
     new_lines: np.ndarray,
@@ -444,16 +444,14 @@ def _line_merge(
     # Swap is_connceted
     is_connected[[orig_last_idx, merged_last_idx]] = is_connected[[merged_last_idx, orig_last_idx]]
 
-    # Update all references in lines
-    def swap_indices(arr, idx1, idx2):
-        arr[arr == idx1] = -1  # temp
-        arr[arr == idx2] = idx1
-        arr[arr == -1] = idx2
-
-    swap_indices(lines, orig_last_idx, merged_last_idx)
+    # Swap lines
+    arr = lines[:, 1:].copy()
+    arr[arr == orig_last_idx] = -1  # temp
+    arr[arr == merged_last_idx] = orig_last_idx
+    arr[arr == -1] = merged_last_idx
 
     # Rebuild PolyData
-    new_path = pv.PolyData(points, lines=lines)
+    new_path = pv.PolyData(points, lines=np.insert(arr, 0, 2, axis=1))
 
     return new_path, is_connected
 

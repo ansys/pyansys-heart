@@ -488,7 +488,7 @@ def _refine_points(nodes: np.array, length: float = None) -> tuple[np.ndarray, n
 
 
 def _create_path_on_surface(
-    key_points: list[np.ndarray], surface: pv.PolyData, line_length: float
+    key_points: list[np.ndarray], surface: pv.PolyData, line_length: float | None = None
 ) -> pv.PolyData:
     """Create a geodesic path between key points.
 
@@ -498,7 +498,7 @@ def _create_path_on_surface(
         Points to be connected by the geodesic path.
     surface : pv.PolyData
         Surface on which the path is created.
-    refine_length : float
+    refine_length : float | None, default: None
         Length of the line element.
 
     Returns
@@ -523,7 +523,7 @@ def _create_path_on_surface(
 
 
 def _create_path_on_surface_center(
-    key_points: list[np.ndarray], surface: pv.PolyData, line_length: float
+    key_points: list[np.ndarray], surface: pv.PolyData, line_length: float | None = None
 ) -> pv.PolyData:
     """Create a geodesic path between key points through the center.
 
@@ -533,7 +533,7 @@ def _create_path_on_surface_center(
         Points to be connected by the geodesic path.
     surface : pv.PolyData
         Surface on which the path is created.
-    refine_length : float
+    refine_length : float | None, default: None
         Length of the line element.
 
     Returns
@@ -566,11 +566,13 @@ def _create_path_on_surface_center(
         path_cells = nx.shortest_path(graph, source=start_cell, target=end_cell, weight="weight")
 
         # Get corresponding points
-        for point in cell_centers[path_cells]:
+        for point in cell_centers[path_cells[:-1]]:
             path_points.append(point)
 
+    path_points.append(cell_centers[path_cells[-1]])
     path_points = np.array(path_points)
-    # # replace first and end points are on surface nodes
+
+    # replace first and end points are on surface nodes
     path_points[0] = surface.points[surface.find_closest_point(key_points[0])]
     path_points[-1] = surface.points[surface.find_closest_point(key_points[-1])]
 
@@ -578,11 +580,12 @@ def _create_path_on_surface_center(
 
     path = pv.lines_from_points(path_points)
     path.point_data["base_mesh_nodes"] = mask
+
     return path
 
 
 def _create_path_in_solid(
-    key_points: list[np.ndarray], volume: pv.UnstructuredGrid, line_length: float
+    key_points: list[np.ndarray], volume: pv.UnstructuredGrid, line_length: float | None = None
 ) -> tuple[pv.PolyData, pv.PolyData]:
     """Create a path in the solid mesh.
 
@@ -592,7 +595,7 @@ def _create_path_in_solid(
         Key points to be connected by the path, 2 points are required.
     volume : pv.UnstructuredGrid
         Solid mesh where the path is created.
-    line_length : float
+    line_length : float | None, default: None
         Length of the line element.
 
     Returns

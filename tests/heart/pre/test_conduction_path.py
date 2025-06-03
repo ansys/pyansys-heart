@@ -29,7 +29,12 @@ import pytest
 import pyvista as pv
 
 from ansys.health.heart.models_utils import HeartModelUtils
-from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType, _path_merge
+from ansys.health.heart.pre.conduction_path import (
+    ConductionPath,
+    ConductionPathType,
+    _create_path_on_surface_center,
+    _path_merge,
+)
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 from tests.heart.conftest import get_assets_folder, get_fourchamber, get_fullheart
 
@@ -306,3 +311,20 @@ def test_add_pmj_path_node(simple_conduction_path):
     assert cp.mesh.n_points == 3
     assert cp.mesh.n_lines == 2
     assert np.array_equal(cp.is_connected, np.array([0, 1, 0]))
+
+
+def test_create_path_on_surface_center():
+    """Test conductionbeams can be initialized correctly on a pyvista sphere with 3 keypoints."""
+    # Create a sphere mesh
+    sphere = pv.Sphere(radius=1.0, theta_resolution=30, phi_resolution=30)
+    # Define 3 keypoints on the sphere surface
+    keypoints = [
+        np.array([1.0, 0.0, 0.0]),
+        np.array([0.0, 1.0, 0.0]),
+        np.array([0.0, 0.0, 1.0]),
+    ]
+    path = _create_path_on_surface_center(keypoints, sphere, line_length=None)
+
+    assert path.n_points == 24
+    assert path.n_lines == 23
+    assert np.all(path.compute_cell_sizes()["Length"] > 0)

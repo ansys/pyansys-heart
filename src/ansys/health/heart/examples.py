@@ -25,6 +25,8 @@
 from pathlib import Path
 from typing import Literal
 
+import pyvista as pv
+
 dir_path = Path(__file__).parent
 data_path = dir_path / "data_examples"
 
@@ -56,4 +58,18 @@ def get_input_leftventricle() -> tuple[Path, Path]:
     return (
         str(data_path / "rodero_01_leftventricle_surface.vtp"),
         str(data_path / "rodero_01_leftventricle_part_definition.json"),
+    )
+
+
+def get_fractal_tree_purkinje() -> tuple[pv.PolyData, pv.PolyData]:
+    """Get the fractal tree Purkinje network based on Rodero et al 01.
+
+    Returns
+    -------
+    tuple[pv.PolyData, pv.PolyData]
+        The left and right Purkinje networks as PyVista PolyData objects.
+    """
+    return (
+        pv.read(data_path / "left_purkinje.vtp"),
+        pv.read(data_path / "right_purkinje.vtp"),
     )

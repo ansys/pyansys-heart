@@ -213,6 +213,10 @@ class ConductionPath:
         -------
         ConductionPath
             Updated conduction path.
+
+        Notes
+        -----
+        pmj resistance is controlled by pmjres in *EM_EP_PURKINJE_NETWORK2.
         """
         # TODO: make sure we won't create path with length of 0
         new_points = []

@@ -358,6 +358,9 @@ class HeartModelUtils:
             line_length=None,
             center=True,
         )
+
+        # Create Purkinje junctions on the lower part of the left bundle branch,
+        # so depolarization begins in the left side of the septum.
         pmj_list = list(
             range(
                 int((0.4 * left_bundle.mesh.n_points)),

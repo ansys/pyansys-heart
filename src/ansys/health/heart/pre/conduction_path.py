@@ -200,14 +200,14 @@ class ConductionPath:
         self, pmj_list: list[int], merge_with: Literal["node", "cell"] = "cell"
     ) -> ConductionPath:
         """
-        Add PMJ (Purkinje-Myocardial Junction) branches to the current conduction path.
+        Add Purkinje-Myocardial Junction branches to the current conduction path.
 
         Parameters
         ----------
         pmj_list : list[int]
-            Indices of points to create PMJ branches.
+            Indices of points to create a Purkinje-Myocardial Junction.
         merge_with : Literal['node','cell'], default: 'cell'
-            Whether to merge with a neighbor node (1 split) or cell (3 split).
+            Whether to merge with a neighbor node (1 split) or cell (3 splits).
 
         Returns
         -------
@@ -263,10 +263,10 @@ class ConductionPath:
         """
         Create a conduction path on a base mesh through a set of keypoints.
 
-        .. Note
-           ----
-           To add PMJ (Purkinje-Myocardial Junction) points, use the :meth:`add_pmj_path` method
-           after creating the path.
+        Notes
+        -----
+        To add PMJ (Purkinje-Myocardial Junction) points, use the :meth:`add_pmj_path` method
+        after creating the path.
 
         Parameters
         ----------
@@ -407,7 +407,7 @@ def _path_merge(
 
     # Add new points and lines
     points = np.vstack([points, np.array(new_points)])
-    # Ensure last cell stay at last because it is assumed in merging method
+    # Ensure the last cell remains at the end, as required by the merging method.
     lines = np.vstack([lines[0:-1], np.array(new_lines), lines[-1]])
     is_connected = np.concatenate([is_connected, np.array(new_is_connected)])
 
@@ -416,7 +416,7 @@ def _path_merge(
     # Swap points
     points[[orig_last_idx, merged_last_idx]] = points[[merged_last_idx, orig_last_idx]]
 
-    # Swap is_connceted
+    # Swap is_connected
     is_connected[[orig_last_idx, merged_last_idx]] = is_connected[[merged_last_idx, orig_last_idx]]
 
     # Swap lines

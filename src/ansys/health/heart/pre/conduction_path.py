@@ -260,7 +260,7 @@ class ConductionPath:
         keypoints: list[np.ndarray],
         id: int,
         base_mesh: pv.PolyData | pv.UnstructuredGrid,
-        connection: Literal["none", "first"] = "none",
+        connection: Literal["first"] | None = None,
         line_length: float | None = 1.5,
         center: bool = False,
     ) -> ConductionPath:
@@ -284,8 +284,9 @@ class ConductionPath:
             Base mesh where the conduction path is created. If ``PolyData``, the
             result is a geodesic path on the surface. If ``pv.UnstructuredGrid``, the
             result is the shortest path in the solid.
-        connection : Literal["none", "first"], default: "none"
-            Describes how the path connects to the solid mesh.
+        connection : Literal["first"] | None, default: None
+            If "first", the first point of the path is marked as connected to the solid mesh.
+            If None, no points are marked as connected.
         line_length : float | None, default: 1.5
             Length of the line element in case of refinement.
         center : bool, default: False

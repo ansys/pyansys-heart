@@ -129,7 +129,6 @@ def test_create_conductionbeams_on_surface_with_refinement():
         keypoints=[sa.xyz, av.xyz],
         id=2,
         base_mesh=model.right_atrium.endocardium,
-        connection="none",
         line_length=0.5,
     )
 

@@ -317,11 +317,11 @@ class ConductionPath:
         else:
             path_mesh, under_surface = _create_path_in_solid(keypoints, base_mesh, line_length)
 
-        is_connceted = np.zeros(path_mesh.n_points)
+        is_connected = np.zeros(path_mesh.n_points)
         if connection == "first":
-            is_connceted[0] = 1
+            is_connected[0] = 1
 
-        return ConductionPath(name, path_mesh, id, is_connceted, under_surface)
+        return ConductionPath(name, path_mesh, id, is_connected, under_surface)
 
     @staticmethod
     def create_from_k_file(

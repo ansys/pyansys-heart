@@ -22,12 +22,16 @@
 
 """
 Full-heart conduction system example
-------------------------------------
+====================================
+
 This example demonstrates how to build a conduction system for a full-heart model,
-including the Purkinje network and major conduction paths.
+including the Purkinje network and other conduction paths.
+
+Overview
+--------
 
 The Purkinje network is pre-generated using a fractal tree algorithm, which is a
-third-party tool (`fractal_tree`). It creates a
+third-party tool (``fractal_tree``). It creates a
 realistic, branching Purkinje system on the endocardial surfaces of the ventricles.
 
 In addition to the Purkinje fibers, this example defines other key conduction pathways,
@@ -35,6 +39,7 @@ such as the sinoatrial (SA) node to atrioventricular (AV) node paths, the Bachma
 the His bundle and its bifurcation, as well as the left and right bundle branches.
 Each conduction path is constructed using anatomical landmarks and keypoints, and
 integrated into the heart model for simulation.
+
 """
 
 ###############################################################################

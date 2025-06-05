@@ -292,6 +292,22 @@ class ConductionPath:
         ConductionPath
             The created conduction path.
         """
+        # Check element types
+        if isinstance(base_mesh, pv.PolyData):
+            cell_types = np.unique(base_mesh.faces.reshape(-1, base_mesh.faces[0] + 1)[:, 0])
+            if not np.all(cell_types == 3):  # 3 = triangle
+                LOGGER.error(
+                    "Base mesh contains non-triangle elements. Only triangles are supported."
+                )
+                return
+        else:
+            cell_types = np.unique(base_mesh.celltypes)
+            if not np.all(cell_types == pv.CellType.TETRA):
+                LOGGER.error(
+                    "Base mesh contains non-tetrahedral elements. Only tetras are supported."
+                )
+                return
+
         if isinstance(base_mesh, pv.PolyData):
             under_surface = base_mesh
             if center:

@@ -330,7 +330,7 @@ class HeartModelUtils:
             name=ConductionPathType.HIS_TOP,
             keypoints=[av.xyz, his_bif.xyz],
             id=4,
-            base_mesh=model.mesh,
+            base_mesh=model.mesh.extract_cells_by_type(10),
         )
         his_top.up_path = sa_av
 
@@ -338,7 +338,7 @@ class HeartModelUtils:
             name=ConductionPathType.HIS_LEFT,
             keypoints=[his_bif.xyz, his_left_point.xyz],
             id=5,
-            base_mesh=model.mesh,
+            base_mesh=model.mesh.extract_cells_by_type(10),
         )
         his_left.up_path = his_top
 
@@ -346,7 +346,7 @@ class HeartModelUtils:
             name=ConductionPathType.HIS_RIGHT,
             keypoints=[his_bif.xyz, his_right_point.xyz],
             id=6,
-            base_mesh=model.mesh,
+            base_mesh=model.mesh.extract_cells_by_type(10),
         )
         his_right.up_path = his_top
 

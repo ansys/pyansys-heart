@@ -147,7 +147,7 @@ def test_create_conductionbeams_in_solid():
         name=ConductionPathType.HIS_TOP,
         keypoints=[av.xyz, bif.xyz],
         id=1,
-        base_mesh=model.mesh,
+        base_mesh=model.mesh.extract_cells_by_type(10),
     )
     assert np.isclose(his_top.length, 14.276232139149878)
     assert his_top.relying_surface.n_cells == 9

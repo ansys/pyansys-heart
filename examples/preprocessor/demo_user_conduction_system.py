@@ -38,8 +38,8 @@ integrated into the heart model for simulation.
 """
 
 ###############################################################################
-# Perform the required imports
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Required imports
+# ~~~~~~~~~~~~~~~~
 from pathlib import Path
 
 import numpy as np
@@ -59,38 +59,36 @@ path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart(resolution="2.0m
 ###############################################################################
 # Load the full-heart model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
-# Load the full-heart model.
 model: models.FullHeart = models.FullHeart(working_directory=workdir)
 model.load_model_from_mesh(path_to_model, path_to_partinfo)
 
-
 ###############################################################################
 # Create conduction paths for the Purkinje network
-# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Load precomputed Purkinje
+# Load precomputed Purkinje networks
 left, right = get_fractal_tree_purkinje()
 
-left_pirkinje = ConductionPath(
+left_purkinje = ConductionPath(
     ConductionPathType.LEFT_PURKINJE,
     left,
     is_connected=np.zeros(left.n_points),
     id=1,
     relying_surface=model.left_ventricle.endocardium,
 )
-# create purkinje junctions (PMJ) on leaf nodes
+# Create Purkinje-myocardial junctions (PMJ) on leaf nodes
 p1 = np.unique(left.lines.reshape(-1, 3)[:, 1])
 p2 = np.unique(left.lines.reshape(-1, 3)[:, 2])
 pmj_nodes = np.setdiff1d(p2, p1)
 
-left_pirkinje.add_pmj_path(pmj_list=pmj_nodes)
+left_purkinje.add_pmj_path(pmj_list=pmj_nodes)
 
-# Visualize the left Purkinje network, underlying surface is also plotted
-# and pmj nodes are highlighted.
-left_pirkinje.plot()
+# Visualize the left Purkinje network; the underlying surface is also plotted
+# and PMJ nodes are highlighted.
+left_purkinje.plot()
 
-# Create right Purkinje network in a simolar way
-right_pirkinje = ConductionPath(
+# Create right Purkinje network in a similar way
+right_purkinje = ConductionPath(
     ConductionPathType.RIGHT_PURKINJE,
     right,
     is_connected=np.zeros(right.n_points),
@@ -98,20 +96,19 @@ right_pirkinje = ConductionPath(
     relying_surface=model.right_ventricle.endocardium,
 )
 
-# create purkinje junctions (PMJ) on leaf nodes
+# Create Purkinje-myocardial junctions (PMJ) on leaf nodes
 p1 = np.unique(right.lines.reshape(-1, 3)[:, 1])
 p2 = np.unique(right.lines.reshape(-1, 3)[:, 2])
 pmj_nodes = np.setdiff1d(p2, p1)
-right_pirkinje.add_pmj_path(pmj_list=pmj_nodes)
-
+right_purkinje.add_pmj_path(pmj_list=pmj_nodes)
 
 ###############################################################################
 # Create the SA-AV node conduction path
-# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 sa = HeartModelUtils.define_sino_atrial_node(model, target_coord=[6, 66, 88])
 av = HeartModelUtils.define_atrio_ventricular_node(model)
-# Create the SA-AV node conduction path, the default option is to connect the
-# SA node and AV node by  geodescic path.
+# Create the SA-AV node conduction path. The default option is to connect the
+# SA node and AV node by a geodesic path.
 sa_av = ConductionPath.create_from_keypoints(
     name=ConductionPathType.SAN_AVN,
     keypoints=[sa.xyz, av.xyz],
@@ -122,23 +119,21 @@ sa_av = ConductionPath.create_from_keypoints(
     center=True,
 )
 
-# add PMJ nodes at every 4th node along the path
+# Add PMJ nodes at every 4th node along the path
 sa_av.add_pmj_path(list(range(1, sa_av.mesh.n_points - 1, 4)))
 
 # Visualize the SA-AV node conduction path
 sa_av.plot()
 
-
 ###############################################################################
 # Create the His bundle and its bifurcation
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# His bundle is inside of myocardium instead of relying on surfaces.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The His bundle is inside the myocardium instead of relying on surfaces.
 
-# define three keypoints for the His bundle
+# Define three keypoints for the His bundle
 his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model)
 his_left_point = HeartModelUtils.define_his_bundle_end_node(model, side="left")
 his_right_point = HeartModelUtils.define_his_bundle_end_node(model, side="right")
-
 
 his_top = ConductionPath.create_from_keypoints(
     name=ConductionPathType.HIS_TOP,
@@ -186,7 +181,7 @@ pmj_list = list(
 )
 left_bundle.add_pmj_path(pmj_list, merge_with="node")
 left_bundle.up_path = his_left
-left_bundle.down_path = left_pirkinje
+left_bundle.down_path = left_purkinje
 
 # build the right bundle branch
 surface_ids = [
@@ -202,7 +197,7 @@ right_bundle = ConductionPath.create_from_keypoints(
     line_length=None,
 )
 right_bundle.up_path = his_right
-right_bundle.down_path = right_pirkinje
+right_bundle.down_path = right_purkinje
 
 
 ###############################################################################
@@ -265,8 +260,8 @@ post_sa_av.down_path = sa_av
 
 model.assign_conduction_paths(
     [
-        left_pirkinje,
-        right_pirkinje,
+        left_purkinje,
+        right_purkinje,
         sa_av,
         his_top,
         his_left,

@@ -120,6 +120,10 @@ class ConductionPath:
         self.is_connected = is_connected
         self.relying_surface = relying_surface
 
+        # Check that the line length is greater than 0
+        if not self.mesh.compute_cell_sizes()["Length"].min() > 0:
+            raise ValueError(f"{self.name} contains cells with length <= 0. ")
+
         # check if the mesh lays on the relying_surface
         dst = self.mesh.compute_implicit_distance(self.relying_surface)["implicit_distance"]
         LOGGER.info(

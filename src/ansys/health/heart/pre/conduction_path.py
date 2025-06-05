@@ -88,38 +88,41 @@ class ConductionPath:
         up_path: ConductionPath | None = None,
         down_path: ConductionPath | None = None,
     ):
-        """Create a conduction path.
+        """
+        Initialize a conduction path.
 
         Parameters
         ----------
         name : ConductionPathType
             Name of the conduction path.
         mesh : Mesh
-            Line mesh pf the path.
+            Line mesh of the path.
         id : int
             ID of the conduction path.
         is_connected : np.ndarray
-            Mask array of points connected to solid mesh.
+            Mask array of points connected to the solid mesh.
         relying_surface : pv.PolyData
-            Surface mesh that the conduction path is relying on.
+            Surface mesh that the conduction path relies on.
         material : EPMaterial, default: EPMaterial.DummyMaterial()
             EP Material property.
         up_path : ConductionPath | None, default: None
-            Upstream conduction path, its closest point will be connected to the
-            first point of this path.
+            Upstream conduction path. Its closest point connects to the first point of this path.
         down_path : ConductionPath | None, default: None
-            Downstream conduction path,  its closest point will be connected to the
-            last point of this path.
+            Downstream conduction path. Its closest point connects to the last point of this path.
 
         Notes
         -----
-        up_path and down_path can be parallel paths like the 3 SA-AV paths
+        up_path and down_path can be parallel paths, such as the 3 SA-AV paths.
         """
         self.name = name
         self.mesh = mesh.copy()
         self.id = id
         self.is_connected = is_connected
         self.relying_surface = relying_surface
+
+        # Check that the line length is greater than 0
+        if not self.mesh.compute_cell_sizes()["Length"].min() > 0:
+            raise ValueError(f"{self.name} contains cells with length <= 0. ")
 
         # check if the mesh lays on the relying_surface
         dst = self.mesh.compute_implicit_distance(self.relying_surface)["implicit_distance"]
@@ -200,23 +203,24 @@ class ConductionPath:
     def add_pmj_path(
         self, pmj_list: list[int], merge_with: Literal["node", "cell"] = "cell"
     ) -> ConductionPath:
-        """Add PMJ (Purkinje-Myocardial Junction) to the current conduction path.
+        """
+        Add Purkinje-Myocardial Junction branches to the current conduction path.
 
         Parameters
         ----------
         pmj_list : list[int]
-            Point index to create pmj.
-        merge_with : Literal[&#39;node&#39;,&#39;cell&#39;], default: 'cell'
-              Whether to merge with neighbor node (1 split) or cell (3 split).
+            Indices of points to create a Purkinje-Myocardial Junction.
+        merge_with : Literal['node','cell'], default: 'cell'
+            Whether to merge with a neighbor node (1 split) or cell (3 splits).
 
         Returns
         -------
         ConductionPath
-            Updated conduction path.
+            The updated conduction path.
 
         Notes
         -----
-        pmj resistance is controlled by pmjres in *EM_EP_PURKINJE_NETWORK2.
+        PMJ resistance is controlled by pmjres in *EM_EP_PURKINJE_NETWORK2.
         """
         # TODO: make sure we won't create path with length of 0
         new_points = []
@@ -256,16 +260,17 @@ class ConductionPath:
         keypoints: list[np.ndarray],
         id: int,
         base_mesh: pv.PolyData | pv.UnstructuredGrid,
-        connection: Literal["none", "first"] = "none",
+        connection: Literal["first"] | None = None,
         line_length: float | None = 1.5,
         center: bool = False,
     ) -> ConductionPath:
-        """Create a conduction path on a base mesh through a set of keypoints.
+        """
+        Create a conduction path on a base mesh through a set of keypoints.
 
-        .. Note
-           ----
-           To add PMJ (Purkinje-Myocardial Junction) points, use the :meth:`add_pmj_path` method
-           after creating the path.
+        Notes
+        -----
+        To add PMJ (Purkinje-Myocardial Junction) points, use the :meth:`add_pmj_path` method
+        after creating the path.
 
         Parameters
         ----------
@@ -276,21 +281,38 @@ class ConductionPath:
         id : int
             ID of the conduction path.
         base_mesh : pv.PolyData | pv.UnstructuredGrid
-            Base mesh where the conductionn path is created. If ``PolyData``, then the
-            result is a geodesic path on the surface. If ``pv.UnstructuredGrid``, then the
-            result the shortest path in the solid.
-        connection : Literal["none", "first"], default: "none"
-            Describes how the path is connected to the solid mesh.
+            Base mesh where the conduction path is created. If ``PolyData``, the
+            result is a geodesic path on the surface. If ``pv.UnstructuredGrid``, the
+            result is the shortest path in the solid.
+        connection : Literal["first"] | None, default: None
+            If "first", the first point of the path is marked as connected to the solid mesh.
+            If None, no points are marked as connected.
         line_length : float | None, default: 1.5
-            Length of line element in case of refinement.
+            Length of the line element in case of refinement.
         center : bool, default: False
-            If True, geodesic path us on the center of surface cells.
+            If True, the geodesic path is on the center of surface cells.
 
         Returns
         -------
         ConductionPath
-            Conduction path.
+            The created conduction path.
         """
+        # Check element types
+        if isinstance(base_mesh, pv.PolyData):
+            cell_types = np.unique(base_mesh.faces.reshape(-1, base_mesh.faces[0] + 1)[:, 0])
+            if not np.all(cell_types == 3):  # 3 = triangle
+                LOGGER.error(
+                    "Base mesh contains non-triangle elements. Only triangles are supported."
+                )
+                return
+        else:
+            cell_types = np.unique(base_mesh.celltypes)
+            if not np.all(cell_types == pv.CellType.TETRA):
+                LOGGER.error(
+                    "Base mesh contains non-tetrahedral elements. Only tetras are supported."
+                )
+                return
+
         if isinstance(base_mesh, pv.PolyData):
             under_surface = base_mesh
             if center:
@@ -300,11 +322,11 @@ class ConductionPath:
         else:
             path_mesh, under_surface = _create_path_in_solid(keypoints, base_mesh, line_length)
 
-        is_connceted = np.zeros(path_mesh.n_points)
+        is_connected = np.zeros(path_mesh.n_points)
         if connection == "first":
-            is_connceted[0] = 1
+            is_connected[0] = 1
 
-        return ConductionPath(name, path_mesh, id, is_connceted, under_surface)
+        return ConductionPath(name, path_mesh, id, is_connected, under_surface)
 
     @staticmethod
     def create_from_k_file(
@@ -379,7 +401,8 @@ def _path_merge(
     is_connected: np.ndarray,
     new_is_connected: np.ndarray,
 ) -> tuple[pv.PolyData, np.ndarray]:
-    """Merge new lines to path and keep the last line still at last.
+    """
+    Merge new lines into the path and keep the last line at the end.
 
     Parameters
     ----------
@@ -405,7 +428,7 @@ def _path_merge(
 
     # Add new points and lines
     points = np.vstack([points, np.array(new_points)])
-    # Ensure last cell stay at last because it is assumed in merging method
+    # Ensure the last cell remains at the end, as required by the merging method.
     lines = np.vstack([lines[0:-1], np.array(new_lines), lines[-1]])
     is_connected = np.concatenate([is_connected, np.array(new_is_connected)])
 
@@ -414,7 +437,7 @@ def _path_merge(
     # Swap points
     points[[orig_last_idx, merged_last_idx]] = points[[merged_last_idx, orig_last_idx]]
 
-    # Swap is_connceted
+    # Swap is_connected
     is_connected[[orig_last_idx, merged_last_idx]] = is_connected[[merged_last_idx, orig_last_idx]]
 
     # Swap lines
@@ -430,7 +453,8 @@ def _path_merge(
 
 
 def _fill_points(point_start: np.array, point_end: np.array, length: float) -> np.ndarray:
-    """Create additional points in a line defined by a start and an end point.
+    """
+    Create additional points in a line defined by a start and an end point.
 
     Parameters
     ----------
@@ -439,7 +463,7 @@ def _fill_points(point_start: np.array, point_end: np.array, length: float) -> n
     point_end : np.array
         End point.
     length : float
-        Length.
+        Length of each segment.
 
     Returns
     -------
@@ -455,15 +479,15 @@ def _fill_points(point_start: np.array, point_end: np.array, length: float) -> n
 
 
 def _refine_points(nodes: np.array, length: float = None) -> tuple[np.ndarray, np.ndarray]:
-    """Add new points between two points.
+    """
+    Add new points between two points.
 
     Parameters
     ----------
     nodes : np.array
         Nodes to be refined.
     length : float, default None
-        Length of the line element.
-        If None, no refinement is done.
+        Length of the line element. If None, no refinement is done.
 
     Returns
     -------
@@ -494,7 +518,8 @@ def _refine_points(nodes: np.array, length: float = None) -> tuple[np.ndarray, n
 def _create_path_on_surface(
     key_points: list[np.ndarray], surface: pv.PolyData, line_length: float | None = None
 ) -> pv.PolyData:
-    """Create a geodesic path between key points.
+    """
+    Create a geodesic path between key points on a surface.
 
     Parameters
     ----------
@@ -502,7 +527,7 @@ def _create_path_on_surface(
         Points to be connected by the geodesic path.
     surface : pv.PolyData
         Surface on which the path is created.
-    refine_length : float | None, default: None
+    line_length : float | None, default: None
         Length of the line element.
 
     Returns
@@ -529,7 +554,8 @@ def _create_path_on_surface(
 def _create_path_on_surface_center(
     key_points: list[np.ndarray], surface: pv.PolyData, line_length: float | None = None
 ) -> pv.PolyData:
-    """Create a geodesic path between key points through the center.
+    """
+    Create a geodesic path between key points through the center of surface cells.
 
     Parameters
     ----------
@@ -537,7 +563,7 @@ def _create_path_on_surface_center(
         Points to be connected by the geodesic path.
     surface : pv.PolyData
         Surface on which the path is created.
-    refine_length : float | None, default: None
+    line_length : float | None, default: None
         Length of the line element.
 
     Returns
@@ -591,12 +617,13 @@ def _create_path_on_surface_center(
 def _create_path_in_solid(
     key_points: list[np.ndarray], volume: pv.UnstructuredGrid, line_length: float | None = None
 ) -> tuple[pv.PolyData, pv.PolyData]:
-    """Create a path in the solid mesh.
+    """
+    Create a path in the solid mesh.
 
     Parameters
     ----------
     key_points : list[np.ndarray]
-        Key points to be connected by the path, 2 points are required.
+        Key points to be connected by the path. Requires 2 points.
     volume : pv.UnstructuredGrid
         Solid mesh where the path is created.
     line_length : float | None, default: None
@@ -668,7 +695,19 @@ def _create_path_in_solid(
 
 
 def _mesh_to_nx_graph(mesh: pv.UnstructuredGrid) -> nx.Graph:
-    """Convert tetra mesh to graph."""
+    """
+    Convert a tetrahedral mesh to a NetworkX graph.
+
+    Parameters
+    ----------
+    mesh : pv.UnstructuredGrid
+        The tetrahedral mesh.
+
+    Returns
+    -------
+    nx.Graph
+        The corresponding graph.
+    """
     graph = nx.Graph()
     # Add nodes
     for i, point in enumerate(mesh.points):
@@ -689,10 +728,11 @@ def _mesh_to_nx_graph(mesh: pv.UnstructuredGrid) -> nx.Graph:
 
 
 def _read_purkinje_kfile(filename: str) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Read purkinje k file.
+    """
+    Read a Purkinje k-file.
 
-    It contains new created nodes to create Purkinje network
-    and all the beam elements of Purkinje network.
+    The file contains newly created nodes for the Purkinje network
+    and all the beam elements of the Purkinje network.
 
     Parameters
     ----------
@@ -703,14 +743,11 @@ def _read_purkinje_kfile(filename: str) -> tuple[np.ndarray, np.ndarray, np.ndar
     -------
     tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
         Coordinates of new created nodes.
-
         Connectivity of the beam elements.
-            If mask is True, ID is new created node.
-            If mask is False, ID is original node.
-
+            If mask is True, ID is a new created node.
+            If mask is False, ID is an original node.
         Mask of connectivity.
             True for new created nodes and False for original nodes.
-
         Part ID of the beam elements.
     """
     # Open file and import beams and created nodes

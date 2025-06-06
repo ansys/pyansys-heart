@@ -12,6 +12,8 @@ $#      dt      lcdt      beam     npltc    psetid
       10.0                   0                    
 $#   ioopt      rate    cutoff    window      type      pset
          0                                       0         0
+*CONTROL_MPP_IO_NODUMP
+*CONTROL_MPP_IO_LSTC_REDUCE
 *INCLUDE
 $#                                                                      filename
 parts.k                                                                         

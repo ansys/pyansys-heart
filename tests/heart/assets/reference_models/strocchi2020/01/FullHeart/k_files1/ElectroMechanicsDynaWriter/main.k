@@ -71,6 +71,8 @@ $# nintsld   pkp_sen      sclp     hydro     msscl     therm    intout    nodout
          0         0       1.0         0         0         0                    
 $#    dtdt    resplt     neipb   quadsld    cubsld   deleres
          0         1                   0         0         0
+*CONTROL_MPP_IO_NODUMP
+*CONTROL_MPP_IO_LSTC_REDUCE
 *DAMPING_GLOBAL
 $#    lcid    valdmp       stx       sty       stz       srx       sry       srz
          1       0.0       0.0       0.0       0.0       0.0       0.0       0.0

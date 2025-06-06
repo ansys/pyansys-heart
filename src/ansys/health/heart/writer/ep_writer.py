@@ -228,6 +228,8 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                     pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
                 )
             )
+            self.kw_database.main.append(keywords.ControlMppIoNodump())
+            self.kw_database.main.append(keywords.ControlMppIoLstcReduce())
 
         # Add right purkinje only in biventricular or 4chamber models
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):

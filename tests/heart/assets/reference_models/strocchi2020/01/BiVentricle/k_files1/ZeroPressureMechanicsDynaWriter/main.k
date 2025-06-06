@@ -49,6 +49,8 @@ $#      dt      lcdt      beam     npltc    psetid
      100.0                   0                    
 $#   ioopt      rate    cutoff    window      type      pset
          0                                       0         0
+*CONTROL_MPP_IO_NODUMP
+*CONTROL_MPP_IO_LSTC_REDUCE
 *DATABASE_NODOUT
 $#      dt    binary      lcur     ioopt   option1   option2
      200.0         2         0         1       0.0         0

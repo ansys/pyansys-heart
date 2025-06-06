@@ -13,6 +13,8 @@ $# edgelen      ngen   nbrinit    nsplit   inodeid   iedgeid
        1.5       200         3         4     84168    371042
 $# pmjtype pmjradiuspmjrestype    pmjres
          2       1.5         1     0.001
+*CONTROL_MPP_IO_NODUMP
+*CONTROL_MPP_IO_LSTC_REDUCE
 *INCLUDE
 $#                                                                      filename
 parts.k                                                                         

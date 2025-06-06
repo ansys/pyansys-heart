@@ -296,7 +296,7 @@ class ConductionPath:
             Whether to use a geodesic path through the centers of the surface cells.
             Length of the line element in case of refinement.
         center : bool, default: False
-            If True, the geodesic path is on the center of surface cells.
+            If True, the geodesic path passes through the centers of the surface cells.
 
         Returns
         -------

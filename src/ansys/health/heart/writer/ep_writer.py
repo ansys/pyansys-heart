@@ -310,6 +310,8 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
             )
 
     def _update_main_db(self) -> None:
+        self.kw_database.main.append(keywords.ControlMppIoNodump())
+        self.kw_database.main.append(keywords.ControlMppIoLstcReduce())
         return
 
 
@@ -945,6 +947,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.main.append(
             keywords.DatabaseBinaryD3Plot(dt=self.settings.electrophysiology.analysis.dt_d3plot.m)
         )
+        self.kw_database.main.append(keywords.ControlMppIoNodump())
+        self.kw_database.main.append(keywords.ControlMppIoLstcReduce())
 
         return
 

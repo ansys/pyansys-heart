@@ -265,6 +265,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # add output control
         self.kw_database.main.append(keywords.ControlOutput(npopt=1, neecho=1, ikedit=0, iflush=0))
 
+        # do not write dump files
+        self.kw_database.main.append(keywords.ControlMppIoNodump())
+        self.kw_database.main.append(keywords.ControlMppIoLstcReduce())
+
         # add export controls
         self.kw_database.main.append(keywords.DatabaseIcvout(dt=dt_output_icvout, binary=2))
         self.kw_database.main.append(keywords.DatabaseAbstat(dt=dt_output_icvout, binary=2))
@@ -297,6 +301,8 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 # lcdt=lcid, ioopt=1
             )
         )
+        self.kw_database.main.append(keywords.ControlMppIoNodump())
+        self.kw_database.main.append(keywords.ControlMppIoLstcReduce())
 
         self.kw_database.main.append(
             keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0, resplt=1)
@@ -1092,6 +1098,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
         # frequency of full results
         self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=dt_output_d3plot))
+        self.kw_database.main.append(keywords.ControlMppIoNodump())
+        self.kw_database.main.append(keywords.ControlMppIoLstcReduce())
 
         # self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
 

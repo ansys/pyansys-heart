@@ -499,6 +499,9 @@ class LaplaceWriter(BaseDynaWriter):
         self.kw_database.main.append(keywords.ControlSolution(soln=1))
         self.kw_database.main.append(keywords.ControlThermalSolver(atype=0, ptype=0, solver=11))
         self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=1.0))
+        self.kw_database.main.append(keywords.ControlMppIoNodump())
+        self.kw_database.main.append(keywords.ControlMppIoLstcReduce())
+
         self.kw_database.main.append(keywords.DatabaseGlstat(dt=1.0))
         self.kw_database.main.append(keywords.DatabaseMatsum(dt=1.0))
         self.kw_database.main.append(keywords.DatabaseTprint(dt=1.0))

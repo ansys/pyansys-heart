@@ -1194,4 +1194,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         self.kw_database.main.append(keywords.DatabaseBinaryD3Plot(dt=1.0))
 
+        self.kw_database.main.append(keywords.ControlMppIoNodump())
+        self.kw_database.main.append(keywords.ControlMppIoLstcReduce())
+
         return

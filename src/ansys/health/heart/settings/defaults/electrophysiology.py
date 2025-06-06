@@ -59,7 +59,7 @@ material = {
         "velocity": Quantity(1, "mm/ms"),  # mm/ms in case of eikonal model
         "sigma": Quantity(1, "mS/mm"),  # mS/mm
         "beta": Quantity(140, "1/mm"),
-        "cm": Quantity(0.01, "uF/mm^2"),  # uF/mm^2
+        "cm": Quantity(0.001, "uF/mm^2"),  # uF/mm^2
         "lambda": Quantity(0.2, "dimensionless"),
         "pmjrestype": Quantity(1),
         "pmjres": Quantity(0.001, "1/mS"),  # 1/mS

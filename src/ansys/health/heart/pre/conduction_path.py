@@ -223,6 +223,9 @@ class ConductionPath:
         PMJ resistance is controlled by pmjres in *EM_EP_PURKINJE_NETWORK2.
         """
         # TODO: make sure we won't create path with length of 0
+        if merge_with not in ("node", "cell"):
+            raise ValueError(f"merge_with must be 'node' or 'cell', got '{merge_with}'")
+
         new_points = []
         new_lines = []
         new_is_connected = []
@@ -288,6 +291,9 @@ class ConductionPath:
             If "first", the first point of the path is marked as connected to the solid mesh.
             If None, no points are marked as connected.
         line_length : float | None, default: 1.5
+            Length of the line element in case of refinement.
+        center : bool, default: False
+            Whether to use a geodesic path through the centers of the surface cells.
             Length of the line element in case of refinement.
         center : bool, default: False
             If True, the geodesic path is on the center of surface cells.

@@ -25,19 +25,19 @@ Full-heart conduction system example
 ====================================
 
 This example demonstrates how to build a conduction system for a full-heart model,
-including the Purkinje network and other conduction paths.
+including the Purkinje network and other conduction pathways.
 
 Overview
 --------
 
-The Purkinje network is pre-generated using a fractal tree algorithm, which is a
-third-party tool (``fractal_tree``). It creates a
-realistic, branching Purkinje system on the endocardial surfaces of the ventricles.
+The Purkinje network is pre-generated using a fractal tree algorithm (``fractal_tree``),
+a third-party tool that creates a realistic, branching Purkinje system on the endocardial
+surfaces of the ventricles.
 
 In addition to the Purkinje fibers, this example defines other key conduction pathways,
-such as the sinoatrial (SA) node to atrioventricular (AV) node paths, the Bachmann bundle,
+such as the sinoatrial (SA) node to atrioventricular (AV) node path, the Bachmann bundle,
 the His bundle and its bifurcation, as well as the left and right bundle branches.
-Each conduction path is constructed using anatomical landmarks and keypoints, and
+Each conduction path is constructed using anatomical landmarks and keypoints, and is
 integrated into the heart model for simulation.
 
 """
@@ -71,9 +71,10 @@ model.load_model_from_mesh(path_to_model, path_to_partinfo)
 # Create conduction paths for the Purkinje network
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Load precomputed Purkinje networks
+# Load precomputed Purkinje network meshes
 left, right = get_fractal_tree_purkinje()
 
+# Create left Purkinje network conduction path
 left_purkinje = ConductionPath(
     ConductionPathType.LEFT_PURKINJE,
     left,
@@ -81,15 +82,14 @@ left_purkinje = ConductionPath(
     id=1,
     relying_surface=model.left_ventricle.endocardium,
 )
-# Create Purkinje-myocardial junctions (PMJ) on leaf nodes
+
+# Identify and add Purkinje-myocardial junctions (PMJs) at leaf nodes
 p1 = np.unique(left.lines.reshape(-1, 3)[:, 1])
 p2 = np.unique(left.lines.reshape(-1, 3)[:, 2])
 pmj_nodes = np.setdiff1d(p2, p1)
-
 left_purkinje.add_pmj_path(pmj_list=pmj_nodes)
 
-# Visualize the left Purkinje network; the underlying surface is also plotted
-# and PMJ nodes are highlighted.
+# Visualize the left Purkinje network, highlighting the underlying surface and PMJ nodes
 left_purkinje.plot()
 
 # Create right Purkinje network in a similar way

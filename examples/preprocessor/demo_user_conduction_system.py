@@ -72,20 +72,20 @@ model.load_model_from_mesh(path_to_model, path_to_partinfo)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Load precomputed Purkinje network meshes
-left, right = get_fractal_tree_purkinje()
+left_purkinje, right_purkinje = get_fractal_tree_purkinje()
 
 # Create left Purkinje network conduction path
 left_purkinje = ConductionPath(
     ConductionPathType.LEFT_PURKINJE,
-    left,
-    is_connected=np.zeros(left.n_points),
+    left_purkinje,
+    is_connected=np.zeros(left_purkinje.n_points),
     id=1,
     relying_surface=model.left_ventricle.endocardium,
 )
 
 # Identify and add Purkinje-myocardial junctions (PMJs) at leaf nodes
-p1 = np.unique(left.lines.reshape(-1, 3)[:, 1])
-p2 = np.unique(left.lines.reshape(-1, 3)[:, 2])
+p1 = np.unique(left_purkinje.lines.reshape(-1, 3)[:, 1])
+p2 = np.unique(left_purkinje.lines.reshape(-1, 3)[:, 2])
 pmj_nodes = np.setdiff1d(p2, p1)
 left_purkinje.add_pmj_path(pmj_list=pmj_nodes)
 
@@ -95,15 +95,15 @@ left_purkinje.plot()
 # Create right Purkinje network in a similar way
 right_purkinje = ConductionPath(
     ConductionPathType.RIGHT_PURKINJE,
-    right,
-    is_connected=np.zeros(right.n_points),
+    right_purkinje,
+    is_connected=np.zeros(right_purkinje.n_points),
     id=2,
     relying_surface=model.right_ventricle.endocardium,
 )
 
 # Create Purkinje-myocardial junctions (PMJ) on leaf nodes
-p1 = np.unique(right.lines.reshape(-1, 3)[:, 1])
-p2 = np.unique(right.lines.reshape(-1, 3)[:, 2])
+p1 = np.unique(right_purkinje.lines.reshape(-1, 3)[:, 1])
+p2 = np.unique(right_purkinje.lines.reshape(-1, 3)[:, 2])
 pmj_nodes = np.setdiff1d(p2, p1)
 right_purkinje.add_pmj_path(pmj_list=pmj_nodes)
 

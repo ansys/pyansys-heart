@@ -84,8 +84,8 @@ left_purkinje = ConductionPath(
 )
 
 # Identify and add Purkinje-myocardial junctions (PMJs) at leaf nodes
-p1 = np.unique(left_purkinje.lines.reshape(-1, 3)[:, 1])
-p2 = np.unique(left_purkinje.lines.reshape(-1, 3)[:, 2])
+p1 = np.unique(left_purkinje.mesh.lines.reshape(-1, 3)[:, 1])
+p2 = np.unique(left_purkinje.mesh.lines.reshape(-1, 3)[:, 2])
 pmj_nodes = np.setdiff1d(p2, p1)
 left_purkinje.add_pmj_path(pmj_list=pmj_nodes)
 
@@ -102,8 +102,8 @@ right_purkinje = ConductionPath(
 )
 
 # Create Purkinje-myocardial junctions (PMJ) on leaf nodes
-p1 = np.unique(right_purkinje.lines.reshape(-1, 3)[:, 1])
-p2 = np.unique(right_purkinje.lines.reshape(-1, 3)[:, 2])
+p1 = np.unique(right_purkinje.mesh.lines.reshape(-1, 3)[:, 1])
+p2 = np.unique(right_purkinje.mesh.lines.reshape(-1, 3)[:, 2])
 pmj_nodes = np.setdiff1d(p2, p1)
 right_purkinje.add_pmj_path(pmj_list=pmj_nodes)
 
@@ -166,7 +166,7 @@ his_right.up_path = his_top
 
 ###############################################################################
 # Create the left and right bundle branches
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 left_bundle = ConductionPath.create_from_keypoints(
     name=ConductionPathType.LEFT_BUNDLE_BRANCH,
     keypoints=[his_left_point.xyz, model.left_ventricle.apex_points[0].xyz],
@@ -207,7 +207,7 @@ right_bundle.down_path = right_purkinje
 
 ###############################################################################
 # # Create the Bachmann bundle
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 surface_ids = [
     model.left_atrium.epicardium.id,
     model.right_atrium.epicardium.id,
@@ -226,7 +226,7 @@ bachman_bundle.up_path = sa_av
 
 ###############################################################################
 # Create the mid and post SA-AV node conduction paths
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # The mid and post SA-AV node conduction paths are created by providing a list of keypoints.
 mid_sa_av = ConductionPath.create_from_keypoints(
@@ -261,7 +261,7 @@ post_sa_av.down_path = sa_av
 
 ###############################################################################
 # Assign all paths to the model and visualize the conduction system
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 model.assign_conduction_paths(
     [

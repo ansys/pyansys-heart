@@ -188,12 +188,38 @@ class ConductionPath:
         self.mesh.point_data["_is-connected"] = self.is_connected
         self.mesh.cell_data["_line-id"] = self.id * np.ones(self.mesh.n_cells)
 
-    def plot(self):
-        """Plot the conduction path with underlying surface."""
+    def plot(self, show_plotter: bool = True) -> pv.Plotter | None:
+        """
+        Plot the conduction path with its underlying surface.
+
+        This method creates a PyVista plotter, adds the relying surface (in semi-transparent white)
+        and the conduction path (as a line), and either shows the plot or returns the plotter
+        for further customization.
+
+        Parameters
+        ----------
+        show_plotter : bool, default: True
+            If True, immediately show the plot window. If False, return the plotter
+            object for further modification (e.g., adding more meshes).
+
+        Returns
+        -------
+        plotter : pyvista.Plotter or None
+            The PyVista plotter object if ``show_plotter`` is False, otherwise None.
+
+        Examples
+        --------
+        >>> plotter = conduction_path.plot(show_plotter=False)
+        >>> plotter.add_mesh(other_mesh, color="red")
+        >>> plotter.show()
+        """
         plotter = pv.Plotter()
         plotter.add_mesh(self.relying_surface, color="w", opacity=0.5)
         plotter.add_mesh(self.mesh, line_width=2)
-        plotter.show()
+        if show_plotter:
+            plotter.show()
+            return
+        return plotter
 
     @property
     def length(self):

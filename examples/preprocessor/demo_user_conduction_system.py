@@ -48,6 +48,7 @@ integrated into the heart model for simulation.
 from pathlib import Path
 
 import numpy as np
+import pyvista as pv
 
 from ansys.health.heart.examples import (
     get_fractal_tree_purkinje,
@@ -84,15 +85,16 @@ left_purkinje = ConductionPath(
 )
 
 # Identify and add Purkinje-myocardial junctions (PMJs) at leaf nodes
-p1 = np.unique(left_purkinje.mesh.lines.reshape(-1, 3)[:, 1])
-p2 = np.unique(left_purkinje.mesh.lines.reshape(-1, 3)[:, 2])
-pmj_nodes = np.setdiff1d(p2, p1)
-left_purkinje.add_pmj_path(pmj_list=pmj_nodes)
+pmj_nodes_left = left_purkinje._get_terminal_nodes()
+pmj_coordinates_left = left_purkinje._get_terminal_coordinates()
+left_purkinje.add_pmj_path(pmj_list=pmj_nodes_left)
 
-# Visualize the left Purkinje network, highlighting the underlying surface and PMJ nodes
+# Visualize the left Purkinje network
 left_purkinje.plot()
 
-# Create right Purkinje network in a similar way
+###############################################################
+
+# Create right Purksinje network in a similar way
 right_purkinje = ConductionPath(
     ConductionPathType.RIGHT_PURKINJE,
     right_purkinje,
@@ -102,10 +104,34 @@ right_purkinje = ConductionPath(
 )
 
 # Create Purkinje-myocardial junctions (PMJ) on leaf nodes
-p1 = np.unique(right_purkinje.mesh.lines.reshape(-1, 3)[:, 1])
-p2 = np.unique(right_purkinje.mesh.lines.reshape(-1, 3)[:, 2])
-pmj_nodes = np.setdiff1d(p2, p1)
-right_purkinje.add_pmj_path(pmj_list=pmj_nodes)
+pmj_nodes_right = right_purkinje._get_terminal_nodes()
+pmj_coordinates_right = right_purkinje._get_terminal_coordinates()
+right_purkinje.add_pmj_path(pmj_list=pmj_nodes_right)
+
+# Plot the right Purkinje network.
+right_purkinje.plot()
+
+###############################################################
+# Create a plotter object with the left and right Purkinje network
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Most of the underlying objects are based on VTK. Hence you can create
+# and customize your own visualization. For instance to combine the different
+# paths into a single plot.
+
+# Create object for visualization of the PMJ points
+pmj_points = pv.PolyData(np.vstack([pmj_coordinates_left, pmj_coordinates_right]))
+
+# Create a plotter object and add all meshes
+plotter = pv.Plotter()
+plotter.add_mesh(pmj_points, color="r", render_points_as_spheres=True, point_size=5)
+plotter.add_mesh(pv.merge([left_purkinje.mesh, right_purkinje.mesh]), line_width=2)
+plotter.add_mesh(
+    pv.merge([left_purkinje.relying_surface, right_purkinje.relying_surface]),
+    opacity=0.5,
+    color="white",
+)
+plotter.show()
+
 
 ###############################################################################
 # Create the SA-AV node conduction path
@@ -164,6 +190,8 @@ his_right = ConductionPath.create_from_keypoints(
     base_mesh=model.mesh.extract_cells_by_type(10),
 )
 his_right.up_path = his_top
+
+###############################################################################
 
 # .. note::
 #    You can modify the conduction velocity in ``his_top.ep_material``

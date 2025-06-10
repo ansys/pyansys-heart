@@ -188,6 +188,33 @@ class ConductionPath:
         self.mesh.point_data["_is-connected"] = self.is_connected
         self.mesh.cell_data["_line-id"] = self.id * np.ones(self.mesh.n_cells)
 
+    def _get_terminal_nodes(self) -> np.ndarray:
+        """Get the terminal nodes of the conduction path.
+
+        Notes
+        -----
+        The terminal nodes are the points that are referenced only once
+        in the line segments.
+
+        Returns
+        -------
+        np.ndarray
+            Array of terminal node indices.
+        """
+        p1 = np.unique(self.mesh.lines.reshape(-1, 3)[:, 1])
+        p2 = np.unique(self.mesh.lines.reshape(-1, 3)[:, 2])
+        return np.setdiff1d(p2, p1)
+
+    def _get_terminal_coordinates(self) -> np.ndarray:
+        """Get the nodal coordinates of the terminal nodes.
+
+        Returns
+        -------
+        np.ndarray
+            Nx3 array with the coordinates of the terminal nodes.
+        """
+        return self.mesh.points[self._get_terminal_nodes(), :]
+
     def plot(self, show_plotter: bool = True) -> pv.Plotter | None:
         """
         Plot the conduction path with its underlying surface.

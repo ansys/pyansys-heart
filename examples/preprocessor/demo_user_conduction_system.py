@@ -180,14 +180,14 @@ his_left = ConductionPath.create_from_keypoints(
     name=ConductionPathType.HIS_LEFT,
     keypoints=[his_bif.xyz, his_left_point.xyz],
     id=5,
-    base_mesh=model.mesh.extract_cells_by_type(10),
+    base_mesh=model.mesh.extract_cells_by_type(pv.CellType.TETRA),
 )
 his_left.up_path = his_top
 his_right = ConductionPath.create_from_keypoints(
     name=ConductionPathType.HIS_RIGHT,
     keypoints=[his_bif.xyz, his_right_point.xyz],
     id=6,
-    base_mesh=model.mesh.extract_cells_by_type(10),
+    base_mesh=model.mesh.extract_cells_by_type(pv.CellType.TETRA),
 )
 his_right.up_path = his_top
 

@@ -140,6 +140,7 @@ his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model)
 his_left_point = HeartModelUtils.define_his_bundle_end_node(model, side="left")
 his_right_point = HeartModelUtils.define_his_bundle_end_node(model, side="right")
 
+# Top part of the His bundle.
 his_top = ConductionPath.create_from_keypoints(
     name=ConductionPathType.HIS_TOP,
     keypoints=[av.xyz, his_bif.xyz],
@@ -148,7 +149,7 @@ his_top = ConductionPath.create_from_keypoints(
 )
 his_top.up_path = sa_av
 
-# Note : we can set a delay by his_top.ep_material
+# Create branches for the left and right bundle branches
 his_left = ConductionPath.create_from_keypoints(
     name=ConductionPathType.HIS_LEFT,
     keypoints=[his_bif.xyz, his_left_point.xyz],
@@ -164,6 +165,10 @@ his_right = ConductionPath.create_from_keypoints(
 )
 his_right.up_path = his_top
 
+# .. note::
+#    You can modify the conduction velocity in ``his_top.ep_material``
+#    to induce a delay in activation.
+
 ###############################################################################
 # Create the left and right bundle branches
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -175,8 +180,7 @@ left_bundle = ConductionPath.create_from_keypoints(
     line_length=None,
     center=True,
 )
-# Add PMJ path for left bundle branch in order to have a earlier activation
-# on the left side of septum
+# Connect the left bundle branch to the septum by adding additional Purkinje-Myocardial-Junctions
 pmj_list = list(
     range(
         int((0.4 * left_bundle.mesh.n_points)),
@@ -188,7 +192,7 @@ left_bundle.add_pmj_path(pmj_list, merge_with="node")
 left_bundle.up_path = his_left
 left_bundle.down_path = left_purkinje
 
-# build the right bundle branch
+# Build the right bundle branch
 surface_ids = [
     model.right_ventricle.endocardium.id,
     model.right_ventricle.septum.id,
@@ -206,7 +210,7 @@ right_bundle.down_path = right_purkinje
 
 
 ###############################################################################
-# # Create the Bachmann bundle
+# Create the Bachmann bundle
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 surface_ids = [
     model.left_atrium.epicardium.id,
@@ -279,4 +283,5 @@ model.assign_conduction_paths(
     ]
 )
 
+# Plot the entire conduction system.
 model.plot_purkinje()

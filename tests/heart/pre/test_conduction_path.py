@@ -25,10 +25,16 @@
 import os
 
 import numpy as np
+import pytest
 import pyvista as pv
 
 from ansys.health.heart.models_utils import HeartModelUtils
-from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
+from ansys.health.heart.pre.conduction_path import (
+    ConductionPath,
+    ConductionPathType,
+    _create_path_on_surface_center,
+    _path_merge,
+)
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 from tests.heart.conftest import get_assets_folder, get_fourchamber, get_fullheart
 
@@ -86,11 +92,30 @@ def test_create_conductionbeams_on_surface():
         keypoints=[sa.xyz, av.xyz],
         id=2,
         base_mesh=model.right_atrium.endocardium,
-        connection="none",
     )
 
     assert sa_av.mesh.n_lines == 48
     assert np.isclose(sa_av.length, 64.36592438345)
+
+
+def test_create_conductionbeams_on_surface_pmj():
+    """Test conductionbeams with pmj creation."""
+    model = get_fourchamber()
+    sa = HeartModelUtils.define_sino_atrial_node(model)
+    av = HeartModelUtils.define_atrio_ventricular_node(model)
+
+    sa_av = ConductionPath.create_from_keypoints(
+        name=ConductionPathType.SAN_AVN,
+        keypoints=[sa.xyz, av.xyz],
+        id=2,
+        base_mesh=model.right_atrium.endocardium,
+        center=True,
+    )
+
+    sa_av.add_pmj_path([22, 26, 30, 34, 38, 42])
+    assert sa_av.mesh.lines.reshape(-1, 3)[-1, 1] == 45
+    assert sa_av.mesh.lines.reshape(-1, 3)[-1, 2] == 64
+    assert np.sum(sa_av.is_connected) == 18.0
 
 
 def test_create_conductionbeams_on_surface_with_refinement():
@@ -104,14 +129,13 @@ def test_create_conductionbeams_on_surface_with_refinement():
         keypoints=[sa.xyz, av.xyz],
         id=2,
         base_mesh=model.right_atrium.endocardium,
-        connection="all",
         line_length=0.5,
     )
 
     assert sa_av.mesh.n_lines == 140
     assert np.isclose(sa_av.length, 64.36592438345)
     # check only necessary points are connected
-    assert np.sum(sa_av.is_connected) == 49
+    assert np.sum(sa_av.is_connected) == 0
 
 
 def test_create_conductionbeams_in_solid():
@@ -122,8 +146,7 @@ def test_create_conductionbeams_in_solid():
         name=ConductionPathType.HIS_TOP,
         keypoints=[av.xyz, bif.xyz],
         id=1,
-        base_mesh=model.mesh,
-        connection="none",
+        base_mesh=model.mesh.extract_cells_by_type(10),
     )
     assert np.isclose(his_top.length, 14.276232139149878)
     assert his_top.relying_surface.n_cells == 9
@@ -172,7 +195,7 @@ def test_conduction():
     assert np.array_equal(res["_is-connected"], ref["_is-connected"])
 
     # test ID shift after merging to solid
-    assert np.sum(model.conduction_mesh.point_data["_shifted_id"]) == 585876812
+    assert np.sum(model.conduction_mesh.point_data["_shifted_id"]) == 587367719
 
 
 def test_conductionbeams_from_k():
@@ -207,3 +230,100 @@ def test_conductionbeams_from_k():
         merge_apex=True,
     )
     assert l_pj2.is_connected.sum() == 1115
+
+
+def test_path_merge():
+    """Test path merge."""
+    # Create a simple line mesh with 3 points and 2 lines
+    points = np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0]])
+    lines = np.array([2, 0, 1, 2, 1, 2])  # two lines: 0-1 and 1-2
+    mesh = pv.PolyData(points, lines=lines)
+    is_connected = np.array([0, 1, 0])
+
+    # Add one new point and one new line from 1 to new point
+    new_points = np.array([[3, 0, 0]])
+    new_lines = np.array([[2, 2, 3]])
+    new_is_connected = np.array([1])
+
+    merged_mesh, merged_is_connected = _path_merge(
+        mesh, new_points, new_lines, is_connected, new_is_connected
+    )
+
+    # There should be 4 points now
+    assert merged_mesh.n_points == 4
+    # There should be 3 lines now
+    assert merged_mesh.n_lines == 3
+    # The merged is_connected should have length 4 and correct values
+    assert merged_is_connected.shape == (4,)
+    assert np.array_equal(merged_is_connected, np.array([0, 1, 1, 0]))
+    # The last point should be swapped with the original last point
+    assert np.all(np.isclose(merged_mesh.points[-1], [2, 0, 0]), axis=-1)
+
+
+@pytest.fixture
+def simple_conduction_path():
+    # Create a simple surface mesh (triangle)
+    surface_points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]])
+    surface_faces = np.hstack([[3, 0, 1, 2]])
+    surface = pv.PolyData(surface_points, faces=surface_faces)
+
+    # Create a simple line mesh (2 points, 1 line)
+    line_points = np.array([[1, 1, 0], [0.3, 0.3, 0]])
+    line_lines = np.array([2, 0, 1])
+    mesh = pv.PolyData(line_points, lines=line_lines)
+    is_connected = np.array([0, 0])
+
+    # Dummy EPMaterial
+    class DummyMaterial:
+        pass
+
+    # Minimal ConductionPathType
+    class DummyType:
+        pass
+
+    # Create ConductionPath
+    cp = ConductionPath(
+        name=DummyType,
+        mesh=mesh,
+        id=1,
+        is_connected=is_connected,
+        relying_surface=surface,
+        material=DummyMaterial(),
+    )
+    return cp
+
+
+def test_add_pmj_path_cell(simple_conduction_path):
+    """Add PMJ with merge_with cell"""
+    cp = simple_conduction_path
+
+    cp.add_pmj_path([1], merge_with="cell")
+    assert cp.mesh.n_points == 5
+    assert cp.mesh.n_lines == 4
+    assert np.array_equal(cp.is_connected, np.array([0, 1, 1, 1, 0]))
+
+
+def test_add_pmj_path_node(simple_conduction_path):
+    """Add PMJ with merge_with node"""
+    cp = simple_conduction_path
+    cp.add_pmj_path([1], merge_with="node")
+    assert cp.mesh.n_points == 3
+    assert cp.mesh.n_lines == 2
+    assert np.array_equal(cp.is_connected, np.array([0, 1, 0]))
+
+
+def test_create_path_on_surface_center():
+    """Test conductionbeams can be initialized correctly on a pyvista sphere with 3 keypoints."""
+    # Create a sphere mesh
+    sphere = pv.Sphere(radius=1.0, theta_resolution=30, phi_resolution=30)
+    # Define 3 keypoints on the sphere surface
+    keypoints = [
+        np.array([1.0, 0.0, 0.0]),
+        np.array([0.0, 1.0, 0.0]),
+        np.array([0.0, 0.0, 1.0]),
+    ]
+    path = _create_path_on_surface_center(keypoints, sphere, line_length=None)
+
+    assert path.n_points == 24
+    assert path.n_lines == 23
+    assert np.all(path.compute_cell_sizes()["Length"] > 0)

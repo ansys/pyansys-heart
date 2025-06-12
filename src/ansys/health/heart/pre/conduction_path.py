@@ -243,6 +243,7 @@ class ConductionPath:
         plotter = pv.Plotter()
         plotter.add_mesh(self.relying_surface, color="w", opacity=0.5)
         plotter.add_mesh(self.mesh, line_width=2)
+        plotter.add_text(self.name.value, font_size=12, color="black", position="upper_edge")
         if show_plotter:
             plotter.show()
             return

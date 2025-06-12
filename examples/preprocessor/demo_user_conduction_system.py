@@ -130,6 +130,7 @@ plotter.add_mesh(
     opacity=0.5,
     color="white",
 )
+plotter.add_text("Left and right Purkinje networks.", position="upper_edge")
 plotter.show()
 
 

@@ -766,7 +766,7 @@ class HeartModel:
             beams = self._conduction_mesh
             plotter.add_mesh(beams, line_width=2)
             plotter.add_text(
-                "Conduction system", position="upper_edge", font_size=20, color="black"
+                "Conduction system", position="upper_edge", font_size=12, color="black"
             )
             plotter.show()
         except Exception as e:

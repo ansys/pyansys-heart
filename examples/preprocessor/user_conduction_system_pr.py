@@ -27,12 +27,13 @@ Full-heart conduction system example
 This example demonstrates how to build a conduction system for a full-heart model,
 including the Purkinje network and other conduction pathways.
 
+.. note::
+    The fractal tree method used to generate the Purkinje network in this example is based on:
+    Kharche, S., et al. "A Computer Simulation Study of Anatomy Induced Drift of Spiral Waves in
+    the Human Atrium." *PLoS Comput Biol* 11(6): e1004287 (2015). https://doi.org/10.1016/j.jbiomech.2015.12.025
+
 Overview
 --------
-
-The Purkinje network is pre-generated using a fractal tree algorithm (``fractal_tree``),
-a third-party tool that creates a realistic, branching Purkinje system on the endocardial
-surfaces of the ventricles.
 
 In addition to the Purkinje fibers, this example defines other key conduction pathways,
 such as the sinoatrial (SA) node to atrioventricular (AV) node path, the Bachmann bundle,
@@ -77,16 +78,16 @@ left_purkinje, right_purkinje = get_fractal_tree_purkinje()
 
 # Create left Purkinje network conduction path
 left_purkinje = ConductionPath(
-    ConductionPathType.LEFT_PURKINJE,
-    left_purkinje,
+    name=ConductionPathType.LEFT_PURKINJE,
+    mesh=left_purkinje,
     is_connected=np.zeros(left_purkinje.n_points),
     id=1,
     relying_surface=model.left_ventricle.endocardium,
 )
 
 # Identify and add Purkinje-myocardial junctions (PMJs) at leaf nodes
-pmj_nodes_left = left_purkinje._get_terminal_nodes()
-pmj_coordinates_left = left_purkinje._get_terminal_coordinates()
+pmj_nodes_left = left_purkinje.get_terminal_nodes()
+pmj_coordinates_left = left_purkinje.get_terminal_coordinates()
 left_purkinje.add_pmj_path(pmj_list=pmj_nodes_left)
 
 # Visualize the left Purkinje network
@@ -96,16 +97,16 @@ left_purkinje.plot()
 
 # Create right Purksinje network in a similar way
 right_purkinje = ConductionPath(
-    ConductionPathType.RIGHT_PURKINJE,
-    right_purkinje,
+    name=ConductionPathType.RIGHT_PURKINJE,
+    mesh=right_purkinje,
     is_connected=np.zeros(right_purkinje.n_points),
     id=2,
     relying_surface=model.right_ventricle.endocardium,
 )
 
 # Create Purkinje-myocardial junctions (PMJ) on leaf nodes
-pmj_nodes_right = right_purkinje._get_terminal_nodes()
-pmj_coordinates_right = right_purkinje._get_terminal_coordinates()
+pmj_nodes_right = right_purkinje.get_terminal_nodes()
+pmj_coordinates_right = right_purkinje.get_terminal_coordinates()
 right_purkinje.add_pmj_path(pmj_list=pmj_nodes_right)
 
 # Plot the right Purkinje network.

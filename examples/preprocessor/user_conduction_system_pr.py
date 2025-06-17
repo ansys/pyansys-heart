@@ -29,8 +29,8 @@ including the Purkinje network and other conduction pathways.
 
 .. note::
     The fractal tree method used to generate the Purkinje network in this example is based on:
-    Kharche, S., et al. "A Computer Simulation Study of Anatomy Induced Drift of Spiral Waves in
-    the Human Atrium." *PLoS Comput Biol* 11(6): e1004287 (2015). https://doi.org/10.1016/j.jbiomech.2015.12.025
+    `F. Sahli Costabal, D. Hurtado and E. Kuhl. Generating Purkinje networks in the human heart.
+    2016, Journal of Biomechanics <https://doi.org/10.1016/j.jbiomech.2015.12.025>`_.
 
 Overview
 --------

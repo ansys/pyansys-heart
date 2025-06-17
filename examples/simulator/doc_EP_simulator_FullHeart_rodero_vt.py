@@ -206,11 +206,11 @@ slow_ten_tusscher = CellModel.Tentusscher(
 )
 
 epinsulator = EPMaterial.Insulator()
-epbz = ep_mat_active = EPMaterial.Active(
+epbz = EPMaterial.Active(
     sigma_fiber=0.7, sigma_sheet=0.2, sigma_sheet_normal=0.2, beta=140, cm=0.01, cell_model=slow_ten_tusscher
 )
 
-eplv = ep_mat_active = EPMaterial.Active(
+eplv = EPMaterial.Active(
     sigma_fiber=0.5, sigma_sheet=0.1, sigma_sheet_normal=0.1, beta=140, cm=0.01
 )
 

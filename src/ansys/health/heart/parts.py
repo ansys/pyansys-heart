@@ -33,7 +33,7 @@ from enum import Enum
 import numpy as np
 import yaml
 
-from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart import LOG as LOGGER, __version__
 from ansys.health.heart.objects import Cap, Cavity, Point, SurfaceMesh
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 from ansys.health.heart.settings.material.material import MechanicalMaterialModel
@@ -111,6 +111,7 @@ class Part:
         """Get part information to reconstruct from a mesh file."""
         data = {
             self.name: {
+                "version": __version__,
                 "part-id": self.pid,
                 "part-type": self._part_type.value,
                 "fiber": self.fiber,

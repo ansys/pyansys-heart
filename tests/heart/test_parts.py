@@ -38,19 +38,23 @@ from ansys.health.heart.parts import (
 @pytest.mark.parametrize(
     "cls, name, expected_keys",
     [
-        (Part, "Part", ["part-id", "part-type", "fiber", "active", "surfaces"]),
-        (Septum, "Septum", ["part-id", "part-type", "fiber", "active", "surfaces"]),
-        (Artery, "Artery", ["part-id", "part-type", "fiber", "active", "surfaces"]),
-        (Myocardium, "Myocardium", ["part-id", "part-type", "fiber", "active", "surfaces"]),
+        (Part, "Part", ["version", "part-id", "part-type", "fiber", "active", "surfaces"]),
+        (Septum, "Septum", ["version", "part-id", "part-type", "fiber", "active", "surfaces"]),
+        (Artery, "Artery", ["version", "part-id", "part-type", "fiber", "active", "surfaces"]),
+        (
+            Myocardium,
+            "Myocardium",
+            ["version", "part-id", "part-type", "fiber", "active", "surfaces"],
+        ),
         (
             Ventricle,
             "Ventricle",
-            ["part-id", "part-type", "fiber", "active", "surfaces", "caps", "cavity"],
+            ["version", "part-id", "part-type", "fiber", "active", "surfaces", "caps", "cavity"],
         ),
         (
             Atrium,
             "Atrium",
-            ["part-id", "part-type", "fiber", "active", "surfaces", "caps", "cavity"],
+            ["version", "part-id", "part-type", "fiber", "active", "surfaces", "caps", "cavity"],
         ),
     ],
 )

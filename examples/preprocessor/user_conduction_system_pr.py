@@ -85,7 +85,7 @@ left_purkinje = ConductionPath(
     relying_surface=model.left_ventricle.endocardium,
 )
 
-# Identify and add Purkinje-myocardial junctions (PMJs) at leaf nodes
+# Add Purkinje-myocardial junctions (PMJs) at terminal nodes
 pmj_nodes_left = left_purkinje.get_terminal_nodes()
 pmj_coordinates_left = left_purkinje.get_terminal_coordinates()
 left_purkinje.add_pmj_path(pmj_list=pmj_nodes_left)
@@ -93,9 +93,9 @@ left_purkinje.add_pmj_path(pmj_list=pmj_nodes_left)
 # Visualize the left Purkinje network
 left_purkinje.plot()
 
-###############################################################
-
-# Create right Purksinje network in a similar way
+###############################################################################
+# Create right Purkinje network
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 right_purkinje = ConductionPath(
     name=ConductionPathType.RIGHT_PURKINJE,
     mesh=right_purkinje,
@@ -104,25 +104,21 @@ right_purkinje = ConductionPath(
     relying_surface=model.right_ventricle.endocardium,
 )
 
-# Create Purkinje-myocardial junctions (PMJ) on leaf nodes
+# Add Purkinje-myocardial junctions (PMJs) at terminal nodes
 pmj_nodes_right = right_purkinje.get_terminal_nodes()
 pmj_coordinates_right = right_purkinje.get_terminal_coordinates()
 right_purkinje.add_pmj_path(pmj_list=pmj_nodes_right)
 
-# Plot the right Purkinje network.
+# Visualize the right Purkinje network
 right_purkinje.plot()
 
-###############################################################
-# Create a plotter object with the left and right Purkinje network
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Most of the underlying objects are based on VTK. Hence you can create
-# and customize your own visualization. For instance to combine the different
-# paths into a single plot.
-
-# Create object for visualization of the PMJ points
+###############################################################################
+# Visualize both Purkinje networks and PMJ points together
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Combine PMJ coordinates for visualization
 pmj_points = pv.PolyData(np.vstack([pmj_coordinates_left, pmj_coordinates_right]))
 
-# Create a plotter object and add all meshes
+# Create a plotter and add all relevant meshes
 plotter = pv.Plotter()
 plotter.add_mesh(pmj_points, color="r", render_points_as_spheres=True, point_size=5)
 plotter.add_mesh(pv.merge([left_purkinje.mesh, right_purkinje.mesh]), line_width=2)
@@ -152,7 +148,7 @@ sa_av = ConductionPath.create_from_keypoints(
     center=True,
 )
 
-# Add PMJ nodes at every 4th node along the path
+# Add PMJ nodes at every 4th node along the SA-AV path (excluding endpoints)
 sa_av.add_pmj_path(list(range(1, sa_av.mesh.n_points - 1, 4)))
 
 # Visualize the SA-AV node conduction path
@@ -161,7 +157,7 @@ sa_av.plot()
 ###############################################################################
 # Create the His bundle and its bifurcation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# The His bundle is inside the myocardium instead of relying on surfaces.
+# The His bundle is constructuted inside the myocardium, not on a surface.
 
 ###############################################################################
 # .. note::
@@ -210,7 +206,7 @@ left_bundle = ConductionPath.create_from_keypoints(
     line_length=None,
     center=True,
 )
-# Connect the left bundle branch to the septum by adding additional Purkinje-Myocardial-Junctions
+# Connect the left bundle branch to the septum by adding additional Purkinje-myocardial junctions
 pmj_list = list(
     range(
         int((0.4 * left_bundle.mesh.n_points)),
@@ -294,8 +290,8 @@ post_sa_av.up_path = sa_av
 post_sa_av.down_path = sa_av
 
 ###############################################################################
-# Assign all paths to the model and visualize the conduction system
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Assign all conduction paths to the model and visualize the complete system
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 model.assign_conduction_paths(
     [
@@ -313,5 +309,5 @@ model.assign_conduction_paths(
     ]
 )
 
-# Plot the entire conduction system.
+# Visualize the entire conduction system
 model.plot_purkinje()

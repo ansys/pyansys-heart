@@ -160,6 +160,30 @@ def _get_test_model():
     return mesh, part_info
 
 
+def test_load_model_arbitrary_part():
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
+        mesh_path = os.path.join(tmpdir, "mesh.vtu")
+
+        mesh, part_info = _get_test_model()
+
+        mesh.save(mesh_path)
+
+        part_info_path = os.path.join(tmpdir, "partinfo.json")
+
+        # Add an arbitrary part to the part info.
+        part_info["ArbitraryPart"] = part_info["Septum"]
+        part_info["ArbitraryPart"]["part-id"] = 14
+        part_info["ArbitraryPart"]["part-type"] = "undefined"
+
+        with open(part_info_path, "w") as f:
+            json.dump(part_info, f, indent=4)
+
+        model = models.HeartModel._load_model(mesh_path, part_info_path)
+
+        assert "ArbitraryPart" in model.part_names
+        assert "arbitrarypart" in model.__dict__.keys()
+
+
 def test_load_model():
     """Test loading mesh from mesh file and id map."""
     # generate a dummy mesh.

@@ -607,9 +607,23 @@ class HeartModel:
         if not found:
             return None
 
-    def add_part(self, part_name: str) -> None:
+    def add_part(self, part: str | anatomy.Part) -> None:
         """Dynamically add a part as an attribute to the object."""
-        setattr(self, "_".join(part_name.lower().split()), anatomy.Part(name=part_name))
+        # TODO: deprecate adding a part by name.
+        if isinstance(part, str):
+            LOGGER.warning(
+                "Setting part by name is deprecated. Use `add_part` with a Part instance."
+            )
+            setattr(self, "_".join(part.lower().split()), anatomy.Part(name=part))
+            return
+
+        if not isinstance(part, anatomy.Part):
+            raise TypeError("Part must be an instance of anatomy.Part.")
+        if part.name in self.part_names:
+            LOGGER.error(f"Part with name {part.name} already exists.")
+            return
+        # TODO: check if part name does not override an existing attribute/property.
+        setattr(self, part.name.lower().replace(" ", "_"), part)
         return
 
     def remove_part(self, part_name: str) -> None:
@@ -867,6 +881,9 @@ class HeartModel:
         # Create an instance of the model
         model = modeltype(working_directory)
 
+        # extra parts
+        extra_part_names = list(set(part_info.keys()) - set(model.part_names))
+
         # set the part info.
         model._part_info = part_info
 
@@ -914,7 +931,10 @@ class HeartModel:
                     cap._mesh = model.mesh.get_surface(cap_id)
                     part_1.caps.append(cap)
 
-        # TODO: add non-standard part by setattr(self, part_name_n, part)
+        # loop over each extra part and load this into model.
+        for extra_part_name in extra_part_names:
+            extra_part = anatomy.Part._set_from_dict({extra_part_name: part_info[extra_part_name]})
+            model.add_part(extra_part)
 
         # NOTE: #? add validation method to make sure all essential components are present?
         try:

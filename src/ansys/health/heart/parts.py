@@ -177,6 +177,7 @@ class Part:
             _PartType.ATRIUM: Atrium,
             _PartType.ARTERY: Artery,
             _PartType.MYOCARDIUM: Myocardium,
+            _PartType.UNDEFINED: Part,
         }
 
         part_cls = _part_type_to_class_map[_part_type]

@@ -7,12 +7,12 @@ PyAnsys Heart
    :target: https://docs.pyansys.com/
    :alt: PyAnsys
 
-.. |python| image:: https://img.shields.io/pypi/pyversions/pyansys-heart?logo=pypi
-   :target: https://pypi.org/project/pyansys-heart/
+.. |python| image:: https://img.shields.io/pypi/pyversions/ansys-health-heart?logo=pypi
+   :target: https://pypi.org/project/ansys-health-heart/
    :alt: Python
 
-.. |pypi| image:: https://img.shields.io/pypi/v/pyansys-heart.svg?logo=python&logoColor=white&label=PyPI
-   :target: https://pypi.org/project/pyansys-heart
+.. |pypi| image:: https://img.shields.io/pypi/v/ansys-health-heart.svg?logo=python&logoColor=white&label=PyPI
+   :target: https://pypi.org/project/ansys-health-heart
    :alt: PyPI
 
 .. |GH-CI| image:: https://github.com/ansys/pyansys-heart/actions/workflows/ci_cd_night.yml/badge.svg
@@ -93,12 +93,12 @@ To reach the project support team, email `pyansys.core@ansys.com <mailto:pyansys
 .. Documentation links
 .. _prerequisites: https://heart.health.docs.pyansys.com/version/stable/getting-started/prerequisites.html
 .. _installation guidelines: https://heart.health.docs.pyansys.com/version/stable/getting-started/installation.html
-.. _getting started: https://heart.health.docs.pyansys.com/version/stable/getting-started/index.html
-.. _user guide: https://heart.health.docs.pyansys.com/version/stable/user-guide/index.html
+.. _getting started: https://heart.health.docs.pyansys.com/version/stable/getting-started.html
+.. _user guide: https://heart.health.docs.pyansys.com/version/stable/user-guide.html
 .. _API reference: https://heart.health.docs.pyansys.com/version/stable/api/index.html
 .. _examples: https://heart.health.docs.pyansys.com/version/stable/examples/index.html
-.. _contribute: https://heart.health.docs.pyansys.com/version/stable/contributing/index.html
+.. _contribute: https://heart.health.docs.pyansys.com/version/stable/contributing.html
 .. _LICENSE: https://github.com/ansys/pyansys-heart/blob/main/LICENSE
-.. _release_notes: https://heart.health.docs.pyansys.com/version/stable/changelog.html
+.. _release notes: https://heart.health.docs.pyansys.com/version/stable/changelog.html
 .. _PyAnsys Heart documentation: https://heart.health.docs.pyansys.com/version/stable/
-.. _Release notes: https://heart.health.docs.pyansys.com/version/stable/changelog.html
+

@@ -166,7 +166,7 @@ def extract_model(request):
 
     # Dummy apico-basal data to match pericardium output in asset
     lv_apex = model.left_ventricle.apex_points[1].xyz
-    mv_centroid = [c.centroid for p in model.parts for c in p.caps if "mitral" in c.name][0]
+    mv_centroid = [c.centroid for c in model.all_caps if "mitral" in c.name][0]
     longitudinal_axis = lv_apex - mv_centroid
 
     # rotate model to align with z-axis

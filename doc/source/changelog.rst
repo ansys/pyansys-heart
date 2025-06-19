@@ -7,6 +7,117 @@ Release notes
 
 .. towncrier release notes start
 
+`0.13.3 <https://github.com/ansys/pyansys-heart/releases/tag/v0.13.3>`_ (June 17, 2025)
+=======================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Added
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - add support for v252
+          - `#1123 <https://github.com/ansys/pyansys-heart/pull/1123>`_
+
+
+  .. tab-item:: Fixed
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - bump ansys-sphinx-theme
+          - `#1102 <https://github.com/ansys/pyansys-heart/pull/1102>`_
+
+        * - support python 3.10
+          - `#1120 <https://github.com/ansys/pyansys-heart/pull/1120>`_
+
+        * - fix broken tests
+          - `#1129 <https://github.com/ansys/pyansys-heart/pull/1129>`_
+
+
+  .. tab-item:: Documentation
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - update contributing.rst
+          - `#1105 <https://github.com/ansys/pyansys-heart/pull/1105>`_
+
+        * - add acknowledgments
+          - `#1110 <https://github.com/ansys/pyansys-heart/pull/1110>`_
+
+        * - fix links in README
+          - `#1116 <https://github.com/ansys/pyansys-heart/pull/1116>`_
+
+        * - update install instructions
+          - `#1117 <https://github.com/ansys/pyansys-heart/pull/1117>`_
+
+        * - update the badges in readme
+          - `#1119 <https://github.com/ansys/pyansys-heart/pull/1119>`_
+
+        * - fix links
+          - `#1122 <https://github.com/ansys/pyansys-heart/pull/1122>`_
+
+        * - remove explicitly setting fluent version in example
+          - `#1131 <https://github.com/ansys/pyansys-heart/pull/1131>`_
+
+        * - Improve instructions on prerequisites page
+          - `#1144 <https://github.com/ansys/pyansys-heart/pull/1144>`_
+
+
+  .. tab-item:: Dependencies
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - update scipy requirement from <=1.15.2 to <=1.15.3
+          - `#1108 <https://github.com/ansys/pyansys-heart/pull/1108>`_
+
+        * - Bump trame-vtk from 2.8.15 to 2.8.17
+          - `#1137 <https://github.com/ansys/pyansys-heart/pull/1137>`_
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - bump the actions group across 1 directory with 3 updates
+          - `#1088 <https://github.com/ansys/pyansys-heart/pull/1088>`_
+
+        * - bump version to 0.13.dev0
+          - `#1096 <https://github.com/ansys/pyansys-heart/pull/1096>`_
+
+        * - update CHANGELOG for v0.12.1
+          - `#1100 <https://github.com/ansys/pyansys-heart/pull/1100>`_
+
+        * - update CHANGELOG for v0.12.2
+          - `#1104 <https://github.com/ansys/pyansys-heart/pull/1104>`_
+
+        * - release to public pypi
+          - `#1112 <https://github.com/ansys/pyansys-heart/pull/1112>`_
+
+
+  .. tab-item:: Miscellaneous
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - refactor dyna writer to improve maintainability
+          - `#1101 <https://github.com/ansys/pyansys-heart/pull/1101>`_
+
+        * - refactor and further cleanup for release
+          - `#1109 <https://github.com/ansys/pyansys-heart/pull/1109>`_
+
+
 `0.12.2 <https://github.com/ansys/pyansys-heart/releases/tag/v0.12.2>`_ (May 08, 2025)
 ======================================================================================
 

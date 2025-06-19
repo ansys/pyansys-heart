@@ -28,7 +28,7 @@ This example demonstrates how to build a conduction system for a full-heart mode
 including the Purkinje network and other conduction pathways.
 
 .. note::
-    The fractal tree method used to generate the Purkinje network in this example is based on:
+    The fractal tree used in this example was generated with LS-DYNA and is based on:
     `F. Sahli Costabal, D. Hurtado and E. Kuhl. Generating Purkinje networks in the human heart.
     2016, Journal of Biomechanics <https://doi.org/10.1016/j.jbiomech.2015.12.025>`_.
 

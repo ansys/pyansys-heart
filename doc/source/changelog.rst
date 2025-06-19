@@ -7,10 +7,20 @@ Release notes
 
 .. towncrier release notes start
 
-`0.13.2 <https://github.com/ansys/pyansys-heart/releases/tag/v0.13.2>`_ (May 20, 2025)
-======================================================================================
+`0.13.3 <https://github.com/ansys/pyansys-heart/releases/tag/v0.13.3>`_ (June 17, 2025)
+=======================================================================================
 
 .. tab-set::
+
+
+  .. tab-item:: Added
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - add support for v252
+          - `#1123 <https://github.com/ansys/pyansys-heart/pull/1123>`_
 
 
   .. tab-item:: Fixed
@@ -24,6 +34,9 @@ Release notes
 
         * - support python 3.10
           - `#1120 <https://github.com/ansys/pyansys-heart/pull/1120>`_
+
+        * - fix broken tests
+          - `#1129 <https://github.com/ansys/pyansys-heart/pull/1129>`_
 
 
   .. tab-item:: Documentation
@@ -47,6 +60,15 @@ Release notes
         * - update the badges in readme
           - `#1119 <https://github.com/ansys/pyansys-heart/pull/1119>`_
 
+        * - fix links
+          - `#1122 <https://github.com/ansys/pyansys-heart/pull/1122>`_
+
+        * - remove explicitly setting fluent version in example
+          - `#1131 <https://github.com/ansys/pyansys-heart/pull/1131>`_
+
+        * - Improve instructions on prerequisites page
+          - `#1144 <https://github.com/ansys/pyansys-heart/pull/1144>`_
+
 
   .. tab-item:: Dependencies
 
@@ -56,6 +78,9 @@ Release notes
 
         * - update scipy requirement from <=1.15.2 to <=1.15.3
           - `#1108 <https://github.com/ansys/pyansys-heart/pull/1108>`_
+
+        * - Bump trame-vtk from 2.8.15 to 2.8.17
+          - `#1137 <https://github.com/ansys/pyansys-heart/pull/1137>`_
 
 
   .. tab-item:: Maintenance

@@ -163,6 +163,11 @@ sa_av.plot()
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The His bundle is inside the myocardium instead of relying on surfaces.
 
+###############################################################################
+# .. note::
+#    You can modify the conduction velocity in ``his_top.ep_material``
+#    to induce a delay in activation.
+
 # Define three keypoints for the His bundle
 his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model)
 his_left_point = HeartModelUtils.define_his_bundle_end_node(model, side="left")
@@ -194,14 +199,9 @@ his_right = ConductionPath.create_from_keypoints(
 his_right.up_path = his_top
 
 ###############################################################################
-
-# .. note::
-#    You can modify the conduction velocity in ``his_top.ep_material``
-#    to induce a delay in activation.
-
-###############################################################################
 # Create the left and right bundle branches
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Create the left and right bundle branches by defining their keypoints
 left_bundle = ConductionPath.create_from_keypoints(
     name=ConductionPathType.LEFT_BUNDLE_BRANCH,
     keypoints=[his_left_point.xyz, model.left_ventricle.apex_points[0].xyz],

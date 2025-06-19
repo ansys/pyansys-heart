@@ -276,7 +276,7 @@ class ConductionPath:
         -----
         PMJ resistance is controlled by pmjres in *EM_EP_PURKINJE_NETWORK2.
         """
-        # TODO: make sure we won't create path with length of 0
+        # TODO: make sure we do not create path with length of 0
         if merge_with not in ("node", "cell"):
             raise ValueError(f"merge_with must be 'node' or 'cell', got '{merge_with}'")
 

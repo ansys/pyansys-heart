@@ -825,7 +825,9 @@ class HeartModel:
 
     @staticmethod
     def _load_model(
-        filename_mesh: str, filename_part_info: str, working_directory: pathlib.Path | str = None
+        filename_mesh: str,
+        filename_part_info: str,
+        working_directory: pathlib.Path | str = None,
     ) -> FullHeart | FourChamber | BiVentricle | LeftVentricle:
         """Load a heart model from an existing VTU file and part information dictionary.
 

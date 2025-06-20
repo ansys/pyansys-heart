@@ -40,7 +40,6 @@ such as the sinoatrial (SA) node to atrioventricular (AV) node path, the Bachman
 the His bundle and its bifurcation, as well as the left and right bundle branches.
 Each conduction path is constructed using anatomical landmarks and keypoints, and is
 integrated into the heart model.
-
 """
 
 ###############################################################################

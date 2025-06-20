@@ -74,7 +74,7 @@ def test_heart_model_plot_part(_mock_input):
     """Test plotting a part."""
     mock_biventricle, mock_show = _mock_input
     mock_part = mock.Mock(Part)
-    mock_part.element_ids = np.array([0, 1, 2, 3, 4])
+    mock_part._element_ids = np.array([0, 1, 2, 3, 4])
     mock_biventricle.plot_part(mock_part)
     mock_show.assert_called_once()
 

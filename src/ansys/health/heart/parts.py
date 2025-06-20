@@ -85,7 +85,7 @@ class Part:
         """Material ID associated with the part."""
         self._part_type: _PartType = part_type
         """Type of the part."""
-        self.element_ids: np.ndarray = np.empty((0, 4), dtype=int)
+        self._element_ids: np.ndarray = np.empty((0, 4), dtype=int)
         """Array holding element IDs that make up the part."""
         self.points: list[Point] = []
         """Points of interest belonging to the part."""

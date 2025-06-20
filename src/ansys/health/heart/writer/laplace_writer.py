@@ -92,11 +92,11 @@ class LaplaceWriter(BaseDynaWriter):
         if self.type == "uvc" or self.type == "D-RBM":
             elems_to_keep = []
             if isinstance(self.model, LeftVentricle):
-                elems_to_keep.extend(model.left_ventricle.element_ids)
+                elems_to_keep.extend(model.left_ventricle._element_ids)
             else:
-                elems_to_keep.extend(model.left_ventricle.element_ids)
-                elems_to_keep.extend(model.right_ventricle.element_ids)
-                elems_to_keep.extend(model.septum.element_ids)
+                elems_to_keep.extend(model.left_ventricle._element_ids)
+                elems_to_keep.extend(model.right_ventricle._element_ids)
+                elems_to_keep.extend(model.septum._element_ids)
 
             # model.mesh.clear_data()
             model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
@@ -110,7 +110,7 @@ class LaplaceWriter(BaseDynaWriter):
             model.mesh["cell_ids"] = np.arange(0, model.mesh.n_cells, dtype=int)
             model.mesh["point_ids"] = np.arange(0, model.mesh.n_points, dtype=int)
 
-            self.target = model.mesh.extract_cells(model.parts[0].element_ids)
+            self.target = model.mesh.extract_cells(model.parts[0]._element_ids)
 
     def _update_ra_top_nodeset(self, atrium: pv.UnstructuredGrid) -> None:
         """

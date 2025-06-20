@@ -172,9 +172,9 @@ def test_load_from_mesh():
 
         assert model.part_names == list(part_info.keys())
 
-        assert model.left_ventricle.element_ids.shape[0] == examples.load_tetbeam().n_cells
-        assert model.right_ventricle.element_ids.shape[0] == examples.load_tetbeam().n_cells
-        assert model.septum.element_ids.shape[0] == examples.load_tetbeam().n_cells
+        assert model.left_ventricle._element_ids.shape[0] == examples.load_tetbeam().n_cells
+        assert model.right_ventricle._element_ids.shape[0] == examples.load_tetbeam().n_cells
+        assert model.septum._element_ids.shape[0] == examples.load_tetbeam().n_cells
 
         assert model.left_ventricle.endocardium.n_cells == pv.Sphere().n_cells
         assert model.left_ventricle.endocardium.n_points == pv.Sphere().n_points
@@ -222,8 +222,8 @@ def test_create_stiff_ventricle_base():
     mesh1 = Mesh()
     mesh1.add_volume(mesh, id=1, name="Left ventricle")
     model.mesh = mesh1
-    model.left_ventricle.element_ids = np.arange(0, model.mesh.n_cells)
+    model.left_ventricle._element_ids = np.arange(0, model.mesh.n_cells)
 
     part = model.create_stiff_ventricle_base()
-    assert len(part.element_ids) == 20
-    assert np.all(part.element_ids == np.arange(180, 200))
+    assert len(part._element_ids) == 20
+    assert np.all(part._element_ids == np.arange(180, 200))

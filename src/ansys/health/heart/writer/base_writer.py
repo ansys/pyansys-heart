@@ -277,7 +277,7 @@ class BaseDynaWriter:
         node_ids = surface.global_node_ids_triangles
 
         for part in self.model.parts:
-            element_ids = np.append(element_ids, part.element_ids)
+            element_ids = np.append(element_ids, part._element_ids)
 
         element_ids = np.unique(element_ids)
         active_tets = self.model.mesh.tetrahedrons[element_ids]
@@ -632,7 +632,7 @@ class BaseDynaWriter:
             )
             #! This only works since tetrahedrons are at start of model.mesh, and surface
             #! cells are added behind these tetrahedrons.
-            tetrahedrons = self.model.mesh.tetrahedrons[part.element_ids, :] + 1
+            tetrahedrons = self.model.mesh.tetrahedrons[part._element_ids, :] + 1
             num_elements = tetrahedrons.shape[0]
 
             # element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
@@ -643,7 +643,7 @@ class BaseDynaWriter:
                 kw_elements = keywords.ElementSolid()
                 elements = pd.DataFrame(
                     {
-                        "eid": part.element_ids + 1,
+                        "eid": part._element_ids + 1,
                         "pid": part_ids,
                         "n1": tetrahedrons[:, 0],
                         "n2": tetrahedrons[:, 1],
@@ -658,8 +658,8 @@ class BaseDynaWriter:
                 kw_elements.elements = elements
 
             elif part_add_fibers:
-                fiber = self.volume_mesh.cell_data["fiber"][part.element_ids]
-                sheet = self.volume_mesh.cell_data["sheet"][part.element_ids]
+                fiber = self.volume_mesh.cell_data["fiber"][part._element_ids]
+                sheet = self.volume_mesh.cell_data["sheet"][part._element_ids]
 
                 # normalize fiber and sheet directions:
                 # norm = np.linalg.norm(fiber, axis=1)
@@ -671,7 +671,7 @@ class BaseDynaWriter:
                     elements=tetrahedrons,
                     a_vec=fiber,
                     d_vec=sheet,
-                    e_id=part.element_ids + 1,
+                    e_id=part._element_ids + 1,
                     part_id=part_ids,
                     element_type="tetra",
                 )
@@ -716,7 +716,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             #! of the mesh (file)! E.g. check self.mesh.celltypes to make sure this is the case!
             tet_ids = np.empty((0), dtype=int)
             for part in parts:
-                tet_ids = np.append(tet_ids, part.element_ids)
+                tet_ids = np.append(tet_ids, part._element_ids)
                 tets = self.model.mesh.tetrahedrons[tet_ids, :]
             nids = np.unique(tets)
 
@@ -762,7 +762,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         tet_ids = np.empty((0), dtype=int)
         for part in parts:
-            tet_ids = np.append(tet_ids, part.element_ids)
+            tet_ids = np.append(tet_ids, part._element_ids)
             tets = self.model.mesh.tetrahedrons[tet_ids, :]
         nids = np.unique(tets)
 
@@ -794,7 +794,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             parts = ventricles
         material_settings = self.settings.electrophysiology.material
         for part in parts:
-            # element_ids = part.element_ids
+            # element_ids = part._element_ids
             # em_mat_id = self.get_unique_mat_id()
             em_mat_id = part.mid  # Needs to match material id used in update_parts_db
             self.kw_database.material.extend(
@@ -904,7 +904,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             parts = ventricles
 
         for part in parts:
-            tet_ids_ventricles = np.append(tet_ids_ventricles, part.element_ids)
+            tet_ids_ventricles = np.append(tet_ids_ventricles, part._element_ids)
 
         tetra_ventricles = self.model.mesh.tetrahedrons[tet_ids_ventricles, :]
 

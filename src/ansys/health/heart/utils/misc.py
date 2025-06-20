@@ -91,7 +91,7 @@ def model_summary(model: HeartModel, attributes: list = None) -> dict:
     sum_dict["CAVITIES"] = {}
     for ii, part in enumerate(model.parts):
         sum_dict["PARTS"][part.name] = {}
-        sum_dict["PARTS"][part.name]["num_tets"] = len(part.element_ids)
+        sum_dict["PARTS"][part.name]["num_tets"] = len(part._element_ids)
 
         sum_dict["PARTS"][part.name]["SURFACES"] = {}
         sum_dict["PARTS"][part.name]["CAPS"] = {}

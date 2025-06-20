@@ -111,9 +111,9 @@ def compute_aha17(
 
     # get lv elements
     try:
-        ele_ids = np.hstack((model.left_ventricle.element_ids, model.septum.element_ids))
+        ele_ids = np.hstack((model.left_ventricle._element_ids, model.septum._element_ids))
     except AttributeError:
-        ele_ids = np.hstack(model.left_ventricle.element_ids)
+        ele_ids = np.hstack(model.left_ventricle._element_ids)
 
     # element's center
     elem_center = np.mean(model.mesh.points[model.mesh.tetrahedrons[ele_ids]], axis=1)

@@ -28,11 +28,12 @@ heart structures.
 
 from enum import Enum
 
+from deprecated import deprecated
 import numpy as np
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.objects import Cap, Cavity, Point, SurfaceMesh
+from ansys.health.heart.objects import Cap, Cavity, Mesh, Point, SurfaceMesh
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 from ansys.health.heart.settings.material.material import MechanicalMaterialModel
 
@@ -75,6 +76,19 @@ class Part:
                 return point
         LOGGER.error("Cannot find point {0:s}.".format(pointname))
         return None
+
+    def get_element_ids(self, mesh: Mesh = None) -> np.ndarray:
+        """Get element IDs that make up the part."""
+        if mesh is None:
+            LOGGER.error("Mesh is not provided to get element IDs.")
+            return np.empty((0, 4), dtype=int)
+        return np.argwhere(mesh.cell_data["_volume-id"] == self.pid).flatten()
+
+    @property
+    @deprecated("`element_ids` as an attribute is deprecated. Use `get_element_ids` instead.")
+    def element_ids(self) -> np.ndarray:
+        """Get element IDs that make up the part."""
+        return self._element_ids
 
     def __init__(self, name: str = None, part_type: _PartType = _PartType.UNDEFINED) -> None:
         self.name: str = name

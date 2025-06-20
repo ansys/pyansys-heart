@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import numpy as np
 import pytest
 import pyvista as pv
 
@@ -88,3 +89,44 @@ def test_part_get_info_with_data():
     assert info["Part1"]["surfaces"] == {"tube1": 10, "tube2": 11}
     assert info["Part1"]["caps"] == {"cap1": 100, "cap2": 101}
     assert info["Part1"]["cavity"] == {"cavity1": 1000}
+
+
+class DummyMesh:
+    """Minimal mesh mock for testing get_element_ids."""
+
+    def __init__(self, volume_ids):
+        # Simulate mesh.cell_data["_volume-id"] as a numpy array
+        self.cell_data = {"_volume-id": np.array(volume_ids)}
+
+
+def test_get_element_ids_returns_correct_indices():
+    # Setup: mesh with _volume-id array, and a part with a specific pid
+    volume_ids = [1, 2, 2, 3, 2, 1]
+    mesh = DummyMesh(volume_ids)
+    part = Part("TestPart")
+
+    part.pid = 2
+    # Should return indices where _volume-id == 2
+    result = part.get_element_ids(mesh)
+    expected = np.argwhere(np.array(volume_ids) == 2).flatten()
+    assert np.array_equal(result, expected)
+
+
+def test_get_element_ids_returns_empty_if_mesh_none(caplog):
+    part = Part("TestPart")
+    part.pid = 1
+    result = part.get_element_ids(None)
+    assert isinstance(result, np.ndarray)
+    assert result.shape == (0, 4)
+    # Check error log message
+    assert any("Mesh is not provided to get element IDs." in m for m in caplog.text.splitlines())
+
+
+def test_get_element_ids_returns_empty_if_pid_not_found():
+    volume_ids = [1, 1, 1]
+    mesh = DummyMesh(volume_ids)
+    part = Part("TestPart")
+    part.pid = 99  # pid not in volume_ids
+    # Should return empty array, but shape will be (0,) due to np.argwhere
+    result = part.get_element_ids(mesh)
+    assert result.shape == (0,)

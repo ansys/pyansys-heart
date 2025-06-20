@@ -144,5 +144,6 @@ def test_set_from_dict_invalid_type():
 def test_set_from_dict_missing_part_type():
     part_name = "test_missing_part_type"
     test_dict = {part_name: {"part-id": 99, "surfaces": {"endo": 10}}}
-    with pytest.raises(KeyError):
-        Part._set_from_dict(test_dict)
+    part = Part._set_from_dict(test_dict)
+    assert isinstance(part, Part)
+    assert part._part_type == _PartType.UNDEFINED

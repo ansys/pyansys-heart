@@ -172,10 +172,10 @@ class Part:
 
         try:
             _part_type: str = _PartType(part_data.get("part-type", _PartType.UNDEFINED.value))
-        except ValueError:
+        except ValueError as e:
             LOGGER.error(
                 f"""Invalid part type: {part_data.get("part-type", "undefined")}.
-                Defaulting to UNDEFINED."""
+                Defaulting to UNDEFINED. {e}"""
             )
             _part_type = _PartType.UNDEFINED
 

@@ -39,7 +39,7 @@ In addition to the Purkinje fibers, this example defines other key conduction pa
 such as the sinoatrial (SA) node to atrioventricular (AV) node path, the Bachmann bundle,
 the His bundle and its bifurcation, as well as the left and right bundle branches.
 Each conduction path is constructed using anatomical landmarks and keypoints, and is
-integrated into the heart model for simulation.
+integrated into the heart model.
 
 """
 

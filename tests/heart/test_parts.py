@@ -91,7 +91,7 @@ def test_part_get_info_with_data():
     assert info["Part1"]["cavity"] == {"cavity1": 1000}
 
 
-class DummyMesh:
+class MockMesh:
     """Minimal mesh mock for testing get_element_ids."""
 
     def __init__(self, volume_ids):
@@ -102,7 +102,7 @@ class DummyMesh:
 def test_get_element_ids_returns_correct_indices():
     # Setup: mesh with _volume-id array, and a part with a specific pid
     volume_ids = [1, 2, 2, 3, 2, 1]
-    mesh = DummyMesh(volume_ids)
+    mesh = MockMesh(volume_ids)
     part = Part("TestPart")
 
     part.pid = 2
@@ -118,13 +118,12 @@ def test_get_element_ids_returns_empty_if_mesh_none(caplog):
     result = part.get_element_ids(None)
     assert isinstance(result, np.ndarray)
     assert result.shape == (0, 4)
-    # Check error log message
     assert any("Mesh is not provided to get element IDs." in m for m in caplog.text.splitlines())
 
 
 def test_get_element_ids_returns_empty_if_pid_not_found():
     volume_ids = [1, 1, 1]
-    mesh = DummyMesh(volume_ids)
+    mesh = MockMesh(volume_ids)
     part = Part("TestPart")
     part.pid = 99  # pid not in volume_ids
     # Should return empty array, but shape will be (0,) due to np.argwhere

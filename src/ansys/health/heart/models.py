@@ -868,8 +868,6 @@ class HeartModel:
         part_names = set(part_info.keys())
 
         # infer type of model from the parts that exist in the model.
-        from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, LeftVentricle
-
         if set(FullHeart().part_names).issubset(part_names):
             modeltype = FullHeart
         elif set(FourChamber().part_names).issubset(part_names):

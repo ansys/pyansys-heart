@@ -169,7 +169,15 @@ class Part:
         name = next(iter(data), None)
 
         part_data: dict = data[name]
-        _part_type: str = _PartType(part_data.get("part-type", _PartType.UNDEFINED.value))
+
+        try:
+            _part_type: str = _PartType(part_data.get("part-type", _PartType.UNDEFINED.value))
+        except ValueError:
+            LOGGER.error(
+                f"""Invalid part type: {part_data.get("part-type", "undefined")}.
+                Defaulting to UNDEFINED."""
+            )
+            _part_type = _PartType.UNDEFINED
 
         _part_type_to_class_map = {
             _PartType.SEPTUM: Septum,

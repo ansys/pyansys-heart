@@ -142,7 +142,7 @@ class Part:
 
         return data
 
-    def _get_allowed_surfaces(self) -> list[str]:
+    def _get_predefined_surfaces(self) -> list[str]:
         """Get a list of allowed attributes for the part."""
         return [key for key, value in self.__dict__.items() if isinstance(value, SurfaceMesh)]
 
@@ -168,7 +168,7 @@ class Part:
 
         name = next(iter(data), None)
 
-        part_data = data[name]
+        part_data: dict = data[name]
         _part_type: str = _PartType(part_data.get("part-type", _PartType.UNDEFINED.value))
 
         _part_type_to_class_map = {
@@ -181,7 +181,7 @@ class Part:
         }
 
         part_cls = _part_type_to_class_map[_part_type]
-        part = part_cls(name=name)
+        part: Part = part_cls(name=name)
 
         # assign part id, active, fiber, and surfaces
         part.pid = part_data.get("part-id", None)
@@ -189,8 +189,8 @@ class Part:
         part.fiber = part_data.get("fiber", False)
 
         for surface_name, surface_id in part_data.get("surfaces", {}).items():
-            if surface_name not in part._get_allowed_surfaces():
-                LOGGER.error(f"Surface {surface_name} is not allowed for part {name}.")
+            if surface_name not in part._get_predefined_surfaces():
+                LOGGER.error(f"Surface {surface_name} is not a standard surface for part {name}.")
                 continue
             surface = SurfaceMesh(name=surface_name)
             surface.id = surface_id

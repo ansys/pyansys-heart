@@ -965,7 +965,10 @@ class HeartModel:
     # TODO: LeftVentricle, BiVentricle, FourChamber and FullHeart.
     # TODO: Should consider to also reconstruct the parts that are not explicitly
     # TODO: defined in the class.
-    @deprecated(reason="Use `load_model` instead.")
+    @deprecated(
+        reason="""This method will be deprecated in the future. Use the static method
+                "`_load_model` instead."""
+    )
     def load_model_from_mesh(self, filename_mesh: str, filename_part_info: str):
         """Load a model from an existing VTU file and part information dictionary.
 

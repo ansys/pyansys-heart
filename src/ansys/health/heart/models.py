@@ -414,10 +414,6 @@ class HeartModel:
         self.mesh.cell_data["_volume-id"][eids] = new_part.pid
         self.mesh._volume_id_to_name[new_part.pid] = name
 
-        # To maintain compatibility in other modules.
-        # TODO: remove this when element_ids is deprecated.
-        new_part._element_ids = new_part.get_element_ids(self.mesh)
-
         return new_part
 
     def load_input(self, input_vtp: pv.PolyData, part_definitions: dict, scalar: str):

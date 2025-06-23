@@ -864,12 +864,11 @@ class HeartModel:
 
             part_1.pid = part_info[part_1.name]["part-id"]
 
-            try:
-                part_1._element_ids = np.argwhere(
-                    np.isin(self.mesh.cell_data["_volume-id"], part_1.pid)
-                ).flatten()
-            except Exception as e:
-                LOGGER.warning(f"Failed to set element IDs for {part_1.name}. {e}")
+            if not np.isin(part_1.pid, self.mesh.volume_ids):
+                LOGGER.error(
+                    f"""Part {part_1.name} with ID {part_1.pid} is not in the mesh.
+                    Check {filename_mesh}."""
+                )
 
             # try to initialize cavity object.
             if isinstance(part_1, anatomy.Chamber):

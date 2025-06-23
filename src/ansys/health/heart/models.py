@@ -1636,9 +1636,9 @@ class FourChamber(HeartModel):
         #! at start of the mesh object.
         for part in self.parts:
             if isinstance(part, anatomy.Ventricle):
-                v_ele = np.append(v_ele, part._element_ids)
+                v_ele = np.append(v_ele, part.get_element_ids(self.mesh))
             elif isinstance(part, anatomy.Atrium):
-                a_ele = np.append(a_ele, part._element_ids)
+                a_ele = np.append(a_ele, part.get_element_ids(self.mesh))
 
         ventricles = self.mesh.extract_cells(v_ele)
         atrial = self.mesh.extract_cells(a_ele)
@@ -1653,30 +1653,22 @@ class FourChamber(HeartModel):
         # interface elements on atrial part
         interface_eids = np.intersect1d(interface_eids, a_ele)
 
-        # remove these elements from atrial parts
-        self.left_atrium._element_ids = np.setdiff1d(self.left_atrium._element_ids, interface_eids)
-        self.right_atrium._element_ids = np.setdiff1d(
-            self.right_atrium._element_ids, interface_eids
-        )
+        # Temporarily assign -1 to the interface elements to ensure these are not referenced
+        # by the atrial parts. These are reassigned to the isolation part later.
+        self.mesh.cell_data["_volume-id"][interface_eids] = -1
 
-        # find orphan elements of atrial parts and assign to isolation part
+        # Find orphan elements of atrial parts and add to list of isolation elements
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
         for atrium in [self.left_atrium, self.right_atrium]:
-            clean_obj = self.mesh.extract_cells(atrium._element_ids).connectivity(
+            clean_obj = self.mesh.extract_cells(atrium.get_element_ids(self.mesh)).connectivity(
                 extraction_mode="largest"
             )
             connected_cells = clean_obj["cell_ids"]
-            orphan_cells = np.setdiff1d(atrium._element_ids, connected_cells)
+            orphan_cells = np.setdiff1d(atrium.get_element_ids(self.mesh), connected_cells)
 
-            # keep largest connected part for atrial
-            atrium._element_ids = connected_cells
-
-            # get orphan cells and set to isolation part
+            # Get any orphan cells and add to isolation part
             LOGGER.warning(f"{len(orphan_cells)} orphan cells are re-assigned.")
             interface_eids = np.append(interface_eids, orphan_cells)
-
-            #! Central mesh object not updated. E.g. lose connection between part._element_ids and
-            #! model.mesh.volume_ids/.cell_data["_volume-id"]
 
         if interface_eids.shape[0] == 0:
             LOGGER.warning(
@@ -1685,14 +1677,19 @@ class FourChamber(HeartModel):
             )
             return None
 
-        # create a new part
         isolation: anatomy.Part = self.create_part_by_ids(
             interface_eids, "Atrioventricular isolation"
         )
         isolation._part_type = anatomy._PartType.ATRIUM
+        # Assign a new part ID to the isolation part
+        isolation.pid = self.mesh._unused_volume_id
         isolation.fiber = True
         isolation.active = False
         isolation.ep_material = EPMaterial.Insulator()
+
+        # Update the mesh with the isolation part ID, this "naturally" removes the elements
+        # from the atrial parts and overrides the temporary value of -1.
+        self.mesh.cell_data["_volume-id"][interface_eids] = isolation.pid
 
         return isolation
 

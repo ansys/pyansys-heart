@@ -796,7 +796,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             parts = ventricles
         material_settings = self.settings.electrophysiology.material
         for part in parts:
-            # element_ids = part._element_ids
+            # element_ids = part.get_element_ids(self.model.mesh)
             # em_mat_id = self.get_unique_mat_id()
             em_mat_id = part.mid  # Needs to match material id used in update_parts_db
             self.kw_database.material.extend(

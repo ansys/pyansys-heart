@@ -1528,7 +1528,8 @@ class HeartModel:
             return
 
         eids = np.intersect1d(
-            np.where(v > threshold_left_ventricle)[0], self.left_ventricle._element_ids
+            np.where(v > threshold_left_ventricle)[0],
+            self.left_ventricle.get_element_ids(self.mesh),
         )
         if not isinstance(self, LeftVentricle):
             # uvc-L of RV is generally smaller, *1.05 to be comparable with LV

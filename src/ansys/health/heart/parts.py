@@ -30,11 +30,12 @@ from __future__ import annotations
 
 from enum import Enum
 
+from deprecated import deprecated
 import numpy as np
 import yaml
 
 from ansys.health.heart import LOG as LOGGER, __version__
-from ansys.health.heart.objects import Cap, Cavity, Point, SurfaceMesh
+from ansys.health.heart.objects import Cap, Cavity, Mesh, Point, SurfaceMesh
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 from ansys.health.heart.settings.material.material import MechanicalMaterialModel
 
@@ -78,6 +79,42 @@ class Part:
         LOGGER.error("Cannot find point {0:s}.".format(pointname))
         return None
 
+    def get_element_ids(self, mesh: Mesh = None) -> np.ndarray:
+        """Get element IDs that make up the part.
+
+        Parameters
+        ----------
+        mesh : Mesh, default: None
+            The mesh object where to get the element IDs from.
+
+        Returns
+        -------
+        np.ndarray
+            Array of element IDs that make up the part.
+        """
+        if mesh is None:
+            LOGGER.error("Mesh is not provided to get element IDs.")
+            return np.empty((0,), dtype=int)
+
+        if self.pid is None:
+            LOGGER.error("Part ID is not set. Cannot get element IDs.")
+            return np.empty((0,), dtype=int)
+
+        if "_volume-id" not in mesh.cell_data.keys():
+            LOGGER.error("Mesh does not contain '_volume-id' cell data.")
+            return np.empty((0,), dtype=int)
+
+        return np.argwhere(mesh.cell_data["_volume-id"] == self.pid).flatten()
+
+    @property
+    @deprecated(
+        """`element_ids` as an attribute is deprecated. Use `part.get_element_ids(mesh)` instead.
+        To modify element IDs of a part use the `_volume-id` cell data of the mesh object.""",
+    )
+    def element_ids(self) -> np.ndarray:
+        """Get element IDs that make up the part."""
+        return None
+
     def __init__(self, name: str = None, part_type: _PartType = _PartType.UNDEFINED) -> None:
         self.name: str = name
         """Part name."""
@@ -87,8 +124,6 @@ class Part:
         """Material ID associated with the part."""
         self._part_type: _PartType = part_type
         """Type of the part."""
-        self.element_ids: np.ndarray = np.empty((0, 4), dtype=int)
-        """Array holding element IDs that make up the part."""
         self.points: list[Point] = []
         """Points of interest belonging to the part."""
 

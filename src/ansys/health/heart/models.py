@@ -925,7 +925,7 @@ class HeartModel:
         """Get an array of used element IDs."""
         element_ids = np.empty(0, dtype=int)
         for part in self.parts:
-            element_ids = np.append(element_ids, part._element_ids)
+            element_ids = np.append(element_ids, part.get_element_ids(self.mesh))
 
         return element_ids
 
@@ -1064,16 +1064,10 @@ class HeartModel:
         element_ids_septum = self.mesh._global_tetrahedron_ids[element_ids_septum]
 
         # assign to septum
-        part = next(part for part in self.parts if isinstance(part, anatomy.Septum))
-        part._element_ids = element_ids_septum
+        part_septum = next(part for part in self.parts if isinstance(part, anatomy.Septum))
         # manipulate _volume-id
-        self.mesh.cell_data["_volume-id"][element_ids_septum] = part.pid
-        self.mesh._volume_id_to_name[int(part.pid)] = part.name
-
-        # remove these element ID from the left-ventricle
-        part = next(part for part in self.parts if part.name == "Left ventricle")
-        mask = np.isin(part._element_ids, element_ids_septum, invert=True)
-        part._element_ids = part._element_ids[mask]
+        self.mesh.cell_data["_volume-id"][element_ids_septum] = part_septum.pid
+        self.mesh._volume_id_to_name[int(part_septum.pid)] = part_septum.name
 
         return
 
@@ -1540,7 +1534,7 @@ class HeartModel:
             # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
             eid_r = np.intersect1d(
                 np.where(v > threshold_right_ventricle)[0],
-                self.right_ventricle._element_ids,
+                self.right_ventricle.get_element_ids(self.mesh),
             )
             eids = np.hstack((eids, eid_r))
 

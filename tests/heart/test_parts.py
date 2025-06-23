@@ -130,3 +130,27 @@ def test_get_element_ids_returns_empty_if_pid_not_found():
     # Should return empty array, but shape will be (0,) due to np.argwhere
     result = part.get_element_ids(mesh)
     assert result.shape == (0,)
+
+
+def test_get_element_ids_returns_empty_if_volume_id_missing(caplog):
+    """Test get_element_ids returns empty array and logs error if '_volume-id' is missing."""
+    import pyvista as pv
+
+    from ansys.health.heart.objects import Mesh
+
+    # Create a minimal mesh without '_volume-id'
+    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    cells = np.hstack([[4, 0, 1, 2, 3]])
+    celltypes = np.array([pv.CellType.TETRA])
+    grid = pv.UnstructuredGrid(cells, celltypes, points)
+    mesh = Mesh(grid)
+
+    part = Part("TestPart")
+    part.pid = 1
+
+    result = part.get_element_ids(mesh)
+    assert isinstance(result, np.ndarray)
+    assert result.shape == (0,)
+    assert any(
+        "Mesh does not contain '_volume-id' cell data." in m for m in caplog.text.splitlines()
+    )

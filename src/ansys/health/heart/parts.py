@@ -78,13 +78,30 @@ class Part:
         return None
 
     def get_element_ids(self, mesh: Mesh = None) -> np.ndarray:
-        """Get element IDs that make up the part."""
+        """Get element IDs that make up the part.
+
+        Parameters
+        ----------
+        mesh : Mesh, default: None
+            The mesh object where to get the element IDs from.
+
+        Returns
+        -------
+        np.ndarray
+            Array of element IDs that make up the part.
+        """
         if mesh is None:
             LOGGER.error("Mesh is not provided to get element IDs.")
             return np.empty((0,), dtype=int)
+
         if self.pid is None:
             LOGGER.error("Part ID is not set. Cannot get element IDs.")
             return np.empty((0,), dtype=int)
+
+        if "_volume-id" not in mesh.cell_data.keys():
+            LOGGER.error("Mesh does not contain '_volume-id' cell data.")
+            return np.empty((0,), dtype=int)
+
         return np.argwhere(mesh.cell_data["_volume-id"] == self.pid).flatten()
 
     @property

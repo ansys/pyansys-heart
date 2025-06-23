@@ -91,6 +91,7 @@ def test_part_get_info_with_data():
     assert info["Part1"]["cavity"] == {"cavity1": 1000}
 
 
+# TODO: Replace with instance of objects.Mesh
 class MockMesh:
     """Minimal mesh mock for testing get_element_ids."""
 
@@ -117,7 +118,7 @@ def test_get_element_ids_returns_empty_if_mesh_none(caplog):
     part.pid = 1
     result = part.get_element_ids(None)
     assert isinstance(result, np.ndarray)
-    assert result.shape == (0, 4)
+    assert result.shape == (0,)
     assert any("Mesh is not provided to get element IDs." in m for m in caplog.text.splitlines())
 
 

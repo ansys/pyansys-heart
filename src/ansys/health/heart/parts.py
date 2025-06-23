@@ -81,7 +81,10 @@ class Part:
         """Get element IDs that make up the part."""
         if mesh is None:
             LOGGER.error("Mesh is not provided to get element IDs.")
-            return np.empty((0, 4), dtype=int)
+            return np.empty((0,), dtype=int)
+        if self.pid is None:
+            LOGGER.error("Part ID is not set. Cannot get element IDs.")
+            return np.empty((0,), dtype=int)
         return np.argwhere(mesh.cell_data["_volume-id"] == self.pid).flatten()
 
     @property

@@ -224,7 +224,6 @@ def test_create_stiff_ventricle_base():
     mesh1.add_volume(mesh, id=1, name="Left ventricle")
     model.mesh = mesh1
     model.left_ventricle.pid = 1.0
-    model.left_ventricle._element_ids = model.left_ventricle.get_element_ids(mesh1)
 
     part = model.create_stiff_ventricle_base()
 

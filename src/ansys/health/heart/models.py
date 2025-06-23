@@ -912,12 +912,11 @@ class HeartModel:
 
             part_1.pid = info.get("part-id")
 
-            try:
-                part_1.element_ids = np.argwhere(
-                    np.isin(model.mesh.cell_data["_volume-id"], part_1.pid)
-                ).flatten()
-            except Exception:
-                LOGGER.warning(f"Failed to set element IDs for {part_1.name}.")
+            if not np.isin(part_1.pid, model.mesh.volume_ids):
+                LOGGER.error(
+                    f"""Part {part_1.name} with ID {part_1.pid} is not in the mesh.
+                    Check {filename_mesh}."""
+                )
 
             # try to initialize cavity object.
             if isinstance(part_1, anatomy.Chamber):
@@ -933,12 +932,12 @@ class HeartModel:
                     cap._mesh = model.mesh.get_surface(cap_id)
                     part_1.caps.append(cap)
 
-        # loop over each extra part and load this into model.
+        # loop over each extra part and load this into the model.
         for extra_part_name in extra_part_names:
             extra_part = anatomy.Part._set_from_dict({extra_part_name: part_info[extra_part_name]})
             model.add_part(extra_part)
 
-        # NOTE: #? add validation method to make sure all essential components are present?
+        # TODO: #? add validation method to make sure all essential components are present?
         try:
             model._extract_apex()
         except Exception:

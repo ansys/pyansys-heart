@@ -105,10 +105,13 @@ class Part:
         return np.argwhere(mesh.cell_data["_volume-id"] == self.pid).flatten()
 
     @property
-    @deprecated("`element_ids` as an attribute is deprecated. Use `get_element_ids` instead.")
+    @deprecated(
+        """`element_ids` as an attribute is deprecated. Use `part.get_element_ids(mesh)` instead.
+        To modify element IDs of a part use the `_volume-id` cell data of the mesh object.""",
+    )
     def element_ids(self) -> np.ndarray:
         """Get element IDs that make up the part."""
-        return self._element_ids
+        return None
 
     def __init__(self, name: str = None, part_type: _PartType = _PartType.UNDEFINED) -> None:
         self.name: str = name
@@ -119,8 +122,6 @@ class Part:
         """Material ID associated with the part."""
         self._part_type: _PartType = part_type
         """Type of the part."""
-        self._element_ids: np.ndarray = np.empty((0, 4), dtype=int)
-        """Array holding element IDs that make up the part."""
         self.points: list[Point] = []
         """Points of interest belonging to the part."""
 

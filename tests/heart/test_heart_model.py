@@ -224,6 +224,10 @@ def test_create_stiff_ventricle_base():
     model.mesh = mesh1
     model.left_ventricle._element_ids = np.arange(0, model.mesh.n_cells)
 
+    mesh1._unused_volume_id
+
     part = model.create_stiff_ventricle_base()
-    assert len(part._element_ids) == 20
-    assert np.all(part._element_ids == np.arange(180, 200))
+
+    part_element_ids = part.get_element_ids(mesh1)
+    assert len(part_element_ids) == 20
+    assert np.all(part_element_ids == np.arange(180, 200))

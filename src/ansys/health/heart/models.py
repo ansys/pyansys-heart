@@ -413,7 +413,15 @@ class HeartModel:
         self.add_part(name)
         new_part: anatomy.Part = self.get_part(name)
 
-        new_part._element_ids = eids
+        new_part.pid = self.mesh._unused_volume_id
+
+        # Modify the cell data of the mesh to reflect the new part.
+        self.mesh.cell_data["_volume-id"][eids] = new_part.pid
+        self.mesh._volume_id_to_name[new_part.pid] = name
+
+        # To maintain compatibility in other modules.
+        # TODO: remove this when element_ids is deprecated.
+        new_part._element_ids = new_part.get_element_ids(self.mesh)
 
         return new_part
 
@@ -1148,6 +1156,8 @@ class HeartModel:
                 continue
             # ! this is valid as long as no additional surfaces are added in self.mesh.
             # ! otherwise (global) element ids may change
+            # TODO: now all part ids are stored through the cell data _volume-ids and global
+            # TODO: element ids can be retrieved by: part.get_element_ids(mesh)
             element_ids = np.where(np.isin(self.mesh.cell_data["_volume-id"], part.pid))[0]
             element_ids = element_ids[np.isin(element_ids, used_element_ids, invert=True)]
             part._element_ids = element_ids

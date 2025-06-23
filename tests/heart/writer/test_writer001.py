@@ -49,7 +49,10 @@ def get_test_model():
     celltypes = [pv.CellType.TETRA] * 2
 
     model.mesh = Mesh(cells, celltypes, points)
-    model.left_ventricle._element_ids = np.array([0, 1], dtype=int)
+    model.mesh.cell_data["_volume-id"] = 1.0
+    model.mesh._volume_id_to_name["_volume-id"] = "left-ventricle"
+    model.left_ventricle.pid = 1.0
+    model.left_ventricle._element_ids = model.left_ventricle.get_element_ids(model.mesh)
 
     model.left_ventricle.endocardium.triangles = np.array([[1, 2, 3]], dtype=int)
     model.left_ventricle.endocardium.points = model.mesh.points

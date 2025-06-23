@@ -1375,7 +1375,7 @@ class HeartModel:
     def _validate_parts(self):
         """Validate that none of the parts are empty."""
         is_valid = False
-        invalid_parts = [p for p in self.parts if p._element_ids.shape[0] == 0]
+        invalid_parts = [p for p in self.parts if p.get_element_ids(self.mesh).shape == (0,)]
         if len(invalid_parts) == 0:
             is_valid = True
         else:

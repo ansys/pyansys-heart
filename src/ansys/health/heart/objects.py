@@ -585,7 +585,7 @@ class Mesh(pv.UnstructuredGrid):
         """Get unused volume ID."""
         if self.volume_ids is None:
             return 1
-        return np.max(self.volume_ids) + 1
+        return int(np.max(self.volume_ids) + 1)
 
     @property
     def volume_names(self) -> List[str]:

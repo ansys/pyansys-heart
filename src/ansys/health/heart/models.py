@@ -403,19 +403,14 @@ class HeartModel:
             LOGGER.error(f"Failed to create {name}. Name already exists.")
             return None
 
-        for part in self.parts:
-            try:
-                part._element_ids = np.setdiff1d(part._element_ids, eids)
-            except ValueError:
-                LOGGER.error(f"Failed to create part {name}.")
-                return None
+        new_part_id = self.mesh._unused_volume_id
 
         self.add_part(name)
         new_part: anatomy.Part = self.get_part(name)
+        new_part.pid = new_part_id
 
-        new_part.pid = self.mesh._unused_volume_id
-
-        # Modify the cell data of the mesh to reflect the new part.
+        # Update the mesh accordingly. Note that this also affects other parts, since
+        # only one volume ID can be assigned to each element/cell.
         self.mesh.cell_data["_volume-id"][eids] = new_part.pid
         self.mesh._volume_id_to_name[new_part.pid] = name
 
@@ -1680,7 +1675,7 @@ class FourChamber(HeartModel):
             connected_cells = clean_obj["cell_ids"]
             orphan_cells = np.setdiff1d(atrium._element_ids, connected_cells)
 
-            # keeep largest connected part for atrial
+            # keep largest connected part for atrial
             atrium._element_ids = connected_cells
 
             # get orphan cells and set to isolation part
@@ -1744,7 +1739,13 @@ class FourChamber(HeartModel):
         # above search may create orphan elements, pick them to rings
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
         unselect_eles = np.setdiff1d(
-            np.hstack((self.left_atrium._element_ids, self.right_atrium._element_ids)), ring_eles
+            np.hstack(
+                (
+                    self.left_atrium.get_element_ids(self.mesh),
+                    self.right_atrium.get_element_ids(self.mesh),
+                )
+            ),
+            ring_eles,
         )
         largest = self.mesh.extract_cells(unselect_eles).connectivity(extraction_mode="largest")
         connected_cells = largest["cell_ids"]

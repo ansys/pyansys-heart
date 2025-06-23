@@ -403,17 +403,16 @@ class HeartModel:
             LOGGER.error(f"Failed to create {name}. Name already exists.")
             return None
 
-        for part in self.parts:
-            try:
-                part.element_ids = np.setdiff1d(part.element_ids, eids)
-            except ValueError:
-                LOGGER.error(f"Failed to create part {name}.")
-                return None
+        new_part_id = self.mesh._unused_volume_id
 
         self.add_part(name)
         new_part: anatomy.Part = self.get_part(name)
+        new_part.pid = new_part_id
 
-        new_part.element_ids = eids
+        # Update the mesh accordingly. Note that this also affects other parts, since
+        # only one volume ID can be assigned to each element/cell.
+        self.mesh.cell_data["_volume-id"][eids] = new_part.pid
+        self.mesh._volume_id_to_name[new_part.pid] = name
 
         return new_part
 
@@ -670,7 +669,7 @@ class HeartModel:
 
         plotter = pv.Plotter()
         plotter.add_mesh(mesh, opacity=0.5, color="white")
-        part = mesh.extract_cells(part.element_ids)
+        part = mesh.extract_cells(part.get_element_ids(mesh))
         plotter.add_mesh(part, opacity=0.95, color="red")
         plotter.show()
         return
@@ -865,12 +864,11 @@ class HeartModel:
 
             part_1.pid = part_info[part_1.name]["part-id"]
 
-            try:
-                part_1.element_ids = np.argwhere(
-                    np.isin(self.mesh.cell_data["_volume-id"], part_1.pid)
-                ).flatten()
-            except Exception as e:
-                LOGGER.warning(f"Failed to set element IDs for {part_1.name}. {e}")
+            if not np.isin(part_1.pid, self.mesh.volume_ids):
+                LOGGER.error(
+                    f"""Part {part_1.name} with ID {part_1.pid} is not in the mesh.
+                    Check {filename_mesh}."""
+                )
 
             # try to initialize cavity object.
             if isinstance(part_1, anatomy.Chamber):
@@ -922,7 +920,7 @@ class HeartModel:
         """Get an array of used element IDs."""
         element_ids = np.empty(0, dtype=int)
         for part in self.parts:
-            element_ids = np.append(element_ids, part.element_ids)
+            element_ids = np.append(element_ids, part.get_element_ids(self.mesh))
 
         return element_ids
 
@@ -1061,16 +1059,10 @@ class HeartModel:
         element_ids_septum = self.mesh._global_tetrahedron_ids[element_ids_septum]
 
         # assign to septum
-        part = next(part for part in self.parts if isinstance(part, anatomy.Septum))
-        part.element_ids = element_ids_septum
+        part_septum = next(part for part in self.parts if isinstance(part, anatomy.Septum))
         # manipulate _volume-id
-        self.mesh.cell_data["_volume-id"][element_ids_septum] = part.pid
-        self.mesh._volume_id_to_name[int(part.pid)] = part.name
-
-        # remove these element ID from the left-ventricle
-        part = next(part for part in self.parts if part.name == "Left ventricle")
-        mask = np.isin(part.element_ids, element_ids_septum, invert=True)
-        part.element_ids = part.element_ids[mask]
+        self.mesh.cell_data["_volume-id"][element_ids_septum] = part_septum.pid
+        self.mesh._volume_id_to_name[int(part_septum.pid)] = part_septum.name
 
         return
 
@@ -1136,26 +1128,26 @@ class HeartModel:
 
         return
 
+    @deprecated(reason="Element IDs are now retrieved from the mesh object.")
     def _assign_elements_to_parts(self) -> None:
         """Get the element IDs of each part and assign these to the ``Part`` objects."""
-        # get element IDs of each part.
-        used_element_ids = self._get_used_element_ids()
+        # validate that all parts have element IDs assigned.
         for part in self.parts:
-            if len(part.element_ids) > 0:
+            if part.get_element_ids(self.mesh).shape == (0,):
                 LOGGER.warning(
-                    "Part {0} seems to already have elements assigned. Skipping.".format(part.name)
+                    """Part {0} has no elements assigned.
+                    Please check the mesh and part definitions.""".format(part.name)
                 )
                 continue
-            # ! this is valid as long as no additional surfaces are added in self.mesh.
-            # ! otherwise (global) element ids may change
-            element_ids = np.where(np.isin(self.mesh.cell_data["_volume-id"], part.pid))[0]
-            element_ids = element_ids[np.isin(element_ids, used_element_ids, invert=True)]
-            part.element_ids = element_ids
 
         summ = 0
         for part in self.parts:
-            LOGGER.info("Num elements in {0}: {1}".format(part.name, part.element_ids.shape[0]))
-            summ = summ + part.element_ids.shape[0]
+            LOGGER.info(
+                "Num elements in {0}: {1}".format(
+                    part.name, part.get_element_ids(self.mesh).shape[0]
+                )
+            )
+            summ = summ + part.get_element_ids(self.mesh).shape[0]
         LOGGER.info("Total num elements: {}".format(summ))
 
         LOGGER.info(
@@ -1376,7 +1368,7 @@ class HeartModel:
     def _validate_parts(self):
         """Validate that none of the parts are empty."""
         is_valid = False
-        invalid_parts = [p for p in self.parts if p.element_ids.shape[0] == 0]
+        invalid_parts = [p for p in self.parts if p.get_element_ids(self.mesh).shape == (0,)]
         if len(invalid_parts) == 0:
             is_valid = True
         else:
@@ -1390,9 +1382,9 @@ class HeartModel:
         """Clean epicardial surfaces such that these use only nodes of the part."""
         for part in self.parts:
             self.mesh._set_global_ids()
-            global_node_ids_part = self.mesh.extract_cells(part.element_ids).point_data[
-                "_global-point-ids"
-            ]
+            global_node_ids_part = self.mesh.extract_cells(
+                part.get_element_ids(self.mesh)
+            ).point_data["_global-point-ids"]
 
             # ! The only information we use from surface here is the ID, not the mesh information.
             # ! We need to go back to the central mesh to obtain an updated copy of
@@ -1529,13 +1521,14 @@ class HeartModel:
             return
 
         eids = np.intersect1d(
-            np.where(v > threshold_left_ventricle)[0], self.left_ventricle.element_ids
+            np.where(v > threshold_left_ventricle)[0],
+            self.left_ventricle.get_element_ids(self.mesh),
         )
         if not isinstance(self, LeftVentricle):
             # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
             eid_r = np.intersect1d(
                 np.where(v > threshold_right_ventricle)[0],
-                self.right_ventricle.element_ids,
+                self.right_ventricle.get_element_ids(self.mesh),
             )
             eids = np.hstack((eids, eid_r))
 
@@ -1638,9 +1631,9 @@ class FourChamber(HeartModel):
         #! at start of the mesh object.
         for part in self.parts:
             if isinstance(part, anatomy.Ventricle):
-                v_ele = np.append(v_ele, part.element_ids)
+                v_ele = np.append(v_ele, part.get_element_ids(self.mesh))
             elif isinstance(part, anatomy.Atrium):
-                a_ele = np.append(a_ele, part.element_ids)
+                a_ele = np.append(a_ele, part.get_element_ids(self.mesh))
 
         ventricles = self.mesh.extract_cells(v_ele)
         atrial = self.mesh.extract_cells(a_ele)
@@ -1655,28 +1648,23 @@ class FourChamber(HeartModel):
         # interface elements on atrial part
         interface_eids = np.intersect1d(interface_eids, a_ele)
 
-        # remove these elements from atrial parts
-        self.left_atrium.element_ids = np.setdiff1d(self.left_atrium.element_ids, interface_eids)
-        self.right_atrium.element_ids = np.setdiff1d(self.right_atrium.element_ids, interface_eids)
+        # Temporarily assign -1 to the interface elements to ensure these are not referenced
+        # by the atrial parts. These are reassigned to the isolation part in the call to
+        # create_part_by_ids.
+        self.mesh.cell_data["_volume-id"][interface_eids] = -1
 
-        # find orphan elements of atrial parts and assign to isolation part
+        # Find orphan elements of atrial parts and add to list of isolation elements
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
         for atrium in [self.left_atrium, self.right_atrium]:
-            clean_obj = self.mesh.extract_cells(atrium.element_ids).connectivity(
+            clean_obj = self.mesh.extract_cells(atrium.get_element_ids(self.mesh)).connectivity(
                 extraction_mode="largest"
             )
             connected_cells = clean_obj["cell_ids"]
-            orphan_cells = np.setdiff1d(atrium.element_ids, connected_cells)
+            orphan_cells = np.setdiff1d(atrium.get_element_ids(self.mesh), connected_cells)
 
-            # keeep largest connected part for atrial
-            atrium.element_ids = connected_cells
-
-            # get orphan cells and set to isolation part
+            # Get any orphan cells and add to isolation part
             LOGGER.warning(f"{len(orphan_cells)} orphan cells are re-assigned.")
             interface_eids = np.append(interface_eids, orphan_cells)
-
-            #! Central mesh object not updated. E.g. lose connection between part.element_ids and
-            #! model.mesh.volume_ids/.cell_data["_volume-id"]
 
         if interface_eids.shape[0] == 0:
             LOGGER.warning(
@@ -1685,11 +1673,11 @@ class FourChamber(HeartModel):
             )
             return None
 
-        # create a new part
         isolation: anatomy.Part = self.create_part_by_ids(
             interface_eids, "Atrioventricular isolation"
         )
         isolation._part_type = anatomy._PartType.ATRIUM
+        # Assign a new part ID to the isolation part
         isolation.fiber = True
         isolation.active = False
         isolation.ep_material = EPMaterial.Insulator()
@@ -1732,7 +1720,13 @@ class FourChamber(HeartModel):
         # above search may create orphan elements, pick them to rings
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
         unselect_eles = np.setdiff1d(
-            np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)), ring_eles
+            np.hstack(
+                (
+                    self.left_atrium.get_element_ids(self.mesh),
+                    self.right_atrium.get_element_ids(self.mesh),
+                )
+            ),
+            ring_eles,
         )
         largest = self.mesh.extract_cells(unselect_eles).connectivity(extraction_mode="largest")
         connected_cells = largest["cell_ids"]

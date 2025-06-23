@@ -1654,7 +1654,8 @@ class FourChamber(HeartModel):
         interface_eids = np.intersect1d(interface_eids, a_ele)
 
         # Temporarily assign -1 to the interface elements to ensure these are not referenced
-        # by the atrial parts. These are reassigned to the isolation part later.
+        # by the atrial parts. These are reassigned to the isolation part in the call to
+        # create_part_by_ids.
         self.mesh.cell_data["_volume-id"][interface_eids] = -1
 
         # Find orphan elements of atrial parts and add to list of isolation elements
@@ -1682,14 +1683,9 @@ class FourChamber(HeartModel):
         )
         isolation._part_type = anatomy._PartType.ATRIUM
         # Assign a new part ID to the isolation part
-        isolation.pid = self.mesh._unused_volume_id
         isolation.fiber = True
         isolation.active = False
         isolation.ep_material = EPMaterial.Insulator()
-
-        # Update the mesh with the isolation part ID, this "naturally" removes the elements
-        # from the atrial parts and overrides the temporary value of -1.
-        self.mesh.cell_data["_volume-id"][interface_eids] = isolation.pid
 
         return isolation
 

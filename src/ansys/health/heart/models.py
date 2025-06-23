@@ -673,7 +673,7 @@ class HeartModel:
 
         plotter = pv.Plotter()
         plotter.add_mesh(mesh, opacity=0.5, color="white")
-        part = mesh.extract_cells(part._element_ids)
+        part = mesh.extract_cells(part.get_element_ids(mesh))
         plotter.add_mesh(part, opacity=0.95, color="red")
         plotter.show()
         return

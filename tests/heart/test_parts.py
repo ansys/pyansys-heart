@@ -24,7 +24,7 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from ansys.health.heart.objects import Cap, Cavity, SurfaceMesh
+from ansys.health.heart.objects import Cap, Cavity, Mesh, SurfaceMesh
 from ansys.health.heart.parts import (
     Artery,
     Atrium,
@@ -91,29 +91,48 @@ def test_part_get_info_with_data():
     assert info["Part1"]["cavity"] == {"cavity1": 1000}
 
 
-# TODO: Replace with instance of objects.Mesh
-class MockMesh:
-    """Minimal mesh mock for testing get_element_ids."""
+def _get_mock_mesh():
+    """Create a mock mesh with two tetrahedra and a _volume-id array."""
+    points = np.array(
+        [
+            [0, 0, 0],
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+            [1, 1, 0],
+            [1, 0, 1],
+        ]
+    )
+    # Two tetrahedra:
+    cells = np.hstack(
+        [
+            [4, 0, 1, 2, 3],
+            [4, 1, 2, 4, 5],
+        ]
+    )
+    celltypes = np.array([pv.CellType.TETRA, pv.CellType.TETRA])
+    grid = pv.UnstructuredGrid(cells, celltypes, points)
 
-    def __init__(self, volume_ids):
-        # Simulate mesh.cell_data["_volume-id"] as a numpy array
-        self.cell_data = {"_volume-id": np.array(volume_ids)}
+    # Mock volume IDs
+    grid.cell_data["_volume-id"] = np.array([1, 2])
+    return Mesh(grid)
 
 
 def test_get_element_ids_returns_correct_indices():
+    """Test get_element_ids returns correct indices based on _volume-id."""
     # Setup: mesh with _volume-id array, and a part with a specific pid
-    volume_ids = [1, 2, 2, 3, 2, 1]
-    mesh = MockMesh(volume_ids)
+    mesh = _get_mock_mesh()
     part = Part("TestPart")
 
     part.pid = 2
     # Should return indices where _volume-id == 2
     result = part.get_element_ids(mesh)
-    expected = np.argwhere(np.array(volume_ids) == 2).flatten()
+    expected = np.argwhere(np.array(mesh.volume_ids) == 2).flatten()
     assert np.array_equal(result, expected)
 
 
 def test_get_element_ids_returns_empty_if_mesh_none(caplog):
+    """Test get_element_ids returns empty array if mesh is None."""
     part = Part("TestPart")
     part.pid = 1
     result = part.get_element_ids(None)
@@ -123,8 +142,8 @@ def test_get_element_ids_returns_empty_if_mesh_none(caplog):
 
 
 def test_get_element_ids_returns_empty_if_pid_not_found():
-    volume_ids = [1, 1, 1]
-    mesh = MockMesh(volume_ids)
+    """Test get_element_ids returns empty array if pid is not found in volume_ids."""
+    mesh = _get_mock_mesh()
     part = Part("TestPart")
     part.pid = 99  # pid not in volume_ids
     # Should return empty array, but shape will be (0,) due to np.argwhere
@@ -134,16 +153,9 @@ def test_get_element_ids_returns_empty_if_pid_not_found():
 
 def test_get_element_ids_returns_empty_if_volume_id_missing(caplog):
     """Test get_element_ids returns empty array and logs error if '_volume-id' is missing."""
-    import pyvista as pv
-
-    from ansys.health.heart.objects import Mesh
-
-    # Create a minimal mesh without '_volume-id'
-    points = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    cells = np.hstack([[4, 0, 1, 2, 3]])
-    celltypes = np.array([pv.CellType.TETRA])
-    grid = pv.UnstructuredGrid(cells, celltypes, points)
-    mesh = Mesh(grid)
+    mesh = _get_mock_mesh()
+    # Remove '_volume-id' to simulate missing cell data
+    mesh.cell_data.remove("_volume-id")
 
     part = Part("TestPart")
     part.pid = 1

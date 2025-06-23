@@ -1387,9 +1387,9 @@ class HeartModel:
         """Clean epicardial surfaces such that these use only nodes of the part."""
         for part in self.parts:
             self.mesh._set_global_ids()
-            global_node_ids_part = self.mesh.extract_cells(part._element_ids).point_data[
-                "_global-point-ids"
-            ]
+            global_node_ids_part = self.mesh.extract_cells(
+                part.get_element_ids(self.mesh)
+            ).point_data["_global-point-ids"]
 
             # ! The only information we use from surface here is the ID, not the mesh information.
             # ! We need to go back to the central mesh to obtain an updated copy of

@@ -1133,28 +1133,26 @@ class HeartModel:
 
         return
 
+    @deprecated(reason="Element IDs are now retrieved from the mesh object.")
     def _assign_elements_to_parts(self) -> None:
         """Get the element IDs of each part and assign these to the ``Part`` objects."""
-        # get element IDs of each part.
-        used_element_ids = self._get_used_element_ids()
+        # validate that all parts have element IDs assigned.
         for part in self.parts:
-            if len(part._element_ids) > 0:
+            if part.get_element_ids(self.mesh).shape == (0,):
                 LOGGER.warning(
-                    "Part {0} seems to already have elements assigned. Skipping.".format(part.name)
+                    """Part {0} has no elements assigned.
+                    Please check the mesh and part definitions.""".format(part.name)
                 )
                 continue
-            # ! this is valid as long as no additional surfaces are added in self.mesh.
-            # ! otherwise (global) element ids may change
-            # TODO: now all part ids are stored through the cell data _volume-ids and global
-            # TODO: element ids can be retrieved by: part.get_element_ids(mesh)
-            element_ids = np.where(np.isin(self.mesh.cell_data["_volume-id"], part.pid))[0]
-            element_ids = element_ids[np.isin(element_ids, used_element_ids, invert=True)]
-            part._element_ids = element_ids
 
         summ = 0
         for part in self.parts:
-            LOGGER.info("Num elements in {0}: {1}".format(part.name, part._element_ids.shape[0]))
-            summ = summ + part._element_ids.shape[0]
+            LOGGER.info(
+                "Num elements in {0}: {1}".format(
+                    part.name, part.get_element_ids(self.mesh).shape[0]
+                )
+            )
+            summ = summ + part.get_element_ids(self.mesh).shape[0]
         LOGGER.info("Total num elements: {}".format(summ))
 
         LOGGER.info(

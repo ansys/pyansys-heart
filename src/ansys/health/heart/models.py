@@ -826,7 +826,7 @@ class HeartModel:
         return mesh_path, info_path
 
     @staticmethod
-    def _load_model(
+    def load_model(
         filename_mesh: str,
         filename_part_info: str,
         working_directory: pathlib.Path | str = None,
@@ -912,6 +912,7 @@ class HeartModel:
 
             part_1.pid = info.get("part-id")
 
+            # check if the part ID is in the mesh.
             if not np.isin(part_1.pid, model.mesh.volume_ids):
                 LOGGER.error(
                     f"""Part {part_1.name} with ID {part_1.pid} is not in the mesh.
@@ -934,6 +935,7 @@ class HeartModel:
 
         # loop over each extra part and load this into the model.
         for extra_part_name in extra_part_names:
+            LOGGER.debug(f"Adding non-standard part: {extra_part_name}")
             extra_part = anatomy.Part._set_from_dict({extra_part_name: part_info[extra_part_name]})
             model.add_part(extra_part)
 

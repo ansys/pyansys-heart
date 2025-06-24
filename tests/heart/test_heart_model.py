@@ -215,9 +215,15 @@ def test_load_model():
 
         assert model.part_names == list(part_info.keys())
 
-        assert model.left_ventricle.element_ids.shape[0] == examples.load_tetbeam().n_cells
-        assert model.right_ventricle.element_ids.shape[0] == examples.load_tetbeam().n_cells
-        assert model.septum.element_ids.shape[0] == examples.load_tetbeam().n_cells
+        assert (
+            model.left_ventricle.get_element_ids(model.mesh).shape[0]
+            == examples.load_tetbeam().n_cells
+        )
+        assert (
+            model.right_ventricle.get_element_ids(model.mesh).shape[0]
+            == examples.load_tetbeam().n_cells
+        )
+        assert model.septum.get_element_ids(model.mesh).shape[0] == examples.load_tetbeam().n_cells
 
         assert model.left_ventricle.endocardium.n_cells == pv.Sphere().n_cells
         assert model.left_ventricle.endocardium.n_points == pv.Sphere().n_points

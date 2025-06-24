@@ -656,7 +656,7 @@ class HeartModel:
         Examples
         --------
         >>> import ansys.health.heart.models as models
-        >>> model = models.HeartModel.load_model("heart_model.pickle")
+        >>> model = models.HeartModel.load_model("heart_model.vtu", "heart_model.partinfo.json")
         >>> model.plot_mesh(show_edges=True)
         """
         plotter = pv.Plotter()
@@ -676,7 +676,7 @@ class HeartModel:
         Examples
         --------
         >>> import ansys.health.heart.models as models
-        >>> model = models.HeartModel.load_model("my_model.pickle")
+        >>> model = models.HeartModel.load_model("heart_model.vtu", "heart_model.partinfo.json")
         >>> model.part(model.left_ventricle)
         """
         mesh = self.mesh
@@ -702,7 +702,7 @@ class HeartModel:
         Examples
         --------
         >>> import ansys.health.heart.models as models
-        >>> model = models.HeartModel.load_model("my_model.pickle")
+        >>> model = models.HeartModel.load_model("heart_model.vtu", "heart_model.partinfo.json")
         >>> model.plot_fibers(n_seed_points=5000)
         """
         plotter = pv.Plotter()
@@ -732,7 +732,7 @@ class HeartModel:
         Import modules and load model.
 
         >>> import ansys.health.heart.models as models
-        >>> model = models.HeartModel.load_model("my_model.pickle")
+        >>> model = models.HeartModel.load_model("heart_model.vtu", "heart_model.partinfo.json")
 
         Plot the model.
 
@@ -859,6 +859,12 @@ class HeartModel:
         exist in part information. Hence no HeartModel instance needs to be created
         before calling this method.
 
+        Examples
+        --------
+        >>> from ansys.health.heart.models import HeartModel
+        >>> model = HeartModel.load_model("my-heart.vtu", "my-heart.partinfo.json")
+        >>> print(model.part_names)
+        >>> print(model.mesh)
         """
         # open part info
         with open(filename_part_info, "r") as f:

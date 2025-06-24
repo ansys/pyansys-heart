@@ -37,7 +37,7 @@ from ansys.health.heart.objects import Mesh
 from ansys.health.heart.parts import _PartType
 
 
-def test_set_workdir():
+def test_set_workdir(monkeypatch):
     """Test setting the working directory."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         workdir = models._set_workdir(os.path.join(tempdir, "test"))
@@ -50,7 +50,7 @@ def test_set_workdir():
             workdir = models._set_workdir()
             assert workdir == os.path.join(tempdir, "test1")
 
-        os.environ["PYANSYS_HEART_WORKDIR"] = os.path.join(tempdir, "test2")
+        monkeypatch.setenv("PYANSYS_HEART_WORKDIR", os.path.join(tempdir, "test2"))
         workdir = models._set_workdir()
         assert workdir == os.path.join(tempdir, "test2")
 
@@ -161,6 +161,7 @@ def _get_test_model():
 
 
 def test_load_model_arbitrary_part():
+    """Test loading model with an arbitrary part."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
         mesh_path = os.path.join(tmpdir, "mesh.vtu")
 
@@ -178,16 +179,15 @@ def test_load_model_arbitrary_part():
         with open(part_info_path, "w") as f:
             json.dump(part_info, f, indent=4)
 
-        model = models.HeartModel._load_model(mesh_path, part_info_path)
+        model = models.HeartModel.load_model(mesh_path, part_info_path)
 
+        assert isinstance(model, models.BiVentricle)
         assert "ArbitraryPart" in model.part_names
         assert "arbitrarypart" in model.__dict__.keys()
 
 
 def test_load_model():
-    """Test loading mesh from mesh file and id map."""
-    # generate a dummy mesh.
-
+    """Test loading model from a mesh file and partinfo file."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
         mesh_path = os.path.join(tmpdir, "mesh.vtu")
 
@@ -203,7 +203,7 @@ def test_load_model():
             with mock.patch(
                 "ansys.health.heart.models.HeartModel._define_anatomy_axis"
             ) as mock_define_axis:
-                model = models.HeartModel._load_model(mesh_path, part_info_path)
+                model = models.HeartModel.load_model(mesh_path, part_info_path)
 
                 assert isinstance(model, models.BiVentricle)
                 assert model.mesh.n_cells == mesh.n_cells

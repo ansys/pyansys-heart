@@ -2568,7 +2568,7 @@ $#   nodes     nodes     nodes     nodes     nodes     nodes     nodes     nodes
      41267     41269     41270
 *SET_NODE_LIST_TITLE
 $#                                                                         title
-Right ventricle septum                                              
+Right ventricle septum                                                          
 $#     sid       da1       da2       da3       da4    solver       its    unused
         18       0.0       0.0       0.0       0.0MECH                          
 $#   nodes     nodes     nodes     nodes     nodes     nodes     nodes     nodes

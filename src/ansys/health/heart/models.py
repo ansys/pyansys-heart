@@ -1345,7 +1345,7 @@ class HeartModel:
             surfaces = [
                 self.mesh.get_surface(s.id)
                 for s in part.surfaces
-                if "endocardium" in s.name and s.n_cells > 0
+                if "endocardium" in s.name or "septum" in s.name and s.n_cells > 0
             ]
             if len(surfaces) == 0:
                 LOGGER.warning(f"Skipping part {part.name}. Only empty surfaces are present.")

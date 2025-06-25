@@ -905,15 +905,18 @@ class HeartModel:
                 LOGGER.warning(f"Skipping {part_1.name}. Not defined in the part information.")
                 continue
 
-            #! try to add surfaces to each part by using the pre-defined surfaces
-            for surface in part_1.surfaces:
-                surface1 = model.mesh.get_surface_by_name(surface.name)
-                if not surface1:
-                    continue
-                super(SurfaceMesh, surface).__init__(surface1)
-                surface.id = surface1.id
+            part_1 = part_1._set_from_dict({part_1.name: info}, model.mesh)
+            # #! try to add surfaces to each part by using the pre-defined surfaces
+            # for surface in part_1.surfaces:
+            #     surface1 = model.mesh.get_surface_by_name(surface.name)
+            #     if not surface1:
+            # LOGGER.error(
+            #     "Failed to find surface {surface.name} with id {surface.id} in the mesh."
+            # )
+            # continue
+            #     super(SurfaceMesh, surface).__init__(surface1)
 
-            part_1.pid = info.get("part-id")
+            # part_1.pid = info.get("part-id")
 
             # check if the part ID is in the mesh.
             if not np.isin(part_1.pid, model.mesh.volume_ids):

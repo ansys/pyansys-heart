@@ -178,12 +178,14 @@ class Part:
         return data
 
     def _get_predefined_surfaces(self) -> list[str]:
-        """Get a list of allowed attributes for the part."""
-        return [key for key, value in self.__dict__.items() if isinstance(value, SurfaceMesh)]
+        """Get a list of allowed surfaces for the part."""
+        return [
+            value.name for key, value in self.__dict__.items() if isinstance(value, SurfaceMesh)
+        ]
 
     @staticmethod
     def _set_from_dict(
-        data: dict,
+        data: dict, mesh: Mesh | None = None
     ) -> Part | Septum | Chamber | Ventricle | Atrium | Artery | Myocardium:
         """Reconstruct a part from a dictionary.
 
@@ -191,6 +193,9 @@ class Part:
         ----------
         data : dict
             Dictionary that describes the part in JSON format.
+        mesh : Mesh, optional
+            Mesh object to use for reconstructing surfaces and cavities. If not provided,
+            the part will be created without surfaces and cavities.
 
         Returns
         -------
@@ -231,17 +236,21 @@ class Part:
         part.active = part_data.get("active", False)
         part.fiber = part_data.get("fiber", False)
 
-        for surface_name, surface_id in part_data.get("surfaces", {}).items():
-            if surface_name not in part._get_predefined_surfaces():
-                LOGGER.error(f"Surface {surface_name} is not a standard surface for part {name}.")
-                continue
-            surface = SurfaceMesh(name=surface_name)
-            surface.id = surface_id
-            setattr(part, surface_name, surface)
+        if mesh:
+            # try to set the surfaces and cavities with mesh data.
+            for surface_name, surface_id in part_data.get("surfaces", {}).items():
+                if surface_name not in part.surface_names:
+                    LOGGER.error(
+                        f"Surface {surface_name} is not a standard surface for part {name}."
+                    )
+                    continue
+                surface = mesh.get_surface_by_name(surface_name)
+                attribute_name = surface_name.replace(part.name + " ", "")
+                setattr(part, attribute_name, surface)
 
-        if isinstance(part, Chamber):
-            pass
-            # add cavities.
+            if isinstance(part, Chamber):
+                pass
+                # add cavities.
 
         return part
 

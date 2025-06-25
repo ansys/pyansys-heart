@@ -99,19 +99,49 @@ def test_part_get_info_with_data():
     assert info["Part1"]["cavity"] == {"cavity1": 1000}
 
 
+def _get_mock_mesh1():
+    from pyvista.examples import load_tetbeam
+
+    beam = load_tetbeam()
+    surface = beam.extract_surface()
+
+    mesh = Mesh()
+    mesh.add_surface(surface, name="Left ventricle endocardium", id=1)
+    mesh.add_surface(surface, name="Left ventricle epicardium", id=2)
+    mesh.add_surface(surface, name="Left ventricle endocardium septum", id=3)
+    mesh.add_surface(surface, name="Left atrium endocardium", id=4)
+    mesh.add_surface(surface, name="Left atrium epicardium", id=5)
+    mesh.add_surface(surface, name="Aorta wall", id=6)
+
+    return mesh
+
+
 @pytest.mark.parametrize(
-    "part_type,expected_class,surfaces",
+    "part_name,part_type,expected_class,surfaces",
     [
-        ("septum", Septum, {}),
-        ("ventricle", Ventricle, {"endocardium": 1, "epicardium": 2, "septum": 3}),
-        ("atrium", Atrium, {"endocardium": 1, "epicardium": 2}),
-        ("artery", Artery, {"wall": 1}),
-        ("myocardium", Myocardium, {}),
-        ("myocardium", Myocardium, {}),
+        ("Septum", "septum", Septum, {}),
+        (
+            "Left ventricle",
+            "ventricle",
+            Ventricle,
+            {
+                "Left ventricle endocardium": 1,
+                "Left ventricle epicardium": 2,
+                "Left ventricle endocardium septum": 3,
+            },
+        ),
+        (
+            "Left atrium",
+            "atrium",
+            Atrium,
+            {"Left atrium endocardium": 4, "Left atrium epicardium": 5},
+        ),
+        ("Aorta", "artery", Artery, {"Aorta wall": 6}),
+        ("Myocardium", "myocardium", Myocardium, {}),
+        ("Myocardium", "myocardium", Myocardium, {}),
     ],
 )
-def test_set_from_dict_subclasses(part_type, expected_class, surfaces):
-    part_name = f"test_{part_type}"
+def test_set_from_dict(part_name, part_type, expected_class, surfaces):
     test_dict = {
         part_name: {
             "part-id": 42,
@@ -130,10 +160,19 @@ def test_set_from_dict_subclasses(part_type, expected_class, surfaces):
     assert part.active is True
     assert part.fiber is True
 
+    # surfaces not set since no mesh was passed.
+    assert all(surface.id is None for surface in part.surfaces)
+
+    # add a mesh to reconstruct surfaces.
+    part = Part._set_from_dict(test_dict, mesh=_get_mock_mesh1())
+
+    # Check that surfaces are reconstructed correctly.
     if surfaces != {}:
         for surface_name, surface_id in surfaces.items():
-            assert hasattr(part, surface_name)
-            surface = getattr(part, surface_name)
+            attribute_name = surface_name.replace(part.name + " ", "")
+            assert hasattr(part, attribute_name)
+            surface = getattr(part, attribute_name)
+
             assert isinstance(surface, SurfaceMesh)
             assert surface.id == surface_id
 

@@ -40,8 +40,9 @@ from tests.heart.conftest import get_assets_folder
 def get_left_ventricle():
     test_dir = os.path.join(get_assets_folder(), "post")
     path_to_model = os.path.join(test_dir, "model", "heart_model.vtu")
-    model: LeftVentricle = LeftVentricle(working_directory=test_dir)
-    model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
+    model: LeftVentricle = LeftVentricle.load_model(
+        path_to_model, path_to_model.replace(".vtu", ".partinfo.json"), working_directory=test_dir
+    )
 
     return test_dir, model
 

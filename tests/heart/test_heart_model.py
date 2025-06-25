@@ -250,7 +250,6 @@ def test_load_model_from_mesh():
         mesh, part_info = _get_test_model()
 
         mesh.save(mesh_path)
-        model = models.BiVentricle(working_directory=tmpdir)
 
         part_info_path = os.path.join(tmpdir, "partinfo.json")
         with open(part_info_path, "w") as f:
@@ -260,7 +259,7 @@ def test_load_model_from_mesh():
             with mock.patch(
                 "ansys.health.heart.models.BiVentricle._define_anatomy_axis"
             ) as mock_define_axis:
-                model.load_model_from_mesh(mesh_path, part_info_path)
+                model = models.BiVentricle.load_model(mesh_path, part_info_path, tmpdir)
                 mock_extract_apex.assert_called_once()
                 mock_define_axis.assert_called_once()
 

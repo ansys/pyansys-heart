@@ -35,7 +35,7 @@ import numpy as np
 import yaml
 
 from ansys.health.heart import LOG as LOGGER, __version__
-from ansys.health.heart.objects import Cap, Cavity, Mesh, Point, SurfaceMesh
+from ansys.health.heart.objects import Cap, CapType, Cavity, Mesh, Point, SurfaceMesh
 from ansys.health.heart.settings.material.ep_material import EPMaterial
 from ansys.health.heart.settings.material.material import MechanicalMaterialModel
 
@@ -70,6 +70,11 @@ class Part:
         for surface in self.surfaces:
             surface_names.append(surface.name)
         return surface_names
+
+    @property
+    def _attribute_name(self):
+        """Get the equivalent attribute name of the part."""
+        return self.name.lower().replace(" ", "_").replace("-", "_")
 
     def get_point(self, pointname: str) -> Point | None:
         """Get a point from the part."""
@@ -248,9 +253,17 @@ class Part:
                 attribute_name = surface_name.replace(part.name + " ", "")
                 setattr(part, attribute_name, surface)
 
+            # try to initialize cavity object.
             if isinstance(part, Chamber):
-                pass
-                # add cavities.
+                if part_data.get("cavity", {}) != {}:
+                    cavity_name, cavity_id = next(iter(part_data.get("cavity").items()))
+                    part.cavity = Cavity(surface=mesh.get_surface(cavity_id), name=cavity_name)
+
+                for cap_name, cap_id in part_data.get("caps", {}).items():
+                    #! note that we assume cap name equals cap type here.
+                    cap = Cap(cap_name, cap_type=CapType(cap_name))
+                    cap._mesh = mesh.get_surface(cap_id)
+                    part.caps.append(cap)
 
         return part
 

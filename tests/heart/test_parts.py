@@ -117,9 +117,9 @@ def _get_mock_mesh1():
 
 
 @pytest.mark.parametrize(
-    "part_name,part_type,expected_class,surfaces",
+    "part_name,part_type,expected_class,surfaces,caps,cavity",
     [
-        ("Septum", "septum", Septum, {}),
+        ("Septum", "septum", Septum, {}, {}, {}),
         (
             "Left ventricle",
             "ventricle",
@@ -129,19 +129,23 @@ def _get_mock_mesh1():
                 "Left ventricle epicardium": 2,
                 "Left ventricle endocardium septum": 3,
             },
+            {},
+            {},
         ),
         (
             "Left atrium",
             "atrium",
             Atrium,
             {"Left atrium endocardium": 4, "Left atrium epicardium": 5},
+            {},
+            {},
         ),
-        ("Aorta", "artery", Artery, {"Aorta wall": 6}),
-        ("Myocardium", "myocardium", Myocardium, {}),
-        ("Myocardium", "myocardium", Myocardium, {}),
+        ("Aorta", "artery", Artery, {"Aorta wall": 6}, {}, {}),
+        ("Myocardium", "myocardium", Myocardium, {}, {}, {}),
+        ("Myocardium", "myocardium", Myocardium, {}, {}, {}),
     ],
 )
-def test_set_from_dict(part_name, part_type, expected_class, surfaces):
+def test_set_from_dict(part_name, part_type, expected_class, surfaces, caps, cavity):
     test_dict = {
         part_name: {
             "part-id": 42,

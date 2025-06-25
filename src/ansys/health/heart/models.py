@@ -621,8 +621,15 @@ class HeartModel:
         if part.name in self.part_names:
             LOGGER.error(f"Part with name {part.name} already exists.")
             return
-        # TODO: check if part name does not override an existing attribute/property.
-        setattr(self, part.name.lower().replace(" ", "_"), part)
+
+        if part._attribute_name not in part.__dict__.keys():
+            setattr(self, part._attribute_name, part)
+        else:
+            LOGGER.error(
+                f"Part with name {part.name} already exists as an attribute. "
+                "Please use a different name."
+            )
+            return
         return
 
     def remove_part(self, part_name: str) -> None:
@@ -906,17 +913,9 @@ class HeartModel:
                 continue
 
             part_1 = part_1._set_from_dict({part_1.name: info}, model.mesh)
-            # #! try to add surfaces to each part by using the pre-defined surfaces
-            # for surface in part_1.surfaces:
-            #     surface1 = model.mesh.get_surface_by_name(surface.name)
-            #     if not surface1:
-            # LOGGER.error(
-            #     "Failed to find surface {surface.name} with id {surface.id} in the mesh."
-            # )
-            # continue
-            #     super(SurfaceMesh, surface).__init__(surface1)
 
-            # part_1.pid = info.get("part-id")
+            # Update the attribute
+            setattr(model, part_1._attribute_name, part_1)
 
             # check if the part ID is in the mesh.
             if not np.isin(part_1.pid, model.mesh.volume_ids):
@@ -926,27 +925,12 @@ class HeartModel:
                     the value {part_1.pid}."""
                 )
 
-            # try to initialize cavity object.
-            if isinstance(part_1, anatomy.Chamber):
-                if info.get("cavity", {}) != {}:
-                    cavity_name, cavity_id = next(iter(info.get("cavity").items()))
-                    part_1.cavity = Cavity(
-                        surface=model.mesh.get_surface(cavity_id), name=cavity_name
-                    )
-
-                for cap_name, cap_id in info.get("caps", {}).items():
-                    #! note that we assume cap name equals cap type here.
-                    cap = Cap(cap_name, cap_type=CapType(cap_name))
-                    cap._mesh = model.mesh.get_surface(cap_id)
-                    part_1.caps.append(cap)
-
         # loop over each extra part and load this into the model.
         for extra_part_name in extra_part_names:
             LOGGER.debug(f"Adding non-standard part: {extra_part_name}")
             extra_part = anatomy.Part._set_from_dict({extra_part_name: part_info[extra_part_name]})
             model.add_part(extra_part)
 
-        # TODO: #? add validation method to make sure all essential components are present?
         try:
             model._extract_apex()
         except Exception:

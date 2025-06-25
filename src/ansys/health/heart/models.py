@@ -872,22 +872,19 @@ class HeartModel:
 
         part_names = set(part_info.keys())
 
-        # infer type of model from the parts that exist in the model.
+        # infer type of model from the part names defined in part info
         if set(FullHeart().part_names).issubset(part_names):
-            modeltype = FullHeart
+            model = FullHeart(working_directory)
         elif set(FourChamber().part_names).issubset(part_names):
-            modeltype = FourChamber
+            model = FourChamber(working_directory)
         elif set(BiVentricle().part_names).issubset(part_names):
-            modeltype = BiVentricle
+            model = BiVentricle(working_directory)
         elif set(LeftVentricle().part_names).issubset(part_names):
-            modeltype = LeftVentricle
+            model = LeftVentricle(working_directory)
         else:
             msg = "Failed to infer the type of heart model from the part names."
             LOGGER.error(msg)
             raise InvalidHeartModelError(msg)
-
-        # Create an instance of the model
-        model = modeltype(working_directory)
 
         # extra parts
         extra_part_names = list(set(part_info.keys()) - set(model.part_names))
@@ -922,7 +919,8 @@ class HeartModel:
             if not np.isin(part_1.pid, model.mesh.volume_ids):
                 LOGGER.error(
                     f"""Part {part_1.name} with ID {part_1.pid} is not in the mesh.
-                    Check {filename_mesh}."""
+                    Check if the ``_volume-id`` cell array in {filename_mesh} contains
+                    the value {part_1.pid}."""
                 )
 
             # try to initialize cavity object.

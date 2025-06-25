@@ -249,7 +249,7 @@ class Part:
                         f"Surface {surface_name} is not a standard surface for part {name}."
                     )
                     continue
-                surface = mesh.get_surface_by_name(surface_name)
+                surface = mesh.get_surface(surface_id)
                 attribute_name = surface_name.replace(part.name + " ", "")
                 setattr(part, attribute_name, surface)
 
@@ -305,7 +305,7 @@ class Ventricle(Chamber):
     def __init__(self, name: str = None) -> None:
         super().__init__(name=name, part_type=_PartType.VENTRICLE)
 
-        self.septum: SurfaceMesh = SurfaceMesh(name="{0} endocardium septum".format(self.name))
+        self.septum: SurfaceMesh = SurfaceMesh(name="{0} septum".format(self.name))
         """Septal surface."""
 
         self.apex_points: list[Point] = []

@@ -950,12 +950,6 @@ class HeartModel:
 
         return model
 
-    # TODO: could consider having this as a static method.
-    # TODO: Right now this only reconstructs the surfaces and parts that
-    # TODO: are defined in the HeartModel classes:
-    # TODO: LeftVentricle, BiVentricle, FourChamber and FullHeart.
-    # TODO: Should consider to also reconstruct the parts that are not explicitly
-    # TODO: defined in the class.
     @deprecated(
         reason="""This method will be deprecated in the future. Use the static method
                 "`_load_model` instead."""

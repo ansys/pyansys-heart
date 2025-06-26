@@ -144,7 +144,7 @@ def _get_test_model():
         "Right ventricle": {
             "part-id": 11,
             "part-type": _PartType.VENTRICLE.value,
-            "surfaces": {"Right ventricle epicardium": 1},
+            "surfaces": {"Right ventricle epicardium": 2},
             "caps": {},
             "cavity": {},
         },
@@ -203,7 +203,7 @@ def test_load_model():
             with mock.patch(
                 "ansys.health.heart.models.HeartModel._define_anatomy_axis"
             ) as mock_define_axis:
-                model = models.HeartModel.load_model(mesh_path, part_info_path)
+                model = models.HeartModel.load_model(mesh_path, part_info_path, tmpdir)
 
                 assert isinstance(model, models.BiVentricle)
                 assert model.mesh.n_cells == mesh.n_cells

@@ -610,11 +610,12 @@ class Mesh(pv.UnstructuredGrid):
         if ids is None:
             return start
 
-        for ii in range(start, end + 1):
-            if ii not in ids:
-                return ii
-
-        raise ValueError(f"No unused ID found in the range {start} to {end}.")
+        # Subtract existing IDs from IDs in range to get candidate IDs
+        candidate_ids = set(range(start, end + 1)) - set(ids)
+        if candidate_ids != {}:
+            return min(candidate_ids)
+        else:
+            raise ValueError(f"No unused ID found in the range {start} to {end}.")
 
     @property
     def _unused_line_id(self) -> int:

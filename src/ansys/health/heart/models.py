@@ -1253,7 +1253,9 @@ class HeartModel:
             surface_cavity = SurfaceMesh(pv.merge([surface] + [cap._mesh for cap in part.caps]))
             surface_cavity.name = surface.name
 
-            surface_cavity.id = self.mesh.get_unused_id_in_range(id_type="surface")
+            surface_cavity.id = self.mesh.get_unused_id_in_range(
+                id_type="surface", start=1, end=1000
+            )
 
             #! Force normals of cavity surface to point inward.
             surface_cavity.force_normals_inwards()

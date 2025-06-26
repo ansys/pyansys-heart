@@ -905,31 +905,29 @@ class HeartModel:
         model.mesh = _convert_int64_to_int32(model.mesh, ["_volume-id", "_surface-id", "_line-id"])
 
         for part in model.parts:
-            info: dict = part_info.get(part.name, None)
+            info: dict = part_info.get(part.name)
 
             if info is None:
                 LOGGER.warning(f"Skipping {part.name}. Not defined in the part information.")
                 continue
 
-            updated_part = part._set_from_dict({part.name: info}, model.mesh)
+            part = part._set_from_dict({part.name: info}, model.mesh)
 
-            # Update the attribute, note that this is not in-place.
-            setattr(model, updated_part._attribute_name, updated_part)
+            # Update the attribute
+            setattr(model, part._attribute_name, part)
 
             # check if the part ID is in the mesh.
-            if not np.isin(updated_part.pid, model.mesh.volume_ids):
+            if not np.isin(part.pid, model.mesh.volume_ids):
                 LOGGER.error(
-                    f"""Part {updated_part.name} with ID {updated_part.pid} is not in the mesh.
+                    f"""Part {part.name} with ID {part.pid} is not in the mesh.
                     Check if the ``_volume-id`` cell array in {filename_mesh} contains
-                    the value {updated_part.pid}."""
+                    the value {part.pid}."""
                 )
 
         # loop over each extra part and load this into the model.
         for extra_part_name in extra_part_names:
             LOGGER.debug(f"Adding non-standard part: {extra_part_name}")
-            extra_part = anatomy.Part._set_from_dict(
-                {extra_part_name: part_info[extra_part_name]}, model.mesh
-            )
+            extra_part = anatomy.Part._set_from_dict({extra_part_name: part_info[extra_part_name]})
             model.add_part(extra_part)
 
         try:

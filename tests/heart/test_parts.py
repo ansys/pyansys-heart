@@ -108,7 +108,7 @@ def _get_mock_mesh1():
     mesh = Mesh()
     mesh.add_surface(surface, name="Left ventricle endocardium", id=1)
     mesh.add_surface(surface, name="Left ventricle epicardium", id=2)
-    mesh.add_surface(surface, name="Left ventricle endocardium septum", id=3)
+    mesh.add_surface(surface, name="Left ventricle septum", id=3)
     mesh.add_surface(surface, name="Left atrium endocardium", id=4)
     mesh.add_surface(surface, name="Left atrium epicardium", id=5)
     mesh.add_surface(surface, name="Aorta wall", id=6)
@@ -127,7 +127,7 @@ def _get_mock_mesh1():
             {
                 "Left ventricle endocardium": 1,
                 "Left ventricle epicardium": 2,
-                "Left ventricle endocardium septum": 3,
+                "Left ventricle septum": 3,
             },
             {},
             {},

@@ -871,7 +871,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         node_sets_ids_endo = []
         for ventricle in ventricles:
             for surface in ventricle.surfaces:
-                if "endocardium" in surface.name:
+                if "endocardium" in surface.name or "septum" in surface.name:
                     surf = self.model.mesh.get_surface(surface.id)
                     if surf.n_cells == 0:
                         LOGGER.debug(
@@ -882,12 +882,9 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         node_set_id_lv_endo = self.model.get_part("Left ventricle").endocardium._node_set_id
         if isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            surfaces = [surface for p in self.model.parts for surface in p.surfaces]
-            for surface in surfaces:
-                #! relies on order of surfaces. Could be tricky.
-                if surface.name == "Right ventricle endocardium septum":
-                    node_set_ids_epi_and_rseptum = node_sets_ids_epi + [surface._node_set_id]
-                    break
+            node_set_ids_epi_and_rseptum = node_sets_ids_epi + [
+                self.model.right_ventricle.septum._node_set_id
+            ]
 
         for cap in self.model.all_caps:
             nodes_base = np.append(nodes_base, cap.global_node_ids_edge)

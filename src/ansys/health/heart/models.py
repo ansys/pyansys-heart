@@ -904,25 +904,24 @@ class HeartModel:
         model.mesh.load_mesh(filename_mesh)
         model.mesh = _convert_int64_to_int32(model.mesh, ["_volume-id", "_surface-id", "_line-id"])
 
-        # TODO: Refactor
-        for part_1 in model.parts:
-            info: dict = part_info.get(part_1.name)
+        for part in model.parts:
+            info: dict = part_info.get(part.name)
 
             if info is None:
-                LOGGER.warning(f"Skipping {part_1.name}. Not defined in the part information.")
+                LOGGER.warning(f"Skipping {part.name}. Not defined in the part information.")
                 continue
 
-            part_1 = part_1._set_from_dict({part_1.name: info}, model.mesh)
+            part = part._set_from_dict({part.name: info}, model.mesh)
 
             # Update the attribute
-            setattr(model, part_1._attribute_name, part_1)
+            setattr(model, part._attribute_name, part)
 
             # check if the part ID is in the mesh.
-            if not np.isin(part_1.pid, model.mesh.volume_ids):
+            if not np.isin(part.pid, model.mesh.volume_ids):
                 LOGGER.error(
-                    f"""Part {part_1.name} with ID {part_1.pid} is not in the mesh.
+                    f"""Part {part.name} with ID {part.pid} is not in the mesh.
                     Check if the ``_volume-id`` cell array in {filename_mesh} contains
-                    the value {part_1.pid}."""
+                    the value {part.pid}."""
                 )
 
         # loop over each extra part and load this into the model.
@@ -952,7 +951,7 @@ class HeartModel:
 
     @deprecated(
         reason="""This method will be deprecated in the future. Use the static method
-                "`_load_model` instead."""
+                "`HeartModel.load_model` instead."""
     )
     def load_model_from_mesh(self, filename_mesh: str, filename_part_info: str):
         """Load a model from an existing VTU file and part information dictionary.

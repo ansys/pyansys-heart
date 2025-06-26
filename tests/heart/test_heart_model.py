@@ -179,7 +179,7 @@ def test_load_model_arbitrary_part():
         with open(part_info_path, "w") as f:
             json.dump(part_info, f, indent=4)
 
-        model = models.HeartModel.load_model(mesh_path, part_info_path)
+        model = models.HeartModel.load_model(mesh_path, part_info_path, tmpdir)
 
         assert isinstance(model, models.BiVentricle)
         assert "ArbitraryPart" in model.part_names

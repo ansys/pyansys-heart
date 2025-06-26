@@ -35,10 +35,14 @@ from ansys.health.heart.post.laplace_post import (
 from ansys.health.heart.settings.settings import AtrialFiber
 from tests.heart.conftest import get_assets_folder
 
-os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
+@pytest.fixture(autouse=True)
+def _set_env_vars(monkeypatch):
+    """Set environment variables for testing."""
+    monkeypatch.setenv("ANSYS_DPF_ACCEPT_LA", "Y")
 
 
-def test_compute_la_fiber_cs():
+def test_compute_la_fiber_cs(_set_env_vars):
     dir = os.path.join(get_assets_folder(), "post", "la_fiber")
 
     setting = AtrialFiber()
@@ -63,7 +67,7 @@ def test_compute_la_fiber_cs():
         assert pytest.approx(np.dot(res["e_l"][0], res["e_t"][0])) == 0
 
 
-def test_compute_ra_fiber_cs():
+def test_compute_ra_fiber_cs(_set_env_vars):
     dir = os.path.join(get_assets_folder(), "post", "ra_fiber")
 
     setting = AtrialFiber()
@@ -95,7 +99,7 @@ def test_compute_ra_fiber_cs():
         assert pytest.approx(np.dot(res["e_l"][0], res["e_t"][0])) == 0
 
 
-def test_compute_ventricle_fiber_by_drbm():
+def test_compute_ventricle_fiber_by_drbm(_set_env_vars):
     dir = os.path.join(get_assets_folder(), "post", "drbm")
     input_grid = pv.read(os.path.join(dir, "data.vtu"))
 

@@ -581,11 +581,25 @@ class Mesh(pv.UnstructuredGrid):
             return None
 
     @property
-    def _unused_volume_id(self) -> np.ndarray:
+    def _unused_volume_id(self) -> int:
         """Get unused volume ID."""
         if self.volume_ids is None:
             return 1
         return int(np.max(self.volume_ids) + 1)
+
+    @property
+    def _unused_surface_id(self) -> int:
+        """Get unused surface ID."""
+        if self.surface_ids is None:
+            return 1
+        return int(np.max(self.surface_ids) + 1)
+
+    @property
+    def _unused_line_id(self) -> int:
+        """Get unused line ID."""
+        if self.line_ids is None:
+            return 1
+        return int(np.max(self.line_ids) + 1)
 
     @property
     def volume_names(self) -> List[str]:

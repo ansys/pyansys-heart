@@ -1213,9 +1213,6 @@ class HeartModel:
             surface: SurfaceMesh = SurfaceMesh(pv.merge(surfaces))
             surface.name = part.name + " cavity"
 
-            # save this cavity mesh to the centralized mesh object
-            surface.id = self.mesh._unused_surface_id  # get unique ID.
-
             # Generate patches that close the surface.
             patches = vtk_utils.get_patches_with_centroid(surface)
 
@@ -1229,9 +1226,10 @@ class HeartModel:
                 cap_name = f"cap_{patch_counter}_{part.name}"
 
                 # create cap: NOTE, mostly for compatibility. Could simplify further
-                cap_mesh = SurfaceMesh(
-                    patch.clean(), name=cap_name, id=self.mesh._unused_surface_id
+                unused_id = self.mesh.get_unused_id_in_range(
+                    id_type="surface", start=1001, end=2000
                 )
+                cap_mesh = SurfaceMesh(patch.clean(), name=cap_name, id=unused_id)
 
                 # Add cap to main mesh.
                 self.mesh.add_surface(cap_mesh, id=cap_mesh.id, name=cap_name)
@@ -1255,7 +1253,7 @@ class HeartModel:
             surface_cavity = SurfaceMesh(pv.merge([surface] + [cap._mesh for cap in part.caps]))
             surface_cavity.name = surface.name
 
-            surface_cavity.id = self.mesh._unused_surface_id
+            surface_cavity.id = self.mesh.get_unused_id_in_range(id_type="surface")
 
             #! Force normals of cavity surface to point inward.
             surface_cavity.force_normals_inwards()

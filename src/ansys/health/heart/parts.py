@@ -327,6 +327,9 @@ class Artery(Part):
 
         self.wall: SurfaceMesh = SurfaceMesh(name="{0} wall".format(self.name))
 
+        self.ep_material = EPMaterial.Insulator()
+        """EP material model for the artery part."""
+
 
 class Myocardium(Part):
     """Myocardium part."""

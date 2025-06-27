@@ -59,10 +59,8 @@ os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 # set working directory and path to model. Note that we assume here that that there is a
 # preprocessed model called "heart_model.vtu" available in the working directory.
-# workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
-# path_to_model = str(workdir / "heart_model.vtu")
-workdir = r'd:\Olivier_CRABBE\These\Sinus_rhythm\pyheart_example\Rodero2021\01\FullHeart'
-path_to_model = os.path.join(workdir , "heart_model.vtu")
+workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
+path_to_model = str(workdir / "heart_model.vtu")
 
 # load four chamber heart model.
 model: models.FullHeart = models.FullHeart(working_directory=workdir)
@@ -78,8 +76,7 @@ model.mesh.save(os.path.join(model.workdir, "simulation_model.vtu"))
 # instantiate the simulator and settings appropriately.
 
 # specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
-# lsdyna_path = r"ls-dyna_msmpi.exe"
-lsdyna_path = r"\\wsl.localhost\Ubuntu\home\ocrabbe\ls-dyna\0_executables\2024_12_09\ls-dyna_mpp_d_DEV-117261-g2c72f95698_x86_CentOS79_ifort190_sse2_impi2018"
+lsdyna_path = r"ls-dyna_msmpi.exe"
 
 # instantaiate dyna settings of choice
 dyna_settings = DynaSettings(

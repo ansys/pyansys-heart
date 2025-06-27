@@ -1190,9 +1190,7 @@ class HeartModel:
     def _assign_cavities_to_parts(self) -> None:
         """Create cavities based on endocardium surfaces and cap definitions."""
         # construct cavities with endocardium and caps
-        starting_id = int(np.sort(self.mesh.surface_ids)[-1] + 1)
-        starting_cap_id = int((starting_id // 1000 + 2) * 1000)
-        iii = 0
+        patch_counter = 0
 
         parts_with_cavities = [p for p in self.parts if isinstance(p, anatomy.Chamber)]
 
@@ -1215,9 +1213,6 @@ class HeartModel:
             surface: SurfaceMesh = SurfaceMesh(pv.merge(surfaces))
             surface.name = part.name + " cavity"
 
-            # save this cavity mesh to the centralized mesh object
-            surface.id = starting_id + ii  # get unique id.
-
             # Generate patches that close the surface.
             patches = vtk_utils.get_patches_with_centroid(surface)
 
@@ -1226,12 +1221,15 @@ class HeartModel:
             # TODO: Note that points come from surface, and does not contain all points in the mesh.
             # Create Cap objects with patches.
             for patch in patches:
-                iii += 1
+                patch_counter += 1
 
-                cap_name = f"cap_{iii}_{part.name}"
+                cap_name = f"cap_{patch_counter}_{part.name}"
 
                 # create cap: NOTE, mostly for compatibility. Could simplify further
-                cap_mesh = SurfaceMesh(patch.clean(), name=cap_name, id=starting_cap_id + iii)
+                unused_id = self.mesh.get_unused_id_in_range(
+                    id_type="surface", start=1001, end=2000
+                )
+                cap_mesh = SurfaceMesh(patch.clean(), name=cap_name, id=unused_id)
 
                 # Add cap to main mesh.
                 self.mesh.add_surface(cap_mesh, id=cap_mesh.id, name=cap_name)
@@ -1254,7 +1252,10 @@ class HeartModel:
             surface.cell_data["_cap_id"] = 0
             surface_cavity = SurfaceMesh(pv.merge([surface] + [cap._mesh for cap in part.caps]))
             surface_cavity.name = surface.name
-            surface_cavity.id = surface.id
+
+            surface_cavity.id = self.mesh.get_unused_id_in_range(
+                id_type="surface", start=1, end=1000
+            )
 
             #! Force normals of cavity surface to point inward.
             surface_cavity.force_normals_inwards()

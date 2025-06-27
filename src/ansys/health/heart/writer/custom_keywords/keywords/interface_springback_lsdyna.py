@@ -28,7 +28,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class InterfaceSpringbackLsdyna(KeywordBase):
-    """DYNA INTERFACE_SPRINGBACK_LSDYNA keyword"""
+    """LS-DYNA INTERFACE_SPRINGBACK_LSDYNA keyword"""
 
     keyword = "INTERFACE"
     subkeyword = "SPRINGBACK_LSDYNA"

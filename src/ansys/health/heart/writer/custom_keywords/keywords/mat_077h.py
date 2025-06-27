@@ -34,7 +34,7 @@ This files contains the keywords that is not supported by the PyDYNA keywords mo
 
 
 class Mat077H(KeywordBase):
-    """DYNA MAT_077_H keyword
+    """LS-DYNA MAT_077_H keyword
     Replace the bug in current version of PyDYNA keywords module
 
     """

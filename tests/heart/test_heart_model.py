@@ -33,7 +33,8 @@ import pyvista as pv
 from pyvista import examples
 
 import ansys.health.heart.models as models
-from ansys.health.heart.objects import Mesh, PartType
+from ansys.health.heart.objects import Mesh
+from ansys.health.heart.parts import _PartType
 
 
 def test_set_workdir():
@@ -136,21 +137,21 @@ def test_load_from_mesh():
         part_info = {
             "Left ventricle": {
                 "part-id": 10,
-                "part-type": PartType.VENTRICLE.value,
+                "part-type": _PartType.VENTRICLE.value,
                 "surfaces": {"Left ventricle endocardium": 1},
                 "caps": {"mitral-valve": 3, "aortic-valve": 4},
                 "cavity": {"Left ventricle endocardium": 1},
             },
             "Right ventricle": {
                 "part-id": 11,
-                "part-type": PartType.VENTRICLE.value,
+                "part-type": _PartType.VENTRICLE.value,
                 "surfaces": {"Right ventricle epicardium": 1},
                 "caps": {},
                 "cavity": {},
             },
             "Septum": {
                 "part-id": 12,
-                "part-type": PartType.SEPTUM.value,
+                "part-type": _PartType.SEPTUM.value,
                 "surfaces": {},
                 "caps": {},
                 "cavity": {},
@@ -171,9 +172,15 @@ def test_load_from_mesh():
 
         assert model.part_names == list(part_info.keys())
 
-        assert model.left_ventricle.element_ids.shape[0] == examples.load_tetbeam().n_cells
-        assert model.right_ventricle.element_ids.shape[0] == examples.load_tetbeam().n_cells
-        assert model.septum.element_ids.shape[0] == examples.load_tetbeam().n_cells
+        assert (
+            model.left_ventricle.get_element_ids(model.mesh).shape[0]
+            == examples.load_tetbeam().n_cells
+        )
+        assert (
+            model.right_ventricle.get_element_ids(model.mesh).shape[0]
+            == examples.load_tetbeam().n_cells
+        )
+        assert model.septum.get_element_ids(model.mesh).shape[0] == examples.load_tetbeam().n_cells
 
         assert model.left_ventricle.endocardium.n_cells == pv.Sphere().n_cells
         assert model.left_ventricle.endocardium.n_points == pv.Sphere().n_points
@@ -217,12 +224,17 @@ def test_create_stiff_ventricle_base():
     mesh = examples.load_tetbeam()
     mesh.cell_data["_volume-id"] = 1
     mesh.point_data["apico-basal"] = mesh.points[:, 2] / 5
+    total_num_cells = mesh.n_cells
 
     mesh1 = Mesh()
     mesh1.add_volume(mesh, id=1, name="Left ventricle")
     model.mesh = mesh1
-    model.left_ventricle.element_ids = np.arange(0, model.mesh.n_cells)
+    model.left_ventricle.pid = 1
 
     part = model.create_stiff_ventricle_base()
-    assert len(part.element_ids) == 20
-    assert np.all(part.element_ids == np.arange(180, 200))
+
+    part_element_ids = part.get_element_ids(model.mesh)
+    assert len(part_element_ids) == 20
+    assert np.all(part_element_ids == np.arange(180, 200))
+    # Check whether the left ventricle part has the correct number of cells
+    assert len(model.left_ventricle.get_element_ids(model.mesh)) == total_num_cells - 20

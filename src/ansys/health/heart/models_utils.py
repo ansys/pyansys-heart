@@ -181,7 +181,9 @@ class HeartModelUtils:
                 return
             target_coord = av_coord
 
-        septum_point_ids = np.unique(np.ravel(model.mesh.tetrahedrons[model.septum.element_ids]))
+        septum_point_ids = np.unique(
+            np.ravel(model.mesh.tetrahedrons[model.septum.get_element_ids(model.mesh)])
+        )
 
         # remove nodes on surface, to make sure His bundle nodes are inside of septum
         septum_point_ids = np.setdiff1d(
@@ -318,8 +320,8 @@ class HeartModelUtils:
             keypoints=[sa.xyz, av.xyz],
             id=3,
             base_mesh=model.right_atrium.endocardium,
-            connection="first",
             line_length=None,
+            connection="first",
         )
 
         his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model)
@@ -330,8 +332,7 @@ class HeartModelUtils:
             name=ConductionPathType.HIS_TOP,
             keypoints=[av.xyz, his_bif.xyz],
             id=4,
-            base_mesh=model.mesh,
-            connection="none",
+            base_mesh=model.mesh.extract_cells_by_type(10),
         )
         his_top.up_path = sa_av
 
@@ -339,8 +340,7 @@ class HeartModelUtils:
             name=ConductionPathType.HIS_LEFT,
             keypoints=[his_bif.xyz, his_left_point.xyz],
             id=5,
-            base_mesh=model.mesh,
-            connection="none",
+            base_mesh=model.mesh.extract_cells_by_type(10),
         )
         his_left.up_path = his_top
 
@@ -348,8 +348,7 @@ class HeartModelUtils:
             name=ConductionPathType.HIS_RIGHT,
             keypoints=[his_bif.xyz, his_right_point.xyz],
             id=6,
-            base_mesh=model.mesh,
-            connection="none",
+            base_mesh=model.mesh.extract_cells_by_type(10),
         )
         his_right.up_path = his_top
 
@@ -358,12 +357,20 @@ class HeartModelUtils:
             keypoints=[his_left_point.xyz, model.left_ventricle.apex_points[0].xyz],
             id=7,
             base_mesh=model.left_ventricle.endocardium,
-            connection="none",  # TODO: change to 'last'?
             line_length=None,
+            center=True,
         )
-        n_points = left_bundle.mesh.n_points
-        start_connect_id = int(n_points * 0.4)
-        left_bundle.is_connected[start_connect_id:-1] = 1
+
+        # Create Purkinje junctions on the lower part of the left bundle branch,
+        # so depolarization begins in the left side of the septum.
+        pmj_list = list(
+            range(
+                int((0.4 * left_bundle.mesh.n_points)),
+                int((0.9 * left_bundle.mesh.n_points)),
+                4,  # every 4 nodes
+            )
+        )
+        left_bundle.add_pmj_path(pmj_list, merge_with="cell")
         left_bundle.up_path = his_left
         left_bundle.down_path = left_purkinje
 
@@ -375,7 +382,6 @@ class HeartModelUtils:
             keypoints=[his_right_point.xyz, model.right_ventricle.apex_points[0].xyz],
             id=8,
             base_mesh=endo_surface,
-            connection="none",  # TODO: change to 'last'?
             line_length=None,
         )
         right_bundle.up_path = his_right

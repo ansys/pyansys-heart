@@ -22,8 +22,6 @@
 
 """Module for useful methods to help format LS-DYNA keywords."""
 
-from typing import Union
-
 import numpy as np
 import pandas as pd
 
@@ -31,12 +29,12 @@ from ansys.dyna.core import Deck
 from ansys.dyna.core.keywords import keywords
 
 
-def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:
+def create_node_keyword(nodes: np.ndarray, offset: int = 0) -> keywords.Node:
     """Create node keyword from a NumPy array of nodes.
 
     Parameters
     ----------
-    nodes : np.array
+    nodes : np.ndarray
         NumPy array containing the node coordinates.
 
     Returns
@@ -55,7 +53,7 @@ def create_node_keyword(nodes: np.array, offset: int = 0) -> keywords.Node:
     return kw
 
 
-def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) -> keywords.Node:
+def add_nodes_to_kw(nodes: np.ndarray, node_kw: keywords.Node, offset: int = 0) -> keywords.Node:
     """Add nodes to an existing *NODE keyword.
 
     Notes
@@ -66,7 +64,7 @@ def add_nodes_to_kw(nodes: np.array, node_kw: keywords.Node, offset: int = 0) ->
 
     Parameters
     ----------
-    nodes : np.array
+    nodes : np.ndarray
         NumPy array of node coordinates to add.
         If (n,3), the node ID is continuous by offset.
         If (n,4), the first column is the node ID.
@@ -111,9 +109,9 @@ def add_beams_to_kw(
 
     Parameters
     ----------
-    beams : np.array
+    beams : np.ndarray
         NumPy array of beam coordinates to add.
-    beam_kw : keywords.beam
+    beam_kw : keywords.ElementBeam
         Beam keyword.
     offset : int
         Beam ID offset.
@@ -143,13 +141,13 @@ def add_beams_to_kw(
 
 
 def create_segment_set_keyword(
-    segments: np.array, segid: int = 1, title: str = ""
+    segments: np.ndarray, segid: int = 1, title: str = ""
 ) -> keywords.SetSegment:
     """Create a segment set keyword from an array with the segment set definition.
 
     Parameters
     ----------
-    segments : np.array
+    segments : np.ndarray
         Array of node indices that make up the segment. If three columns are provided,
         it is assumed that the segments are triangular
     segid : int, default: 1
@@ -184,13 +182,15 @@ def create_segment_set_keyword(
 
 
 def create_node_set_keyword(
-    node_ids: np.ndarray, node_set_id: int = 1, title: str = "nodeset-title"
+    node_ids: np.ndarray | list[int] | int,
+    node_set_id: int = 1,
+    title: str = "nodeset-title",
 ) -> keywords.SetNodeList:
     """Create a nodeset.
 
     Parameters
     ----------
-    node_ids : np.array
+    node_ids : np.ndarray | list[int] | int
         List of node IDs to include in the nodeset.
     node_set_id : int, default: 1
         ID of the nodeset.
@@ -218,7 +218,7 @@ def create_node_set_keyword(
 
 
 def create_element_shell_keyword(
-    shells: np.array, part_id: int = 1, id_offset: int = 0
+    shells: np.ndarray, part_id: int = 1, id_offset: int = 0
 ) -> keywords.ElementShell:
     """Create an element shell keyword.
 
@@ -252,20 +252,20 @@ def create_element_shell_keyword(
 
 
 def create_element_solid_keyword(
-    elements: np.array,
-    e_id: np.array,
-    part_id: np.array,
-    element_type="tetra",
+    elements: np.ndarray,
+    e_id: np.ndarray,
+    part_id: np.ndarray,
+    element_type: str = "tetra",
 ) -> keywords.ElementSolid:
     """Format the *ELEMENT_SOLID keyword with the provided input.
 
     Parameters
     ----------
-    elements : np.array
+    elements : np.ndarray
         NumPy array of integers with element definition.
-    part_id : np.array
+    part_id : np.ndarray
         Part IDs of each element.
-    e_id : np.array
+    e_id : np.ndarray
         Element ID.
     element_type : str, default: ``'tetra'``
         Type of element to write
@@ -297,26 +297,26 @@ def create_element_solid_keyword(
 
 
 def create_element_solid_ortho_keyword(
-    elements: np.array,
-    a_vec: np.array,
-    d_vec: np.array,
-    e_id: np.array,
-    part_id: np.array,
-    element_type="tetra",
+    elements: np.ndarray,
+    a_vec: np.ndarray,
+    d_vec: np.ndarray,
+    e_id: np.ndarray,
+    part_id: np.ndarray,
+    element_type: str = "tetra",
 ) -> keywords.ElementSolidOrtho:
     """Format the *ELEMENT_SOLID_ORTHO keyword with the provided input.
 
     Parameters
     ----------
-    elements : np.array
+    elements : np.ndarray
         NumPy array of integers with element definition
-    a_vec : np.array
+    a_vec : np.ndarray
         Vector specifying the A direction.
-    d_vec : np.array
+    d_vec : np.ndarray
         Vector specifying the D direction.
-    part_id : np.array
+    part_id : np.ndarray
         Part IDs of each element.
-    e_id : np.array
+    e_id : np.ndarray
         Element ID.
     element_type : str, default: ``'tetra'``
         Type of element to write.
@@ -358,8 +358,8 @@ def create_element_solid_ortho_keyword(
 
 
 def create_define_curve_kw(
-    x: np.array,
-    y: np.array,
+    x: np.ndarray,
+    y: np.ndarray,
     curve_name: str = "my-title",
     curve_id: int = 1,
     lcint: int = 15000,
@@ -379,13 +379,13 @@ def create_define_curve_kw(
 
 
 def create_define_sd_orientation_kw(
-    vectors: np.array, vector_id_offset: int = 0, iop: int = 0
+    vectors: np.ndarray, vector_id_offset: int = 0, iop: int = 0
 ) -> keywords.DefineSdOrientation:
     """Create define SD orientation keyword.
 
     Parameters
     ----------
-    vectors : np.array
+    vectors : np.ndarray
         Array of shape Nx3 with the defined vector.
     vector_id_offset : int, default: 0
         Offset for the vector ID.
@@ -411,24 +411,24 @@ def create_define_sd_orientation_kw(
 
 
 def create_discrete_elements_kw(
-    nodes: np.array,
+    nodes: np.ndarray,
     part_id: int,
-    vector_ids: Union[np.array, int],
-    scale_factor: Union[np.array, float],
+    vector_ids: np.ndarray | int,
+    scale_factor: np.ndarray | float,
     element_id_offset: int = 0,
 ) -> keywords.ElementDiscrete:
     """Create discrete elements based on input arguments.
 
     Parameters
     ----------
-    nodes : np.array
+    nodes : np.ndarray
         Nx2 array with node IDs used for the discrete element.
     part_id : int
         Part ID of the discrete elements given.
-    vector_ids : Union[np.array, int]
+    vector_ids : np.ndarray | int
         Orientation IDs (vector IDs) that the spring acts on.
         You can provide either an array of length N or a scalar integer.
-    scale_factor : Union[np.array, float]
+    scale_factor : np.ndarray | float
         Scale factor on forces. You can provide either an array of length N
         or a scalar value.
     element_id_offset : int, default: 0
@@ -538,13 +538,13 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.ndarray:
 
 
 def fast_element_writer(
-    element_kw: Union[keywords.ElementSolidOrtho, keywords.ElementSolid], filename: str
-):
+    element_kw: keywords.ElementSolidOrtho | keywords.ElementSolid, filename: str
+) -> None:
     """Fast implementation of the element writer.
 
     Notes
     -----
-    Use this method as an alternative to the dynalib writer.
+    Use this method as an alternative to the PyDYNA keywords module.
 
     """
     # TODO: generalize this writer

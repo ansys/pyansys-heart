@@ -27,7 +27,8 @@ import pytest
 import pyvista as pv
 
 import ansys.health.heart.models as models
-from ansys.health.heart.objects import Mesh, Part, SurfaceMesh
+from ansys.health.heart.objects import Mesh, SurfaceMesh
+from ansys.health.heart.parts import Part
 from tests.heart.writer.test_dynawriter import _get_mock_conduction_system
 
 
@@ -72,8 +73,8 @@ def test_heart_model_plot_mesh(_mock_input):
 def test_heart_model_plot_part(_mock_input):
     """Test plotting a part."""
     mock_biventricle, mock_show = _mock_input
-    mock_part = mock.Mock(Part)
-    mock_part.element_ids = np.array([0, 1, 2, 3, 4])
+    mock_part = Part("mock_part")
+    mock_part.pid = 1
     mock_biventricle.plot_part(mock_part)
     mock_show.assert_called_once()
 

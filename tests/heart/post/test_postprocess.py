@@ -25,8 +25,8 @@
 import os
 import shutil
 
-os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
-
+import matplotlib.pyplot as plt
+import numpy as np
 import pytest
 
 from ansys.health.heart.models import LeftVentricle
@@ -34,9 +34,6 @@ from ansys.health.heart.post.auto_process import zerop_post
 from ansys.health.heart.post.strain_calculator import AhaStrainCalculator
 from ansys.health.heart.post.system_model_post import SystemModelPost
 from tests.heart.conftest import get_assets_folder
-
-# Accept DPF LA
-os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -89,8 +86,6 @@ def test_compute_aha_strain(get_left_ventricle):
 @pytest.mark.requires_dpf
 def test_plot_aha_bullseye():
     """Test plotting AHA bullseye plot."""
-    import matplotlib.pyplot as plt
-    import numpy as np
 
     # Create the fake data
     data = np.arange(17) + 1
@@ -98,9 +93,13 @@ def test_plot_aha_bullseye():
     fig = plt.figure(figsize=(10, 5), layout="constrained")
     fig.get_layout_engine().set(wspace=0.1, w_pad=0.2)
     axs = fig.subplots(1, 1, subplot_kw=dict(projection="polar"))
-    # NOTE: just for line coverage: no assertion done here to check validity
-    # NOTE: of result.
-    AhaStrainCalculator.bullseye_plot(axs, data)
+    # NOTE: just for line coverage: no assertion done here to check validity of the plot.
+    AhaStrainCalculator.bullseye_17_segments(axs, data)
+
+    # Method should fail with 16 data points.
+    data = np.arange(16)
+    with pytest.raises(ValueError):
+        AhaStrainCalculator.bullseye_17_segments(axs, data)
 
 
 @pytest.mark.requires_dpf

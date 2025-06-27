@@ -27,7 +27,7 @@ import json
 import os
 import pathlib
 import re
-from typing import List, Literal, Union
+from typing import Literal
 
 from deprecated import deprecated
 import numpy as np
@@ -41,12 +41,11 @@ from ansys.health.heart.objects import (
     CapType,
     Cavity,
     Mesh,
-    Part,
-    PartType,
     Point,
     SurfaceMesh,
     _convert_int64_to_int32,
 )
+import ansys.health.heart.parts as anatomy
 from ansys.health.heart.pre.conduction_path import (
     ConductionPath,
 )
@@ -126,47 +125,53 @@ class HeartModel:
     """Parent class for heart models."""
 
     @property
-    def parts(self) -> List[Part]:
+    def parts(self) -> list[anatomy.Part]:
         """List of parts."""
         parts = []
         for key, value in self.__dict__.items():
             attribute = getattr(self, key)
-            if isinstance(attribute, Part):
+            if isinstance(attribute, anatomy.Part):
                 parts.append(attribute)
         return parts
 
     @property
-    def part_names(self) -> List[str]:
+    def part_names(self) -> list[str]:
         """List of part names."""
-        part_names = []
-        for part in self.parts:
-            part_names.append(part.name)
-        return part_names
+        return [part.name for part in self.parts]
 
     @property
-    def part_ids(self) -> List[int]:
+    def part_ids(self) -> list[int]:
         """List of used part IDs."""
         return [part.pid for part in self.parts]
 
     @property
-    def surfaces(self) -> List[SurfaceMesh]:
+    def surfaces(self) -> list[SurfaceMesh]:
         """List of all defined surfaces."""
         return [s for p in self.parts for s in p.surfaces]
 
     @property
-    def surface_names(self) -> List[str]:
+    def surface_names(self) -> list[str]:
         """List of all defined surface names."""
         return [s.name for s in self.surfaces]
 
     @property
-    def surface_ids(self) -> List[str]:
+    def surface_ids(self) -> list[str]:
         """List of all defined surface IDs."""
         return [s.id for s in self.surfaces]
 
     @property
-    def cavities(self) -> List[Cavity]:
+    def cavities(self) -> list[Cavity]:
         """List of all cavities in the model."""
-        return [part.cavity for part in self.parts if part.cavity]
+        return [
+            part.cavity for part in self.parts if isinstance(part, anatomy.Chamber) if part.cavity
+        ]
+
+    @property
+    def all_caps(self) -> list[Cap]:
+        """List of all caps in the model."""
+        return [
+            cap for part in self.parts if isinstance(part, anatomy.Chamber) for cap in part.caps
+        ]
 
     @property
     def part_name_to_part_id(self) -> dict:
@@ -223,8 +228,7 @@ class HeartModel:
         """List of cap centroids."""
         return [
             Point(name=c.name + "_center", xyz=c.centroid, node_id=c.global_centroid_id)
-            for p in self.parts
-            for c in p.caps
+            for c in self.all_caps
         ]
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:
@@ -255,13 +259,10 @@ class HeartModel:
         self._input: _InputModel = None
         """Input model."""
 
-        self._add_subparts()
-        """Add any subparts."""
-
         self._set_part_ids()
         """Set incremental part IDs."""
 
-        self.electrodes: List[Point] = []
+        self.electrodes: list[Point] = []
         """Electrodes positions for ECG computing."""
 
         self._conduction_paths: list[ConductionPath] = []
@@ -376,22 +377,22 @@ class HeartModel:
     def _get_parts_info(self):
         """Get the ID to the model map that allows reconstructing the model from a mesh object."""
         for part in self.parts:
-            self._part_info.update(part._get_info())
+            self._part_info.update(part._to_dict())
         return self._part_info
 
-    def create_part_by_ids(self, eids: List[int], name: str) -> Union[None, Part]:
+    def create_part_by_ids(self, eids: list[int], name: str) -> None | anatomy.Part:
         """Create a part by element IDs.
 
         Parameters
         ----------
-        eids : List[int]
+        eids : list[int]
             List of element IDs.
         name : str
             Part name.
 
         Returns
         -------
-        Union[None, Part]
+        Union[None, anatomy.Part]
            Part if successful.
         """
         if len(eids) == 0:
@@ -402,17 +403,16 @@ class HeartModel:
             LOGGER.error(f"Failed to create {name}. Name already exists.")
             return None
 
-        for part in self.parts:
-            try:
-                part.element_ids = np.setdiff1d(part.element_ids, eids)
-            except ValueError:
-                LOGGER.error(f"Failed to create part {name}.")
-                return None
+        new_part_id = self.mesh._unused_volume_id
 
         self.add_part(name)
-        new_part: Part = self.get_part(name)
+        new_part: anatomy.Part = self.get_part(name)
+        new_part.pid = new_part_id
 
-        new_part.element_ids = eids
+        # Update the mesh accordingly. Note that this also affects other parts, since
+        # only one volume ID can be assigned to each element/cell.
+        self.mesh.cell_data["_volume-id"][eids] = new_part.pid
+        self.mesh._volume_id_to_name[new_part.pid] = name
 
         return new_part
 
@@ -594,7 +594,7 @@ class HeartModel:
 
         return
 
-    def get_part(self, name: str, by_substring: bool = False) -> Union[Part, None]:
+    def get_part(self, name: str, by_substring: bool = False) -> anatomy.Part | None:
         """Get a specific part based on a part name."""
         found = False
         for part in self.parts:
@@ -608,7 +608,7 @@ class HeartModel:
 
     def add_part(self, part_name: str) -> None:
         """Dynamically add a part as an attribute to the object."""
-        setattr(self, "_".join(part_name.lower().split()), Part(name=part_name))
+        setattr(self, "_".join(part_name.lower().split()), anatomy.Part(name=part_name))
         return
 
     def remove_part(self, part_name: str) -> None:
@@ -616,7 +616,7 @@ class HeartModel:
         keys = self.__dict__.keys()
         for key in keys:
             attribute = getattr(self, key)
-            if isinstance(attribute, Part):
+            if isinstance(attribute, anatomy.Part):
                 if part_name == attribute.name:
                     delattr(self, key)
                     return
@@ -651,12 +651,12 @@ class HeartModel:
         plotter.show()
         return
 
-    def plot_part(self, part: Part):
+    def plot_part(self, part: anatomy.Part):
         """Plot a part in the mesh.
 
         Parameters
         ----------
-        part : Part
+        part : anatomy.Part
             Part to highlight in the mesh.
 
         Examples
@@ -669,7 +669,7 @@ class HeartModel:
 
         plotter = pv.Plotter()
         plotter.add_mesh(mesh, opacity=0.5, color="white")
-        part = mesh.extract_cells(part.element_ids)
+        part = mesh.extract_cells(part.get_element_ids(mesh))
         plotter.add_mesh(part, opacity=0.95, color="red")
         plotter.show()
         return
@@ -764,9 +764,12 @@ class HeartModel:
             self._conduction_mesh.set_active_scalars("_line-id")
             beams = self._conduction_mesh
             plotter.add_mesh(beams, line_width=2)
+            plotter.add_text(
+                "Conduction system", position="upper_edge", font_size=12, color="black"
+            )
             plotter.show()
-        except Exception:
-            LOGGER.warning("Failed to plot the mesh.")
+        except Exception as e:
+            LOGGER.warning(f"Failed to plot the mesh. {e}")
         return
 
     def save_model(self, filename: str):
@@ -861,26 +864,27 @@ class HeartModel:
 
             part_1.pid = part_info[part_1.name]["part-id"]
 
-            try:
-                part_1.element_ids = np.argwhere(
-                    np.isin(self.mesh.cell_data["_volume-id"], part_1.pid)
-                ).flatten()
-            except Exception:
-                LOGGER.warning(f"Failed to set element IDs for {part_1.name}.")
-                pass
+            if not np.isin(part_1.pid, self.mesh.volume_ids):
+                LOGGER.error(
+                    f"""Part {part_1.name} with ID {part_1.pid} is not in the mesh.
+                    Check {filename_mesh}."""
+                )
 
             # try to initialize cavity object.
-            if part_info[part_1.name]["cavity"] != {}:
-                cavity_name = list(part_info[part_1.name]["cavity"].keys())[0]
-                cavity_id = list(part_info[part_1.name]["cavity"].values())[0]
-                part_1.cavity = Cavity(surface=self.mesh.get_surface(cavity_id), name=cavity_name)
+            if isinstance(part_1, anatomy.Chamber):
+                if part_info[part_1.name]["cavity"] != {}:
+                    cavity_name = list(part_info[part_1.name]["cavity"].keys())[0]
+                    cavity_id = list(part_info[part_1.name]["cavity"].values())[0]
+                    part_1.cavity = Cavity(
+                        surface=self.mesh.get_surface(cavity_id), name=cavity_name
+                    )
 
-            if part_info[part_1.name]["caps"] != {}:
-                for cap_name, cap_id in part_info[part_1.name]["caps"].items():
-                    #! note that we sasume cap name equals cap type here.
-                    cap = Cap(cap_name, cap_type=CapType(cap_name))
-                    cap._mesh = self.mesh.get_surface(cap_id)
-                    part_1.caps.append(cap)
+                if part_info[part_1.name]["caps"] != {}:
+                    for cap_name, cap_id in part_info[part_1.name]["caps"].items():
+                        #! note that we sasume cap name equals cap type here.
+                        cap = Cap(cap_name, cap_type=CapType(cap_name))
+                        cap._mesh = self.mesh.get_surface(cap_id)
+                        part_1.caps.append(cap)
 
             # TODO: add non-standard part by setattr(self, part_name_n, part)
 
@@ -888,17 +892,17 @@ class HeartModel:
         # NOTE: #? add validation method to make sure all essential components are present?
         try:
             self._extract_apex()
-        except Exception:
-            LOGGER.warning("Failed to extract apex. Consider setting apex manually.")
+        except Exception as e:
+            LOGGER.warning(f"Failed to extract apex. Consider setting apex manually. {e}")
 
         if any(v is None for v in [self.short_axis, self.l4cv_axis, self.l2cv_axis]):
             LOGGER.warning("Heart is not defined in the VTU file.")
             try:
                 LOGGER.warning("Computing heart axis...")
                 self._define_anatomy_axis()
-            except Exception:
+            except Exception as e:
                 LOGGER.error(
-                    "Failed to extract heart axis. Consider computing and setting manually."
+                    f"Failed to extract heart axis. Consider computing and setting manually. {e}"
                 )
         else:
             LOGGER.info("Heart axis defined in the VTU file is reused...")
@@ -912,18 +916,11 @@ class HeartModel:
             p.pid = c
             c += 1
 
-    def _add_subparts(self) -> None:
-        """Add subparts to parts of type ventricle."""
-        for part in self.parts:
-            if part.part_type in [PartType.VENTRICLE]:
-                part._add_myocardium_part()
-        return
-
     def _get_used_element_ids(self) -> np.ndarray:
         """Get an array of used element IDs."""
         element_ids = np.empty(0, dtype=int)
         for part in self.parts:
-            element_ids = np.append(element_ids, part.element_ids)
+            element_ids = np.append(element_ids, part.get_element_ids(self.mesh))
 
         return element_ids
 
@@ -1062,16 +1059,10 @@ class HeartModel:
         element_ids_septum = self.mesh._global_tetrahedron_ids[element_ids_septum]
 
         # assign to septum
-        part = next(part for part in self.parts if part.part_type == PartType.SEPTUM)
-        part.element_ids = element_ids_septum
+        part_septum = next(part for part in self.parts if isinstance(part, anatomy.Septum))
         # manipulate _volume-id
-        self.mesh.cell_data["_volume-id"][element_ids_septum] = part.pid
-        self.mesh._volume_id_to_name[int(part.pid)] = part.name
-
-        # remove these element ID from the left-ventricle
-        part = next(part for part in self.parts if part.name == "Left ventricle")
-        mask = np.isin(part.element_ids, element_ids_septum, invert=True)
-        part.element_ids = part.element_ids[mask]
+        self.mesh.cell_data["_volume-id"][element_ids_septum] = part_septum.pid
+        self.mesh._volume_id_to_name[int(part_septum.pid)] = part_septum.name
 
         return
 
@@ -1137,26 +1128,26 @@ class HeartModel:
 
         return
 
+    @deprecated(reason="Element IDs are now retrieved from the mesh object.")
     def _assign_elements_to_parts(self) -> None:
         """Get the element IDs of each part and assign these to the ``Part`` objects."""
-        # get element IDs of each part.
-        used_element_ids = self._get_used_element_ids()
+        # validate that all parts have element IDs assigned.
         for part in self.parts:
-            if len(part.element_ids) > 0:
+            if part.get_element_ids(self.mesh).shape == (0,):
                 LOGGER.warning(
-                    "Part {0} seems to already have elements assigned. Skipping.".format(part.name)
+                    """Part {0} has no elements assigned.
+                    Please check the mesh and part definitions.""".format(part.name)
                 )
                 continue
-            # ! this is valid as long as no additional surfaces are added in self.mesh.
-            # ! otherwise (global) element ids may change
-            element_ids = np.where(np.isin(self.mesh.cell_data["_volume-id"], part.pid))[0]
-            element_ids = element_ids[np.isin(element_ids, used_element_ids, invert=True)]
-            part.element_ids = element_ids
 
         summ = 0
         for part in self.parts:
-            LOGGER.info("Num elements in {0}: {1}".format(part.name, part.element_ids.shape[0]))
-            summ = summ + part.element_ids.shape[0]
+            LOGGER.info(
+                "Num elements in {0}: {1}".format(
+                    part.name, part.get_element_ids(self.mesh).shape[0]
+                )
+            )
+            summ = summ + part.get_element_ids(self.mesh).shape[0]
         LOGGER.info("Total num elements: {}".format(summ))
 
         LOGGER.info(
@@ -1202,7 +1193,9 @@ class HeartModel:
         idoffset = 1000  # TODO: need to improve id checking
         ii = 0
 
-        for part in self.parts:
+        parts_with_cavities = [p for p in self.parts if isinstance(p, anatomy.Chamber)]
+
+        for part in parts_with_cavities:
             if not hasattr(part, "endocardium"):
                 continue
 
@@ -1289,7 +1282,9 @@ class HeartModel:
         boundaries_to_check = [
             s for s in self.mesh._surfaces if "valve" in s.name or "inlet" in s.name
         ]
-        for part in self.parts:
+        parts_with_caps = [p for p in self.parts if isinstance(p, anatomy.Chamber)]
+
+        for part in parts_with_caps:
             for cap in part.caps:
                 cap_mesh = self.mesh.get_surface_by_name(cap.name)
                 for b in boundaries_to_check:
@@ -1318,7 +1313,8 @@ class HeartModel:
 
     def _validate_cap_names(self):
         """Validate that caps are attached to the right part."""
-        for part in self.parts:
+        parts_with_caps = [p for p in self.parts if isinstance(p, anatomy.Chamber)]
+        for part in parts_with_caps:
             cap_types = [c.type for c in part.caps]
             if part.name == "Left ventricle":
                 expected_cap_types = [
@@ -1372,7 +1368,7 @@ class HeartModel:
     def _validate_parts(self):
         """Validate that none of the parts are empty."""
         is_valid = False
-        invalid_parts = [p for p in self.parts if p.element_ids.shape[0] == 0]
+        invalid_parts = [p for p in self.parts if p.get_element_ids(self.mesh).shape == (0,)]
         if len(invalid_parts) == 0:
             is_valid = True
         else:
@@ -1386,9 +1382,9 @@ class HeartModel:
         """Clean epicardial surfaces such that these use only nodes of the part."""
         for part in self.parts:
             self.mesh._set_global_ids()
-            global_node_ids_part = self.mesh.extract_cells(part.element_ids).point_data[
-                "_global-point-ids"
-            ]
+            global_node_ids_part = self.mesh.extract_cells(
+                part.get_element_ids(self.mesh)
+            ).point_data["_global-point-ids"]
 
             # ! The only information we use from surface here is the ID, not the mesh information.
             # ! We need to go back to the central mesh to obtain an updated copy of
@@ -1420,7 +1416,7 @@ class HeartModel:
         from ansys.health.heart.utils.landmark_utils import compute_anatomy_axis
 
         try:
-            left_ventricle: Part = self.left_ventricle
+            left_ventricle: anatomy.Ventricle = self.left_ventricle
 
         except AttributeError:
             LOGGER.info("Left ventricle part does not exist to build anatomical axis.")
@@ -1469,9 +1465,9 @@ class HeartModel:
         import scipy.spatial as spatial
 
         if part == "left":
-            part: Part = self.left_ventricle
+            part: anatomy.Part = self.left_ventricle
         elif part == "right":
-            part: Part = self.right_ventricle
+            part: anatomy.Part = self.right_ventricle
 
         point_cloud = self.mesh.points
         point_tree = spatial.cKDTree(point_cloud)
@@ -1489,87 +1485,6 @@ class HeartModel:
                 self.mesh.get_surface(part.epicardium.id).global_node_ids_triangles, apex_set
             )
 
-    def _create_atrioventricular_isolation(self) -> Union[None, Part]:
-        """
-        Extract a layer of element to isolate between the ventricles and atrium.
-
-        Notes
-        -----
-        These elements initially belong to the atrium.
-
-        Returns
-        -------
-        Part
-            Part of isolation elements.
-        """
-        # TODO: move this method to FourChamber class.
-        if not isinstance(self, FourChamber):
-            LOGGER.error("This method is only for the four-chamber heart model.")
-            return
-
-        # find interface nodes between ventricles and atrial
-        v_ele = np.array([], dtype=int)
-        a_ele = np.array([], dtype=int)
-        #! Note that this only works since tetrahedrons are located
-        #! at start of the mesh object.
-        for part in self.parts:
-            if part.part_type == PartType.VENTRICLE:
-                v_ele = np.append(v_ele, part.element_ids)
-            elif part.part_type == PartType.ATRIUM:
-                a_ele = np.append(a_ele, part.element_ids)
-
-        ventricles = self.mesh.extract_cells(v_ele)
-        atrial = self.mesh.extract_cells(a_ele)
-
-        interface_nids = np.intersect1d(
-            ventricles["_global-point-ids"], atrial["_global-point-ids"]
-        )
-
-        interface_eids = np.where(np.any(np.isin(self.mesh.tetrahedrons, interface_nids), axis=1))[
-            0
-        ]
-        # interface elements on atrial part
-        interface_eids = np.intersect1d(interface_eids, a_ele)
-
-        # remove these elements from atrial parts
-        self.left_atrium.element_ids = np.setdiff1d(self.left_atrium.element_ids, interface_eids)
-        self.right_atrium.element_ids = np.setdiff1d(self.right_atrium.element_ids, interface_eids)
-
-        # find orphan elements of atrial parts and assign to isolation part
-        self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
-        for atrium in [self.left_atrium, self.right_atrium]:
-            clean_obj = self.mesh.extract_cells(atrium.element_ids).connectivity(
-                extraction_mode="largest"
-            )
-            connected_cells = clean_obj["cell_ids"]
-            orphan_cells = np.setdiff1d(atrium.element_ids, connected_cells)
-
-            # keeep largest connected part for atrial
-            atrium.element_ids = connected_cells
-
-            # get orphan cells and set to isolation part
-            LOGGER.warning(f"{len(orphan_cells)} orphan cells are re-assigned.")
-            interface_eids = np.append(interface_eids, orphan_cells)
-
-            #! Central mesh object not updated. E.g. lose connection between part.element_ids and
-            #! model.mesh.volume_ids/.cell_data["_volume-id"]
-
-        if interface_eids.shape[0] == 0:
-            LOGGER.warning(
-                """Atria and ventricles do not seem to be
-                connected. Not generating a separate part for isolation."""
-            )
-            return None
-
-        # create a new part
-        isolation: Part = self.create_part_by_ids(interface_eids, "Atrioventricular isolation")
-        isolation.part_type = PartType.ATRIUM
-        isolation.fiber = True
-        isolation.active = False
-        isolation.ep_material = EPMaterial.Insulator()
-
-        return isolation
-
     def create_stiff_ventricle_base(
         self,
         threshold_left_ventricle: float = 0.9,
@@ -1577,7 +1492,7 @@ class HeartModel:
         stiff_material: MechanicalMaterialModel = Mat295(
             rho=0.001, iso=ISO(itype=1, beta=2, kappa=10, mu1=0.1, alpha1=2)
         ),
-    ) -> None | Part:
+    ) -> None | anatomy.Part:
         """Use universal coordinates to generate a stiff base region.
 
         Parameters
@@ -1595,7 +1510,7 @@ class HeartModel:
 
         Returns
         -------
-        Part
+        anatomy.Part
             Part associated with the stiff base region.
         """
         try:
@@ -1606,18 +1521,19 @@ class HeartModel:
             return
 
         eids = np.intersect1d(
-            np.where(v > threshold_left_ventricle)[0], self.left_ventricle.element_ids
+            np.where(v > threshold_left_ventricle)[0],
+            self.left_ventricle.get_element_ids(self.mesh),
         )
         if not isinstance(self, LeftVentricle):
             # uvc-L of RV is generally smaller, *1.05 to be comparable with LV
             eid_r = np.intersect1d(
                 np.where(v > threshold_right_ventricle)[0],
-                self.right_ventricle.element_ids,
+                self.right_ventricle.get_element_ids(self.mesh),
             )
             eids = np.hstack((eids, eid_r))
 
-        part: Part = self.create_part_by_ids(eids, "base")
-        part.part_type = PartType.VENTRICLE
+        part: anatomy.Part = self.create_part_by_ids(eids, "base")
+        part._part_type = anatomy._PartType.VENTRICLE
         part.fiber = False
         part.active = False
         part.meca_material = stiff_material
@@ -1626,11 +1542,153 @@ class HeartModel:
 
         return part
 
-    def create_atrial_stiff_ring(self, radius: float = 2) -> None | Part:
+
+class LeftVentricle(HeartModel):
+    """Model of only the left ventricle."""
+
+    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
+        self.left_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Left ventricle")
+        """Left ventricle part."""
+        # remove septum - not used in left ventricle only model
+        del self.left_ventricle.septum
+
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+
+        super().__init__(working_directory=working_directory)
+
+        return
+
+
+class BiVentricle(HeartModel):
+    """Model of the left and right ventricles."""
+
+    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
+        self.left_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Left ventricle")
+        """Left ventricle part."""
+        self.right_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Right ventricle")
+        """Right ventricle part."""
+        self.septum: anatomy.Septum = anatomy.Septum(name="Septum")
+        """Septum."""
+
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+        self.right_ventricle.fiber = True
+        self.right_ventricle.active = True
+        self.septum.fiber = True
+        self.septum.active = True
+
+        super().__init__(working_directory=working_directory)
+
+
+class FourChamber(HeartModel):
+    """Model of the left/right ventricle and left/right atrium."""
+
+    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
+        self.left_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Left ventricle")
+        """Left ventricle part."""
+        self.right_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Right ventricle")
+        """Right ventricle part."""
+        self.septum: anatomy.Septum = anatomy.Septum(name="Septum")
+        """Septum."""
+
+        self.left_atrium: anatomy.Atrium = anatomy.Atrium(name="Left atrium")
+        """Left atrium part."""
+        self.right_atrium: anatomy.Atrium = anatomy.Atrium(name="Right atrium")
+        """Right atrium part."""
+
+        self.left_ventricle.fiber = True
+        self.left_ventricle.active = True
+        self.right_ventricle.fiber = True
+        self.right_ventricle.active = True
+        self.septum.fiber = True
+        self.septum.active = True
+
+        self.left_atrium.fiber = False
+        self.left_atrium.active = False
+        self.right_atrium.fiber = False
+        self.right_atrium.active = False
+
+        super().__init__(working_directory=working_directory)
+
+    def _create_atrioventricular_isolation(self) -> None | anatomy.Part:
+        """
+        Extract a layer of element to isolate between the ventricles and atrium.
+
+        Notes
+        -----
+        These elements initially belong to the atrium.
+
+        Returns
+        -------
+        anatomy.Part
+            Part of isolation elements.
+        """
+        # find interface nodes between ventricles and atrial
+        v_ele = np.array([], dtype=int)
+        a_ele = np.array([], dtype=int)
+        #! Note that this only works since tetrahedrons are located
+        #! at start of the mesh object.
+        for part in self.parts:
+            if isinstance(part, anatomy.Ventricle):
+                v_ele = np.append(v_ele, part.get_element_ids(self.mesh))
+            elif isinstance(part, anatomy.Atrium):
+                a_ele = np.append(a_ele, part.get_element_ids(self.mesh))
+
+        ventricles = self.mesh.extract_cells(v_ele)
+        atrial = self.mesh.extract_cells(a_ele)
+
+        interface_nids = np.intersect1d(
+            ventricles["_global-point-ids"], atrial["_global-point-ids"]
+        )
+
+        interface_eids = np.where(np.any(np.isin(self.mesh.tetrahedrons, interface_nids), axis=1))[
+            0
+        ]
+        # interface elements on atrial part
+        interface_eids = np.intersect1d(interface_eids, a_ele)
+
+        # Temporarily assign -1 to the interface elements to ensure these are not referenced
+        # by the atrial parts. These are reassigned to the isolation part in the call to
+        # create_part_by_ids.
+        self.mesh.cell_data["_volume-id"][interface_eids] = -1
+
+        # Find orphan elements of atrial parts and add to list of isolation elements
+        self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
+        for atrium in [self.left_atrium, self.right_atrium]:
+            clean_obj = self.mesh.extract_cells(atrium.get_element_ids(self.mesh)).connectivity(
+                extraction_mode="largest"
+            )
+            connected_cells = clean_obj["cell_ids"]
+            orphan_cells = np.setdiff1d(atrium.get_element_ids(self.mesh), connected_cells)
+
+            # Get any orphan cells and add to isolation part
+            LOGGER.warning(f"{len(orphan_cells)} orphan cells are re-assigned.")
+            interface_eids = np.append(interface_eids, orphan_cells)
+
+        if interface_eids.shape[0] == 0:
+            LOGGER.warning(
+                """Atria and ventricles do not seem to be
+                connected. Not generating a separate part for isolation."""
+            )
+            return None
+
+        isolation: anatomy.Part = self.create_part_by_ids(
+            interface_eids, "Atrioventricular isolation"
+        )
+        isolation._part_type = anatomy._PartType.ATRIUM
+        # Assign a new part ID to the isolation part
+        isolation.fiber = True
+        isolation.active = False
+        isolation.ep_material = EPMaterial.Insulator()
+
+        return isolation
+
+    def create_atrial_stiff_ring(self, radius: float = 2) -> None | anatomy.Part:
         """Create a part for solids close to the atrial caps.
 
-        Note
-        ----
+        Notes
+        -----
         Part created is passive and isotropic. The material must be defined.
 
         Parameters
@@ -1640,14 +1698,9 @@ class HeartModel:
 
         Returns
         -------
-        Union[None, Part]
+        Union[None, anatomy.Part]
             Part of atrial rings if created.
         """
-        # TODO: @mhoeijm move this to FourChamber class
-        if not isinstance(self, FourChamber):
-            LOGGER.error("This method is only for the four-chamber heart model.")
-            return
-
         # get ring cells from cap node list
         ring_nodes = []
         for cap in self.left_atrium.caps:
@@ -1667,7 +1720,13 @@ class HeartModel:
         # above search may create orphan elements, pick them to rings
         self.mesh["cell_ids"] = np.arange(0, self.mesh.n_cells, dtype=int)
         unselect_eles = np.setdiff1d(
-            np.hstack((self.left_atrium.element_ids, self.right_atrium.element_ids)), ring_eles
+            np.hstack(
+                (
+                    self.left_atrium.get_element_ids(self.mesh),
+                    self.right_atrium.get_element_ids(self.mesh),
+                )
+            ),
+            ring_eles,
         )
         largest = self.mesh.extract_cells(unselect_eles).connectivity(extraction_mode="largest")
         connected_cells = largest["cell_ids"]
@@ -1676,8 +1735,8 @@ class HeartModel:
             ring_eles = np.hstack((ring_eles, orphan_cells))
 
         # Create ring part
-        ring: Part = self.create_part_by_ids(ring_eles, name="atrial stiff rings")
-        ring.part_type = PartType.ATRIUM
+        ring: anatomy.Part = self.create_part_by_ids(ring_eles, name="atrial stiff rings")
+        ring._part_type = anatomy._PartType.ATRIUM
         ring.fiber = False
         ring.active = False
         # assign default EP material
@@ -1686,95 +1745,24 @@ class HeartModel:
         return ring
 
 
-class LeftVentricle(HeartModel):
-    """Model of only the left ventricle."""
-
-    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
-        """Left ventricle part."""
-        # remove septum - not used in left ventricle only model
-        del self.left_ventricle.septum
-
-        self.left_ventricle.fiber = True
-        self.left_ventricle.active = True
-
-        super().__init__(working_directory=working_directory)
-        pass
-
-
-class BiVentricle(HeartModel):
-    """Model of the left and right ventricles."""
-
-    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
-        """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
-        """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
-        """Septum."""
-
-        self.left_ventricle.fiber = True
-        self.left_ventricle.active = True
-        self.right_ventricle.fiber = True
-        self.right_ventricle.active = True
-        self.septum.fiber = True
-        self.septum.active = True
-
-        super().__init__(working_directory=working_directory)
-        pass
-
-
-class FourChamber(HeartModel):
-    """Model of the left/right ventricle and left/right atrium."""
-
-    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
-        """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
-        """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
-        """Septum."""
-
-        self.left_atrium: Part = Part(name="Left atrium", part_type=PartType.ATRIUM)
-        """Left atrium part."""
-        self.right_atrium: Part = Part(name="Right atrium", part_type=PartType.ATRIUM)
-        """Right atrium part."""
-
-        self.left_ventricle.fiber = True
-        self.left_ventricle.active = True
-        self.right_ventricle.fiber = True
-        self.right_ventricle.active = True
-        self.septum.fiber = True
-        self.septum.active = True
-
-        self.left_atrium.fiber = False
-        self.left_atrium.active = False
-        self.right_atrium.fiber = False
-        self.right_atrium.active = False
-
-        super().__init__(working_directory=working_directory)
-
-        pass
-
-
 class FullHeart(FourChamber):
     """Model of both ventricles, both atria, the aorta, and the pulmonary artery."""
 
     def __init__(self, working_directory: pathlib.Path | str = None) -> None:
-        self.left_ventricle: Part = Part(name="Left ventricle", part_type=PartType.VENTRICLE)
+        self.left_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Left ventricle")
         """Left ventricle part."""
-        self.right_ventricle: Part = Part(name="Right ventricle", part_type=PartType.VENTRICLE)
+        self.right_ventricle: anatomy.Ventricle = anatomy.Ventricle(name="Right ventricle")
         """Right ventricle part."""
-        self.septum: Part = Part(name="Septum", part_type=PartType.SEPTUM)
+        self.septum: anatomy.Septum = anatomy.Septum(name="Septum")
         """Septum."""
-        self.left_atrium: Part = Part(name="Left atrium", part_type=PartType.ATRIUM)
+        self.left_atrium: anatomy.Atrium = anatomy.Atrium(name="Left atrium")
         """Left atrium part."""
-        self.right_atrium: Part = Part(name="Right atrium", part_type=PartType.ATRIUM)
+        self.right_atrium: anatomy.Atrium = anatomy.Atrium(name="Right atrium")
         """Right atrium part."""
 
-        self.aorta: Part = Part(name="Aorta", part_type=PartType.ARTERY)
+        self.aorta: anatomy.Artery = anatomy.Artery(name="Aorta")
         """Aorta part."""
-        self.pulmonary_artery: Part = Part(name="Pulmonary artery", part_type=PartType.ARTERY)
+        self.pulmonary_artery: anatomy.Artery = anatomy.Artery(name="Pulmonary artery")
         """Pulmonary artery part."""
 
         self.left_ventricle.fiber = True
@@ -1797,9 +1785,3 @@ class FullHeart(FourChamber):
         self.pulmonary_artery.ep_material = EPMaterial.Insulator()
 
         super().__init__(working_directory=working_directory)
-
-        pass
-
-
-if __name__ == "__main__":
-    print("Protected")

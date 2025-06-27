@@ -1194,7 +1194,7 @@ class HeartModel:
 
         parts_with_cavities = [p for p in self.parts if isinstance(p, anatomy.Chamber)]
 
-        for ii, part in enumerate(parts_with_cavities):
+        for part in parts_with_cavities:
             if not hasattr(part, "endocardium"):
                 continue
 

@@ -75,11 +75,17 @@ model = models.HeartModel.load_model(path_to_model, path_to_partinfo, working_di
 ###############################################################################
 # Instantiate the simulator
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
+# Instantiate the simulator and define settings.
 
-# Create and instantiate a DYNA settings object. Modify where necessary.
+###############################################################################
+# .. note::
+#    The ``DynaSettings`` object supports several LS-DYNA versions and platforms,
+#    including ``smp``, ``intempi``, ``msmpi``, ``windows``, ``linux``, and ``wsl``.
+#    Choose the one that works for your setup.
+
 lsdyna_path = r"your_dyna_exe"
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path, dynatype="intelmpi", platform="wsl", num_cpus=4
+    lsdyna_path=lsdyna_path, dynatype="intelmpi", platform="windows", num_cpus=4
 )
 
 # Instantiate the simulator.

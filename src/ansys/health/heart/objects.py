@@ -594,29 +594,6 @@ class Mesh(pv.UnstructuredGrid):
             return 1
         return int(np.max(self.surface_ids) + 1)
 
-    def get_unused_id_in_range(
-        self, id_type: Literal["volume", "surface", "line"], start: int = 1, end: int = 1000
-    ) -> int:
-        """Get an unused ID in a specified range."""
-        if id_type == "volume":
-            ids = self.volume_ids
-        elif id_type == "surface":
-            ids = self.surface_ids
-        elif id_type == "line":
-            ids = self.line_ids
-        else:
-            raise ValueError(f"Invalid id_type: {id_type}. Must be 'volume', 'surface', or 'line'.")
-
-        if ids is None:
-            return start
-
-        # Subtract existing IDs from IDs in range to get candidate IDs
-        candidate_ids = set(range(start, end + 1)) - set(ids)
-        if candidate_ids != {}:
-            return min(candidate_ids)
-        else:
-            raise ValueError(f"No unused ID found in the range {start} to {end}.")
-
     @property
     def _unused_line_id(self) -> int:
         """Get unused line ID."""
@@ -791,6 +768,29 @@ class Mesh(pv.UnstructuredGrid):
             np.invert(np.isin(self.line_ids, list(self._line_id_to_name.keys())))
         ]
         return unmapped_ids
+
+    def get_unused_id_in_range(
+        self, id_type: Literal["volume", "surface", "line"], start: int = 1, end: int = 1000
+    ) -> int:
+        """Get an unused ID in a specified range."""
+        if id_type == "volume":
+            ids = self.volume_ids
+        elif id_type == "surface":
+            ids = self.surface_ids
+        elif id_type == "line":
+            ids = self.line_ids
+        else:
+            raise ValueError(f"Invalid id_type: {id_type}. Must be 'volume', 'surface', or 'line'.")
+
+        if ids is None:
+            return start
+
+        # Subtract existing IDs from IDs in range to get candidate IDs
+        candidate_ids = set(range(start, end + 1)) - set(ids)
+        if candidate_ids != {}:
+            return min(candidate_ids)
+        else:
+            raise ValueError(f"No unused ID found in the range {start} to {end}.")
 
     def save(self, filename: Union[str, pathlib.Path], **kwargs):
         """Save mesh."""

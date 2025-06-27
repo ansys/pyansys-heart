@@ -772,7 +772,29 @@ class Mesh(pv.UnstructuredGrid):
     def get_unused_id_in_range(
         self, id_type: Literal["volume", "surface", "line"], start: int = 1, end: int = 1000
     ) -> int:
-        """Get an unused ID in a specified range."""
+        """
+        Get an unused ID within a specified range.
+
+        Parameters
+        ----------
+        id_type : Literal["volume", "surface", "line"]
+            The type of ID for which to retrieve an unused value.
+        start : int, default: 1
+            Start of the range (inclusive).
+        end : int, default: 1000
+            End of the range (inclusive).
+
+        Returns
+        -------
+        int
+            An unused and unique ID within the specified range.
+
+        Raises
+        ------
+        ValueError
+            If no unused ID is found in the specified range.
+
+        """
         if id_type == "volume":
             ids = self.volume_ids
         elif id_type == "surface":

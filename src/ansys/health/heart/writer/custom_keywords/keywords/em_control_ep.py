@@ -25,7 +25,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmControlEp(KeywordBase):
-    """DYNA EM_CONTROL_EP keyword"""
+    """LS-DYNA EM_CONTROL_EP keyword"""
 
     keyword = "EM"
     subkeyword = "CONTROL_EP"

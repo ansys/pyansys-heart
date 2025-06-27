@@ -28,7 +28,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmEpCreatefiberorientation(KeywordBase):
-    """DYNA EM_EP_CREATEFIBERORIENTATION keyword"""
+    """LS-DYNA EM_EP_CREATEFIBERORIENTATION keyword"""
 
     keyword = "EM"
     subkeyword = "EP_CREATEFIBERORIENTATION"

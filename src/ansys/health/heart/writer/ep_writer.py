@@ -967,7 +967,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             mtype = 2
             # "isotropic" case
             if ep_material.sigma_sheet is None:
-                # lSDYNA bug prevents from using isotropic mat (EMMAT001) for active isotropic case
+                # LS-DYNA bug prevents using isotropic mat (EMMAT001) for active isotropic case
                 # Bypass: using EMMAT003 with same sigma value in all directions
                 ep_material.sigma_sheet = ep_material.sigma_fiber
                 ep_material.sigma_sheet_normal = ep_material.sigma_fiber

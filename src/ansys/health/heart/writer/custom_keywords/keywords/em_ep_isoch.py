@@ -27,7 +27,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmEpIsoch(KeywordBase):
-    """DYNA EM_EP_ISOCH keyword"""
+    """LS-DYNA EM_EP_ISOCH keyword"""
 
     keyword = "EM"
     subkeyword = "EP_ISOCH"

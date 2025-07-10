@@ -747,21 +747,26 @@ def _create_path_in_solid(
             tetras[:, [0, 2, 3]],
             tetras[:, [1, 2, 3]],
         )
-    )  # TODO: replace by pv extract_surface()
+    )
+
     segment = []
     for i, j in zip(ids[0:-1], ids[1:]):
         for tri in triangles:
             if i in tri and j in tri:
                 segment.append(tri)
-                break
+                break  # keep only one triangle per line is enough
     segment = np.array(segment)
 
-    surf = SurfaceMesh(
-        name="his_bundle_segment",  # NOTE
-        triangles=segment,
-        nodes=sub_mesh.points,
+    surf = pv.PolyData(
+        sub_mesh.points,
+        np.hstack([np.insert(segment[i], 0, 3) for i in range(segment.shape[0])]),
     )
-    return path, surf
+
+    # keep global point ids as a necessary property for the surface mesh
+    surf.point_data["_global-point-ids"] = sub_mesh.point_data["_global-point-ids"]
+    surf = surf.clean()  # remove unused nodes
+
+    return path, SurfaceMesh(surf)
 
 
 def _mesh_to_nx_graph(mesh: pv.UnstructuredGrid) -> nx.Graph:

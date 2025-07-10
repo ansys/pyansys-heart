@@ -31,7 +31,7 @@ import pyvista as pv
 
 from ansys.health.heart import LOG as LOGGER
 import ansys.health.heart.models as models
-from ansys.health.heart.objects import CapType, Point
+from ansys.health.heart.objects import CapType, Point, SurfaceMesh
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 
 
@@ -372,8 +372,11 @@ class HeartModelUtils:
         left_bundle.up_path = his_left
         left_bundle.down_path = left_purkinje
 
-        surface_ids = [model.right_ventricle.endocardium.id, model.right_ventricle.septum.id]
-        endo_surface = model.mesh.get_surface(surface_ids)
+        # create complete endocardial surface for the right ventricle
+        endo_surface = SurfaceMesh(
+            model.right_ventricle.endocardium.merge(model.right_ventricle.septum),
+            name="right_ventricle_endo_septum",
+        )
 
         right_bundle = ConductionPath.create_from_keypoints(
             name=ConductionPathType.RIGHT_BUNDLE_BRANCH,
@@ -384,6 +387,7 @@ class HeartModelUtils:
         )
         right_bundle.up_path = his_right
         right_bundle.down_path = right_purkinje
+
         return [
             left_purkinje,
             right_purkinje,

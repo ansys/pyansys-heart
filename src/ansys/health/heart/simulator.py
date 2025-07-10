@@ -789,6 +789,33 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
 
         return
 
+    def update_conduction_paths(self):
+        """Update conduction paths in the model after stress-free computation."""
+        new_paths = []
+        for path in self.model.conduction_paths:
+            if type(path.relying_surface) is SurfaceMesh:
+                ids = path.relying_surface.global_node_ids_triangles
+            elif type(path.relying_surface) is pv.PolyData:
+                try:
+                    ids = path.relying_surface["_global-point-ids"]
+                except KeyError:
+                    msg = f"Conduction path {path.name} relying surface does not have"
+                    "_global-point-ids' array."
+
+                    LOGGER.error(msg)
+                    raise KeyError(msg)
+
+            # Update relying surface coordinates
+            new_coords = self.model.mesh.points[ids]
+            new_surface = path.relying_surface.copy()
+            new_surface.points = new_coords
+
+            # deform path to the new surface
+            path2 = path.deform_to_surface(new_surface)
+            new_paths.append(path2)
+
+        self.model.assign_conduction_paths(new_paths)
+
 
 def _kill_all_ansyscl():
     """Kill all Ansys license clients."""

@@ -83,7 +83,7 @@ class ConductionPath:
         mesh: Mesh,
         id: int,
         is_connected: np.ndarray,
-        relying_surface: pv.PolyData,
+        relying_surface: pv.PolyData | SurfaceMesh,
         material: EPMaterial = EPMaterial.DummyMaterial(),
         up_path: ConductionPath | None = None,
         down_path: ConductionPath | None = None,
@@ -101,7 +101,7 @@ class ConductionPath:
             ID of the conduction path.
         is_connected : np.ndarray
             Mask array of points connected to the solid mesh.
-        relying_surface : pv.PolyData
+        relying_surface : pv.PolyData|SurfaceMesh
             Surface mesh that the conduction path relies on.
         material : EPMaterial, default: EPMaterial.DummyMaterial()
             EP Material property.

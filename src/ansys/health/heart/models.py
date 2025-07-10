@@ -1534,7 +1534,7 @@ class HeartModel:
             )
             eids = np.hstack((eids, eid_r))
 
-        part: anatomy.Part = self.create_part_by_ids(eids, "base")
+        part: anatomy.Part = self.create_part_by_ids(eids, "ventricular_base")
         part._part_type = anatomy._PartType.VENTRICLE
         part.fiber = False
         part.active = False

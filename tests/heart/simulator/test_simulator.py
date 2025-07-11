@@ -32,6 +32,7 @@ from pyvista import examples as pyvista_examples
 
 from ansys.health.heart.exceptions import LSDYNATerminationError
 import ansys.health.heart.models as models
+from ansys.health.heart.objects import SurfaceMesh
 from ansys.health.heart.settings.settings import DynaSettings
 
 # import after mocking.
@@ -374,3 +375,50 @@ def test_find_dynain_file(dynain_files, expected, expected_error, mechanics_simu
             assert mechanics_simulator._find_dynain_file(zerop_folder) == expected
 
         mock_glob.assert_called_once()
+
+
+@mock.patch("ansys.health.heart.simulator.pv.MultiBlock")
+@pytest.mark.parametrize("surface_type", ["SurfaceMesh", "PolyData"])
+def test_update_conduction_paths(mock_multiblock, surface_type):
+    # Mocks
+    mock_model = mock.MagicMock()
+    mock_mesh = mock.MagicMock()
+    mock_model.mesh = mock_mesh
+    mock_model.assign_conduction_paths = mock.Mock()
+
+    # Prepare conduction path mock
+    mock_path = mock.MagicMock()
+    mock_path.name = "test_path"
+    mock_path.deform_to_surface = mock.Mock(return_value=mock_path)
+    mock_path.mesh = pv.PolyData()
+
+    if surface_type == "SurfaceMesh":
+        # Mock SurfaceMesh type and attributes
+
+        mock_surface = mock.MagicMock(spec=SurfaceMesh)
+        mock_surface.__class__ = SurfaceMesh
+        mock_surface.global_node_ids_triangles = [0, 1]
+        mock_path.relying_surface = mock_surface
+    else:
+        # PolyData type and attributes
+        mock_surface = mock.MagicMock(spec=pv.PolyData)
+        mock_surface.__class__ = pv.PolyData
+        mock_surface.__getitem__.side_effect = (
+            lambda key: [0, 1] if key == "_global-point-ids" else None
+        )
+        mock_path.relying_surface = mock_surface
+
+    mock_mesh.points = np.array([[1, 2, 3], [4, 5, 6]])
+    mock_surface.copy.return_value = mock_surface
+
+    mock_model.conduction_paths = [mock_path]
+
+    with mock.patch.object(shutil, "which", return_value=1):
+        simulator = simulators.EPMechanicsSimulator(mock_model, dyna_settings=None)
+        simulator.model = mock_model
+        simulator.update_conduction_paths()
+
+    # Check deform_to_surface called with updated surface
+    mock_path.deform_to_surface.assert_called_once_with(mock_surface)
+    # Check assign_conduction_paths called with new_paths
+    mock_model.assign_conduction_paths.assert_called_once_with([mock_path])

@@ -795,9 +795,9 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         multi_path = pv.MultiBlock()
         new_paths = []
         for path in self.model.conduction_paths:
-            if type(path.relying_surface) is SurfaceMesh:
+            if isinstance(path.relying_surface, SurfaceMesh):
                 ids = path.relying_surface.global_node_ids_triangles
-            elif type(path.relying_surface) is pv.PolyData:
+            elif isinstance(path.relying_surface, pv.PolyData):
                 try:
                     ids = path.relying_surface["_global-point-ids"]
                 except KeyError:

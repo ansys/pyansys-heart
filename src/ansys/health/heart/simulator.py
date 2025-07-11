@@ -791,6 +791,8 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
 
     def update_conduction_paths(self):
         """Update conduction paths in the model after stress-free computation."""
+        multi_surface = pv.MultiBlock()
+        multi_path = pv.MultiBlock()
         new_paths = []
         for path in self.model.conduction_paths:
             if type(path.relying_surface) is SurfaceMesh:
@@ -800,7 +802,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
                     ids = path.relying_surface["_global-point-ids"]
                 except KeyError:
                     msg = f"Conduction path {path.name} relying surface does not have"
-                    "_global-point-ids' array."
+                    "'_global-point-ids' array."
 
                     LOGGER.error(msg)
                     raise KeyError(msg)
@@ -813,6 +815,12 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
             # deform path to the new surface
             path2 = path.deform_to_surface(new_surface)
             new_paths.append(path2)
+
+            multi_surface.append(path2.relying_surface)
+            multi_path.append(path2.mesh)
+
+        multi_surface.save(os.path.join(self.root_directory, "update_conduction_surfaces.vtm"))
+        multi_path.save(os.path.join(self.root_directory, "update_conduction_paths.vtm"))
 
         self.model.assign_conduction_paths(new_paths)
 

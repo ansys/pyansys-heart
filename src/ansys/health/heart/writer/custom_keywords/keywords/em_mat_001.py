@@ -27,7 +27,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmMat001(KeywordBase):
-    """DYNA EM_MAT_001 keyword"""
+    """LS-DYNA EM_MAT_001 keyword"""
 
     keyword = "EM"
     subkeyword = "MAT_001"

@@ -188,12 +188,66 @@ class ConductionPath:
         self.mesh.point_data["_is-connected"] = self.is_connected
         self.mesh.cell_data["_line-id"] = self.id * np.ones(self.mesh.n_cells)
 
-    def plot(self):
-        """Plot the conduction path with underlying surface."""
+    def get_terminal_nodes(self) -> np.ndarray:
+        """Get the terminal nodes of the conduction path.
+
+        Notes
+        -----
+        The terminal nodes are the points that are referenced only once
+        in the line segments.
+
+        Returns
+        -------
+        np.ndarray
+            Array of terminal node indices.
+        """
+        p1 = np.unique(self.mesh.lines.reshape(-1, 3)[:, 1])
+        p2 = np.unique(self.mesh.lines.reshape(-1, 3)[:, 2])
+        return np.setdiff1d(p2, p1)
+
+    def get_terminal_coordinates(self) -> np.ndarray:
+        """Get the nodal coordinates of the terminal nodes.
+
+        Returns
+        -------
+        np.ndarray
+            Nx3 array with the coordinates of the terminal nodes.
+        """
+        return self.mesh.points[self.get_terminal_nodes(), :]
+
+    def plot(self, show_plotter: bool = True) -> pv.Plotter | None:
+        """
+        Plot the conduction path with its underlying surface.
+
+        This method creates a PyVista plotter, adds the relying surface (in semi-transparent white)
+        and the conduction path (as a line), and either shows the plot or returns the plotter
+        for further customization.
+
+        Parameters
+        ----------
+        show_plotter : bool, default: True
+            If True, immediately show the plot window. If False, return the plotter
+            object for further modification (e.g., adding more meshes).
+
+        Returns
+        -------
+        plotter : pyvista.Plotter or None
+            The PyVista plotter object if ``show_plotter`` is False, otherwise None.
+
+        Examples
+        --------
+        >>> plotter = conduction_path.plot(show_plotter=False)
+        >>> plotter.add_mesh(other_mesh, color="red")
+        >>> plotter.show()
+        """
         plotter = pv.Plotter()
         plotter.add_mesh(self.relying_surface, color="w", opacity=0.5)
         plotter.add_mesh(self.mesh, line_width=2)
-        plotter.show()
+        plotter.add_text(self.name.value, font_size=12, color="black", position="upper_edge")
+        if show_plotter:
+            plotter.show()
+            return
+        return plotter
 
     @property
     def length(self):
@@ -222,7 +276,7 @@ class ConductionPath:
         -----
         PMJ resistance is controlled by pmjres in *EM_EP_PURKINJE_NETWORK2.
         """
-        # TODO: make sure we won't create path with length of 0
+        # TODO: make sure we do not create path with length of 0
         if merge_with not in ("node", "cell"):
             raise ValueError(f"merge_with must be 'node' or 'cell', got '{merge_with}'")
 
@@ -361,6 +415,9 @@ class ConductionPath:
             Length of the line element in case of refinement.
         center : bool, default: False
             Whether to use a geodesic path through the centers of the surface cells.
+            Length of the line element in case of refinement.
+        center : bool, default: False
+            If True, the geodesic path passes through the centers of the surface cells.
 
         Returns
         -------

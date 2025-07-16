@@ -28,7 +28,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmEpTentusscherStimulus(KeywordBase):
-    """DYNA EM_EP_TENTUSSCHER_STIMULUS keyword"""
+    """LS-DYNA EM_EP_TENTUSSCHER_STIMULUS keyword"""
 
     keyword = "EM"
     subkeyword = "EP_TENTUSSCHER_STIMULUS"

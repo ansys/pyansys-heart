@@ -6,7 +6,7 @@
 .. Ansys
 
 .. _Ansys Customer Portal: https://support.ansys.com/Home/HomePage
-.. _Ansys LSDYNA Product Space: https://lsdyna.ansys.com/download-install-overview/
+.. _Ansys LS-DYNA Product Space: https://lsdyna.ansys.com/download-install-overview/
 
 .. Python libraries
 

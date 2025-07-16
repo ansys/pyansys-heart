@@ -946,11 +946,11 @@ class DynaSettings:
         self.lsdyna_path: pathlib.Path = lsdyna_path
         """Path to LS-DYNA executable."""
         self.dynatype: str = dynatype
-        """Type of DYNA executable."""
+        """Type of LS-DYNA executable."""
         self.num_cpus: int = num_cpus
         """Number of CPU's requested."""
         self.platform: str = platform
-        """Platform DYNA is executed on."""
+        """Platform LS-DYNA is executed on."""
 
         self.dyna_options = dyna_options
         """Additional command line options for dyna."""

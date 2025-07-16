@@ -59,10 +59,10 @@ doc = [
     "sphinxcontrib-video==0.4.1",
     "sphinx_design",
     "pyvista[jupyter]==0.44.1",
-    "trame-vtk==2.8.17"
+    "trame-vtk==2.9.0"
 ]
 tests = [
-    "pytest==8.4.0",
+    "pytest==8.4.1",
     "pytest-cov==6.2.1",
 ]
 

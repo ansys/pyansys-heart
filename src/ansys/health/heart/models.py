@@ -1634,9 +1634,9 @@ class FourChamber(HeartModel):
         #! Note that this only works since tetrahedrons are located
         #! at start of the mesh object.
         for part in self.parts:
-            if isinstance(part, anatomy.Ventricle):
+            if part._part_type == anatomy._PartType.VENTRICLE:
                 v_ele = np.append(v_ele, part.element_ids)
-            elif isinstance(part, anatomy.Atrium):
+            elif part._part_type == anatomy._PartType.ATRIUM:
                 a_ele = np.append(a_ele, part.element_ids)
 
         ventricles = self.mesh.extract_cells(v_ele)

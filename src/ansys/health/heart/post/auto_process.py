@@ -60,6 +60,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     os.makedirs(os.path.join(directory, folder), exist_ok=True)
 
     # read from d3plot
+    # TODO: iterate over all iterations for post results.
     data = D3plotReader(glob.glob(os.path.join(directory, "iter*.d3plot"))[-1])
 
     # get load from settings file
@@ -122,6 +123,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
         volume_info[cavity.name] = {
             "true end diastolic volume (mm3)": true_ed_volume,
             "inflated volumes (mm3)": inflated_volumes,
+            "volume error (%)": (true_ed_volume - inflated_volumes[-1]) / true_ed_volume * 100,
         }
 
         if cavity.name.lower() == "left ventricle cavity":

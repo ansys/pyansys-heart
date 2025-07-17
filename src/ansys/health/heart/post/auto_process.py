@@ -101,6 +101,12 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
         },
     }
 
+    # Retrieve imposed cavity pressures
+    imposed_cavity_pressures = {
+        k: v.__str__()
+        for k, v in setting.mechanics.boundary_conditions.end_diastolic_cavity_pressure.items()
+    }
+
     volume_info = {}
 
     # extract cavity information
@@ -136,6 +142,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     dct["Simulation left ventricle volume (mm3)"] = lv_volumes
 
     dct["cavity volumes"] = volume_info
+    dct["imposed cavity pressures"] = imposed_cavity_pressures
 
     # Klotz curve information
     klotz = EDPVR(true_lv_ed_volume / 1000, lv_pr_mmhg)

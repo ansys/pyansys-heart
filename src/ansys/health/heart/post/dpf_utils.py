@@ -43,9 +43,7 @@ _SUPPORTED_DPF_SERVERS = ["2025.2", "2024.1", "2024.1rc1", "2024.2rc0"]
 
 
 def _check_accept_dpf():
-    if "ANSYS_DPF_ACCEPT_LA" in os.environ and os.environ["ANSYS_DPF_ACCEPT_LA"] == "Y":
-        pass
-    else:
+    if not os.getenv("ANSYS_DPF_ACCEPT_LA", None) == "Y":
         LOGGER.error(
             """DPF requires you to accept the license agreement.
             Set the environment variable "ANSYS_DPF_ACCEPT_LA" to "Y"."""

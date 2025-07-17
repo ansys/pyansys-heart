@@ -100,6 +100,8 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
         },
     }
 
+    volume_info = {}
+
     # extract cavity information
     for cavity in model.cavities:
         cavity: Cavity
@@ -117,11 +119,18 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
             new_cavity.surface.save(os.path.join(directory, folder, f"{cavity.name}_{i}.vtk"))
             inflated_volumes.append(new_cavity.volume)
 
+        volume_info[cavity.name] = {
+            "true end diastolic volume (mm3)": true_ed_volume,
+            "inflated volumes (mm3)": inflated_volumes,
+        }
+
         if cavity.name.lower() == "left ventricle cavity":
             true_lv_ed_volume = true_ed_volume
             lv_volumes = inflated_volumes
 
-    # save left ventricle in json
+    dct["Cavity volumes"] = volume_info
+
+    # save cavity volumes in JSON
     dct["Left ventricle EOD pressure (mmHg)"] = lv_pr_mmhg
     dct["True left ventricle volume (mm3)"] = true_lv_ed_volume
     dct["Simulation left ventricle volume (mm3)"] = lv_volumes
@@ -134,11 +143,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     fig.savefig(os.path.join(directory, folder, "klotz.png"))
 
     with open(os.path.join(directory, folder, "Post_report.json"), "w") as f:
-        json.dump(dct, f)
-
-    # NOTE: this will trigger killing the dpf-launched ansyscl, which may be necessary
-    # to locally pass tests.
-    del data
+        json.dump(dct, f, indent=4)
 
     return dct, stress_free_coord, guess_ed_coord
 

@@ -1534,7 +1534,7 @@ class HeartModel:
             )
             eids = np.hstack((eids, eid_r))
 
-        part: anatomy.Part = self.create_part_by_ids(eids, "base")
+        part: anatomy.Part = self.create_part_by_ids(eids, "ventricular_base")
         part._part_type = anatomy._PartType.VENTRICLE
         part.fiber = False
         part.active = False
@@ -1632,9 +1632,9 @@ class FourChamber(HeartModel):
         #! Note that this only works since tetrahedrons are located
         #! at start of the mesh object.
         for part in self.parts:
-            if isinstance(part, anatomy.Ventricle):
+            if part._part_type == anatomy._PartType.VENTRICLE:
                 v_ele = np.append(v_ele, part.get_element_ids(self.mesh))
-            elif isinstance(part, anatomy.Atrium):
+            elif part._part_type == anatomy._PartType.ATRIUM:
                 a_ele = np.append(a_ele, part.get_element_ids(self.mesh))
 
         ventricles = self.mesh.extract_cells(v_ele)

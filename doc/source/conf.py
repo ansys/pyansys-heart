@@ -142,7 +142,7 @@ if nightly_docs:
     warn_on_example_fail = True
 else:
     # only executes examples with suffix _pr.py
-    gallery_filename_pattern = r".*(ep-mechanics-simulator-fullheart\.py)"
+    gallery_filename_pattern = r".*(_pr\.py)"
     warn_on_example_fail = False
 
 sphinx_gallery_conf = {

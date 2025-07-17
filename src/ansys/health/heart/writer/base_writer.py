@@ -589,8 +589,13 @@ class BaseDynaWriter:
     def _keep_ventricles(self) -> None:
         """Remove any non-ventricular parts."""
         LOGGER.debug("Only keeping ventricular-parts for fiber/Purkinje generation.")
+        # Note: we need to use _PartType to check part types.
+        # For example, base has _PartType as VENTRICLE,
+        # but it is not an instance from Ventricle(Part) so will be missed in writing.
         parts_to_keep = [
-            p.name for p in self.model.parts if isinstance(p, (anatomy.Ventricle, anatomy.Septum))
+            p.name
+            for p in self.model.parts
+            if p._part_type in [anatomy._PartType.VENTRICLE, anatomy._PartType.SEPTUM]
         ]
 
         self._keep_parts(parts_to_keep)

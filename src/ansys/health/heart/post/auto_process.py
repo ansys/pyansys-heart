@@ -122,7 +122,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
 
         volume_info[cavity.name] = {
             "true end diastolic volume (mm3)": true_ed_volume,
-            "inflated volumes (mm3)": inflated_volumes,
+            "simulated volumes (mm3)": inflated_volumes,
             "volume error (%)": (true_ed_volume - inflated_volumes[-1]) / true_ed_volume * 100,
         }
 
@@ -130,12 +130,12 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
             true_lv_ed_volume = true_ed_volume
             lv_volumes = inflated_volumes
 
-    dct["Cavity volumes"] = volume_info
-
     # save cavity volumes in JSON
     dct["Left ventricle EOD pressure (mmHg)"] = lv_pr_mmhg
     dct["True left ventricle volume (mm3)"] = true_lv_ed_volume
     dct["Simulation left ventricle volume (mm3)"] = lv_volumes
+
+    dct["cavity volumes"] = volume_info
 
     # Klotz curve information
     klotz = EDPVR(true_lv_ed_volume / 1000, lv_pr_mmhg)

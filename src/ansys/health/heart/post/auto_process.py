@@ -66,11 +66,6 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     # get load from settings file
     setting = SimulationSettings()
     setting.load(os.path.join(directory, "simulation_settings.yml"))
-    lv_pr_mmhg = (
-        setting.mechanics.boundary_conditions.end_diastolic_cavity_pressure["left_ventricle"]
-        .to("mmHg")
-        .m
-    )
 
     stress_free_coord = data.get_initial_coordinates()
     displacements = [data.get_displacement_at(time=t) for t in data.time]
@@ -103,8 +98,15 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
 
     # Retrieve imposed cavity pressures
     imposed_cavity_pressures = {
-        k: v.__str__()
+        f"{k} (mmHg)": v.to("mmHg").m
         for k, v in setting.mechanics.boundary_conditions.end_diastolic_cavity_pressure.items()
+    }
+    # Maps boundary condition names to model cavity names
+    bc_map = {
+        "Left ventricle cavity": "left_ventricle",
+        "Right ventricle cavity": "right_ventricle",
+        "Left atrium cavity": "left_atrium",
+        "Right atrium cavity": "right_atrium",
     }
 
     volume_info = {}
@@ -127,22 +129,22 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
             inflated_volumes.append(new_cavity.volume)
 
         volume_info[cavity.name] = {
+            "imposed cavity pressure (mmHg)": imposed_cavity_pressures[
+                bc_map[cavity.name] + " (mmHg)"
+            ],
             "true end diastolic volume (mm3)": true_ed_volume,
             "simulated volumes (mm3)": inflated_volumes,
             "volume error (%)": (true_ed_volume - inflated_volumes[-1]) / true_ed_volume * 100,
         }
 
-        if cavity.name.lower() == "left ventricle cavity":
-            true_lv_ed_volume = true_ed_volume
-            lv_volumes = inflated_volumes
-
     # save cavity volumes in JSON
-    dct["Left ventricle EOD pressure (mmHg)"] = lv_pr_mmhg
-    dct["True left ventricle volume (mm3)"] = true_lv_ed_volume
-    dct["Simulation left ventricle volume (mm3)"] = lv_volumes
+    dct["Cavity volumes"] = volume_info
 
-    dct["cavity volumes"] = volume_info
-    dct["imposed cavity pressures"] = imposed_cavity_pressures
+    lv_pr_mmhg = dct["Cavity volumes"]["Left ventricle cavity"]["imposed cavity pressure (mmHg)"]
+    lv_volumes = dct["Cavity volumes"]["Left ventricle cavity"]["simulated volumes (mm3)"]
+    true_lv_ed_volume = dct["Cavity volumes"]["Left ventricle cavity"][
+        "true end diastolic volume (mm3)"
+    ]
 
     # Klotz curve information
     klotz = EDPVR(true_lv_ed_volume / 1000, lv_pr_mmhg)

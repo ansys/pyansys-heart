@@ -177,6 +177,9 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
             directory, model, file
         )
 
+    # Generate the Klotz curve plot.
+    _plot_klotz_curve(directory, report)
+
     # For backward compatibility, return the last report.
     with open(os.path.join(directory, "post", "Post_report.json"), "w") as f:
         json.dump(report, f, indent=4)

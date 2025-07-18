@@ -28,6 +28,7 @@ import json
 import os
 from pathlib import Path
 
+import natsort
 import numpy as np
 
 from ansys.health.heart import LOG as LOGGER
@@ -171,7 +172,7 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
         computed end-of-diastolic configuration.
     """
     # Iterate over all iteration files in the directory and generate a report.
-    iter_files = glob.glob(os.path.join(directory, "iter*.d3plot"))
+    iter_files = natsort.natsorted(glob.glob(os.path.join(directory, "iter*.d3plot")))
     for file in iter_files:
         report, stress_free_coord, guess_ed_coord = _process_zerop_iteration_file(
             directory, model, file

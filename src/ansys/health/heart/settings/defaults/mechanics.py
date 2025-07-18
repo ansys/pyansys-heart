@@ -150,6 +150,7 @@ boundary_conditions = {
         "scale_factor": {"normal": 0.5, "radial": 1.0},
     },
     "end_diastolic_cavity_pressure": {
+        # TODO: align names with cavity/part names.
         # https://doi.org/10.3389/fphys.2018.00539
         "left_ventricle": Quantity(15, "mmHg"),
         "left_atrial": Quantity(15, "mmHg"),

@@ -111,6 +111,8 @@ def test_zerop_post(get_left_ventricle):
         "true end diastolic volume (mm3)"
     ] == pytest.approx(118078.82768066938)
 
+    assert os.path.isfile(os.path.join(test_dir, "zerop", "post", "Post_report.json"))
+
     # Cleanup
     folder = os.path.join(test_dir, "zerop", "post")
     if os.path.exists(folder):

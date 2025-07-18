@@ -144,7 +144,7 @@ def _plot_klotz_curve(directory: str, report: dict) -> None:
     ]
 
     # Klotz curve information
-    time_array = report["Simulation output time (ms)"]
+    time_array = np.array(report["Simulation output time (ms)"])
     klotz = EDPVR(true_lv_ed_volume / 1000, lv_pr_mmhg)
     sim_vol_ml = [v / 1000 for v in lv_volumes]
     sim_pr = lv_pr_mmhg * time_array / time_array[-1]

@@ -26,6 +26,7 @@ import copy
 import glob
 import json
 import os
+from pathlib import Path
 
 import numpy as np
 
@@ -39,29 +40,18 @@ from ansys.health.heart.post.strain_calculator import AhaStrainCalculator
 from ansys.health.heart.settings.settings import SimulationSettings
 
 
-def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.ndarray]:
-    """Postprocess the zero-pressure folder.
-
-    Parameters
-    ----------
-    directory : str
-        Path to the simulation folder.
-    model : HeartModel
-        Model to postprocess.
-
-    Returns
-    -------
-    tuple[dict, np.ndarray, np.ndarray]
-        Dictionary with convergence information,
-        stress free configuration, and
-        computed end-of-diastolic configuration.
-    """
+def _process_zerop_iteration_file(directory: str, model: HeartModel, filename: str):
+    """Process a single iteration file from the zero-pressure simulation."""
     folder = "post"
     os.makedirs(os.path.join(directory, folder), exist_ok=True)
 
-    # read from d3plot
-    # TODO: iterate over all iterations for post results.
-    data = D3plotReader(glob.glob(os.path.join(directory, "iter*.d3plot"))[-1])
+    data = D3plotReader(filename)
+
+    report_filename = (
+        Path(filename).parent
+        / Path(folder)
+        / Path(filename).name.replace(".d3plot", ".report.json")
+    )
 
     # get load from settings file
     setting = SimulationSettings()
@@ -153,10 +143,41 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
     fig = klotz.plot_EDPVR(simulation_data=[sim_vol_ml, sim_pr])
     fig.savefig(os.path.join(directory, folder, "klotz.png"))
 
-    with open(os.path.join(directory, folder, "Post_report.json"), "w") as f:
+    with open(report_filename, "w") as f:
         json.dump(dct, f, indent=4)
 
     return dct, stress_free_coord, guess_ed_coord
+
+
+def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.ndarray]:
+    """Postprocess the zero-pressure folder.
+
+    Parameters
+    ----------
+    directory : str
+        Path to the simulation folder.
+    model : HeartModel
+        Model to postprocess.
+
+    Returns
+    -------
+    tuple[dict, np.ndarray, np.ndarray]
+        Dictionary with convergence information,
+        stress free configuration, and
+        computed end-of-diastolic configuration.
+    """
+    # Iterate over all iteration files in the directory and generate a report.
+    iter_files = glob.glob(os.path.join(directory, "iter*.d3plot"))
+    for file in iter_files:
+        report, stress_free_coord, guess_ed_coord = _process_zerop_iteration_file(
+            directory, model, file
+        )
+
+    # For backward compatibility, return the last report.
+    with open(os.path.join(directory, "post", "Post_report.json"), "w") as f:
+        json.dump(report, f, indent=4)
+
+    return report, stress_free_coord, guess_ed_coord
 
 
 def mech_post(directory: str, model: HeartModel) -> None:

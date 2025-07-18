@@ -28,6 +28,7 @@ import json
 import os
 from pathlib import Path
 
+import natsort
 import numpy as np
 
 from ansys.health.heart import LOG as LOGGER
@@ -78,7 +79,7 @@ def _process_zerop_iteration_file(directory: str, model: HeartModel, filename: s
     temp_mesh.points = stress_free_coord + displacements[-1]
     temp_mesh.save(os.path.join(directory, folder, "Simu_ED.vtk"))
 
-    dct = {
+    report = {
         "Simulation output time (ms)": data.time.tolist(),
         "Convergence": {
             "max_error (mm)": error_max,
@@ -88,15 +89,15 @@ def _process_zerop_iteration_file(directory: str, model: HeartModel, filename: s
 
     # Retrieve imposed cavity pressures
     imposed_cavity_pressures = {
-        f"{k} (mmHg)": v.to("mmHg").m
+        f"{k}": v.to("mmHg").m
         for k, v in setting.mechanics.boundary_conditions.end_diastolic_cavity_pressure.items()
     }
     # Maps boundary condition names to model cavity names
     bc_map = {
         "Left ventricle cavity": "left_ventricle",
         "Right ventricle cavity": "right_ventricle",
-        "Left atrium cavity": "left_atrium",
-        "Right atrium cavity": "right_atrium",
+        "Left atrium cavity": "left_atrial",
+        "Right atrium cavity": "left_atrial",
     }
 
     volume_info = {}
@@ -119,34 +120,38 @@ def _process_zerop_iteration_file(directory: str, model: HeartModel, filename: s
             inflated_volumes.append(new_cavity.volume)
 
         volume_info[cavity.name] = {
-            "imposed cavity pressure (mmHg)": imposed_cavity_pressures[
-                bc_map[cavity.name] + " (mmHg)"
-            ],
+            "imposed cavity pressure (mmHg)": imposed_cavity_pressures[bc_map[cavity.name]],
             "true end diastolic volume (mm3)": true_ed_volume,
             "simulated volumes (mm3)": inflated_volumes,
             "volume error (%)": (true_ed_volume - inflated_volumes[-1]) / true_ed_volume * 100,
         }
 
     # save cavity volumes in JSON
-    dct["Cavity volumes"] = volume_info
+    report["Cavity volumes"] = volume_info
 
-    lv_pr_mmhg = dct["Cavity volumes"]["Left ventricle cavity"]["imposed cavity pressure (mmHg)"]
-    lv_volumes = dct["Cavity volumes"]["Left ventricle cavity"]["simulated volumes (mm3)"]
-    true_lv_ed_volume = dct["Cavity volumes"]["Left ventricle cavity"][
+    with open(report_filename, "w") as f:
+        json.dump(report, f, indent=4)
+
+    return report, stress_free_coord, guess_ed_coord
+
+
+def _plot_klotz_curve(directory: str, report: dict) -> None:
+    """Plot the Klotz curve from the report."""
+    lv_pr_mmhg = report["Cavity volumes"]["Left ventricle cavity"]["imposed cavity pressure (mmHg)"]
+    lv_volumes = report["Cavity volumes"]["Left ventricle cavity"]["simulated volumes (mm3)"]
+    true_lv_ed_volume = report["Cavity volumes"]["Left ventricle cavity"][
         "true end diastolic volume (mm3)"
     ]
 
     # Klotz curve information
+    time_array = np.array(report["Simulation output time (ms)"])
     klotz = EDPVR(true_lv_ed_volume / 1000, lv_pr_mmhg)
     sim_vol_ml = [v / 1000 for v in lv_volumes]
-    sim_pr = lv_pr_mmhg * data.time / data.time[-1]
+    sim_pr = lv_pr_mmhg * time_array / time_array[-1]
     fig = klotz.plot_EDPVR(simulation_data=[sim_vol_ml, sim_pr])
-    fig.savefig(os.path.join(directory, folder, "klotz.png"))
+    fig.savefig(os.path.join(directory, "post", "klotz.png"))
 
-    with open(report_filename, "w") as f:
-        json.dump(dct, f, indent=4)
-
-    return dct, stress_free_coord, guess_ed_coord
+    return
 
 
 def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.ndarray]:
@@ -167,11 +172,14 @@ def zerop_post(directory: str, model: HeartModel) -> tuple[dict, np.ndarray, np.
         computed end-of-diastolic configuration.
     """
     # Iterate over all iteration files in the directory and generate a report.
-    iter_files = glob.glob(os.path.join(directory, "iter*.d3plot"))
+    iter_files = natsort.natsorted(glob.glob(os.path.join(directory, "iter*.d3plot")))
     for file in iter_files:
         report, stress_free_coord, guess_ed_coord = _process_zerop_iteration_file(
             directory, model, file
         )
+
+    # Generate the Klotz curve plot.
+    _plot_klotz_curve(directory, report)
 
     # For backward compatibility, return the last report.
     with open(os.path.join(directory, "post", "Post_report.json"), "w") as f:

@@ -73,7 +73,6 @@ import pyvista as pv
 
 from ansys.health.heart.examples import get_input_leftventricle
 import ansys.health.heart.models as models
-from ansys.health.heart.post.auto_process import zerop_post
 from ansys.health.heart.post.dpf_utils import ICVoutReader
 from ansys.health.heart.settings.material.material import ACTIVE, ANISO, ISO, Mat295
 from ansys.health.heart.simulator import DynaSettings, MechanicsSimulator
@@ -183,13 +182,10 @@ simulator.model.left_ventricle.meca_material = myocardium
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Compute the stress-free configuration and estimate initial stress.
-simulator.compute_stress_free_configuration()
+report, stress_free_coord, guess_ed_coord = simulator.compute_stress_free_configuration()
 
-# Plot stress-free geometry.
-report, stress_free_coord, guess_ed_coord = zerop_post(
-    os.path.join(workdir, "simulation-mechanics", "zeropressure"), model
-)
-zerop = copy.deepcopy(model.mesh)
+# Copy the mesh to a new variable for plotting.
+zerop = copy.deepcopy(simulator.model.mesh)
 
 # Update the points of the mesh with the stress-free coordinates.
 zerop.points = stress_free_coord

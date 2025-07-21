@@ -35,7 +35,7 @@ from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import SupportedDPFServerNotFoundError
 from ansys.health.heart.models import HeartModel
 
-_SUPPORTED_DPF_SERVERS = ["2025.2", "2024.1", "2024.1rc1", "2024.2rc0"]
+_SUPPORTED_DPF_SERVERS = ["2025.2", "2025.2rc0", "2024.1", "2024.1rc1", "2024.2rc0"]
 """List of supported DPF servers."""
 #! NOTE:
 #! 2024.1rc0: not supported due to missing ::tf operator

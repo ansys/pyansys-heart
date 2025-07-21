@@ -109,7 +109,11 @@ def test_zerop_post(get_left_ventricle):
     test_dir = get_left_ventricle[0]
     model = get_left_ventricle[1]
     dct = zerop_post(os.path.join(test_dir, "zerop"), model)
-    assert dct[0]["True left ventricle volume (mm3)"] == pytest.approx(118078.82768066938)
+    assert dct[0]["Cavity volumes"]["Left ventricle cavity"][
+        "true end diastolic volume (mm3)"
+    ] == pytest.approx(118078.82768066938)
+
+    assert os.path.isfile(os.path.join(test_dir, "zerop", "post", "Post_report.json"))
 
     # Cleanup
     folder = os.path.join(test_dir, "zerop", "post")

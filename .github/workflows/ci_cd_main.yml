@@ -10,7 +10,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  ANSYS_VERSION: '241'
   ANSYS_DPF_ACCEPT_LA: 'Y'
   MAIN_PYTHON_VERSION: '3.11'
   DOCUMENTATION_CNAME: 'heart.health.docs.pyansys.com'

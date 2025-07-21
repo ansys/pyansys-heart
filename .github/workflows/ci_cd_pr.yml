@@ -163,7 +163,7 @@ jobs:
         tests:
           - { name: "Base", runner: "ubuntu-latest", markers: "not (requires_fluent or requires_dpf)", tox_extra_args: ""}
           # - { name: "PyDPF", runner: "ubuntu-latest", markers: "requires_dpf", needs_dpf: true}
-          - { name: "PyFluent", runner: "ubuntu-latest", markers: "requires_fluent", needs_fluent: true }
+          - { name: "PyFluent", runner: "public-ubuntu-latest-8-cores", markers: "requires_fluent", needs_fluent: true }
     steps:
 
       - name: "Checkout the project"

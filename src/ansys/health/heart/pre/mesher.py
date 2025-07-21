@@ -257,6 +257,18 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
             "mount_target": "/mnt/pyfluent/meshing",
         }
 
+        try:
+            os.removedirs(working_directory)
+        except Exception:
+            LOGGER.warning(f"Could not remove {working_directory}. It may not exist.")
+            pass
+
+        try:
+            os.removedirs("/mnt/pyfluent/meshing")
+            LOGGER.warning("Could not remove /mnt/pyfluent/meshing. It may not exist.")
+        except Exception:
+            pass
+
         session = pyfluent.launch_fluent(
             mode="meshing",
             precision="double",

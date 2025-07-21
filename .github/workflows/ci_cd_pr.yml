@@ -193,8 +193,7 @@ jobs:
         if: matrix.tests.needs_fluent
         run: |
           sudo rm -rf /usr/share/dotnet
-          sudo docker image prune --all --force
-          sudo docker builder prune -a
+          df -h
           docker pull ghcr.io/ansys/pyfluent:${{ env.FLUENT_IMAGE_TAG }}
           docker image prune -f
 

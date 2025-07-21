@@ -380,7 +380,9 @@ class HeartModel:
             self._part_info.update(part._to_dict())
         return self._part_info
 
-    def create_part_by_ids(self, eids: list[int], name: str) -> None | anatomy.Part:
+    def create_part_by_ids(
+        self, eids: list[int], name: str, part_type: anatomy._PartType = anatomy._PartType.UNDEFINED
+    ) -> None | anatomy.Part:
         """Create a part by element IDs.
 
         Parameters
@@ -389,6 +391,8 @@ class HeartModel:
             List of element IDs.
         name : str
             Part name.
+        part_type : anatomy._PartType, default: anatomy._PartType.UNDEFINED
+            Type of the part. The default is ``anatomy._PartType.UNDEFINED``.
 
         Returns
         -------
@@ -405,9 +409,10 @@ class HeartModel:
 
         new_part_id = self.mesh._unused_volume_id
 
-        self.add_part(name)
-        new_part: anatomy.Part = self.get_part(name)
+        new_part: anatomy.Part = anatomy.Part(name, part_type)
         new_part.pid = new_part_id
+
+        self.add_part(new_part)
 
         # Update the mesh accordingly. Note that this also affects other parts, since
         # only one volume ID can be assigned to each element/cell.
@@ -1673,8 +1678,9 @@ class HeartModel:
             )
             eids = np.hstack((eids, eid_r))
 
-        part: anatomy.Part = self.create_part_by_ids(eids, "ventricular_base")
-        part._part_type = anatomy._PartType.VENTRICLE
+        part: anatomy.Part = self.create_part_by_ids(
+            eids, "ventricular_base", anatomy._PartType.VENTRICLE
+        )
         part.fiber = False
         part.active = False
         part.meca_material = stiff_material
@@ -1815,9 +1821,8 @@ class FourChamber(HeartModel):
             return None
 
         isolation: anatomy.Part = self.create_part_by_ids(
-            interface_eids, "Atrioventricular isolation"
+            interface_eids, "Atrioventricular isolation", anatomy._PartType.ATRIUM
         )
-        isolation._part_type = anatomy._PartType.ATRIUM
         # Assign a new part ID to the isolation part
         isolation.fiber = True
         isolation.active = False
@@ -1876,8 +1881,9 @@ class FourChamber(HeartModel):
             ring_eles = np.hstack((ring_eles, orphan_cells))
 
         # Create ring part
-        ring: anatomy.Part = self.create_part_by_ids(ring_eles, name="atrial stiff rings")
-        ring._part_type = anatomy._PartType.ATRIUM
+        ring: anatomy.Part = self.create_part_by_ids(
+            ring_eles, name="atrial stiff rings", part_type=anatomy._PartType.ATRIUM
+        )
         ring.fiber = False
         ring.active = False
         # assign default EP material

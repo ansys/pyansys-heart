@@ -252,10 +252,10 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
 
     if _uses_container:
         num_cpus = 1
-        # custom_config = {
-        #     "mount_source": f"{working_directory}",
-        #     "mount_target": "/mnt/pyfluent/meshing",
-        # }
+        custom_config = {
+            "mount_source": f"{working_directory}",
+            "mount_target": "/mnt/pyfluent/meshing",
+        }
 
         try:
             os.removedirs(working_directory)
@@ -277,7 +277,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
             ui_mode=_fluent_ui_mode,
             product_version=product_version,
             start_container=_uses_container,
-            # container_dict=custom_config,
+            container_dict=custom_config,
             **_extra_launch_kwargs,
         )
 

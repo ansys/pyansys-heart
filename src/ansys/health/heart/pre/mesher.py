@@ -256,12 +256,11 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
         num_cpus = 1
         custom_config = {
             "mount_source": f"{working_directory}",
-            "mount_target": "/mnt/pyfluent/meshing",
         }
 
         LOGGER.warning(json.dumps(custom_config, indent=4))
 
-        real_config = pyfluent.launch_fluent(
+        dry_config = pyfluent.launch_fluent(
             mode="meshing",
             precision="double",
             processor_count=num_cpus,
@@ -273,7 +272,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
             **_extra_launch_kwargs,
             dry_run=True,
         )
-        LOGGER.warning(f"real config: {real_config}")
+        LOGGER.warning(f"real config: {dry_config}")
 
         session = pyfluent.launch_fluent(
             mode="meshing",

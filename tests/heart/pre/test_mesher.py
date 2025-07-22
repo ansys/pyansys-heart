@@ -34,7 +34,7 @@ import pyvista as pv
 from ansys.health.heart.pre.input import _InputModel
 import ansys.health.heart.pre.mesher as mesher
 
-pytestmark = pytest.mark.requires_fluent1
+# pytestmark = pytest.mark.requires_fluent1
 
 
 @pytest.fixture(scope="session", autouse=True)

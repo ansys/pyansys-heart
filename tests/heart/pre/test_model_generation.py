@@ -103,19 +103,19 @@ def _get_inputs(model_type: Union[models.BiVentricle, models.FullHeart]):
 # first item: model type, second item flag indicating whether to try to remesh
 # the model.
 test_params_fast = [
-    pytest.param([models.BiVentricle, False], marks=pytest.mark.extract_models),
-    pytest.param([models.FullHeart, False], marks=pytest.mark.extract_models),
+    pytest.param([models.BiVentricle, False], marks=pytest.mark.extract_models1),
+    pytest.param([models.FullHeart, False], marks=pytest.mark.extract_models1),
 ]
 test_params_fast_ids = ["BiVentricle-NoRemesh", "FullHeart-NoRemesh"]
 
 test_params_slow = [
     pytest.param(
         [models.BiVentricle, True],
-        marks=[pytest.mark.extract_models, pytest.mark.requires_fluent],
+        marks=[pytest.mark.extract_models, pytest.mark.requires_fluent1],
     ),
     pytest.param(
         [models.FullHeart, True],
-        marks=[pytest.mark.extract_models, pytest.mark.requires_fluent],
+        marks=[pytest.mark.extract_models, pytest.mark.requires_fluent1],
     ),
 ]
 test_params_slow_ids = [

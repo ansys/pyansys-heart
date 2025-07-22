@@ -23,6 +23,7 @@
 """Module containing methods for interaction with Fluent meshing."""
 
 import glob
+import json
 import os
 from pathlib import Path
 import shutil
@@ -256,6 +257,8 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
             "mount_source": f"{working_directory}",
             "mount_target": "/mnt/pyfluent/meshing",
         }
+
+        LOGGER.warning(json.dumps(custom_config, indent=4))
 
         try:
             os.removedirs(working_directory)

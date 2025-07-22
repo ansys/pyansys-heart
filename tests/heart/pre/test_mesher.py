@@ -34,6 +34,9 @@ import pyvista as pv
 from ansys.health.heart.pre.input import _InputModel
 import ansys.health.heart.pre.mesher as mesher
 
+# Set logger to debug.
+mesher.LOGGER.setLevel("DEBUG")
+
 pytestmark = pytest.mark.requires_fluent1
 
 
@@ -109,7 +112,7 @@ def test_get_fluent_meshing_session_container():
     # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
     import pathlib
 
-    tmp_path = pathlib.Path.home() / "test-pyfluent"
+    tmp_path = str(pathlib.Path.home() / "test-pyfluent")
     mesher._uses_container = True
     session = mesher._get_fluent_meshing_session(tmp_path)
     assert session.is_server_healthy()

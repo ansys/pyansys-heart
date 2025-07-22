@@ -267,7 +267,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
             start_transcript=False,
             ui_mode=_fluent_ui_mode,
             product_version=product_version,
-            start_container=_uses_container,
+            # start_container=_uses_container,
             container_dict=custom_config,
             **_extra_launch_kwargs,
             dry_run=True,
@@ -281,7 +281,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
             start_transcript=False,
             ui_mode=_fluent_ui_mode,
             product_version=product_version,
-            start_container=_uses_container,
+            # start_container=_uses_container,
             container_dict=custom_config,
             **_extra_launch_kwargs,
         )

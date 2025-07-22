@@ -34,7 +34,7 @@ import pyvista as pv
 from ansys.health.heart.pre.input import _InputModel
 import ansys.health.heart.pre.mesher as mesher
 
-# pytestmark = pytest.mark.requires_fluent1
+pytestmark = pytest.mark.requires_fluent
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -101,6 +101,13 @@ def test_get_fluent_meshing_session(monkeypatch):
         assert mock_launch.call_args.kwargs["processor_count"] == 1
         assert mock_launch.call_args.kwargs["start_container"] is True
         assert mock_launch.call_args.kwargs["container_dict"]
+
+
+def test_get_fluent_meshing_session_container():
+    """Test passing input arguments to the fluent meshing session launcher."""
+    mesher._uses_container = True
+    session = mesher._get_fluent_meshing_session(".")
+    assert session.is_server_healthy()
 
 
 @pytest.mark.parametrize(

@@ -52,3 +52,26 @@ def test_launch_fluent():
         assert True
     except Exception:
         assert False, "Failed to launch pyfluent in meshing mode."
+
+
+def test_launch_fluent_container():
+    """Launch pyfluent in meshing mode and check health."""
+    try:
+        session = pyfluent.launch_fluent(
+            mode="meshing",
+            precision="double",
+            processor_count=1,
+            start_transcript=False,
+            ui_mode="no_gui",
+            dimension=3,
+            product_version=_get_supported_fluent_version(),
+        )
+        assert session.is_server_healthy()
+        # try to initialize workflow
+        assert session.workflow.InitializeWorkflow(WorkflowType="Watertight Geometry"), (
+            "Failed workflow"
+        )
+        session.exit()
+        assert True
+    except Exception:
+        assert False, "Failed to launch pyfluent in meshing mode."

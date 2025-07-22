@@ -72,7 +72,7 @@ def _get_dpf_server():
         LOGGER.error(mess)
         raise SupportedDPFServerNotFoundError(mess)
 
-    return server
+    return server, version
 
 
 class D3plotReader:
@@ -90,7 +90,7 @@ class D3plotReader:
         _check_accept_dpf()
 
         # TODO: retrieve version from docker
-        self._server = _get_dpf_server()
+        self._server, self._dpf_version = _get_dpf_server()
 
         self.ds = dpf.DataSources()
         self.ds.set_result_file_path(path, "d3plot")
@@ -238,7 +238,13 @@ class D3plotReader:
 
         res = []
         for i in hv_index:
-            res.append(hist_vars[i].data)
+            if self._dpf_version.startswith("2025.2"):
+                # Skip duplicate values.
+                data = hist_vars[i].data[0::3]
+            else:
+                data = hist_vars[i].data
+
+            res.append(data)
 
         return np.array(res)
 

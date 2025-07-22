@@ -97,7 +97,7 @@ def test_get_dpf_server(fake_servers, expected, raises):
     """Test getting the supported DPF server version."""
     with mock.patch("ansys.dpf.core.server.available_servers", return_value=fake_servers):
         if expected:
-            assert expected == _get_dpf_server()
+            assert expected == _get_dpf_server()[0]
 
         if raises:
             with pytest.raises(raises):

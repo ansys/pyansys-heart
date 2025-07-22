@@ -261,17 +261,19 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
 
         LOGGER.warning(json.dumps(custom_config, indent=4))
 
-        try:
-            os.removedirs(working_directory)
-        except Exception:
-            LOGGER.warning(f"Could not remove {working_directory}. It may not exist.")
-            pass
-
-        try:
-            os.removedirs("/mnt/pyfluent/meshing")
-            LOGGER.warning("Could not remove /mnt/pyfluent/meshing. It may not exist.")
-        except Exception:
-            pass
+        real_config = pyfluent.launch_fluent(
+            mode="meshing",
+            precision="double",
+            processor_count=num_cpus,
+            start_transcript=False,
+            ui_mode=_fluent_ui_mode,
+            product_version=product_version,
+            start_container=_uses_container,
+            container_dict=custom_config,
+            **_extra_launch_kwargs,
+            dry_run=True,
+        )
+        LOGGER.warning(f"real config: {real_config}")
 
         session = pyfluent.launch_fluent(
             mode="meshing",
@@ -281,7 +283,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
             ui_mode=_fluent_ui_mode,
             product_version=product_version,
             start_container=_uses_container,
-            # container_dict=custom_config,
+            container_dict=custom_config,
             **_extra_launch_kwargs,
         )
 

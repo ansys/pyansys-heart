@@ -106,10 +106,15 @@ def test_get_fluent_meshing_session(monkeypatch):
 @pytest.mark.requires_fluent
 def test_get_fluent_meshing_session_container():
     """Test passing input arguments to the fluent meshing session launcher."""
-    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
-        mesher._uses_container = True
-        session = mesher._get_fluent_meshing_session(tmpdir)
-        assert session.is_server_healthy()
+    # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
+    import pathlib
+
+    tmp_path = pathlib.Path.home() / "test-pyfluent"
+    mesher._uses_container = True
+    session = mesher._get_fluent_meshing_session(tmp_path)
+    assert session.is_server_healthy()
+
+    os.removedirs(tmp_path)
 
 
 @pytest.mark.parametrize(

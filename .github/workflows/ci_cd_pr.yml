@@ -207,9 +207,7 @@ jobs:
       - name: Run Tox
         if: matrix.tests.needs_dpf
         run: |
-          docker ps
           uv tool run tox -e tests -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -- -m "${{ matrix.tests.markers }}" -vv
-          # docker logs <container id>
 
   build-library:
     name: "Build library"

@@ -267,8 +267,8 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
             start_transcript=False,
             ui_mode=_fluent_ui_mode,
             product_version=product_version,
-            # start_container=_uses_container,
-            container_dict=custom_config,
+            start_container=_uses_container,
+            # container_dict=custom_config,
             **_extra_launch_kwargs,
             dry_run=True,
         )
@@ -285,6 +285,14 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
             # container_dict=custom_config,
             **_extra_launch_kwargs,
         )
+
+        # For debugging Docker container.
+        import docker
+
+        container_id = session._fluent_connection.connection_properties.cortex_host
+        container = docker.containers.get(container_id)
+        logs = container.logs()
+        LOGGER.info(f"Docker LOGS: {logs}")
 
     else:
         num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus))

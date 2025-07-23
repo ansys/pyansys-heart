@@ -155,6 +155,8 @@ jobs:
     name: "Tests / ${{ matrix.tests.runner }} / Python ${{ matrix.python-version }} / ${{ matrix.tests.name }}"
     runs-on: ${{ matrix.tests.runner }}
     needs: code-style
+    env:
+      PYFLUENT_UI_MODE: "no_gui_or_graphics"
     strategy:
       fail-fast: false
       matrix:

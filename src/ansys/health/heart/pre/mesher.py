@@ -262,7 +262,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
             precision="double",
             processor_count=num_cpus,
             start_transcript=False,
-            ui_mode=_fluent_ui_mode,
+            # ui_mode=_fluent_ui_mode,  # disable ui mode when launching containerized version
             product_version=product_version,
             start_container=_uses_container,
             container_dict=custom_config,

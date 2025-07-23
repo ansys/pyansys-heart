@@ -52,7 +52,7 @@ _extra_launch_kwargs = {}
 # check whether containerized version of Fluent is used
 _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
 if _uses_container:
-    _supported_fluent_versions = ["24.2", "24.1"]
+    _supported_fluent_versions = ["25.2", "24.2", "24.1"]
 
 _fluent_ui_mode = pyfluent.UIMode(os.getenv("PYFLUENT_UI_MODE", pyfluent.UIMode.HIDDEN_GUI))
 

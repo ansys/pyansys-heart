@@ -24,6 +24,7 @@ import numpy as np
 import pytest
 import pyvista as pv
 
+from ansys.health.heart import __version__
 from ansys.health.heart.objects import Cap, Cavity, Mesh, SurfaceMesh
 from ansys.health.heart.parts import (
     Artery,
@@ -39,23 +40,38 @@ from ansys.health.heart.parts import (
 @pytest.mark.parametrize(
     "cls, name, expected_keys",
     [
-        (Part, "Part", ["version", "part-id", "part-type", "fiber", "active", "surfaces"]),
-        (Septum, "Septum", ["version", "part-id", "part-type", "fiber", "active", "surfaces"]),
-        (Artery, "Artery", ["version", "part-id", "part-type", "fiber", "active", "surfaces"]),
+        (
+            Part,
+            "Part",
+            ["part-id", "part-type", "fiber", "active", "_version", "surfaces"],
+        ),
+        (Septum, "Septum", ["part-id", "part-type", "fiber", "active", "_version", "surfaces"]),
+        (
+            Artery,
+            "Artery",
+            [
+                "part-id",
+                "part-type",
+                "fiber",
+                "active",
+                "_version",
+                "surfaces",
+            ],
+        ),
         (
             Myocardium,
             "Myocardium",
-            ["version", "part-id", "part-type", "fiber", "active", "surfaces"],
+            ["part-id", "part-type", "fiber", "active", "_version", "surfaces"],
         ),
         (
             Ventricle,
             "Ventricle",
-            ["version", "part-id", "part-type", "fiber", "active", "surfaces", "caps", "cavity"],
+            ["part-id", "part-type", "fiber", "active", "_version", "surfaces", "caps", "cavity"],
         ),
         (
             Atrium,
             "Atrium",
-            ["version", "part-id", "part-type", "fiber", "active", "surfaces", "caps", "cavity"],
+            ["part-id", "part-type", "fiber", "active", "_version", "surfaces", "caps", "cavity"],
         ),
     ],
 )
@@ -97,6 +113,9 @@ def test_part_get_info_with_data():
     assert info["Part1"]["surfaces"] == {"tube1": 10, "tube2": 11}
     assert info["Part1"]["caps"] == {"cap1": 100, "cap2": 101}
     assert info["Part1"]["cavity"] == {"cavity1": 1000}
+    assert info["Part1"]["fiber"] is True
+    assert info["Part1"]["active"] is True
+    assert info["Part1"].get("_version") == __version__
 
 
 def _get_mock_mesh1():

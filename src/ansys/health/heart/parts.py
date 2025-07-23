@@ -151,11 +151,11 @@ class Part:
         """Get part information to reconstruct from a mesh file."""
         data = {
             self.name: {
-                "version": __version__,
                 "part-id": self.pid,
                 "part-type": self._part_type.value,
                 "fiber": self.fiber,
                 "active": self.active,
+                "_version": __version__,
                 "surfaces": {},
             }
         }
@@ -214,6 +214,15 @@ class Part:
         name = next(iter(data), None)
 
         part_data: dict = data[name]
+
+        if not part_data.get("_version", None):
+            import json
+
+            json_str = json.dumps(Part()._to_dict(), indent=4)
+            LOGGER.error(
+                f"""Part data does not contain version information.
+                Consider regenerating the in the following format:\n{json_str}."""
+            )
 
         try:
             _part_type: str = _PartType(part_data.get("part-type", _PartType.UNDEFINED.value))

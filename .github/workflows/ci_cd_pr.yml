@@ -121,7 +121,7 @@ jobs:
 
       - name: "Build documentation"
         env:
-          PYANSYS_HEART_FLUENT_VERSION: 24.1
+          PYANSYS_HEART_FLUENT_VERSION: 25.2
           PYFLUENT_LAUNCH_CONTAINER: 0
           PYANSYS_HEART_LSDYNA_PATH: C:\Program Files\ANSYS Inc\LS-DYNA\R16.0\windows\mpp\intelmpi\ls-dyna_mpp_d_R16.0\ls-dyna_mpp_d_R16.0.exe
           PYANSYS_HEART_LSDYNA_TYPE: intelmpi
@@ -197,8 +197,6 @@ jobs:
 
       - name: Run Tox
         if: ${{ ! matrix.tests.needs_dpf }}
-        env:
-          PYFLUENT_UI_MODE: "hidden_gui"
         run: |
           uv tool run tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
 

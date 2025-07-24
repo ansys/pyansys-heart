@@ -15,9 +15,6 @@ env:
   DOCUMENTATION_CNAME: 'heart.health.docs.pyansys.com'
   LIBRARY_NAME: 'ansys-health-heart'
   ANSYSLMD_LICENSE_FILE: ${{ format('1055@{0}', secrets.LICENSE_SERVER) }}
-  PYFLUENT_START_INSTANCE: 0
-  PYFLUENT_LAUNCH_CONTAINER: 1
-  FLUENT_IMAGE_TAG: v24.2.0
 
 jobs:
 
@@ -45,7 +42,7 @@ jobs:
 
       - name: "Build documentation"
         env:
-          PYANSYS_HEART_FLUENT_VERSION: 24.1
+          PYANSYS_HEART_FLUENT_VERSION: 25.2
           PYFLUENT_LAUNCH_CONTAINER: 0
           PYANSYS_HEART_LSDYNA_PATH: C:\Program Files\ANSYS Inc\LS-DYNA\R16.0\windows\mpp\intelmpi\ls-dyna_mpp_d_R16.0\ls-dyna_mpp_d_R16.0.exe
           PYANSYS_HEART_LSDYNA_TYPE: intelmpi

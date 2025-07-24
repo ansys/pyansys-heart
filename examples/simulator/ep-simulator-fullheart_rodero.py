@@ -74,12 +74,18 @@ model.mesh.save(os.path.join(model.workdir, "simulation_model.vtu"))
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Instantiate the simulator and define settings.
 
+###############################################################################
+# .. note::
+#    The ``DynaSettings`` object supports several LS-DYNA versions and platforms,
+#    including ``smp``, ``intempi``, ``msmpi``, ``windows``, ``linux``, and ``wsl``.
+#    Choose the one that works for your setup.
+
 # Specify the LS-DYNA path. (The last tested working version is ``intelmpi-linux-DEV-106117``.)
 lsdyna_path = r"ls-dyna_msmpi.exe"
 
-# Instantiate DYNA settings.
+# Instantiate LS-DYNA settings.
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=4, platform="wsl"
+    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=4, platform="windows"
 )
 
 # Instantiate the simulator, modifying options as necessary.

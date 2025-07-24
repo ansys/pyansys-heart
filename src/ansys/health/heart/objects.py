@@ -581,11 +581,25 @@ class Mesh(pv.UnstructuredGrid):
             return None
 
     @property
-    def _unused_volume_id(self) -> np.ndarray:
+    def _unused_volume_id(self) -> int:
         """Get unused volume ID."""
         if self.volume_ids is None:
             return 1
         return int(np.max(self.volume_ids) + 1)
+
+    @property
+    def _unused_surface_id(self) -> int:
+        """Get unused surface ID."""
+        if self.surface_ids is None:
+            return 1
+        return int(np.max(self.surface_ids) + 1)
+
+    @property
+    def _unused_line_id(self) -> int:
+        """Get unused line ID."""
+        if self.line_ids is None:
+            return 1
+        return int(np.max(self.line_ids) + 1)
 
     @property
     def volume_names(self) -> List[str]:
@@ -769,6 +783,51 @@ class Mesh(pv.UnstructuredGrid):
             np.invert(np.isin(self.line_ids, list(self._line_id_to_name.keys())))
         ]
         return unmapped_ids
+
+    def get_unused_id_in_range(
+        self, id_type: Literal["volume", "surface", "line"], start: int = 1, end: int = 1000
+    ) -> int:
+        """
+        Get an unused ID within a specified range.
+
+        Parameters
+        ----------
+        id_type : Literal["volume", "surface", "line"]
+            The type of ID for which to retrieve an unused value.
+        start : int, default: 1
+            Start of the range (inclusive).
+        end : int, default: 1000
+            End of the range (inclusive).
+
+        Returns
+        -------
+        int
+            An unused and unique ID within the specified range.
+
+        Raises
+        ------
+        ValueError
+            If no unused ID is found in the specified range.
+
+        """
+        if id_type == "volume":
+            ids = self.volume_ids
+        elif id_type == "surface":
+            ids = self.surface_ids
+        elif id_type == "line":
+            ids = self.line_ids
+        else:
+            raise ValueError(f"Invalid id_type: {id_type}. Must be 'volume', 'surface', or 'line'.")
+
+        if ids is None:
+            return start
+
+        # Subtract existing IDs from IDs in range to get candidate IDs
+        candidate_ids = set(range(start, end + 1)) - set(ids)
+        if candidate_ids != {}:
+            return min(candidate_ids)
+        else:
+            raise ValueError(f"No unused ID found in the range {start} to {end}.")
 
     def save(self, filename: Union[str, pathlib.Path], **kwargs):
         """Save mesh."""

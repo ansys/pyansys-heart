@@ -38,6 +38,20 @@ else:
     is_windows = False
 
 
+@pytest.fixture
+def unset_env_vars(monkeypatch):
+    """Unset a set of environment variables for the duration of a test."""
+    vars_to_unset = [
+        "PYANSYS_HEART_LSDYNA_PATH",
+        "PYANSYS_HEART_LSDYNA_PLATFORM",
+        "PYANSYS_HEART_LSDYNA_TYPE",
+        "PYANSYS_HEART_NUM_CPU",
+        "TMP",
+    ]
+    for var in vars_to_unset:
+        monkeypatch.delenv(var, raising=False)
+
+
 @pytest.mark.parametrize(
     "dynatype",
     [
@@ -58,7 +72,7 @@ else:
         ),
     ],
 )
-def test_get_dyna_commands_001(dynatype, platform):
+def test_get_dyna_commands_001(dynatype, platform, unset_env_vars):
     """Test if get commands returns right command line if no additional options are given."""
     if dynatype == "msmpi" and platform != "windows":
         pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
@@ -107,7 +121,7 @@ def test_get_dyna_commands_001(dynatype, platform):
         ),
     ],
 )
-def test_get_dyna_commands_002(dynatype, platform):
+def test_get_dyna_commands_002(dynatype, platform, unset_env_vars):
     """Test if get commands returns right command line arguments if dyna options are given."""
     if dynatype == "msmpi" and platform != "windows":
         pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
@@ -171,7 +185,7 @@ def test_get_dyna_commands_002(dynatype, platform):
         ),
     ],
 )
-def test_get_dyna_commands_003(dynatype, platform):
+def test_get_dyna_commands_003(dynatype, platform, unset_env_vars):
     """Test if get commands returns right command line arguments if dyna and mpi options present."""
     if dynatype == "msmpi" and platform != "windows":
         pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
@@ -237,13 +251,14 @@ def test_get_dyna_commands_003(dynatype, platform):
         ),
     ],
 )
-def test_get_dyna_commands_004(dynatype, platform):
+def test_get_dyna_commands_004(dynatype, platform, unset_env_vars, monkeypatch):
     """Test if get commands returns right command line arguments if env variable is used."""
     if dynatype == "msmpi" and platform != "windows":
         pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
 
     # define some mock data to test expand vars
-    os.environ["TMP"] = "/some/tmp/directory/"
+    monkeypatch.setenv("TMP", "/some/tmp/directory/")
+
     mpi_options = "-hostfile $TMP"
 
     # define mock data

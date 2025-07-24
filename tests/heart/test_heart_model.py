@@ -37,7 +37,7 @@ from ansys.health.heart.objects import Mesh
 from ansys.health.heart.parts import _PartType
 
 
-def test_set_workdir():
+def test_set_workdir(monkeypatch):
     """Test setting the working directory."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         workdir = models._set_workdir(os.path.join(tempdir, "test"))
@@ -50,7 +50,7 @@ def test_set_workdir():
             workdir = models._set_workdir()
             assert workdir == os.path.join(tempdir, "test1")
 
-        os.environ["PYANSYS_HEART_WORKDIR"] = os.path.join(tempdir, "test2")
+        monkeypatch.setenv("PYANSYS_HEART_WORKDIR", os.path.join(tempdir, "test2"))
         workdir = models._set_workdir()
         assert workdir == os.path.join(tempdir, "test2")
 

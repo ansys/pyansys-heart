@@ -1190,8 +1190,7 @@ class HeartModel:
     def _assign_cavities_to_parts(self) -> None:
         """Create cavities based on endocardium surfaces and cap definitions."""
         # construct cavities with endocardium and caps
-        idoffset = 1000  # TODO: need to improve id checking
-        ii = 0
+        patch_counter = 0
 
         parts_with_cavities = [p for p in self.parts if isinstance(p, anatomy.Chamber)]
 
@@ -1214,9 +1213,6 @@ class HeartModel:
             surface: SurfaceMesh = SurfaceMesh(pv.merge(surfaces))
             surface.name = part.name + " cavity"
 
-            # save this cavity mesh to the centralized mesh object
-            surface.id = int(np.sort(self.mesh.surface_ids)[-1] + 1)  # get unique ID.
-
             # Generate patches that close the surface.
             patches = vtk_utils.get_patches_with_centroid(surface)
 
@@ -1225,12 +1221,15 @@ class HeartModel:
             # TODO: Note that points come from surface, and does not contain all points in the mesh.
             # Create Cap objects with patches.
             for patch in patches:
-                ii += 1
+                patch_counter += 1
 
-                cap_name = f"cap_{ii}_{part.name}"
+                cap_name = f"cap_{patch_counter}_{part.name}"
 
                 # create cap: NOTE, mostly for compatibility. Could simplify further
-                cap_mesh = SurfaceMesh(patch.clean(), name=cap_name, id=ii + idoffset)
+                unused_id = self.mesh.get_unused_id_in_range(
+                    id_type="surface", start=1001, end=2000
+                )
+                cap_mesh = SurfaceMesh(patch.clean(), name=cap_name, id=unused_id)
 
                 # Add cap to main mesh.
                 self.mesh.add_surface(cap_mesh, id=cap_mesh.id, name=cap_name)
@@ -1253,7 +1252,10 @@ class HeartModel:
             surface.cell_data["_cap_id"] = 0
             surface_cavity = SurfaceMesh(pv.merge([surface] + [cap._mesh for cap in part.caps]))
             surface_cavity.name = surface.name
-            surface_cavity.id = surface.id
+
+            surface_cavity.id = self.mesh.get_unused_id_in_range(
+                id_type="surface", start=1, end=1000
+            )
 
             #! Force normals of cavity surface to point inward.
             surface_cavity.force_normals_inwards()
@@ -1532,7 +1534,7 @@ class HeartModel:
             )
             eids = np.hstack((eids, eid_r))
 
-        part: anatomy.Part = self.create_part_by_ids(eids, "base")
+        part: anatomy.Part = self.create_part_by_ids(eids, "ventricular_base")
         part._part_type = anatomy._PartType.VENTRICLE
         part.fiber = False
         part.active = False
@@ -1630,9 +1632,9 @@ class FourChamber(HeartModel):
         #! Note that this only works since tetrahedrons are located
         #! at start of the mesh object.
         for part in self.parts:
-            if isinstance(part, anatomy.Ventricle):
+            if part._part_type == anatomy._PartType.VENTRICLE:
                 v_ele = np.append(v_ele, part.get_element_ids(self.mesh))
-            elif isinstance(part, anatomy.Atrium):
+            elif part._part_type == anatomy._PartType.ATRIUM:
                 a_ele = np.append(a_ele, part.get_element_ids(self.mesh))
 
         ventricles = self.mesh.extract_cells(v_ele)

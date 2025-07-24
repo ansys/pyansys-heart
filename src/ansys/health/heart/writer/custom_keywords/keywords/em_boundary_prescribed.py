@@ -27,7 +27,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmBoundaryPrescribed(KeywordBase):
-    """DYNA EM_BOUNDARY_PRESCRIBED keyword"""
+    """LS-DYNA EM_BOUNDARY_PRESCRIBED keyword"""
 
     keyword = "EM"
     subkeyword = "BOUNDARY_PRESCRIBED"

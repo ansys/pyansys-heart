@@ -631,8 +631,7 @@ class HeartModel:
             setattr(self, part._attribute_name, part)
         else:
             LOGGER.error(
-                f"Part with name {part.name} already exists as an attribute. "
-                "Please use a different name."
+                f"Part with name {part.name} already exists as an attribute. Use a different name."
             )
             return
         return
@@ -850,14 +849,14 @@ class HeartModel:
         filename_mesh : str
             Path to the VTU file containing the mesh.
         filename_part_info : str
-            Path to the JSON file that contains the part information for reconstructing the model..
+            Path to the JSON file that contains the part information for reconstructing the model.
         working_directory : pathlib.Path | str, default: None
             Working directory.
 
         Returns
         -------
         FullHeart | FourChamber | BiVentricle | LeftVentricle
-            A instance of HeartModel.
+            Instance of the heart model.
 
         Raises
         ------
@@ -866,9 +865,8 @@ class HeartModel:
 
         Notes
         -----
-        This method differs from the `load_model_from_mesh` method in that it
-        automatically infers the type of heart model based on the parts that
-        exist in part information. Hence no HeartModel instance needs to be created
+        This method differs from the ``load_model_from_mesh`` method in that it
+        relies on the part information. Hence, no HeartModel instance needs to be created
         before calling this method.
 
         Examples

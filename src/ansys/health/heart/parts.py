@@ -73,7 +73,7 @@ class Part:
 
     @property
     def _attribute_name(self):
-        """Get the equivalent attribute name of the part."""
+        """Equivalent attribute name of the part."""
         return self.name.lower().replace(" ", "_").replace("-", "_")
 
     def get_point(self, pointname: str) -> Point | None:
@@ -200,7 +200,7 @@ class Part:
             Dictionary that describes the part in JSON format.
         mesh : Mesh, optional
             Mesh object to use for reconstructing surfaces and cavities. If not provided,
-            the part will be created without surfaces and cavities.
+            the part is created without surfaces and cavities.
 
         Returns
         -------
@@ -221,7 +221,7 @@ class Part:
             json_str = json.dumps(Part()._to_dict(), indent=4)
             LOGGER.error(
                 f"""Part data does not contain version information.
-                Consider regenerating the in the following format:\n{json_str}."""
+                Consider regenerating in the following format:\n{json_str}."""
             )
 
         try:

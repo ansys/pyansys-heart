@@ -187,7 +187,7 @@ def test_load_model_arbitrary_part():
 
 
 def test_load_model():
-    """Test loading model from a mesh file and partinfo file."""
+    """Test loading model from a mesh file and part information file."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
         mesh_path = os.path.join(tmpdir, "mesh.vtu")
 
@@ -241,7 +241,7 @@ def test_load_model():
 
 
 def test_load_model_from_mesh():
-    """Test loading mesh from mesh file and id map."""
+    """Test loading mesh from mesh file and ID map."""
     # generate a dummy mesh.
 
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:

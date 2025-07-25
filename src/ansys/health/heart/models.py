@@ -808,7 +808,7 @@ class HeartModel:
         Returns
         -------
         tuple[str | pathlib.Path, str | pathlib.Path]
-            Path to the mesh and partinfo files.
+            Path to the mesh and part information files.
 
         Notes
         -----
@@ -991,7 +991,9 @@ class HeartModel:
         # TODO: part = Part(part_1.name, PartType(part_info[part_1.name]["part-type"]))
         for part_1 in self.parts:
             if part_1.name not in part_info:
-                LOGGER.warning(f"Skipping {part_1.name}. Not defined in the part information.")
+                LOGGER.warning(
+                    f"Skipping {part_1.name}. It is not defined in the part information."
+                )
                 continue
 
             #! try to add surfaces to part by using the pre-defined surfaces

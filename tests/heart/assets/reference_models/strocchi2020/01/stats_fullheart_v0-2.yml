@@ -21,7 +21,7 @@ PARTS:
         num_faces: 9409
       Right ventricle epicardium:
         num_faces: 10111
-      Right ventricle endocardium septum:
+      Right ventricle septum:
         num_faces: 2489
     CAPS:
       tricuspid-valve:

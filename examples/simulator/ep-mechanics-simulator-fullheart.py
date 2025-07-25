@@ -70,8 +70,7 @@ workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "F
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Load the full-heart model.
-model: models.FullHeart = models.FullHeart(working_directory=workdir)
-model.load_model_from_mesh(path_to_model, path_to_partinfo)
+model = models.HeartModel.load_model(path_to_model, path_to_partinfo, working_directory=workdir)
 
 ###############################################################################
 # Instantiate the simulator

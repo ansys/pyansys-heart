@@ -165,8 +165,9 @@ heart_model_vtu, heart_model_partinfo, _ = examples.get_preprocessed_fullheart()
 workdir = str(Path.home() / "pyansys-heart" / "Rodero2021")
 
 # Load a full-heart model.
-heartmodel: models.FullHeart = models.FullHeart(working_directory=workdir)
-heartmodel.load_model_from_mesh(heart_model_vtu, heart_model_partinfo)
+heartmodel: models.FullHeart = models.FullHeart.load_model(
+    heart_model_vtu, heart_model_partinfo, working_directory=workdir
+)
 
 heartmodel.plot_mesh(show_edges=False)
 

@@ -653,7 +653,7 @@ class MechanicsSimulator(BaseSimulator):
         folder_name="zeropressure",
         overwrite: bool = True,
         extra_k_files: list[str] | None = None,
-    ):
+    ) -> tuple[dict, np.ndarray, np.ndarray]:
         """Compute the stress-free configuration of the model.
 
         Parameters
@@ -664,6 +664,13 @@ class MechanicsSimulator(BaseSimulator):
             Whether to run simulation and overwrite files.
         extra_k_files : list[str], default: None
             User-defined k files.
+
+        Returns
+        -------
+        tuple[dict, np.ndarray, np.ndarray]
+            Dictionary with convergence information,
+            stress free configuration, and
+            (re)computed end-of-diastole configuration.
         """
         directory = os.path.join(self.root_directory, folder_name)
 
@@ -693,7 +700,7 @@ class MechanicsSimulator(BaseSimulator):
                 if isinstance(value, SurfaceMesh):
                     part.__setattr__(key, self.model.mesh.get_surface(value.id))
 
-        return
+        return report, stress_free_coord, guess_ed_coord
 
     def _write_main_simulation_files(
         self,

@@ -65,8 +65,9 @@ path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart(resolution="2.0m
 ###############################################################################
 # Load the full-heart model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
-model: models.FullHeart = models.FullHeart(working_directory=workdir)
-model.load_model_from_mesh(path_to_model, path_to_partinfo)
+model: models.FullHeart = models.FullHeart.load_model(
+    path_to_model, path_to_partinfo, working_directory=workdir
+)
 
 ###############################################################################
 # Create conduction paths for the Purkinje network

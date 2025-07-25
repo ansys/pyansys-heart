@@ -40,8 +40,10 @@ from tests.heart.conftest import get_assets_folder
 def get_left_ventricle():
     test_dir = os.path.join(get_assets_folder(), "post")
     path_to_model = os.path.join(test_dir, "model", "heart_model.vtu")
-    model: LeftVentricle = LeftVentricle(working_directory=test_dir)
-    model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
+    path_to_partinfo = path_to_model.replace(".vtu", ".partinfo.json")
+    model: LeftVentricle = LeftVentricle.load_model(
+        path_to_model, path_to_partinfo, working_directory=test_dir
+    )
 
     return test_dir, model
 
@@ -107,7 +109,11 @@ def test_zerop_post(get_left_ventricle):
     test_dir = get_left_ventricle[0]
     model = get_left_ventricle[1]
     dct = zerop_post(os.path.join(test_dir, "zerop"), model)
-    assert dct[0]["True left ventricle volume (mm3)"] == pytest.approx(118078.82768066938)
+    assert dct[0]["Cavity volumes"]["Left ventricle cavity"][
+        "true end diastolic volume (mm3)"
+    ] == pytest.approx(118078.82768066938)
+
+    assert os.path.isfile(os.path.join(test_dir, "zerop", "post", "Post_report.json"))
 
     # Cleanup
     folder = os.path.join(test_dir, "zerop", "post")

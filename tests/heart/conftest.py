@@ -199,9 +199,9 @@ def get_fourchamber() -> models.FourChamber:
         "heart_model.partinfo.json",
     )
 
-    model: models.FourChamber = models.FourChamber(working_directory=".")
-
-    model.load_model_from_mesh(vtu_file, json_file)
+    model: models.FourChamber = models.FourChamber.load_model(
+        vtu_file, json_file, working_directory="."
+    )
 
     return model
 
@@ -225,8 +225,8 @@ def get_fullheart() -> models.FullHeart:
         "heart_model.partinfo.json",
     )
 
-    model: models.FullHeart = models.FullHeart(working_directory=".")
-
-    model.load_model_from_mesh(vtu_file, json_file)
+    model: models.FullHeart = models.FullHeart.load_model(
+        vtu_file, json_file, working_directory="."
+    )
 
     return model

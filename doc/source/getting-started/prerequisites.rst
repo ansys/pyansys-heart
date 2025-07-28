@@ -27,7 +27,7 @@ Software
     - Link to download
 
   * - Ansys Fluent
-    - 2024 R1, 2024 R2, 2025 R1, 2025 R2
+    - 2025 R2, 2025 R1, 2024 R2, 2024 R1
     - Preprocessor
     - `Ansys Customer Portal`_
 

@@ -36,7 +36,7 @@ dependencies = [
     "pyvista>=0.44.1,<0.46",
     "scipy<=1.15.3",
     "validators>=0.34.0",
-    "vtk>=9.1.0,<9.4",
+    "vtk>=9.1.0,<9.6!=9.4.*",
     "httpx>=0.28.1",
     "natsort>=8.4.0",
     "rich>=13.9.4",

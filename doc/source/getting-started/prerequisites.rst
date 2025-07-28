@@ -56,7 +56,7 @@ Software
       - Link to download
 
     * - Ansys DPF Server
-      - 2025.2.rc0, 2024.1rc1, 2024.2rc0
+      - 2025.2.rc0,  2024.2rc0, 2024.1rc1
       - Postprocessor
       - `Ansys Customer Portal`_, `DPF Pre-Release <https://download.ansys.com/Others/DPF%20Pre-Release>`_
 

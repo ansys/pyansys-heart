@@ -473,8 +473,17 @@ class MechanicsDynaWriter(BaseDynaWriter):
             ]
 
             if isinstance(self, ZeroPressureMechanicsDynaWriter):
-                # add additional constraint to avoid rotation
-                constraint_caps.extend([CapType.PULMONARY_VALVE])
+                constraint_caps.extend(
+                    [
+                        # add additional constraint to avoid rotation
+                        CapType.PULMONARY_VALVE,
+                        # add additional constraint to on atrial
+                        CapType.INFERIOR_VENA_CAVA,
+                        CapType.LEFT_INFERIOR_PULMONARY_VEIN,
+                        CapType.LEFT_SUPERIOR_PULMONARY_VEIN,
+                        CapType.LEFT_ATRIUM_APPENDAGE,
+                    ]
+                )
 
         return constraint_caps
 

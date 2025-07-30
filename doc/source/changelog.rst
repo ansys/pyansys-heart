@@ -7,7 +7,7 @@ Release notes
 
 .. towncrier release notes start
 
-`0.14.0 <https://github.com/ansys/pyansys-heart/releases/tag/v0.14.0>`_ (July 28, 2025)
+`0.14.1 <https://github.com/ansys/pyansys-heart/releases/tag/v0.14.1>`_ (July 30, 2025)
 =======================================================================================
 
 .. tab-set::
@@ -90,6 +90,9 @@ Release notes
 
         * - Bump trame-vtk from 2.8.17 to 2.9.0
           - `#1158 <https://github.com/ansys/pyansys-heart/pull/1158>`_
+
+        * - Relax httpx version
+          - `#1181 <https://github.com/ansys/pyansys-heart/pull/1181>`_
 
 
   .. tab-item:: Maintenance

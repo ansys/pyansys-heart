@@ -57,23 +57,27 @@ def clean_up_temp_dirs():
             pass
 
 
+@mock.patch("ansys.health.heart.pre.mesher._get_supported_fluent_version", return_value="25.2")
 def test_get_fluent_meshing_session(monkeypatch):
     """Test passing input arguments to the fluent meshing session launcher."""
 
-    expected_keys = [
-        "mode",
-        "precision",
-        "processor_count",
-        "start_transcript",
-        "ui_mode",
-        "product_version",
-        "start_container",
-    ]
+    expected_keys = set(
+        [
+            "precision",
+            "processor_count",
+            "start_transcript",
+            "ui_mode",
+            "product_version",
+        ]
+    )
 
-    with mock.patch("ansys.health.heart.pre.mesher.pyfluent.launch_fluent") as mock_launch:
+    # Test Standalone mode:
+    # with mock.patch("ansys.health.heart.pre.mesher.pyfluent.launch_fluent") as mock_launch:
+    with mock.patch("ansys.fluent.core.session_utilities.PureMeshing.from_install") as mock_launch:
         mesher._uses_container = False
         mesher._get_fluent_meshing_session(".")
-        assert list(mock_launch.call_args.kwargs.keys()) == expected_keys
+        call_args = mock_launch.call_args.kwargs.keys()
+        assert expected_keys.issubset(set(call_args))
 
         # Set additional arguments
         mock_launch.reset_mock()
@@ -81,26 +85,37 @@ def test_get_fluent_meshing_session(monkeypatch):
         mesher._get_fluent_meshing_session(".")
         assert mock_launch.call_args.kwargs["additional_arguments"] == "-ssh"
 
-        # Set number of processors
-        monkeypatch.delenv(name="PYANSYS_HEART_NUM_CPU", raising=False)
-        mock_launch.reset_mock()
-        mesher._num_cpus = 4
-        mesher._get_fluent_meshing_session(".")
-        assert mock_launch.call_args.kwargs["processor_count"] == 4
+        # Set number of through global variable.
+        with pytest.MonkeyPatch.context() as monkeypatch:
+            monkeypatch.delenv(name="PYANSYS_HEART_NUM_CPU", raising=False)
+            mock_launch.reset_mock()
+            mesher._num_cpus = 4
+            mesher._get_fluent_meshing_session(".")
+            assert mock_launch.call_args.kwargs["processor_count"] == 4
 
         # Set number of processors through environment variable.
-        monkeypatch.setenv(name="PYANSYS_HEART_NUM_CPU", value="100")
-        mock_launch.reset_mock()
-        mesher._get_fluent_meshing_session(".")
-        assert mock_launch.call_args.kwargs["processor_count"] == 100
+        with pytest.MonkeyPatch.context() as monkeypatch:
+            monkeypatch.setenv(name="PYANSYS_HEART_NUM_CPU", value="100")
+            mock_launch.reset_mock()
+            mesher._get_fluent_meshing_session(".")
+            assert mock_launch.call_args.kwargs["processor_count"] == 100
 
+    # Test Container mode:
+    with mock.patch(
+        "ansys.fluent.core.session_utilities.PureMeshing.from_container"
+    ) as mock_launch:
         # Use container.
         mock_launch.reset_mock()
         mesher._uses_container = True
         mesher._get_fluent_meshing_session(".")
-        assert mock_launch.call_args.kwargs["processor_count"] == 1
-        assert mock_launch.call_args.kwargs["start_container"] is True
         assert mock_launch.call_args.kwargs["container_dict"]
+
+    # Test PIM mode:
+    with mock.patch("ansys.fluent.core.session_utilities.PureMeshing.from_pim") as mock_launch:
+        with mock.patch("ansys.platform.instancemanagement.is_configured", return_value=True):
+            mesher._get_fluent_meshing_session(".")
+            call_args = mock_launch.call_args.kwargs.keys()
+            assert expected_keys.issubset(set(call_args))
 
 
 @pytest.mark.parametrize(

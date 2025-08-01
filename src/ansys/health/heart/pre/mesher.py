@@ -41,6 +41,7 @@ from ansys.health.heart.utils.vtk_utils import (
     add_solid_name_to_stl,
     cell_ids_inside_enclosed_surface,
 )
+import ansys.platform.instancemanagement as pypim
 
 _supported_fluent_versions = ["25.2", "25.1", "24.2", "24.1"]
 """List of supported Fluent versions."""
@@ -48,6 +49,8 @@ _num_cpus: bool = 2
 """Number of CPUs to use for meshing."""
 _extra_launch_kwargs = {}
 """Extra keyword arguments passed to ``pyfluent.launch_fluent()``."""
+_fluent_version = None
+"""Global variable to explicitly override the Fluent version used."""
 
 # check whether containerized version of Fluent is used
 _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
@@ -84,12 +87,6 @@ def _get_supported_fluent_version() -> str:
         f"""Did not find a supported Fluent version.
         Install one of these versions: {_supported_fluent_versions}"""
     )
-
-
-try:
-    _fluent_version = _get_supported_fluent_version()
-except Exception:
-    _fluent_version = None
 
 
 def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list[str]:
@@ -244,6 +241,11 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
     # NOTE: when using containerized version - we need to copy all the files
     # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
 
+    # NOTE: There are three launch modes Fluent can be launched in:
+    # 1. LaunchMode.PIM: Fluent is launched using the Product Instance Management (PIM) service.
+    # 2. LaunchMode.CONTAINER: Fluent is launched in a container. (containerized mode)
+    # 3. LaunchMode.STANDALONE: Fluent is launched as a standalone application. (fallback mode)
+
     if _fluent_version is None:
         product_version = _get_supported_fluent_version()
     else:
@@ -251,36 +253,27 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
 
     LOGGER.info(f"Launching meshing session with {product_version}...")
 
-    if _uses_container:
-        num_cpus = 1
+    launch_config = {
+        "precision": pyfluent.Precision.DOUBLE,
+        "processor_count": _num_cpus,
+        "start_transcript": False,
+        "product_version": product_version,
+        "ui_mode": _fluent_ui_mode,
+    }
+
+    if pypim.is_configured():
+        session = pyfluent.PureMeshing.from_pim(**launch_config, **_extra_launch_kwargs)
+
+    elif _uses_container:
         custom_config = {
             "mount_source": f"{working_directory}",
             "mount_target": "/mnt/pyfluent/meshing",
         }
-
-        session = pyfluent.launch_fluent(
-            mode=pyfluent.FluentMode.MESHING,
-            precision=pyfluent.Precision.DOUBLE,
-            processor_count=num_cpus,
-            start_transcript=False,
-            product_version=product_version,
-            start_container=_uses_container,
-            container_dict=custom_config,
-            **_extra_launch_kwargs,
-        )
+        launch_config.update({"container_dict": custom_config})
+        session = pyfluent.PureMeshing.from_container(**launch_config, **_extra_launch_kwargs)
 
     else:
-        num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus))
-        session = pyfluent.launch_fluent(
-            mode=pyfluent.FluentMode.MESHING,
-            precision=pyfluent.Precision.DOUBLE,
-            processor_count=num_cpus,
-            start_transcript=False,
-            ui_mode=_fluent_ui_mode,
-            product_version=product_version,
-            start_container=_uses_container,
-            **_extra_launch_kwargs,
-        )
+        session = pyfluent.PureMeshing.from_install(**launch_config, **_extra_launch_kwargs)
 
     return session
 

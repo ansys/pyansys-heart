@@ -111,6 +111,7 @@ def test_get_fluent_meshing_session(monkeypatch):
         assert mock_launch.call_args.kwargs["container_dict"]
 
     # Test PIM mode:
+    expected_keys.remove("ui_mode")
     with mock.patch("ansys.fluent.core.session_utilities.PureMeshing.from_pim") as mock_launch:
         with mock.patch("ansys.platform.instancemanagement.is_configured", return_value=True):
             mesher._get_fluent_meshing_session(".")

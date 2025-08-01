@@ -251,11 +251,13 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
     else:
         product_version = _fluent_version
 
+    num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus))
+
     LOGGER.info(f"Launching meshing session with {product_version}...")
 
     launch_config = {
         "precision": pyfluent.Precision.DOUBLE,
-        "processor_count": _num_cpus,
+        "processor_count": num_cpus,
         "start_transcript": False,
         "product_version": product_version,
         "ui_mode": _fluent_ui_mode,

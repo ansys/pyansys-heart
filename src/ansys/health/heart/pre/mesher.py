@@ -46,6 +46,8 @@ import ansys.platform.instancemanagement as pypim
 
 _supported_fluent_versions = ["25.2", "25.1", "24.2", "24.1"]
 """List of supported Fluent versions."""
+_supported_fluent_versions_container = ["25.2", "24.2", "24.1"]
+
 _num_cpus: bool = 2
 """Number of CPUs to use for meshing."""
 _extra_launch_kwargs = {}
@@ -53,13 +55,8 @@ _extra_launch_kwargs = {}
 _fluent_version = None
 """Global variable to explicitly override the Fluent version used."""
 
-_launch_mode = None
+_launch_mode: LaunchMode = None
 """Fluent Launch mode."""
-
-# check whether containerized version of Fluent is used
-_uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
-if _uses_container:
-    _supported_fluent_versions = ["25.2", "24.2", "24.1"]
 
 _fluent_ui_mode = pyfluent.UIMode(os.getenv("PYFLUENT_UI_MODE", pyfluent.UIMode.HIDDEN_GUI))
 
@@ -249,6 +246,12 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
     # 1. LaunchMode.PIM: Fluent is launched using the Product Instance Management (PIM) service.
     # 2. LaunchMode.CONTAINER: Fluent is launched in a container. (containerized mode)
     # 3. LaunchMode.STANDALONE: Fluent is launched as a standalone application. (fallback mode)
+
+    # check whether containerized version of Fluent is used
+    global _uses_container
+    _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
+    if _uses_container:
+        _supported_fluent_versions = _supported_fluent_versions_container
 
     if _fluent_version is None:
         product_version = _get_supported_fluent_version()

@@ -105,10 +105,10 @@ def test_get_fluent_meshing_session(monkeypatch):
         "ansys.fluent.core.session_utilities.PureMeshing.from_container"
     ) as mock_launch:
         # Use container.
-        mock_launch.reset_mock()
-        mesher._uses_container = True
-        mesher._get_fluent_meshing_session(".")
-        assert mock_launch.call_args.kwargs["container_dict"]
+        with pytest.MonkeyPatch.context() as monkeypatch:
+            monkeypatch.setenv(name="PYFLUENT_LAUNCH_CONTAINER", value="1")
+            mesher._get_fluent_meshing_session(".")
+            assert mock_launch.call_args.kwargs["container_dict"]
 
     # Test PIM mode:
     expected_keys.remove("ui_mode")

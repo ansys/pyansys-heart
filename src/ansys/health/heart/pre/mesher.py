@@ -268,6 +268,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
     }
 
     if pypim.is_configured():
+        del launch_config["ui_mode"]
         session = pyfluent.PureMeshing.from_pim(**launch_config, **_extra_launch_kwargs)
         _launch_mode = LaunchMode.PIM
 
@@ -284,6 +285,8 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
     else:
         session = pyfluent.PureMeshing.from_install(**launch_config, **_extra_launch_kwargs)
         _launch_mode = LaunchMode.STANDALONE
+
+    LOGGER.debug(f"Fluent Launch mode: {_launch_mode}")
 
     return session
 
@@ -880,14 +883,8 @@ def mesh_from_non_manifold_input_model(
             os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
         )
 
-        # # import stls
-        if _uses_container:
-            # NOTE: when using a Fluent container visible files
-            # will be in /mnt/pyfluent. So need to use relative paths
-            # or replace dirname by /mnt/pyfluent as prefix
-            work_dir_meshing = "/mnt/pyfluent/meshing"
-
-        elif _launch_mode == LaunchMode.PIM:
+        # Handle PIM and containerized modes.
+        if pypim.is_configured():
             # NOTE: when using PIM: files need to be explicitly transferred to the instance
             files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
             instance_name = session._base_meshing._fluent_connection._remote_instance.name.replace(
@@ -897,6 +894,12 @@ def mesh_from_non_manifold_input_model(
             # Also upload files to the instances working directory.
             for file in files:
                 session.upload(file)
+
+        if _uses_container:
+            # NOTE: when using a Fluent container visible files
+            # will be in /mnt/pyfluent. So need to use relative paths
+            # or replace dirname by /mnt/pyfluent as prefix
+            work_dir_meshing = "/mnt/pyfluent/meshing"
 
         session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
 

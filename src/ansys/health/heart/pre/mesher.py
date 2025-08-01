@@ -290,7 +290,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
         session = pyfluent.PureMeshing.from_install(**launch_config, **_extra_launch_kwargs)
         _launch_mode = LaunchMode.STANDALONE
 
-    LOGGER.debug(f"Fluent Launch mode: {_launch_mode} with config: {launch_config}")
+    LOGGER.info(f"Fluent Launch mode: {_launch_mode} with config: {launch_config}")
 
     return session
 

@@ -874,12 +874,14 @@ def mesh_from_non_manifold_input_model(
         # launch pyfluent
         session = _get_fluent_meshing_session(work_dir_meshing)
 
+        LOGGER.info(f"Starting Fluent Meshing in mode: {_launch_mode}")
+
         session.transcript.start(
             os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
         )
 
         # # import stls
-        if _launch_mode == LaunchMode.CONTAINER:
+        if _uses_container:
             # NOTE: when using a Fluent container visible files
             # will be in /mnt/pyfluent. So need to use relative paths
             # or replace dirname by /mnt/pyfluent as prefix
@@ -988,7 +990,7 @@ def mesh_from_non_manifold_input_model(
 
         LOGGER.info(f"Writing mesh to {path_to_output}...")
 
-        if _launch_mode == LaunchMode.CONTAINER:
+        if _uses_container:
             session.tui.file.write_mesh(os.path.basename(path_to_output))
         else:
             session.tui.file.write_mesh('"' + path_to_output + '"')

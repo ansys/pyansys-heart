@@ -271,7 +271,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
     }
 
     if pypim.is_configured():
-        launch_config = {k: v for k, v in launch_config.items() if "ui_mode" not in k}
+        launch_config["ui_mode"] = None
         LOGGER.info(f"Using PIM to launch Fluent: {launch_config}")
         session = pyfluent.PureMeshing.from_pim(**launch_config, **_extra_launch_kwargs)
         _launch_mode = LaunchMode.PIM

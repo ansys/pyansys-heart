@@ -56,6 +56,7 @@ if _uses_container:
 
 _fluent_ui_mode = pyfluent.UIMode(os.getenv("PYFLUENT_UI_MODE", pyfluent.UIMode.HIDDEN_GUI))
 
+
 LOGGER.debug(f"Fluent user interface mode: {_fluent_ui_mode.value}")
 
 
@@ -258,8 +259,8 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
         }
 
         session = pyfluent.launch_fluent(
-            mode="meshing",
-            precision="double",
+            mode=pyfluent.FluentMode.MESHING,
+            precision=pyfluent.Precision.DOUBLE,
             processor_count=num_cpus,
             start_transcript=False,
             product_version=product_version,
@@ -271,8 +272,8 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
     else:
         num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus))
         session = pyfluent.launch_fluent(
-            mode="meshing",
-            precision="double",
+            mode=pyfluent.FluentMode.MESHING,
+            precision=pyfluent.Precision.DOUBLE,
             processor_count=num_cpus,
             start_transcript=False,
             ui_mode=_fluent_ui_mode,

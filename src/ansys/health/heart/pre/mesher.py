@@ -58,6 +58,9 @@ _fluent_version = None
 _launch_mode: LaunchMode = None
 """Fluent Launch mode."""
 
+_uses_container: bool = False
+"""Global variable to switch to Fluent container mode."""
+
 _fluent_ui_mode = pyfluent.UIMode(os.getenv("PYFLUENT_UI_MODE", pyfluent.UIMode.HIDDEN_GUI))
 
 
@@ -248,7 +251,6 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
     # 3. LaunchMode.STANDALONE: Fluent is launched as a standalone application. (fallback mode)
 
     # check whether containerized version of Fluent is used
-    global _uses_container
     _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
     if _uses_container:
         _supported_fluent_versions = _supported_fluent_versions_container

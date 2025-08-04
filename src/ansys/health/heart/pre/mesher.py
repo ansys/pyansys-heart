@@ -894,13 +894,15 @@ def mesh_from_non_manifold_input_model(
         )
 
         # Handle PIM and containerized modes.
-        if pypim.is_configured():
+        if _launch_mode == LaunchMode.PIM:
             # NOTE: when using PIM: files need to be explicitly transferred to the instance
             files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
             instance_name = session._base_meshing._fluent_connection._remote_instance.name.replace(
                 "instances/", ""
             )
+            path_to_output_old = path_to_output
             work_dir_meshing = os.path.join(os.getcwd(), instance_name)
+            path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
 
             # Also upload files to the instances working directory.
             LOGGER.info(f"Uploading files to PIM instance {work_dir_meshing}...")
@@ -918,8 +920,6 @@ def mesh_from_non_manifold_input_model(
             # will be in /mnt/pyfluent. So need to use relative paths
             # or replace dirname by /mnt/pyfluent as prefix
             work_dir_meshing = "/mnt/pyfluent/meshing"
-
-        work_dir_meshing
 
         session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
 
@@ -1013,14 +1013,14 @@ def mesh_from_non_manifold_input_model(
 
         LOGGER.info(f"Writing mesh to {path_to_output}...")
 
-        if _uses_container:
+        if _uses_container or _launch_mode == LaunchMode.PIM:
             session.tui.file.write_mesh(os.path.basename(path_to_output))
         else:
             session.tui.file.write_mesh('"' + path_to_output + '"')
 
         session.exit()
 
-        shutil.copy(path_to_output, path_to_output_old)
+        shutil.copy2(path_to_output, path_to_output_old)
 
         path_to_output = path_to_output_old
     else:

@@ -522,7 +522,9 @@ class SimulationSettings:
 
         >>> settings1 = SimulationSettings()
         >>> settings1.load("my_settings.yml")
-        >>> print("True" if settings.mechanics.analysis == settings1.mechanics.analysis else "False")
+        >>> print(
+        ...     "True" if settings.mechanics.analysis == settings1.mechanics.analysis else "False"
+        ... )
         True
 
         """

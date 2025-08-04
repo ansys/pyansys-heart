@@ -894,19 +894,20 @@ def mesh_from_non_manifold_input_model(
         )
 
         # Handle PIM and containerized modes.
-        if _launch_mode == LaunchMode.PIM:
+        if pypim.is_configured():
             # NOTE: when using PIM: files need to be explicitly transferred to the instance
             files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
             instance_name = session._base_meshing._fluent_connection._remote_instance.name.replace(
                 "instances/", ""
             )
             work_dir_meshing = os.path.join(os.getcwd(), instance_name)
+
             # Also upload files to the instances working directory.
             LOGGER.info(f"Uploading files to PIM instance {work_dir_meshing}...")
             for file in files:
-                session.upload(file)
+                # session.upload(file)
                 try:
-                    shutil.copy(file, work_dir_meshing)
+                    shutil.copy2(file, work_dir_meshing)
                 except Exception as e:
                     LOGGER.warning(f"Failed to copy {file} to {work_dir_meshing}: {e}")
 

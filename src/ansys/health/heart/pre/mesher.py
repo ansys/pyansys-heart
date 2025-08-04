@@ -900,7 +900,6 @@ def mesh_from_non_manifold_input_model(
             instance_name = session._base_meshing._fluent_connection._remote_instance.name.replace(
                 "instances/", ""
             )
-            path_to_output_old = path_to_output
             work_dir_meshing = os.path.join(os.getcwd(), instance_name)
             path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
 
@@ -1020,7 +1019,8 @@ def mesh_from_non_manifold_input_model(
 
         session.exit()
 
-        shutil.copy2(path_to_output, path_to_output_old)
+        LOGGER.info(f"Copying {path_to_output} to {path_to_output_old}...")
+        shutil.copy(path_to_output, path_to_output_old)
 
         path_to_output = path_to_output_old
     else:

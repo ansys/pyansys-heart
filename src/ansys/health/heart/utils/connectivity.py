@@ -127,9 +127,11 @@ def get_face_type(faces: np.ndarray, face_cell_connectivity: np.ndarray) -> np.n
     face_types[interior_face_ids] = 1
     face_types[boundary_face_ids] = 2
     num_assigned = np.sum(boundary_face_ids) + np.sum(interior_face_ids)
-    assert num_assigned == faces.shape[0], (
-        "Not all faces are assigned as either interior or boundary."
-    )
+    if num_assigned != faces.shape[0]:
+        un_assigned = faces.shape[0] - num_assigned
+        raise Exception(
+            f"Not all faces are assigned a type. {un_assigned}/{faces.shape[0]} are not assigned."
+        )
     return face_types
 
 

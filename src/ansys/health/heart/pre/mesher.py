@@ -898,14 +898,18 @@ def mesh_from_non_manifold_input_model(
             )
             work_dir_meshing = os.path.join(os.getcwd(), instance_name)
             # Also upload files to the instances working directory.
+            LOGGER.info(f"Uploading files to PIM instance working directory {work_dir_meshing}...")
             for file in files:
-                session.upload(file)
+                # session.upload(file)
+                shutil.copy(file, work_dir_meshing)
 
         if _uses_container:
             # NOTE: when using a Fluent container visible files
             # will be in /mnt/pyfluent. So need to use relative paths
             # or replace dirname by /mnt/pyfluent as prefix
             work_dir_meshing = "/mnt/pyfluent/meshing"
+
+        work_dir_meshing
 
         session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
 

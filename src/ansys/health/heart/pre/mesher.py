@@ -894,7 +894,7 @@ def mesh_from_non_manifold_input_model(
         )
 
         # Handle PIM and containerized modes.
-        if pypim.is_configured():
+        if _launch_mode == LaunchMode.PIM:
             # NOTE: when using PIM: files need to be explicitly transferred to the instance
             files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
             instance_name = session._base_meshing._fluent_connection._remote_instance.name.replace(
@@ -902,12 +902,17 @@ def mesh_from_non_manifold_input_model(
             )
             work_dir_meshing = os.path.join(os.getcwd(), instance_name)
             # Also upload files to the instances working directory.
-            LOGGER.info(f"Uploading files to PIM instance working directory {work_dir_meshing}...")
+            LOGGER.info(f"Uploading files to PIM instance {work_dir_meshing}...")
             for file in files:
-                # session.upload(file)
-                shutil.copy(file, work_dir_meshing)
+                session.upload(file)
+                try:
+                    shutil.copy(file, work_dir_meshing)
+                except Exception as e:
+                    LOGGER.warning(f"Failed to copy {file} to {work_dir_meshing}: {e}")
 
-        if _uses_container:
+            work_dir_meshing = "."
+
+        if _launch_mode == LaunchMode.CONTAINER:
             # NOTE: when using a Fluent container visible files
             # will be in /mnt/pyfluent. So need to use relative paths
             # or replace dirname by /mnt/pyfluent as prefix

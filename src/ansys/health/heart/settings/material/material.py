@@ -56,9 +56,11 @@ class ISO:
     def __post_init__(self):
         """Test inputs."""
         if self.k1 is not None and self.k2 is not None:
-            assert abs(self.itype) == 3  # must be HGO model
+            if abs(self.itype) != 3:  # must be HGO model
+                raise ValueError(f"ITYPE {self.itype} not compatible with k1 and k2.")
         elif self.mu1 is not None and self.alpha1 is not None:
-            assert abs(self.itype) == 1  # must be Odgen model
+            if abs(self.itype) != 1:  # must be Odgen model
+                raise ValueError(f"ITYPE {self.itype} not compatible with mu1 and alpha1.")
         else:
             raise ValueError("ISO input is invalid.")
 

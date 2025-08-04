@@ -522,7 +522,7 @@ class SimulationSettings:
 
         >>> settings1 = SimulationSettings()
         >>> settings1.load("my_settings.yml")
-        >>> assert settings.mechanics.analysis == settings1.mechanics.analysis
+        >>> settings.mechanics.analysis == settings1.mechanics.analysis
         True
 
         """

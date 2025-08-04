@@ -251,6 +251,10 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
     # 3. LaunchMode.STANDALONE: Fluent is launched as a standalone application. (fallback mode)
 
     # check whether containerized version of Fluent is used
+    global _uses_container
+    global _launch_mode
+    global _supported_fluent_versions
+
     _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
     if _uses_container:
         _supported_fluent_versions = _supported_fluent_versions_container

@@ -1012,7 +1012,7 @@ def mesh_from_non_manifold_input_model(
 
         LOGGER.info(f"Writing mesh to {path_to_output}...")
 
-        if _uses_container or _launch_mode == LaunchMode.PIM:
+        if _launch_mode in [LaunchMode.CONTAINER, LaunchMode.PIM]:
             session.tui.file.write_mesh(os.path.basename(path_to_output))
         else:
             session.tui.file.write_mesh('"' + path_to_output + '"')

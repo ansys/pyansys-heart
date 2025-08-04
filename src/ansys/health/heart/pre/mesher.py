@@ -272,11 +272,12 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
 
     if pypim.is_configured():
         launch_config["ui_mode"] = None
-        LOGGER.info(f"Using PIM to launch Fluent: {launch_config}")
+        LOGGER.info(f"Launching Fluent in PIM-mode with config: {launch_config}")
         session = pyfluent.PureMeshing.from_pim(**launch_config, **_extra_launch_kwargs)
         _launch_mode = LaunchMode.PIM
 
     elif _uses_container:
+        LOGGER.info(f"Launching Fluent in Container mode with config: {launch_config}")
         custom_config = {
             "mount_source": f"{working_directory}",
             "mount_target": "/mnt/pyfluent/meshing",
@@ -287,10 +288,9 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
         _launch_mode = LaunchMode.CONTAINER
 
     else:
+        LOGGER.info(f"Launching Fluent in Standalone mode with config: {launch_config}")
         session = pyfluent.PureMeshing.from_install(**launch_config, **_extra_launch_kwargs)
         _launch_mode = LaunchMode.STANDALONE
-
-    LOGGER.info(f"Fluent Launch mode: {_launch_mode} with config: {launch_config}")
 
     return session
 

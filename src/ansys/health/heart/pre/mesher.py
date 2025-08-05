@@ -1020,6 +1020,13 @@ def mesh_from_non_manifold_input_model(
         session.exit()
 
         LOGGER.info(f"Copying {path_to_output} to {path_to_output_old}...")
+
+        if _launch_mode == LaunchMode.PIM:
+            # add delay to ensure the file is available
+            from time import sleep
+
+            sleep(10)
+
         shutil.copy2(path_to_output, path_to_output_old)
 
         path_to_output = path_to_output_old

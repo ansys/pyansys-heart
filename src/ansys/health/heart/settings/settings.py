@@ -911,6 +911,8 @@ def _get_consistent_units_str(dimensions: set):
 def _windows_to_wsl_path(windows_path: str):
     """Convert Windows to WSL path."""
     win_path = Path(windows_path)
+    if isinstance(win_path, pathlib.PosixPath):
+        return None
     wsl_mount = ("/mnt/" + win_path.drive.replace(":", "")).lower()
     return win_path.as_posix().replace(win_path.drive, wsl_mount)
 

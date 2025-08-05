@@ -322,6 +322,7 @@ def test_purkinje_settings(default_allsettings: SimulationSettings):
     assert node_origin_right == 2
 
 
+@pytest.mark.xfail(condition=os.name == "posix", reason="Windows-specific test")
 def test_windows_path_to_wsl_path():
     """Test conversion of Windows path to WSL path."""
     assert _windows_to_wsl_path("C:\\Program Files\\LS-DYNA") == "/mnt/c/Program Files/LS-DYNA"

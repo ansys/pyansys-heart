@@ -312,7 +312,7 @@ class LaplaceWriter(BaseDynaWriter):
         raa_ids = np.array(tree.query_ball_point(self.landmarks["raa"], self._LANDMARK_RADIUS))
         if len(raa_ids) == 0:
             LOGGER.error("No node is identified as right atrium appendage apex.")
-            exit()
+            raise ValueError("No node is identified as right atrium appendage apex.")
 
         kw = create_node_set_keyword(raa_ids + 1, node_set_id=11, title="raa")
         self.kw_database.node_sets.append(kw)

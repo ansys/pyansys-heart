@@ -29,6 +29,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.exceptions import D3PlotNotSupportedError
 from ansys.health.heart.post.dpf_utils import D3plotReader
 from ansys.health.heart.settings.settings import AtrialFiber
 
@@ -68,7 +69,7 @@ def read_laplace_solution(
             t = t[::3]
         else:
             LOGGER.error("Failed to read d3plot.")
-            exit()
+            raise D3PlotNotSupportedError("Failed to read d3plot.")
 
         grid.point_data[name] = np.array(t, dtype=float)
 

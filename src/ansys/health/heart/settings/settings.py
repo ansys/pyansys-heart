@@ -35,7 +35,11 @@ from pint import Quantity, UnitRegistry
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.exceptions import MPIProgamNotFoundError, WSLNotFoundError
+from ansys.health.heart.exceptions import (
+    LSDYNANotFoundError,
+    MPIProgamNotFoundError,
+    WSLNotFoundError,
+)
 from ansys.health.heart.settings.defaults import (
     electrophysiology as ep_defaults,
     fibers as fibers_defaults,
@@ -968,6 +972,15 @@ class DynaSettings:
         LOGGER.info(
             f"path: {self.lsdyna_path} | type: {self.dynatype} | platform: {self.platform} | cpus: {self.num_cpus}"  # noqa: E501
         )
+
+        # Ensure path to LS-DYNA executable is absolute
+        ls_dyna_abs_path = shutil.which(self.lsdyna_path)
+        if ls_dyna_abs_path is None:
+            raise LSDYNANotFoundError(
+                f"LS-DYNA executable not found at {ls_dyna_abs_path}. Please check the path."
+            )
+
+        self.lsdyna_path: pathlib.Path = ls_dyna_abs_path
 
         return
 

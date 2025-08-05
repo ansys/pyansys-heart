@@ -38,6 +38,19 @@ else:
     is_windows = False
 
 
+# Mock function to simulate the behavior of shutil.which
+def _which_side_effects(arg):
+    if arg == "my-dyna-path.exe":
+        return "my-dyna-path.exe"
+    elif arg == "mpirun":
+        return "mpirun"
+    elif arg == "mpiexec":
+        return "mpiexec"
+    elif arg == "wsl.exe":
+        return "wsl"
+    return None
+
+
 @pytest.fixture
 def unset_env_vars(monkeypatch):
     """Unset a set of environment variables for the duration of a test."""
@@ -77,15 +90,16 @@ def test_get_dyna_commands_001(dynatype, platform, unset_env_vars):
     if dynatype == "msmpi" and platform != "windows":
         pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
 
-    # define mock data
-    settings = DynaSettings(
-        lsdyna_path="my-dyna-path.exe",
-        dynatype=dynatype,
-        num_cpus=2,
-        platform=platform,
-    )
+    # Mock shutil.which to get the right side effect.
+    with mock.patch("shutil.which", side_effect=_which_side_effects):
+        # define mock data
+        settings = DynaSettings(
+            lsdyna_path="my-dyna-path.exe",
+            dynatype=dynatype,
+            num_cpus=2,
+            platform=platform,
+        )
 
-    with mock.patch("shutil.which", return_value="mpirun"):
         commands = settings.get_commands("path-to-input.k")
 
     if platform == "wsl":

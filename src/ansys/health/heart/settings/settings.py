@@ -27,8 +27,8 @@ from dataclasses import asdict, dataclass, field
 import json
 import os
 import pathlib
+from pathlib import Path
 import shutil
-import subprocess
 from typing import List, Literal
 
 from pint import Quantity, UnitRegistry
@@ -908,6 +908,13 @@ def _get_consistent_units_str(dimensions: set):
     return "*".join(_to_units)
 
 
+def _windows_to_wsl_path(windows_path: str):
+    """Convert Windows to WSL path."""
+    win_path = Path(windows_path)
+    wsl_mount = ("/mnt/" + win_path.drive.replace(":", "")).lower()
+    return win_path.as_posix().replace(win_path.drive, wsl_mount)
+
+
 class DynaSettings:
     """Class for collecting, managing, and validating LS-DYNA settings."""
 
@@ -1038,23 +1045,9 @@ class DynaSettings:
             if wsl_exe_path is None:
                 raise WSLNotFoundError("wsl.exe not found. Please install WSL.")
 
-            path_to_input_wsl = (
-                subprocess.run(
-                    [wsl_exe_path, "wslpath", os.path.basename(path_to_input)],
-                    capture_output=1,
-                )
-                .stdout.decode()
-                .strip()
-            )
-            # redefines LS-DYNA path.
-            lsdyna_path = (
-                subprocess.run(
-                    [wsl_exe_path, "wslpath", str(lsdyna_path).replace("\\", "/")],
-                    capture_output=1,
-                )
-                .stdout.decode()
-                .strip()
-            )
+            # Convert paths to WSL compatible paths.
+            path_to_input_wsl = _windows_to_wsl_path(path_to_input)
+            lsdyna_path = _windows_to_wsl_path(self.lsdyna_path)
 
             if self.dynatype in ["intelmpi", "platformmpi", "msmpi"]:
                 commands = [

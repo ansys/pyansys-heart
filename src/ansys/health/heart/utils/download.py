@@ -304,10 +304,11 @@ def unpack_case(tar_path: Path, reduce_size: bool = True) -> str | bool:
                 members = tar_ball.getmembers()
 
             # Validate members
-            unsafe = [m for m in members if not _is_safe_tar_member(m, tar_dir)]
-            if unsafe:
+            unsafe_members = [m for m in members if not _is_safe_tar_member(m, tar_dir)]
+            if unsafe_members:
+                names = [m.name for m in unsafe_members]
                 raise ValueError(
-                    f"Unsafe tar members detected in {tar_path}: {[m.name for m in unsafe]}"
+                    f"Unsafe tar members detected in '{tar_path}': {names}"
                 )
 
             tar_ball.extractall(path=tar_dir, members=members)

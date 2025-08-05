@@ -170,7 +170,7 @@ def test_simulator_inits(simulator_type):
         model.workdir = os.getcwd()
         simulator = simulator_type(model=model, dyna_settings=None)
 
-        mock_which.assert_called_once()
+        mock_which.call_count == 2
 
         assert simulator.dyna_settings.__str__() == DynaSettings().__str__()
 

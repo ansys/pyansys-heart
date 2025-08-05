@@ -1020,7 +1020,7 @@ def mesh_from_non_manifold_input_model(
         session.exit()
 
         LOGGER.info(f"Copying {path_to_output} to {path_to_output_old}...")
-        shutil.copy(path_to_output, path_to_output_old)
+        shutil.copy2(path_to_output, path_to_output_old)
 
         path_to_output = path_to_output_old
     else:

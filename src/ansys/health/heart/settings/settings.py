@@ -912,10 +912,10 @@ class DynaSettings:
         """Find whether mpiexec or mpirun are available."""
         # preference for mpirun if it is added to PATH. mpiexec is the fallback option.
         if shutil.which("mpirun"):
-            return "mpirun"
+            return shutil.which("mpirun")
         elif shutil.which("mpiexec"):
             LOGGER.debug("mpirun not found. Using mpiexec.")
-            return "mpiexec"
+            return shutil.which("mpiexec")
         else:
             raise MPIProgamNotFoundError("mpirun or mpiexec not found. Please configure MPI.")
 

@@ -153,7 +153,7 @@ def extract_model(request):
     model: models.HeartModel = model_type(working_directory=workdir)
 
     if not isinstance(model, (models.BiVentricle, models.FullHeart)):
-        exit()
+        raise ValueError("Model type must be BiVentricle or FullHeart.")
 
     model.load_input(input_vtp, part_definitions, "boundary-id")
     # model.mesh_volume(wrapper=True) # could use this: but requires fluent

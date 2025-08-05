@@ -840,7 +840,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             if cap.centroid is not None:
                 if cap._node_set_id is None:
                     LOGGER.error("Cap nodeset ID is not yet assigned.")
-                    exit()
+                    raise ValueError("Cap nodeset ID is not yet assigned.")
 
                 constraint = keywords.ConstrainedInterpolation(
                     icid=len(cap_names_used) + 1,

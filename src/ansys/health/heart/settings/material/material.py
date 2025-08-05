@@ -119,7 +119,7 @@ class ANISO:
         # check if legal
         if len(self.fibers) != 1 and len(self.fibers) != 2:
             LOGGER.error("No. of fiber must be 1 or 2.")
-            exit()
+            raise ValueError("No. of fibers must be 1 or 2.")
 
         # deduce input
         self.nf = len(self.fibers)
@@ -128,8 +128,8 @@ class ANISO:
             if len(self.fibers) == 2:
                 self.intype = 1
             else:
-                LOGGER.error("One fiber cannot have interaction.")
-                exit()
+                LOGGER.error("One fiber cannot have an interaction term.")
+                raise ValueError("One fiber cannot have an interaction term.")
         else:
             self.intype = 0
 

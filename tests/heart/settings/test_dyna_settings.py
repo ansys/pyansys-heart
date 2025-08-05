@@ -140,16 +140,16 @@ def test_get_dyna_commands_002(dynatype, platform, unset_env_vars):
     if dynatype == "msmpi" and platform != "windows":
         pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
 
-    # define mock data
-    settings = DynaSettings(
-        lsdyna_path="my-dyna-path.exe",
-        dynatype=dynatype,
-        num_cpus=2,
-        platform=platform,
-        dyna_options="memory=1000",
-    )
+    with mock.patch("shutil.which", side_effect=_which_side_effects):
+        # define mock data
+        settings = DynaSettings(
+            lsdyna_path="my-dyna-path.exe",
+            dynatype=dynatype,
+            num_cpus=2,
+            platform=platform,
+            dyna_options="memory=1000",
+        )
 
-    with mock.patch("shutil.which", return_value="mpirun"):
         commands = settings.get_commands("path-to-input.k")
 
     if platform == "wsl":
@@ -204,16 +204,17 @@ def test_get_dyna_commands_003(dynatype, platform, unset_env_vars):
     if dynatype == "msmpi" and platform != "windows":
         pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
 
-    # define mock data
-    settings = DynaSettings(
-        lsdyna_path="my-dyna-path.exe",
-        dynatype=dynatype,
-        num_cpus=2,
-        platform=platform,
-        dyna_options="memory=1000",
-        mpi_options="-hostfile myhostfile",
-    )
-    with mock.patch("shutil.which", return_value="mpirun"):
+    with mock.patch("shutil.which", side_effect=_which_side_effects):
+        # define mock data
+        settings = DynaSettings(
+            lsdyna_path="my-dyna-path.exe",
+            dynatype=dynatype,
+            num_cpus=2,
+            platform=platform,
+            dyna_options="memory=1000",
+            mpi_options="-hostfile myhostfile",
+        )
+
         commands = settings.get_commands("path-to-input.k")
 
     if platform == "wsl":
@@ -276,16 +277,15 @@ def test_get_dyna_commands_004(dynatype, platform, unset_env_vars, monkeypatch):
     mpi_options = "-hostfile $TMP"
 
     # define mock data
-    settings = DynaSettings(
-        lsdyna_path="my-dyna-path.exe",
-        dynatype=dynatype,
-        num_cpus=2,
-        platform=platform,
-        dyna_options="memory=1000",
-        mpi_options=mpi_options,
-    )
-
-    with mock.patch("shutil.which", return_value="mpirun"):
+    with mock.patch("shutil.which", side_effect=_which_side_effects):
+        settings = DynaSettings(
+            lsdyna_path="my-dyna-path.exe",
+            dynatype=dynatype,
+            num_cpus=2,
+            platform=platform,
+            dyna_options="memory=1000",
+            mpi_options=mpi_options,
+        )
         commands = settings.get_commands("path-to-input.k")
 
     if platform == "wsl":

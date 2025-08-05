@@ -1021,9 +1021,10 @@ class DynaSettings:
             ]
 
         elif self.platform == "wsl":
+            wsl_exe_path = "C:\\Program Files\\WSL\\wsl.exe"
             path_to_input_wsl = (
                 subprocess.run(
-                    ["wsl", "wslpath", os.path.basename(path_to_input)],
+                    [wsl_exe_path, "wslpath", os.path.basename(path_to_input)],
                     capture_output=1,
                 )
                 .stdout.decode()
@@ -1032,7 +1033,7 @@ class DynaSettings:
             # redefines LS-DYNA path.
             lsdyna_path = (
                 subprocess.run(
-                    ["wsl", "wslpath", str(lsdyna_path).replace("\\", "/")],
+                    [wsl_exe_path, "wslpath", str(lsdyna_path).replace("\\", "/")],
                     capture_output=1,
                 )
                 .stdout.decode()
@@ -1066,7 +1067,7 @@ class DynaSettings:
             commands = [
                 "powershell",
                 "-Command",
-                "wsl",
+                wsl_exe_path,
                 "-e",
                 "bash",
                 "-lic",

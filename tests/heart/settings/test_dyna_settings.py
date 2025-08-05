@@ -42,6 +42,8 @@ else:
 def _which_side_effects(arg):
     if arg == "my-dyna-path.exe":
         return "my-dyna-path.exe"
+    elif arg == "my-dyna-path1.exe":
+        return "my-dyna-path1.exe"
     elif arg == "mpirun":
         return "mpirun"
     elif arg == "mpiexec":
@@ -317,23 +319,25 @@ def test_get_dyna_commands_004(dynatype, platform, unset_env_vars, monkeypatch):
     assert commands == expected
 
 
-def test_modify_settings_from_env_variables(monkeypatch):
+def test_modify_settings_from_env_variables(monkeypatch, unset_env_vars):
     """Test to ensure proper override from environment variables."""
-    settings = DynaSettings(lsdyna_path="my-dyna-path.exe", dynatype="intelmpi", num_cpus=2)
 
-    assert settings.lsdyna_path == "my-dyna-path.exe"
-    assert settings.dynatype == "intelmpi"
-    assert settings.num_cpus == 2
+    with mock.patch("shutil.which", side_effect=_which_side_effects):
+        settings = DynaSettings(lsdyna_path="my-dyna-path.exe", dynatype="intelmpi", num_cpus=2)
 
-    # temporarily set the environment variables
-    monkeypatch.setenv("PYANSYS_HEART_LSDYNA_PATH", "new-dyna-path.exe")
-    monkeypatch.setenv("PYANSYS_HEART_LSDYNA_PLATFORM", "wsl")
-    monkeypatch.setenv("PYANSYS_HEART_LSDYNA_TYPE", "msmpi")
-    monkeypatch.setenv("PYANSYS_HEART_NUM_CPU", "4")
+        assert settings.lsdyna_path == "my-dyna-path.exe"
+        assert settings.dynatype == "intelmpi"
+        assert settings.num_cpus == 2
 
-    settings = DynaSettings()
+        # temporarily set the environment variables
+        monkeypatch.setenv("PYANSYS_HEART_LSDYNA_PATH", "my-dyna-path1.exe")
+        monkeypatch.setenv("PYANSYS_HEART_LSDYNA_PLATFORM", "wsl")
+        monkeypatch.setenv("PYANSYS_HEART_LSDYNA_TYPE", "msmpi")
+        monkeypatch.setenv("PYANSYS_HEART_NUM_CPU", "4")
 
-    assert settings.lsdyna_path == "new-dyna-path.exe"
-    assert settings.platform == "wsl"
-    assert settings.dynatype == "msmpi"
-    assert settings.num_cpus == 4
+        settings = DynaSettings()
+
+        assert settings.lsdyna_path == "my-dyna-path1.exe"
+        assert settings.platform == "wsl"
+        assert settings.dynatype == "msmpi"
+        assert settings.num_cpus == 4

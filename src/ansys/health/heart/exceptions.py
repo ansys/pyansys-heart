@@ -64,3 +64,7 @@ class LSDYNANotFoundError(FileNotFoundError):
 
 class MPIProgamNotFoundError(FileNotFoundError):
     """Exception raised when MPI program is not found."""
+
+
+class WSLNotFoundError(FileNotFoundError):
+    """Exception raised when WSL executable is not found."""

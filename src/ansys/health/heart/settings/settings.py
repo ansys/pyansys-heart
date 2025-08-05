@@ -35,7 +35,7 @@ from pint import Quantity, UnitRegistry
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.exceptions import MPIProgamNotFoundError
+from ansys.health.heart.exceptions import MPIProgamNotFoundError, WSLNotFoundError
 from ansys.health.heart.settings.defaults import (
     electrophysiology as ep_defaults,
     fibers as fibers_defaults,
@@ -1021,7 +1021,10 @@ class DynaSettings:
             ]
 
         elif self.platform == "wsl":
-            wsl_exe_path = "C:\\Program Files\\WSL\\wsl.exe"
+            wsl_exe_path = shutil.which("wsl.exe")
+            if wsl_exe_path is None:
+                raise WSLNotFoundError("wsl.exe not found. Please install WSL.")
+
             path_to_input_wsl = (
                 subprocess.run(
                     [wsl_exe_path, "wslpath", os.path.basename(path_to_input)],

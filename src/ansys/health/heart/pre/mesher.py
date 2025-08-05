@@ -1025,9 +1025,25 @@ def mesh_from_non_manifold_input_model(
             # add delay to ensure the file is available
             from time import sleep
 
-            sleep(10)
+            download_time_out = 60
+            file_found = False
+            for ii in range(download_time_out):
+                if os.path.isfile(path_to_output):
+                    LOGGER.info(f"File {path_to_output} found, copying...")
+                    file_found = True
+                    break
+                sleep(1)
+                LOGGER.info(f"File {path_to_output} not found, retrying...")
 
-        shutil.copy(path_to_output, path_to_output_old)
+            if file_found:
+                shutil.copy(path_to_output, path_to_output_old)
+            else:
+                raise FileNotFoundError(
+                    f"File {path_to_output} not found after {download_time_out} seconds."
+                )
+
+        else:
+            shutil.copy(path_to_output, path_to_output_old)
 
         path_to_output = path_to_output_old
     else:

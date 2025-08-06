@@ -991,6 +991,9 @@ class DynaSettings:
 
         self.lsdyna_path: pathlib.Path = ls_dyna_abs_path
 
+        if self.platform == "wsl" and os.name != "nt":
+            raise WSLNotFoundError("""WSL is not supported on non-Windows platforms.""")
+
         return
 
     def get_commands(self, path_to_input: pathlib.Path) -> List[str]:

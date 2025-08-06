@@ -992,7 +992,7 @@ class DynaSettings:
         self.lsdyna_path: pathlib.Path = ls_dyna_abs_path
 
         if self.platform == "wsl" and os.name != "nt":
-            raise WSLNotFoundError("""WSL is not supported on non-Windows platforms.""")
+            raise WSLNotFoundError(f"""WSL is not supported on {os.name}.""")
 
         return
 

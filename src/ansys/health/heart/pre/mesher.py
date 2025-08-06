@@ -1017,8 +1017,6 @@ def mesh_from_non_manifold_input_model(
         else:
             session.tui.file.write_mesh('"' + path_to_output + '"')
 
-        session.exit()
-
         LOGGER.info(f"Copying {path_to_output} to {path_to_output_old}...")
 
         if _launch_mode == LaunchMode.PIM:
@@ -1028,22 +1026,31 @@ def mesh_from_non_manifold_input_model(
             download_time_out = 60
             file_found = False
             for ii in range(download_time_out):
-                if os.path.isfile(path_to_output):
-                    LOGGER.info(f"File {path_to_output} found, copying...")
-                    file_found = True
-                    break
                 sleep(1)
-                LOGGER.info(f"File {path_to_output} not found, retrying...")
+                try:
+                    session.download(os.path.basename(path_to_output), path_to_output_old)
+                    if os.path.isfile(path_to_output_old):
+                        LOGGER.info(f"File downloaded successfully to {path_to_output_old}.")
+                        file_found = True
+                        break
+                    else:
+                        LOGGER.warning(f"File {os.path.basename(path_to_output)} not found.")
+                except Exception as e:
+                    LOGGER.warning(f"Failed to download file: {e}")
+                    continue
 
             if file_found:
-                shutil.copy(path_to_output, path_to_output_old)
+                LOGGER.info(f"File copied successfully to {path_to_output_old}.")
             else:
                 raise FileNotFoundError(
-                    f"File {path_to_output} not found after {download_time_out} seconds."
+                    f"""File {os.path.basename(path_to_output)} failed to
+                    download after {download_time_out} seconds."""
                 )
 
         else:
             shutil.copy(path_to_output, path_to_output_old)
+
+        session.exit()
 
         path_to_output = path_to_output_old
     else:

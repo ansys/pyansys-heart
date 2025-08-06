@@ -331,13 +331,13 @@ def test_modify_settings_from_env_variables(monkeypatch, unset_env_vars):
 
         # temporarily set the environment variables
         monkeypatch.setenv("PYANSYS_HEART_LSDYNA_PATH", "my-dyna-path1.exe")
-        monkeypatch.setenv("PYANSYS_HEART_LSDYNA_PLATFORM", "wsl")
-        monkeypatch.setenv("PYANSYS_HEART_LSDYNA_TYPE", "msmpi")
+        monkeypatch.setenv("PYANSYS_HEART_LSDYNA_PLATFORM", "linux")
+        monkeypatch.setenv("PYANSYS_HEART_LSDYNA_TYPE", "platformmpi")
         monkeypatch.setenv("PYANSYS_HEART_NUM_CPU", "4")
 
         settings = DynaSettings()
 
         assert settings.lsdyna_path == "my-dyna-path1.exe"
-        assert settings.platform == "wsl"
-        assert settings.dynatype == "msmpi"
+        assert settings.platform == "linux"
+        assert settings.dynatype == "platformmpi"
         assert settings.num_cpus == 4

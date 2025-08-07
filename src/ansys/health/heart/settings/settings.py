@@ -984,7 +984,11 @@ class DynaSettings:
 
         # Ensure path to LS-DYNA executable is absolute
         ls_dyna_abs_path = shutil.which(self.lsdyna_path)
-        if ls_dyna_abs_path is None:
+
+        if self.platform == "wsl":
+            ls_dyna_abs_path = str(Path(self.lsdyna_path).resolve())
+
+        if ls_dyna_abs_path is None or not Path(ls_dyna_abs_path).is_file():
             raise LSDYNANotFoundError(
                 f"LS-DYNA executable not found at {ls_dyna_abs_path}. Please check the path."
             )

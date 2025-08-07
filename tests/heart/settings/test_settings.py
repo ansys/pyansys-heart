@@ -328,3 +328,7 @@ def test_windows_path_to_wsl_path():
     assert _windows_to_wsl_path("C:\\Program Files\\LS-DYNA") == "/mnt/c/Program Files/LS-DYNA"
     assert _windows_to_wsl_path("D:\\") == "/mnt/d/"
     assert _windows_to_wsl_path("D:\\dev") == "/mnt/d/dev"
+
+    assert (
+        _windows_to_wsl_path("\\wsl.localhost\\Ubuntu\\home\\user\\project") == "/home/user/project"
+    )

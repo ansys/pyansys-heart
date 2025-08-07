@@ -195,11 +195,12 @@ def test_base_simulator_load_default_settings():
     """Test loading defaults."""
     from ansys.health.heart.settings.settings import SimulationSettings
 
-    with mock.patch.object(shutil, "which", return_value=1):  # bypass check lsdyna path
-        # test init
-        model = mock.MagicMock()
-        simulator = simulators.BaseSimulator(model=model, dyna_settings=None)
-        simulator.load_default_settings() == SimulationSettings()
+    with mock.patch("pathlib.Path.is_file", return_value=True):
+        with mock.patch.object(shutil, "which", return_value=""):  # bypass check lsdyna path
+            # test init
+            model = mock.MagicMock()
+            simulator = simulators.BaseSimulator(model=model, dyna_settings=None)
+            simulator.load_default_settings() == SimulationSettings()
 
 
 def test_base_simulator_fiber(_mocked_methods):
@@ -214,26 +215,27 @@ def test_base_simulator_fiber(_mocked_methods):
 
     mock_writer = mock.MagicMock()
 
-    with mock.patch.object(shutil, "which", return_value=1):
-        simulator = simulators.BaseSimulator(model=mock_model, dyna_settings=None)
-        simulator.load_default_settings()
+    with mock.patch("pathlib.Path.is_file", return_value=True):
+        with mock.patch.object(shutil, "which", return_value=""):
+            simulator = simulators.BaseSimulator(model=mock_model, dyna_settings=None)
+            simulator.load_default_settings()
 
-        with mock.patch(
-            "ansys.health.heart.writer.FiberGenerationDynaWriter",
-            return_value=mock_writer,
-        ):
-            simulator.compute_fibers()
+            with mock.patch(
+                "ansys.health.heart.writer.FiberGenerationDynaWriter",
+                return_value=mock_writer,
+            ):
+                simulator.compute_fibers()
 
-        _mock_run_dyna.assert_called_once()
-        _mock_read_orth.assert_called_once()
+            _mock_run_dyna.assert_called_once()
+            _mock_read_orth.assert_called_once()
 
-        with mock.patch(
-            "ansys.health.heart.simulator.BaseSimulator._compute_fibers_drbm",
-        ) as mock_drbm:
-            simulator.dyna_settings.dynatype = "smp"
-            simulator.compute_fibers(method="D-RBM")
+            with mock.patch(
+                "ansys.health.heart.simulator.BaseSimulator._compute_fibers_drbm",
+            ) as mock_drbm:
+                simulator.dyna_settings.dynatype = "smp"
+                simulator.compute_fibers(method="D-RBM")
 
-        mock_drbm.assert_called_once()
+            mock_drbm.assert_called_once()
 
 
 @pytest.mark.parametrize("settings", [None, mock.Mock(DynaSettings)])

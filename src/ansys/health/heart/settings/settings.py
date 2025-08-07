@@ -913,8 +913,18 @@ def _windows_to_wsl_path(windows_path: str):
     win_path = Path(windows_path)
     if isinstance(win_path, pathlib.PosixPath):
         return None
-    wsl_mount = ("/mnt/" + win_path.drive.replace(":", "")).lower()
-    return win_path.as_posix().replace(win_path.drive, wsl_mount)
+
+    if "\\wsl.localhost" in str(win_path):
+        new_path = Path(*win_path.parts[3:])
+        new_path = "/" + new_path.as_posix()
+        return new_path
+
+    elif win_path.drive != "":
+        wsl_mount = ("/mnt/" + win_path.drive.replace(":", "")).lower()
+        wsl_mount = wsl_mount.replace("//wsl.localhost/", "")
+        return win_path.as_posix().replace(win_path.drive, wsl_mount)
+
+    return None
 
 
 class DynaSettings:

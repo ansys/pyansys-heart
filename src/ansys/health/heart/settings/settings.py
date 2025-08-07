@@ -914,8 +914,8 @@ def _windows_to_wsl_path(windows_path: str):
     if isinstance(win_path, pathlib.PosixPath):
         return None
 
-    if "\\wsl.localhost" in str(win_path):
-        new_path = Path(*win_path.parts[3:])
+    if "\\\\wsl.localhost" in str(win_path):
+        new_path = Path(*win_path.parts[1:])
         new_path = "/" + new_path.as_posix()
         return new_path
 

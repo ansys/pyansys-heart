@@ -921,7 +921,6 @@ def _windows_to_wsl_path(windows_path: str):
 
     elif win_path.drive != "":
         wsl_mount = ("/mnt/" + win_path.drive.replace(":", "")).lower()
-        wsl_mount = wsl_mount.replace("//wsl.localhost/", "")
         return win_path.as_posix().replace(win_path.drive, wsl_mount)
 
     return None

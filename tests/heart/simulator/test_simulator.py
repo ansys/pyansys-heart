@@ -164,15 +164,16 @@ def test_compute_uvc(base_simulator, mock_laplace):
 def test_simulator_inits(simulator_type):
     """Test inits of all simulators."""
     # mock which
-    with mock.patch.object(shutil, "which", return_value=1) as mock_which:
-        # test init
-        model = mock.MagicMock(spec=models.FourChamber)
-        model.workdir = os.getcwd()
-        simulator = simulator_type(model=model, dyna_settings=None)
+    with mock.patch("pathlib.Path.is_file", return_value=True):
+        with mock.patch.object(shutil, "which", return_value="") as mock_which:
+            # test init
+            model = mock.MagicMock(spec=models.FourChamber)
+            model.workdir = os.getcwd()
+            simulator = simulator_type(model=model, dyna_settings=None)
 
-        mock_which.call_count == 2
+            mock_which.call_count == 2
 
-        assert simulator.dyna_settings.__str__() == DynaSettings().__str__()
+            assert simulator.dyna_settings.__str__() == DynaSettings().__str__()
 
 
 @pytest.fixture()

@@ -70,5 +70,9 @@ class MPIProgamNotFoundError(FileNotFoundError):
     """Exception raised when MPI program is not found."""
 
 
+class WSLNotFoundError(FileNotFoundError):
+    """Exception raised when WSL executable is not found."""
+
+
 class MissingEnvironmentVariableError(EnvironmentError):
     """Exception raised when a required environment variable is missing."""

@@ -301,6 +301,11 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
 
         case LaunchMode.CONTAINER:
             LOGGER.info(f"Launching Fluent in Container mode with config: {launch_config}")
+            launch_config["container_dict"] = {
+                "mount_source": transfer_strategy.mount_source,
+                "mount_target": transfer_strategy.mount_target,
+            }
+            del launch_config["file_transfer_service"]
             launch_config["ui_mode"] = pyfluent.UIMode.NO_GUI_OR_GRAPHICS
             session = pyfluent.PureMeshing.from_container(**launch_config, **_extra_launch_kwargs)
 

@@ -93,16 +93,17 @@ def test_get_dyna_commands_001(dynatype, platform, unset_env_vars):
         pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
 
     # Mock shutil.which to get the right side effect.
-    with mock.patch("shutil.which", side_effect=_which_side_effects):
-        # define mock data
-        settings = DynaSettings(
-            lsdyna_path="my-dyna-path.exe",
-            dynatype=dynatype,
-            num_cpus=2,
-            platform=platform,
-        )
+    with mock.patch("pathlib.Path.is_file", return_value=True):
+        with mock.patch("shutil.which", side_effect=_which_side_effects):
+            # define mock data
+            settings = DynaSettings(
+                lsdyna_path="my-dyna-path.exe",
+                dynatype=dynatype,
+                num_cpus=2,
+                platform=platform,
+            )
 
-        commands = settings.get_commands("path-to-input.k")
+            commands = settings.get_commands("path-to-input.k")
 
     if platform == "wsl":
         expected = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
@@ -142,17 +143,18 @@ def test_get_dyna_commands_002(dynatype, platform, unset_env_vars):
     if dynatype == "msmpi" and platform != "windows":
         pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
 
-    with mock.patch("shutil.which", side_effect=_which_side_effects):
-        # define mock data
-        settings = DynaSettings(
-            lsdyna_path="my-dyna-path.exe",
-            dynatype=dynatype,
-            num_cpus=2,
-            platform=platform,
-            dyna_options="memory=1000",
-        )
+    with mock.patch("pathlib.Path.is_file", return_value=True):
+        with mock.patch("shutil.which", side_effect=_which_side_effects):
+            # define mock data
+            settings = DynaSettings(
+                lsdyna_path="my-dyna-path.exe",
+                dynatype=dynatype,
+                num_cpus=2,
+                platform=platform,
+                dyna_options="memory=1000",
+            )
 
-        commands = settings.get_commands("path-to-input.k")
+            commands = settings.get_commands("path-to-input.k")
 
     if platform == "wsl":
         expected = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
@@ -206,18 +208,19 @@ def test_get_dyna_commands_003(dynatype, platform, unset_env_vars):
     if dynatype == "msmpi" and platform != "windows":
         pytest.skip("MSMPI and %s are not compatible and does not make sense to test." % platform)
 
-    with mock.patch("shutil.which", side_effect=_which_side_effects):
-        # define mock data
-        settings = DynaSettings(
-            lsdyna_path="my-dyna-path.exe",
-            dynatype=dynatype,
-            num_cpus=2,
-            platform=platform,
-            dyna_options="memory=1000",
-            mpi_options="-hostfile myhostfile",
-        )
+    with mock.patch("pathlib.Path.is_file", return_value=True):
+        with mock.patch("shutil.which", side_effect=_which_side_effects):
+            # define mock data
+            settings = DynaSettings(
+                lsdyna_path="my-dyna-path.exe",
+                dynatype=dynatype,
+                num_cpus=2,
+                platform=platform,
+                dyna_options="memory=1000",
+                mpi_options="-hostfile myhostfile",
+            )
 
-        commands = settings.get_commands("path-to-input.k")
+            commands = settings.get_commands("path-to-input.k")
 
     if platform == "wsl":
         expected = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
@@ -279,16 +282,17 @@ def test_get_dyna_commands_004(dynatype, platform, unset_env_vars, monkeypatch):
     mpi_options = "-hostfile $TMP"
 
     # define mock data
-    with mock.patch("shutil.which", side_effect=_which_side_effects):
-        settings = DynaSettings(
-            lsdyna_path="my-dyna-path.exe",
-            dynatype=dynatype,
-            num_cpus=2,
-            platform=platform,
-            dyna_options="memory=1000",
-            mpi_options=mpi_options,
-        )
-        commands = settings.get_commands("path-to-input.k")
+    with mock.patch("pathlib.Path.is_file", return_value=True):
+        with mock.patch("shutil.which", side_effect=_which_side_effects):
+            settings = DynaSettings(
+                lsdyna_path="my-dyna-path.exe",
+                dynatype=dynatype,
+                num_cpus=2,
+                platform=platform,
+                dyna_options="memory=1000",
+                mpi_options=mpi_options,
+            )
+            commands = settings.get_commands("path-to-input.k")
 
     if platform == "wsl":
         expected = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
@@ -322,22 +326,23 @@ def test_get_dyna_commands_004(dynatype, platform, unset_env_vars, monkeypatch):
 def test_modify_settings_from_env_variables(monkeypatch, unset_env_vars):
     """Test to ensure proper override from environment variables."""
 
-    with mock.patch("shutil.which", side_effect=_which_side_effects):
-        settings = DynaSettings(lsdyna_path="my-dyna-path.exe", dynatype="intelmpi", num_cpus=2)
+    with mock.patch("pathlib.Path.is_file", return_value=True):
+        with mock.patch("shutil.which", side_effect=_which_side_effects):
+            settings = DynaSettings(lsdyna_path="my-dyna-path.exe", dynatype="intelmpi", num_cpus=2)
 
-        assert settings.lsdyna_path == "my-dyna-path.exe"
-        assert settings.dynatype == "intelmpi"
-        assert settings.num_cpus == 2
+            assert settings.lsdyna_path == "my-dyna-path.exe"
+            assert settings.dynatype == "intelmpi"
+            assert settings.num_cpus == 2
 
-        # temporarily set the environment variables
-        monkeypatch.setenv("PYANSYS_HEART_LSDYNA_PATH", "my-dyna-path1.exe")
-        monkeypatch.setenv("PYANSYS_HEART_LSDYNA_PLATFORM", "linux")
-        monkeypatch.setenv("PYANSYS_HEART_LSDYNA_TYPE", "platformmpi")
-        monkeypatch.setenv("PYANSYS_HEART_NUM_CPU", "4")
+            # temporarily set the environment variables
+            monkeypatch.setenv("PYANSYS_HEART_LSDYNA_PATH", "my-dyna-path1.exe")
+            monkeypatch.setenv("PYANSYS_HEART_LSDYNA_PLATFORM", "linux")
+            monkeypatch.setenv("PYANSYS_HEART_LSDYNA_TYPE", "platformmpi")
+            monkeypatch.setenv("PYANSYS_HEART_NUM_CPU", "4")
 
-        settings = DynaSettings()
+            settings = DynaSettings()
 
-        assert settings.lsdyna_path == "my-dyna-path1.exe"
-        assert settings.platform == "linux"
-        assert settings.dynatype == "platformmpi"
-        assert settings.num_cpus == 4
+            assert settings.lsdyna_path == "my-dyna-path1.exe"
+            assert settings.platform == "linux"
+            assert settings.dynatype == "platformmpi"
+            assert settings.num_cpus == 4

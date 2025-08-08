@@ -750,16 +750,27 @@ def mesh_from_manifold_input_model(
 
         session.tui.mesh.prepare_for_solve("yes")
 
-        # write to file
+        LOGGER.info(f"Writing mesh to {path_to_output}...")
 
-        if _uses_container:
+        if _launch_mode in [LaunchMode.CONTAINER, LaunchMode.PIM]:
             session.tui.file.write_mesh(os.path.basename(path_to_output))
         else:
             session.tui.file.write_mesh('"' + path_to_output + '"')
-        session.exit()
 
-        if path_to_output != path_to_output_old:
+        LOGGER.info(f"Copying {path_to_output} to {path_to_output_old}...")
+
+        if _launch_mode == LaunchMode.PIM:
+            session.download(os.path.basename(path_to_output), path_to_output_old)
+        else:
             shutil.copy(path_to_output, path_to_output_old)
+
+        if not os.path.isfile(path_to_output_old):
+            raise FileNotFoundError(
+                f"Failed to copy {os.path.basename(path_to_output)} to {path_to_output_old}. "
+                "Please check the Fluent meshing log for errors."
+            )
+
+        session.exit()
 
         path_to_output = path_to_output_old
     else:

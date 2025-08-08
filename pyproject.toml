@@ -23,7 +23,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "ansys-dpf-core>=0.13.6",
+    "ansys-dpf-core>=0.13.6,<0.14",
     "ansys-fluent-core>=0.30.0",
     "deprecated>=1.2.18",
     "ansys.dyna.core>=0.7.1",
@@ -59,7 +59,7 @@ doc = [
     "sphinxcontrib-video==0.4.1",
     "sphinx_design",
     "pyvista[jupyter]==0.45.3",
-    "trame-vtk==2.9.0"
+    "trame-vtk==2.9.1"
 ]
 tests = [
     "pytest==8.4.1",

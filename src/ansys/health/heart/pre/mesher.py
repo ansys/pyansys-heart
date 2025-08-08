@@ -912,7 +912,7 @@ def mesh_from_non_manifold_input_model(
         LOGGER.info(f"Uploading files to session with working directory {work_dir_meshing}...")
         files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
 
-        if _launch_mode in [LaunchMode.PIM]:
+        if _launch_mode in [LaunchMode.PIM, LaunchMode.CONTAINER]:
             for file in files:
                 session.upload(file)
 

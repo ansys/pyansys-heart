@@ -440,7 +440,7 @@ class HeartModel:
         )
         if self._input is None:
             LOGGER.error("Failed to initialize input model. Check the input arguments.")
-            exit()
+            raise ValueError("Failed to initialize input model.")
         return
 
     # TODO: add working example in docstring, e.g. by using an existing model.

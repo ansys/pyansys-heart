@@ -125,21 +125,16 @@ def test_get_fluent_meshing_session_container(monkeypatch):
                 "start_transcript",
                 "ui_mode",
                 "product_version",
-                "file_transfer_service",
+                "container_dict",
             ]
         )
         with mock.patch(
-            "ansys.health.heart.pre.mesher.file_transfer_service.ContainerFileTransferStrategy.__init__",
-            return_value=None,
-        ) as mock_transfer_service:
-            with mock.patch(
-                "ansys.fluent.core.session_utilities.PureMeshing.from_container"
-            ) as mock_launch:
-                # Use container.
-                mesher._get_fluent_meshing_session(".")
-                call_args = set(mock_launch.call_args.kwargs.keys())
-                assert expected_keys.issubset(call_args)
-                mock_transfer_service.assert_called_once()
+            "ansys.fluent.core.session_utilities.PureMeshing.from_container"
+        ) as mock_launch:
+            # Use container.
+            mesher._get_fluent_meshing_session(".")
+            call_args = set(mock_launch.call_args.kwargs.keys())
+            assert expected_keys.issubset(call_args)
 
 
 @pytest.mark.parametrize(

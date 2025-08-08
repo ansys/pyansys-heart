@@ -23,7 +23,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "ansys-dpf-core>=0.13.6,<0.15",
+    "ansys-dpf-core>=0.13.6,!=0.14.0,<0.15",
     "ansys-fluent-core>=0.30.0",
     "deprecated>=1.2.18",
     "ansys.dyna.core>=0.7.1",

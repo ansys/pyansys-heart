@@ -193,6 +193,7 @@ jobs:
         run: |
           sudo rm -rf /usr/share/dotnet
           docker pull ghcr.io/ansys/pyfluent:${{ env.FLUENT_IMAGE_TAG }}
+          docker pull ghcr.io/ansys/tools-filetransfer:latest
           docker image prune -f
 
       - name: Run Tox

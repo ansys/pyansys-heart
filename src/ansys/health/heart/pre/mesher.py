@@ -272,7 +272,10 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
 
     elif _uses_container:
         _launch_mode = LaunchMode.CONTAINER
-        transfer_strategy = None
+        transfer_strategy = file_transfer_service.ContainerFileTransferStrategy(
+            mount_source=f"{working_directory}",
+            mount_target="/mnt/pyfluent/meshing",
+        )
     else:
         _launch_mode = LaunchMode.STANDALONE
         transfer_strategy = file_transfer_service.StandaloneFileTransferStrategy()
@@ -296,10 +299,6 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
 
         case LaunchMode.CONTAINER:
             LOGGER.info(f"Launching Fluent in Container mode with config: {launch_config}")
-            launch_config["container_dict"] = {
-                "mount_source": f"{working_directory}",
-                "mount_target": "/mnt/pyfluent/meshing",
-            }
             launch_config["ui_mode"] = pyfluent.UIMode.NO_GUI_OR_GRAPHICS
             session = pyfluent.PureMeshing.from_container(**launch_config, **_extra_launch_kwargs)
 

@@ -200,7 +200,8 @@ class SystemModelPost:
                 icvout = ICVoutReader(os.path.join(self.dir, "binout"))
             except FileNotFoundError as error:
                 LOGGER.error(f"Cannot find binout file. {error}")
-                exit()
+                raise FileNotFoundError(f"Cannot find binout file. {error}")
+
         l_ed_volume = icvout.get_volume(1)[0] / 1000
         self.lv_system = ZeroDSystem(fcsv1, [l_ed_pressure, l_ed_volume], name="Left ventricle")
 

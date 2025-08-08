@@ -243,13 +243,11 @@ def _get_cells_inside_wrapped_parts(model: _InputModel, mesh: _FluentMesh) -> pv
 
 def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession:
     """Get a Fluent Meshing session."""
-    # NOTE: when using containerized version - we need to copy all the files
-    # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
-
     # NOTE: There are three launch modes Fluent can be launched in:
     # 1. LaunchMode.PIM: Fluent is launched using the Product Instance Management (PIM) service.
     # 2. LaunchMode.CONTAINER: Fluent is launched in a container. (containerized mode)
     # 3. LaunchMode.STANDALONE: Fluent is launched as a standalone application. (fallback mode)
+    # File transfer strategies are different for each mode.
 
     # check whether containerized version of Fluent is used
     global _uses_container
@@ -908,35 +906,15 @@ def mesh_from_non_manifold_input_model(
         LOGGER.info(f"Uploading files to session with working directory {work_dir_meshing}...")
         files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
 
-        if _launch_mode in [LaunchMode.PIM]:
+        if _launch_mode == LaunchMode.PIM:
             for file in files:
                 session.upload(file)
-
-        # Handle PIM and containerized modes.
-        if _launch_mode == LaunchMode.PIM:
-            # NOTE: when using PIM: files need to be explicitly transferred to the instance
-
-            # instance_name = session._base_meshing._fluent_connection._remote_instance.name.replace( #noqa E510
-            #     "instances/", ""
-            # )
-            # work_dir_meshing = os.path.join(os.getcwd(), instance_name)
-            # path_to_output = os.path.join(work_dir_meshing, "volume-mesh.msh.h5")
-
-            # Also upload files to the instances working directory.
-            # LOGGER.info(f"Uploading files to PIM instance {work_dir_meshing}...")
-            # for file in files:
-            #     # session.upload(file)
-            #     try:
-            #         shutil.copy2(file, work_dir_meshing)
-            #     except Exception as e:
-            #         LOGGER.warning(f"Failed to copy {file} to {work_dir_meshing}: {e}")
-
+            # In PIM mode files are uploaded to the Fluents working directory.
             work_dir_meshing = "."
 
-        if _launch_mode == LaunchMode.CONTAINER:
+        elif _launch_mode == LaunchMode.CONTAINER:
             # NOTE: when using a Fluent container visible files
-            # will be in /mnt/pyfluent. So need to use relative paths
-            # or replace dirname by /mnt/pyfluent as prefix
+            # will be in /mnt/pyfluent. (equal to mount target)
             work_dir_meshing = "/mnt/pyfluent/meshing"
 
         session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
@@ -1039,35 +1017,15 @@ def mesh_from_non_manifold_input_model(
         LOGGER.info(f"Copying {path_to_output} to {path_to_output_old}...")
 
         if _launch_mode == LaunchMode.PIM:
-            # add delay to ensure the file is available
-            from time import sleep
-
-            download_time_out = 60
-            file_found = False
-            for ii in range(download_time_out):
-                sleep(1)
-                try:
-                    session.download(os.path.basename(path_to_output), path_to_output_old)
-                    if os.path.isfile(path_to_output_old):
-                        LOGGER.info(f"File downloaded successfully to {path_to_output_old}.")
-                        file_found = True
-                        break
-                    else:
-                        LOGGER.warning(f"File {os.path.basename(path_to_output)} not found.")
-                except Exception as e:
-                    LOGGER.warning(f"Failed to download file: {e}")
-                    continue
-
-            if file_found:
-                LOGGER.info(f"File copied successfully to {path_to_output_old}.")
-            else:
-                raise FileNotFoundError(
-                    f"""File {os.path.basename(path_to_output)} failed to
-                    download after {download_time_out} seconds."""
-                )
-
+            session.download(os.path.basename(path_to_output), path_to_output_old)
         else:
             shutil.copy(path_to_output, path_to_output_old)
+
+        if not os.path.isfile(path_to_output_old):
+            raise FileNotFoundError(
+                f"Failed to copy {os.path.basename(path_to_output)} to {path_to_output_old}. "
+                "Please check the Fluent meshing log for errors."
+            )
 
         session.exit()
 

@@ -132,10 +132,9 @@ def test_get_fluent_meshing_session_container(monkeypatch):
             "ansys.fluent.core.session_utilities.PureMeshing.from_container"
         ) as mock_launch:
             # Use container.
-            with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
-                mesher._get_fluent_meshing_session(tmpdir)
-                call_args = set(mock_launch.call_args.kwargs.keys())
-                assert expected_keys.issubset(call_args)
+            mesher._get_fluent_meshing_session(".")
+            call_args = set(mock_launch.call_args.kwargs.keys())
+            assert expected_keys.issubset(call_args)
 
 
 @pytest.mark.parametrize(

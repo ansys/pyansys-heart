@@ -550,12 +550,20 @@ def _mesh_fluid_cavities(
 
     session = _get_fluent_meshing_session(work_dir_meshing)
 
-    # import all stls
-    if _uses_container:
+    if _launch_mode == LaunchMode.PIM:
+        # Upload files to session if in PIM or Container modes.
+        LOGGER.info(f"Uploading files to session with working directory {work_dir_meshing}...")
+        files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+        for file in files:
+            session.upload(file)
+        # In PIM mode files are uploaded to the Fluents working directory.
+        work_dir_meshing = "."
+
+    elif _launch_mode == LaunchMode.CONTAINER:
         # NOTE: when using a Fluent container visible files
-        # will be in /mnt/pyfluent. So need to use relative paths
-        # or replace dirname by /mnt/pyfluent as prefix
+        # will be in /mnt/pyfluent. (equal to mount target)
         work_dir_meshing = "/mnt/pyfluent/meshing"
+
     session.tui.file.import_.cad(f"no {work_dir_meshing} *.stl")
 
     # merge objects
@@ -671,11 +679,18 @@ def mesh_from_manifold_input_model(
             os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
         )
 
-        # import files
-        if _uses_container:
+        if _launch_mode == LaunchMode.PIM:
+            # Upload files to session if in PIM or Container modes.
+            LOGGER.info(f"Uploading files to session with working directory {work_dir_meshing}...")
+            files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+            for file in files:
+                session.upload(file)
+            # In PIM mode files are uploaded to the Fluents working directory.
+            work_dir_meshing = "."
+
+        elif _launch_mode == LaunchMode.CONTAINER:
             # NOTE: when using a Fluent container visible files
-            # will be in /mnt/pyfluent. So need to use relative paths
-            # or replace dirname by /mnt/pyfluent as prefix
+            # will be in /mnt/pyfluent. (equal to mount target)
             work_dir_meshing = "/mnt/pyfluent/meshing"
 
         session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
@@ -902,11 +917,10 @@ def mesh_from_non_manifold_input_model(
             os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
         )
 
-        # Upload files to session if in PIM or Container modes.
-        LOGGER.info(f"Uploading files to session with working directory {work_dir_meshing}...")
-        files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
-
         if _launch_mode == LaunchMode.PIM:
+            # Upload files to session if in PIM or Container modes.
+            LOGGER.info(f"Uploading files to session with working directory {work_dir_meshing}...")
+            files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
             for file in files:
                 session.upload(file)
             # In PIM mode files are uploaded to the Fluents working directory.

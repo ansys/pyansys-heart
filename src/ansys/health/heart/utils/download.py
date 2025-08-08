@@ -234,8 +234,9 @@ def _validate_hash_sha256(file_path: Path, database: str, casenumber: int) -> bo
 def _infer_extraction_path_from_tar(tar_path: str | Path) -> str:
     """Infer the path to the relevant CASE or VTK file from the tarball path."""
     tar_path = Path(tar_path)
-    tarball = tarfile.open(tar_path)
-    names = tarball.getnames()
+    with tarfile.open(tar_path, "r:gz") as tarball:
+        names = tarball.getnames()
+
     # Order matters: check if .case file exists before .vtk file
     sub_path = next((name for name in names if name.endswith(".case")), None)
     if not sub_path:
@@ -265,6 +266,14 @@ def _get_members_to_unpack(tar_ball: tarfile.TarFile) -> list:
     return members_to_unpack
 
 
+def _is_safe_tar_member(member: tarfile.TarInfo, target_dir: str):
+    """Get safe members, prevent absolute paths and path traversal."""
+    member_path = os.path.join(target_dir, member.name)
+    abs_target_dir = os.path.abspath(target_dir)
+    abs_member_path = os.path.abspath(member_path)
+    return abs_member_path.startswith(abs_target_dir)
+
+
 def unpack_case(tar_path: Path, reduce_size: bool = True) -> str | bool:
     r"""Unpack the downloaded tarball file.
 
@@ -287,14 +296,23 @@ def unpack_case(tar_path: Path, reduce_size: bool = True) -> str | bool:
         Path to the CASE or VTK file.
     """
     try:
-        tar_ball = tarfile.open(tar_path)
-        tar_dir = os.path.dirname(tar_path)
-        if reduce_size:
-            tar_ball.extractall(path=tar_dir, members=_get_members_to_unpack(tar_ball))
-        else:
-            tar_ball.extractall(path=tar_dir)
-        path = _infer_extraction_path_from_tar(tar_path)
-        return path
+        with tarfile.open(tar_path, "r:gz") as tar_ball:
+            tar_dir = os.path.dirname(tar_path)
+            if reduce_size:
+                members = _get_members_to_unpack(tar_ball)
+            else:
+                members = tar_ball.getmembers()
+
+            # Validate members
+            unsafe_members = [m for m in members if not _is_safe_tar_member(m, tar_dir)]
+            if unsafe_members:
+                names = [m.name for m in unsafe_members]
+                raise ValueError(f"Unsafe tar members detected in '{tar_path}': {names}")
+
+            tar_ball.extractall(path=tar_dir, members=members)
+
+            path = _infer_extraction_path_from_tar(tar_path)
+            return path
 
     except Exception as exception:
         LOGGER.error(f"Unpacking failed. {exception}")

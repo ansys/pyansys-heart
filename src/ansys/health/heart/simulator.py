@@ -144,7 +144,10 @@ class BaseSimulator:
             for name in ["alpha", "beta", "beta_septum"]:
                 if name not in rotation_angles.keys():
                     LOGGER.error(f"Must provide key {name} for D-RBM method.")
-                    exit()
+                    raise KeyError(
+                        f"Must provide key {name} for D-RBM method. "
+                        "Please check the settings or provide the rotation angles."
+                    )
 
             self._compute_fibers_lsdyna(rotation_angles)
 
@@ -156,12 +159,18 @@ class BaseSimulator:
             for a, b in zip(["alpha", "beta"], ["_left", "_right", "_ot"]):
                 if a + b not in rotation_angles.keys():
                     LOGGER.error(f"Must provide key {name} for D-RBM method.")
-                    exit()
+                    raise KeyError(
+                        f"Must provide key {name} for D-RBM method. "
+                        "Please check the settings or provide the rotation angles."
+                    )
             self._compute_fibers_drbm(rotation_angles)
 
         else:
             LOGGER.error(f"Method {method} is not recognized.")
-            exit()
+            raise ValueError(
+                f"Method {method} is not recognized. "
+                "Please use 'LSDYNA' or 'D-RBM' as the method for computing fibers."
+            )
 
         return
 

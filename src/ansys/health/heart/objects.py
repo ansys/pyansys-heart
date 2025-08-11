@@ -727,7 +727,7 @@ class Mesh(pv.UnstructuredGrid):
                     continue
                 mesh.point_data[name] = fill_data
 
-        merged = pv.merge((self, mesh), merge_points=merge_points, main_has_priority=False)
+        merged = pv.merge((self, mesh), merge_points=merge_points)
         super().__init__(merged)
         return self
 

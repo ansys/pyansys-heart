@@ -1042,6 +1042,12 @@ def _mesh_fluid_from_boundaries(
     pv.UnstructuredGrid
         Unstructured grid with fluid mesh.
     """
+    if _launch_mode in [LaunchMode.CONTAINER, LaunchMode.PIM]:
+        raise NotImplementedError(
+            "Meshing of fluid boundaries is not yet supported in PIM mode. "
+            "Please use the containerized or standalone mode."
+        )
+
     if _uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
         work_dir_meshing = os.path.join(mounted_volume, "tmp_meshing-fluid")
@@ -1063,11 +1069,20 @@ def _mesh_fluid_from_boundaries(
 
     session = _get_fluent_meshing_session(work_dir_meshing)
 
-    # import all stls
-    if _uses_container:
+    LOGGER.info(f"Starting Fluent Meshing in mode: {_launch_mode}")
+
+    if _launch_mode == LaunchMode.PIM:
+        # Upload files to session if in PIM or Container modes.
+        LOGGER.info(f"Uploading files to session with working directory {work_dir_meshing}...")
+        files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+        for file in files:
+            session.upload(file)
+        # In PIM mode files are uploaded to the Fluents working directory.
+        work_dir_meshing = "."
+
+    elif _launch_mode == LaunchMode.CONTAINER:
         # NOTE: when using a Fluent container visible files
-        # will be in /mnt/pyfluent. So need to use relative paths
-        # or replace dirname by /mnt/pyfluent as prefix
+        # will be in /mnt/pyfluent. (equal to mount target)
         work_dir_meshing = "/mnt/pyfluent/meshing"
 
     session.tui.file.import_.cad(f"no {work_dir_meshing} *.stl")

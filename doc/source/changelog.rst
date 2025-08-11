@@ -7,8 +7,8 @@ Release notes
 
 .. towncrier release notes start
 
-`0.14.1 <https://github.com/ansys/pyansys-heart/releases/tag/v0.14.1>`_ (July 30, 2025)
-=======================================================================================
+`0.14.2 <https://github.com/ansys/pyansys-heart/releases/tag/v0.14.2>`_ (August 08, 2025)
+=========================================================================================
 
 .. tab-set::
 
@@ -24,6 +24,9 @@ Release notes
 
         * - Refactor and improve zerop post
           - `#1166 <https://github.com/ansys/pyansys-heart/pull/1166>`_
+
+        * - Support pim fluent launch mode
+          - `#1188 <https://github.com/ansys/pyansys-heart/pull/1188>`_
 
 
   .. tab-item:: Fixed
@@ -49,6 +52,9 @@ Release notes
 
         * - Fix issues introduced by refactoring post processing of stress free results
           - `#1167 <https://github.com/ansys/pyansys-heart/pull/1167>`_
+
+        * - Missing input files when Fluent is launched in PIM Mode
+          - `#1189 <https://github.com/ansys/pyansys-heart/pull/1189>`_
 
 
   .. tab-item:: Documentation
@@ -93,6 +99,9 @@ Release notes
 
         * - Relax httpx version
           - `#1181 <https://github.com/ansys/pyansys-heart/pull/1181>`_
+
+        * - Avoid ansys-dpf-core 0.14.0
+          - `#1198 <https://github.com/ansys/pyansys-heart/pull/1198>`_
 
 
   .. tab-item:: Maintenance
@@ -158,6 +167,18 @@ Release notes
 
         * - Deprecate element_ids attribute in part class
           - `#1150 <https://github.com/ansys/pyansys-heart/pull/1150>`_
+
+        * - Improve error handling
+          - `#1193 <https://github.com/ansys/pyansys-heart/pull/1193>`_
+
+        * - Improve unpacking tarball
+          - `#1194 <https://github.com/ansys/pyansys-heart/pull/1194>`_
+
+        * - Improve calls to subprocess
+          - `#1195 <https://github.com/ansys/pyansys-heart/pull/1195>`_
+
+        * - Replace exit by exceptions
+          - `#1197 <https://github.com/ansys/pyansys-heart/pull/1197>`_
 
 
 `0.13.3 <https://github.com/ansys/pyansys-heart/releases/tag/v0.13.3>`_ (June 17, 2025)

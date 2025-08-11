@@ -104,9 +104,14 @@ model.mesh.cell_data["sheet"] = np.zeros((model.mesh.n_cells, 3))
 # compute left atrium fiber
 la = simulator.compute_left_atrial_fiber()
 
+# Import the appendage landmarks.
+from ansys.health.heart.pre.database_utils import right_atrium_appendage_landmarks
+
+# Get the right atrium appendage landmark of the first case of Rodero2021.
+right_atrium_appendage_coordinates = right_atrium_appendage_landmarks.get("Rodero2021").get(1)
+
 # Appendage apex point should be manually given to compute right atrium fiber
-appendage_apex = [39, 29, 98]
-ra = simulator.compute_right_atrial_fiber(appendage_apex)
+ra = simulator.compute_right_atrial_fiber(appendage=right_atrium_appendage_coordinates)
 
 ###############################################################################
 # .. note::
@@ -150,8 +155,16 @@ plotter = pv.Plotter()
 mesh = ra.ctp()
 streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=5000)
 tubes = streamlines.tube()
-plotter.add_mesh(mesh, opacity=0.5, color="white")
-plotter.add_mesh(tubes, color="red")
+plotter.add_mesh(mesh, opacity=0.5, color="white", label="myocardium")
+plotter.add_mesh(tubes, color="red", label="fibers")
+plotter.add_mesh(
+    pv.PolyData(right_atrium_appendage_coordinates),
+    color="blue",
+    point_size=20,
+    render_points_as_spheres=True,
+    label="right atrium appendage",
+)
+plotter.add_legend()
 plotter.show()
 
 ###############################################################################

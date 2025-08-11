@@ -155,8 +155,16 @@ plotter = pv.Plotter()
 mesh = ra.ctp()
 streamlines = mesh.streamlines(vectors="e_l", source_radius=50, n_points=5000)
 tubes = streamlines.tube()
-plotter.add_mesh(mesh, opacity=0.5, color="white")
-plotter.add_mesh(tubes, color="red")
+plotter.add_mesh(mesh, opacity=0.5, color="white", label="myocardium")
+plotter.add_mesh(tubes, color="red", label="fibers")
+plotter.add_mesh(
+    pv.PolyData(right_atrium_appendage_coordinates),
+    color="blue",
+    point_size=20,
+    render_points_as_spheres=True,
+    label="right atrium appendage",
+)
+plotter.add_legend()
 plotter.show()
 
 ###############################################################################

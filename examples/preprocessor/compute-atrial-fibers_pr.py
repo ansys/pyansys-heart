@@ -64,8 +64,9 @@ path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart()
 lsdyna_path = r"ls-dyna_smp"
 
 # Load heart model
-model: models.FourChamber = models.FourChamber(working_directory=workdir)
-model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
+model: models.FourChamber = models.FourChamber.load_model(
+    path_to_model, path_to_partinfo, working_directory=workdir
+)
 
 
 ###############################################################################

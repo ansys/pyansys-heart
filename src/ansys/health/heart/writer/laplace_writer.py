@@ -312,7 +312,7 @@ class LaplaceWriter(BaseDynaWriter):
         raa_ids = np.array(tree.query_ball_point(self.landmarks["raa"], self._LANDMARK_RADIUS))
         if len(raa_ids) == 0:
             LOGGER.error("No node is identified as right atrium appendage apex.")
-            exit()
+            raise ValueError("No node is identified as right atrium appendage apex.")
 
         kw = create_node_set_keyword(raa_ids + 1, node_set_id=11, title="raa")
         self.kw_database.node_sets.append(kw)
@@ -630,12 +630,11 @@ class LaplaceWriter(BaseDynaWriter):
             self.add_case(case_id, job_name, set_ids, bc_values)
 
     def _get_rv_septum_endo_surface(self) -> SurfaceMesh:
-        """Get the right ventricle septum endocardium surface."""
-        for surface in self.model.right_ventricle.surfaces:
-            if "endocardium" in surface.name and "septum" in surface.name:
-                return surface
-
-        raise ValueError("Septum endocardium surface is not found in right ventricle.")
+        """Get the right ventricle septal surface."""
+        try:
+            return self.model.right_ventricle.septum
+        except Exception as e:
+            raise ValueError(f"Septum endocardium surface is not found in right ventricle. {e}")
 
     def _update_ventricular_caps_nodes(
         self,

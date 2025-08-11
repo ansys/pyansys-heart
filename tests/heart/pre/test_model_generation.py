@@ -153,7 +153,7 @@ def extract_model(request):
     model: models.HeartModel = model_type(working_directory=workdir)
 
     if not isinstance(model, (models.BiVentricle, models.FullHeart)):
-        exit()
+        raise ValueError("Model type must be BiVentricle or FullHeart.")
 
     model.load_input(input_vtp, part_definitions, "boundary-id")
     # model.mesh_volume(wrapper=True) # could use this: but requires fluent
@@ -392,8 +392,7 @@ def test_writers_after_load_model(extract_model, writer_class):
 
         model.save_model(model_path)
 
-        model1 = type(model)(working_directory=workdir)
-        model1.load_model_from_mesh(model_path, partinfo)
+        model1 = models.HeartModel.load_model(model_path, partinfo, working_directory=workdir)
 
         writer = writer_class(copy.deepcopy(model1))
         add_conduction_beams(writer)

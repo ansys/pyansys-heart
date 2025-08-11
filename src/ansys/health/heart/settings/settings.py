@@ -27,15 +27,19 @@ from dataclasses import asdict, dataclass, field
 import json
 import os
 import pathlib
+from pathlib import Path
 import shutil
-import subprocess
 from typing import List, Literal
 
 from pint import Quantity, UnitRegistry
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.exceptions import MPIProgamNotFoundError
+from ansys.health.heart.exceptions import (
+    LSDYNANotFoundError,
+    MPIProgamNotFoundError,
+    WSLNotFoundError,
+)
 from ansys.health.heart.settings.defaults import (
     electrophysiology as ep_defaults,
     fibers as fibers_defaults,
@@ -522,7 +526,9 @@ class SimulationSettings:
 
         >>> settings1 = SimulationSettings()
         >>> settings1.load("my_settings.yml")
-        >>> assert settings.mechanics.analysis == settings1.mechanics.analysis
+        >>> print(
+        ...     "True" if settings.mechanics.analysis == settings1.mechanics.analysis else "False"
+        ... )
         True
 
         """
@@ -902,6 +908,24 @@ def _get_consistent_units_str(dimensions: set):
     return "*".join(_to_units)
 
 
+def _windows_to_wsl_path(windows_path: str):
+    """Convert Windows to WSL path."""
+    win_path = Path(windows_path)
+    if isinstance(win_path, pathlib.PosixPath):
+        return None
+
+    if "\\\\wsl.localhost" in str(win_path):
+        wsl_path = Path(*win_path.parts[1:])
+        wsl_path = "/" + wsl_path.as_posix()
+        return wsl_path
+
+    elif win_path.drive != "":
+        wsl_mount = ("/mnt/" + win_path.drive.replace(":", "")).lower()
+        wsl_path = win_path.as_posix().replace(win_path.drive, wsl_mount)
+
+    return wsl_path
+
+
 class DynaSettings:
     """Class for collecting, managing, and validating LS-DYNA settings."""
 
@@ -910,10 +934,10 @@ class DynaSettings:
         """Find whether mpiexec or mpirun are available."""
         # preference for mpirun if it is added to PATH. mpiexec is the fallback option.
         if shutil.which("mpirun"):
-            return "mpirun"
+            return shutil.which("mpirun")
         elif shutil.which("mpiexec"):
             LOGGER.debug("mpirun not found. Using mpiexec.")
-            return "mpiexec"
+            return shutil.which("mpiexec")
         else:
             raise MPIProgamNotFoundError("mpirun or mpiexec not found. Please configure MPI.")
 
@@ -967,6 +991,22 @@ class DynaSettings:
             f"path: {self.lsdyna_path} | type: {self.dynatype} | platform: {self.platform} | cpus: {self.num_cpus}"  # noqa: E501
         )
 
+        # Ensure path to LS-DYNA executable is absolute
+        ls_dyna_abs_path = shutil.which(self.lsdyna_path)
+
+        if self.platform == "wsl":
+            ls_dyna_abs_path = str(Path(self.lsdyna_path).resolve())
+
+        if ls_dyna_abs_path is None or not Path(ls_dyna_abs_path).is_file():
+            raise LSDYNANotFoundError(
+                f"LS-DYNA executable not found at {ls_dyna_abs_path}. Please check the path."
+            )
+
+        self.lsdyna_path: pathlib.Path = ls_dyna_abs_path
+
+        if self.platform == "wsl" and os.name != "nt":
+            raise WSLNotFoundError(f"""WSL is not supported on {os.name}.""")
+
         return
 
     def get_commands(self, path_to_input: pathlib.Path) -> List[str]:
@@ -1019,23 +1059,13 @@ class DynaSettings:
             ]
 
         elif self.platform == "wsl":
-            path_to_input_wsl = (
-                subprocess.run(
-                    ["wsl", "wslpath", os.path.basename(path_to_input)],
-                    capture_output=1,
-                )
-                .stdout.decode()
-                .strip()
-            )
-            # redefines LS-DYNA path.
-            lsdyna_path = (
-                subprocess.run(
-                    ["wsl", "wslpath", str(lsdyna_path).replace("\\", "/")],
-                    capture_output=1,
-                )
-                .stdout.decode()
-                .strip()
-            )
+            wsl_exe_path = shutil.which("wsl.exe")
+            if wsl_exe_path is None:
+                raise WSLNotFoundError("wsl.exe not found. Please install WSL.")
+
+            # Convert paths to WSL compatible paths.
+            path_to_input_wsl = _windows_to_wsl_path(path_to_input)
+            lsdyna_path = _windows_to_wsl_path(self.lsdyna_path)
 
             if self.dynatype in ["intelmpi", "platformmpi", "msmpi"]:
                 commands = [
@@ -1064,7 +1094,7 @@ class DynaSettings:
             commands = [
                 "powershell",
                 "-Command",
-                "wsl",
+                wsl_exe_path,
                 "-e",
                 "bash",
                 "-lic",

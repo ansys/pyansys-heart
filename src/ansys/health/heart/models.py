@@ -22,6 +22,8 @@
 
 """Module containing classes for the various heart models."""
 
+from __future__ import annotations
+
 import copy
 import json
 import os
@@ -115,8 +117,6 @@ def _set_workdir(workdir: pathlib.Path | str = None) -> str:
     if not os.path.isdir(workdir1):
         LOGGER.info(f"Creating {workdir1}")
         os.makedirs(workdir1, exist_ok=True)
-    else:
-        LOGGER.warning(f"Working directory {workdir1} already exists.")
 
     return workdir1
 
@@ -380,7 +380,9 @@ class HeartModel:
             self._part_info.update(part._to_dict())
         return self._part_info
 
-    def create_part_by_ids(self, eids: list[int], name: str) -> None | anatomy.Part:
+    def create_part_by_ids(
+        self, eids: list[int], name: str, part_type: anatomy._PartType = anatomy._PartType.UNDEFINED
+    ) -> None | anatomy.Part:
         """Create a part by element IDs.
 
         Parameters
@@ -389,6 +391,8 @@ class HeartModel:
             List of element IDs.
         name : str
             Part name.
+        part_type : anatomy._PartType, default: anatomy._PartType.UNDEFINED
+            Type of the part. The default is ``anatomy._PartType.UNDEFINED``.
 
         Returns
         -------
@@ -405,9 +409,10 @@ class HeartModel:
 
         new_part_id = self.mesh._unused_volume_id
 
-        self.add_part(name)
-        new_part: anatomy.Part = self.get_part(name)
+        new_part: anatomy.Part = anatomy.Part(name, part_type)
         new_part.pid = new_part_id
+
+        self.add_part(new_part)
 
         # Update the mesh accordingly. Note that this also affects other parts, since
         # only one volume ID can be assigned to each element/cell.
@@ -435,7 +440,7 @@ class HeartModel:
         )
         if self._input is None:
             LOGGER.error("Failed to initialize input model. Check the input arguments.")
-            exit()
+            raise ValueError("Failed to initialize input model.")
         return
 
     # TODO: add working example in docstring, e.g. by using an existing model.
@@ -606,9 +611,29 @@ class HeartModel:
         if not found:
             return None
 
-    def add_part(self, part_name: str) -> None:
+    def add_part(self, part: str | anatomy.Part) -> None:
         """Dynamically add a part as an attribute to the object."""
-        setattr(self, "_".join(part_name.lower().split()), anatomy.Part(name=part_name))
+        # TODO: deprecate adding a part by name.
+        if isinstance(part, str):
+            LOGGER.warning(
+                "Setting part by name is deprecated. Use `add_part` with a Part instance."
+            )
+            setattr(self, "_".join(part.lower().split()), anatomy.Part(name=part))
+            return
+
+        if not isinstance(part, anatomy.Part):
+            raise TypeError("Part must be an instance of anatomy.Part.")
+        if part.name in self.part_names:
+            LOGGER.error(f"Part with name {part.name} already exists.")
+            return
+
+        if part._attribute_name not in part.__dict__.keys():
+            setattr(self, part._attribute_name, part)
+        else:
+            LOGGER.error(
+                f"Part with name {part.name} already exists as an attribute. Use a different name."
+            )
+            return
         return
 
     def remove_part(self, part_name: str) -> None:
@@ -642,7 +667,7 @@ class HeartModel:
         Examples
         --------
         >>> import ansys.health.heart.models as models
-        >>> model = models.HeartModel.load_model("heart_model.pickle")
+        >>> model = models.HeartModel.load_model("heart_model.vtu", "heart_model.partinfo.json")
         >>> model.plot_mesh(show_edges=True)
         """
         plotter = pv.Plotter()
@@ -662,7 +687,7 @@ class HeartModel:
         Examples
         --------
         >>> import ansys.health.heart.models as models
-        >>> model = models.HeartModel.load_model("my_model.pickle")
+        >>> model = models.HeartModel.load_model("heart_model.vtu", "heart_model.partinfo.json")
         >>> model.part(model.left_ventricle)
         """
         mesh = self.mesh
@@ -688,7 +713,7 @@ class HeartModel:
         Examples
         --------
         >>> import ansys.health.heart.models as models
-        >>> model = models.HeartModel.load_model("my_model.pickle")
+        >>> model = models.HeartModel.load_model("heart_model.vtu", "heart_model.partinfo.json")
         >>> model.plot_fibers(n_seed_points=5000)
         """
         plotter = pv.Plotter()
@@ -718,7 +743,7 @@ class HeartModel:
         Import modules and load model.
 
         >>> import ansys.health.heart.models as models
-        >>> model = models.HeartModel.load_model("my_model.pickle")
+        >>> model = models.HeartModel.load_model("heart_model.vtu", "heart_model.partinfo.json")
 
         Plot the model.
 
@@ -772,13 +797,18 @@ class HeartModel:
             LOGGER.warning(f"Failed to plot the mesh. {e}")
         return
 
-    def save_model(self, filename: str):
+    def save_model(self, filename: str) -> tuple[str, str]:
         """Save the model and necessary information to reconstruct.
 
         Parameters
         ----------
         filename : str
             Path to the model.
+
+        Returns
+        -------
+        tuple[str | pathlib.Path, str | pathlib.Path]
+            Path to the mesh and part information files.
 
         Notes
         -----
@@ -794,24 +824,138 @@ class HeartModel:
         extension = pathlib.Path(filename).suffix
         if extension != "":
             mesh_path = filename.replace(extension, ".vtu")
-            map_path = filename.replace(extension, ".partinfo.json")
+            info_path = filename.replace(extension, ".partinfo.json")
         else:
             mesh_path = filename + ".vtu"
-            map_path = filename + ".partinfo.json"
+            info_path = filename + ".partinfo.json"
 
         self.mesh.save(mesh_path)
 
-        with open(map_path, "w") as f:
+        with open(info_path, "w") as f:
             json.dump(self._get_parts_info(), f, indent=4)
 
-        return
+        return mesh_path, info_path
 
-    # TODO: could consider having this as a static method.
-    # TODO: Right now this only reconstructs the surfaces and parts that
-    # TODO: are defined in the HeartModel classes:
-    # TODO: LeftVentricle, BiVentricle, FourChamber and FullHeart.
-    # TODO: Should consider to also reconstruct the parts that are not explicitly
-    # TODO: defined in the class.
+    @staticmethod
+    def load_model(
+        filename_mesh: str,
+        filename_part_info: str,
+        working_directory: pathlib.Path | str = None,
+    ) -> FullHeart | FourChamber | BiVentricle | LeftVentricle:
+        """Load a heart model from an existing VTU file and part information dictionary.
+
+        Parameters
+        ----------
+        filename_mesh : str
+            Path to the VTU file containing the mesh.
+        filename_part_info : str
+            Path to the JSON file that contains the part information for reconstructing the model.
+        working_directory : pathlib.Path | str, default: None
+            Working directory.
+
+        Returns
+        -------
+        FullHeart | FourChamber | BiVentricle | LeftVentricle
+            Instance of the heart model.
+
+        Raises
+        ------
+        InvalidHeartModelError
+            Error if the inferred heart model type is invalid.
+
+        Notes
+        -----
+        This method differs from the ``load_model_from_mesh`` method in that it
+        relies on the part information. Hence, no HeartModel instance needs to be created
+        before calling this method.
+
+        Examples
+        --------
+        >>> from ansys.health.heart.models import HeartModel
+        >>> model = HeartModel.load_model("my-heart.vtu", "my-heart.partinfo.json")
+        >>> print(model.part_names)
+        >>> print(model.mesh)
+        """
+        # open part info
+        with open(filename_part_info, "r") as f:
+            part_info: dict = json.load(f)
+
+        part_names = set(part_info.keys())
+
+        # infer type of model from the part names defined in part info
+        if set(FullHeart().part_names).issubset(part_names):
+            model = FullHeart(working_directory)
+        elif set(FourChamber().part_names).issubset(part_names):
+            model = FourChamber(working_directory)
+        elif set(BiVentricle().part_names).issubset(part_names):
+            model = BiVentricle(working_directory)
+        elif set(LeftVentricle().part_names).issubset(part_names):
+            model = LeftVentricle(working_directory)
+        else:
+            msg = "Failed to infer the type of heart model from the part names."
+            LOGGER.error(msg)
+            raise InvalidHeartModelError(msg)
+
+        # extra parts
+        extra_part_names = list(set(part_info.keys()) - set(model.part_names))
+
+        # set the part info.
+        model._part_info = part_info
+
+        # set the mesh.
+        model.mesh = Mesh()
+        model.mesh.load_mesh(filename_mesh)
+        model.mesh = _convert_int64_to_int32(model.mesh, ["_volume-id", "_surface-id", "_line-id"])
+
+        for part in model.parts:
+            info: dict = part_info.get(part.name)
+
+            if info is None:
+                LOGGER.warning(f"Skipping {part.name}. Not defined in the part information.")
+                continue
+
+            part = part._set_from_dict({part.name: info}, model.mesh)
+
+            # Update the attribute
+            setattr(model, part._attribute_name, part)
+
+            # check if the part ID is in the mesh.
+            if not np.isin(part.pid, model.mesh.volume_ids):
+                LOGGER.error(
+                    f"""Part {part.name} with ID {part.pid} is not in the mesh.
+                    Check if the ``_volume-id`` cell array in {filename_mesh} contains
+                    the value {part.pid}."""
+                )
+
+        # loop over each extra part and load this into the model.
+        for extra_part_name in extra_part_names:
+            LOGGER.debug(f"Adding non-standard part: {extra_part_name}")
+            extra_part = anatomy.Part._set_from_dict({extra_part_name: part_info[extra_part_name]})
+            model.add_part(extra_part)
+
+        try:
+            model._extract_apex()
+        except Exception:
+            LOGGER.warning("Failed to extract apex. Consider setting apex manually.")
+
+        if any(v is None for v in [model.short_axis, model.l4cv_axis, model.l2cv_axis]):
+            LOGGER.warning("Heart axis is not defined in the VTU file.")
+            try:
+                LOGGER.warning("Computing heart axis...")
+                model._define_anatomy_axis()
+            except Exception as e:
+                LOGGER.error(
+                    f"Failed to extract heart axis. Consider computing and setting manually. {e}"
+                )
+        else:
+            LOGGER.info("Reusing heart axis defined in the VTU file...")
+
+        return model
+
+    @deprecated(
+        reason="""This method will be deprecated in the future. Use the static method
+                "`HeartModel.load_model` instead."""
+    )
     def load_model_from_mesh(self, filename_mesh: str, filename_part_info: str):
         """Load a model from an existing VTU file and part information dictionary.
 
@@ -846,10 +990,10 @@ class HeartModel:
         # TODO: init part by:
         # TODO: part = Part(part_1.name, PartType(part_info[part_1.name]["part-type"]))
         for part_1 in self.parts:
-            try:
-                list(part_info.keys()).index(part_1.name)
-            except ValueError:
-                LOGGER.warning(f"{part_1.name} is not in the part information.")
+            if part_1.name not in part_info:
+                LOGGER.warning(
+                    f"Skipping {part_1.name}. It is not defined in the part information."
+                )
                 continue
 
             #! try to add surfaces to part by using the pre-defined surfaces
@@ -1204,7 +1348,7 @@ class HeartModel:
             surfaces = [
                 self.mesh.get_surface(s.id)
                 for s in part.surfaces
-                if "endocardium" in s.name and s.n_cells > 0
+                if "endocardium" in s.name or "septum" in s.name and s.n_cells > 0
             ]
             if len(surfaces) == 0:
                 LOGGER.warning(f"Skipping part {part.name}. Only empty surfaces are present.")
@@ -1534,8 +1678,9 @@ class HeartModel:
             )
             eids = np.hstack((eids, eid_r))
 
-        part: anatomy.Part = self.create_part_by_ids(eids, "base")
-        part._part_type = anatomy._PartType.VENTRICLE
+        part: anatomy.Part = self.create_part_by_ids(
+            eids, "ventricular_base", anatomy._PartType.VENTRICLE
+        )
         part.fiber = False
         part.active = False
         part.meca_material = stiff_material
@@ -1632,9 +1777,9 @@ class FourChamber(HeartModel):
         #! Note that this only works since tetrahedrons are located
         #! at start of the mesh object.
         for part in self.parts:
-            if isinstance(part, anatomy.Ventricle):
+            if part._part_type == anatomy._PartType.VENTRICLE:
                 v_ele = np.append(v_ele, part.get_element_ids(self.mesh))
-            elif isinstance(part, anatomy.Atrium):
+            elif part._part_type == anatomy._PartType.ATRIUM:
                 a_ele = np.append(a_ele, part.get_element_ids(self.mesh))
 
         ventricles = self.mesh.extract_cells(v_ele)
@@ -1676,9 +1821,8 @@ class FourChamber(HeartModel):
             return None
 
         isolation: anatomy.Part = self.create_part_by_ids(
-            interface_eids, "Atrioventricular isolation"
+            interface_eids, "Atrioventricular isolation", anatomy._PartType.ATRIUM
         )
-        isolation._part_type = anatomy._PartType.ATRIUM
         # Assign a new part ID to the isolation part
         isolation.fiber = True
         isolation.active = False
@@ -1737,8 +1881,9 @@ class FourChamber(HeartModel):
             ring_eles = np.hstack((ring_eles, orphan_cells))
 
         # Create ring part
-        ring: anatomy.Part = self.create_part_by_ids(ring_eles, name="atrial stiff rings")
-        ring._part_type = anatomy._PartType.ATRIUM
+        ring: anatomy.Part = self.create_part_by_ids(
+            ring_eles, name="atrial stiff rings", part_type=anatomy._PartType.ATRIUM
+        )
         ring.fiber = False
         ring.active = False
         # assign default EP material

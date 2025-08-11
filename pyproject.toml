@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 # Check https://flit.readthedocs.io/en/latest/pyproject_toml.html for all available sections
 name = "ansys-health-heart"
-version = "0.14.dev0"
+version = "0.15.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
 requires-python = ">=3.10,<4"
@@ -23,7 +23,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "ansys-dpf-core>=0.13.6",
+    "ansys-dpf-core>=0.13.6,!=0.14.0,<0.15",
     "ansys-fluent-core>=0.30.0",
     "deprecated>=1.2.18",
     "ansys.dyna.core>=0.7.1",
@@ -33,11 +33,11 @@ dependencies = [
     "numpy<=2.2.6",
     "pandas<=3.0.0",
     "pint>=0.24.4",
-    "pyvista>=0.44.1,<0.45",
+    "pyvista>=0.44.1,<0.46",
     "scipy<=1.15.3",
     "validators>=0.34.0",
-    "vtk>=9.1.0,<9.4",
-    "httpx>=0.28.1",
+    "vtk>=9.1.0,<9.6,!=9.4.*",
+    "httpx>=0.27.2",
     "natsort>=8.4.0",
     "rich>=13.9.4",
 ]
@@ -58,8 +58,8 @@ doc = [
     "sphinx-jinja==2.0.2",
     "sphinxcontrib-video==0.4.1",
     "sphinx_design",
-    "pyvista[jupyter]==0.44.1",
-    "trame-vtk==2.9.0"
+    "pyvista[jupyter]==0.45.3",
+    "trame-vtk==2.9.1"
 ]
 tests = [
     "pytest==8.4.1",

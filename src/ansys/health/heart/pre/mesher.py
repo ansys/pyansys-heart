@@ -31,7 +31,9 @@ import numpy as np
 import pyvista as pv
 
 import ansys.fluent.core as pyfluent
+from ansys.fluent.core.launcher.launch_options import LaunchMode
 from ansys.fluent.core.session_meshing import Meshing as MeshingSession
+import ansys.fluent.core.utils.file_transfer_service as file_transfer_service
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import SupportedFluentVersionNotFoundError
 from ansys.health.heart.objects import Mesh, SurfaceMesh
@@ -41,20 +43,27 @@ from ansys.health.heart.utils.vtk_utils import (
     add_solid_name_to_stl,
     cell_ids_inside_enclosed_surface,
 )
+import ansys.platform.instancemanagement as pypim
 
 _supported_fluent_versions = ["25.2", "25.1", "24.2", "24.1"]
 """List of supported Fluent versions."""
+_supported_fluent_versions_container = ["25.2", "24.2", "24.1"]
+
 _num_cpus: bool = 2
 """Number of CPUs to use for meshing."""
 _extra_launch_kwargs = {}
 """Extra keyword arguments passed to ``pyfluent.launch_fluent()``."""
+_fluent_version = None
+"""Global variable to explicitly override the Fluent version used."""
 
-# check whether containerized version of Fluent is used
-_uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
-if _uses_container:
-    _supported_fluent_versions = ["24.2", "24.1"]
+_launch_mode: LaunchMode = None
+"""Fluent Launch mode."""
+
+_uses_container: bool = False
+"""Global variable to switch to Fluent container mode."""
 
 _fluent_ui_mode = pyfluent.UIMode(os.getenv("PYFLUENT_UI_MODE", pyfluent.UIMode.HIDDEN_GUI))
+
 
 LOGGER.debug(f"Fluent user interface mode: {_fluent_ui_mode.value}")
 
@@ -83,12 +92,6 @@ def _get_supported_fluent_version() -> str:
         f"""Did not find a supported Fluent version.
         Install one of these versions: {_supported_fluent_versions}"""
     )
-
-
-try:
-    _fluent_version = _get_supported_fluent_version()
-except Exception:
-    _fluent_version = None
 
 
 def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list[str]:
@@ -240,47 +243,69 @@ def _get_cells_inside_wrapped_parts(model: _InputModel, mesh: _FluentMesh) -> pv
 
 def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession:
     """Get a Fluent Meshing session."""
-    # NOTE: when using containerized version - we need to copy all the files
-    # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
+    # NOTE: There are three launch modes Fluent can be launched in:
+    # 1. LaunchMode.PIM: Fluent is launched using the Product Instance Management (PIM) service.
+    # 2. LaunchMode.CONTAINER: Fluent is launched in a container. (containerized mode)
+    # 3. LaunchMode.STANDALONE: Fluent is launched as a standalone application. (fallback mode)
+    # File transfer strategies are different for each mode.
+
+    # check whether containerized version of Fluent is used
+    global _uses_container
+    global _launch_mode
+    global _supported_fluent_versions
+
+    _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
+    if _uses_container:
+        _supported_fluent_versions = _supported_fluent_versions_container
+
+    num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus))
 
     if _fluent_version is None:
         product_version = _get_supported_fluent_version()
     else:
         product_version = _fluent_version
 
+    # determine launch mode
+    if pypim.is_configured():
+        _launch_mode = LaunchMode.PIM
+        transfer_strategy = None
+
+    elif _uses_container:
+        _launch_mode = LaunchMode.CONTAINER
+        transfer_strategy = None
+    else:
+        _launch_mode = LaunchMode.STANDALONE
+        transfer_strategy = file_transfer_service.StandaloneFileTransferStrategy()
+
     LOGGER.info(f"Launching meshing session with {product_version}...")
 
-    if _uses_container:
-        num_cpus = 1
-        custom_config = {
-            "mount_source": f"{working_directory}",
-            "mount_target": "/mnt/pyfluent/meshing",
-        }
+    launch_config = {
+        "precision": pyfluent.Precision.DOUBLE,
+        "processor_count": num_cpus,
+        "start_transcript": False,
+        "product_version": product_version,
+        "ui_mode": _fluent_ui_mode,
+        "file_transfer_service": transfer_strategy,
+    }
 
-        session = pyfluent.launch_fluent(
-            mode="meshing",
-            precision="double",
-            processor_count=num_cpus,
-            start_transcript=False,
-            ui_mode=_fluent_ui_mode,
-            product_version=product_version,
-            start_container=_uses_container,
-            container_dict=custom_config,
-            **_extra_launch_kwargs,
-        )
+    match _launch_mode:
+        case LaunchMode.PIM:
+            launch_config["ui_mode"] = None
+            LOGGER.info(f"Launching Fluent in PIM-mode with config: {launch_config}")
+            session = pyfluent.PureMeshing.from_pim(**launch_config, **_extra_launch_kwargs)
 
-    else:
-        num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus))
-        session = pyfluent.launch_fluent(
-            mode="meshing",
-            precision="double",
-            processor_count=num_cpus,
-            start_transcript=False,
-            ui_mode=_fluent_ui_mode,
-            product_version=product_version,
-            start_container=_uses_container,
-            **_extra_launch_kwargs,
-        )
+        case LaunchMode.CONTAINER:
+            LOGGER.info(f"Launching Fluent in Container mode with config: {launch_config}")
+            launch_config["container_dict"] = {
+                "mount_source": f"{working_directory}",
+                "mount_target": "/mnt/pyfluent/meshing",
+            }
+            launch_config["ui_mode"] = pyfluent.UIMode.NO_GUI_OR_GRAPHICS
+            session = pyfluent.PureMeshing.from_container(**launch_config, **_extra_launch_kwargs)
+
+        case LaunchMode.STANDALONE:
+            LOGGER.info(f"Launching Fluent in Standalone mode with config: {launch_config}")
+            session = pyfluent.PureMeshing.from_install(**launch_config, **_extra_launch_kwargs)
 
     return session
 
@@ -525,12 +550,20 @@ def _mesh_fluid_cavities(
 
     session = _get_fluent_meshing_session(work_dir_meshing)
 
-    # import all stls
-    if _uses_container:
+    if _launch_mode == LaunchMode.PIM:
+        # Upload files to session if in PIM or Container modes.
+        LOGGER.info(f"Uploading files to session with working directory {work_dir_meshing}...")
+        files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+        for file in files:
+            session.upload(file)
+        # In PIM mode files are uploaded to the Fluents working directory.
+        work_dir_meshing = "."
+
+    elif _launch_mode == LaunchMode.CONTAINER:
         # NOTE: when using a Fluent container visible files
-        # will be in /mnt/pyfluent. So need to use relative paths
-        # or replace dirname by /mnt/pyfluent as prefix
+        # will be in /mnt/pyfluent. (equal to mount target)
         work_dir_meshing = "/mnt/pyfluent/meshing"
+
     session.tui.file.import_.cad(f"no {work_dir_meshing} *.stl")
 
     # merge objects
@@ -646,11 +679,18 @@ def mesh_from_manifold_input_model(
             os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
         )
 
-        # import files
-        if _uses_container:
+        if _launch_mode == LaunchMode.PIM:
+            # Upload files to session if in PIM or Container modes.
+            LOGGER.info(f"Uploading files to session with working directory {work_dir_meshing}...")
+            files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+            for file in files:
+                session.upload(file)
+            # In PIM mode files are uploaded to the Fluents working directory.
+            work_dir_meshing = "."
+
+        elif _launch_mode == LaunchMode.CONTAINER:
             # NOTE: when using a Fluent container visible files
-            # will be in /mnt/pyfluent. So need to use relative paths
-            # or replace dirname by /mnt/pyfluent as prefix
+            # will be in /mnt/pyfluent. (equal to mount target)
             work_dir_meshing = "/mnt/pyfluent/meshing"
 
         session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
@@ -710,16 +750,27 @@ def mesh_from_manifold_input_model(
 
         session.tui.mesh.prepare_for_solve("yes")
 
-        # write to file
+        LOGGER.info(f"Writing mesh to {path_to_output}...")
 
-        if _uses_container:
+        if _launch_mode in [LaunchMode.CONTAINER, LaunchMode.PIM]:
             session.tui.file.write_mesh(os.path.basename(path_to_output))
         else:
             session.tui.file.write_mesh('"' + path_to_output + '"')
-        session.exit()
 
-        if path_to_output != path_to_output_old:
+        LOGGER.info(f"Copying {path_to_output} to {path_to_output_old}...")
+
+        if _launch_mode == LaunchMode.PIM:
+            session.download(os.path.basename(path_to_output), path_to_output_old)
+        else:
             shutil.copy(path_to_output, path_to_output_old)
+
+        if not os.path.isfile(path_to_output_old):
+            raise FileNotFoundError(
+                f"Failed to copy {os.path.basename(path_to_output)} to {path_to_output_old}. "
+                "Please check the Fluent meshing log for errors."
+            )
+
+        session.exit()
 
         path_to_output = path_to_output_old
     else:
@@ -871,15 +922,24 @@ def mesh_from_non_manifold_input_model(
         # launch pyfluent
         session = _get_fluent_meshing_session(work_dir_meshing)
 
+        LOGGER.info(f"Starting Fluent Meshing in mode: {_launch_mode}")
+
         session.transcript.start(
             os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
         )
 
-        # # import stls
-        if _uses_container:
+        if _launch_mode == LaunchMode.PIM:
+            # Upload files to session if in PIM or Container modes.
+            LOGGER.info(f"Uploading files to session with working directory {work_dir_meshing}...")
+            files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+            for file in files:
+                session.upload(file)
+            # In PIM mode files are uploaded to the Fluents working directory.
+            work_dir_meshing = "."
+
+        elif _launch_mode == LaunchMode.CONTAINER:
             # NOTE: when using a Fluent container visible files
-            # will be in /mnt/pyfluent. So need to use relative paths
-            # or replace dirname by /mnt/pyfluent as prefix
+            # will be in /mnt/pyfluent. (equal to mount target)
             work_dir_meshing = "/mnt/pyfluent/meshing"
 
         session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
@@ -973,13 +1033,26 @@ def mesh_from_non_manifold_input_model(
             os.remove(path_to_output)
 
         LOGGER.info(f"Writing mesh to {path_to_output}...")
-        if _uses_container:
+
+        if _launch_mode in [LaunchMode.CONTAINER, LaunchMode.PIM]:
             session.tui.file.write_mesh(os.path.basename(path_to_output))
         else:
             session.tui.file.write_mesh('"' + path_to_output + '"')
-        session.exit()
 
-        shutil.copy(path_to_output, path_to_output_old)
+        LOGGER.info(f"Copying {path_to_output} to {path_to_output_old}...")
+
+        if _launch_mode == LaunchMode.PIM:
+            session.download(os.path.basename(path_to_output), path_to_output_old)
+        else:
+            shutil.copy(path_to_output, path_to_output_old)
+
+        if not os.path.isfile(path_to_output_old):
+            raise FileNotFoundError(
+                f"Failed to copy {os.path.basename(path_to_output)} to {path_to_output_old}. "
+                "Please check the Fluent meshing log for errors."
+            )
+
+        session.exit()
 
         path_to_output = path_to_output_old
     else:

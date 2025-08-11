@@ -134,9 +134,7 @@ class HeartModelUtils:
             return
 
         if target_coord is None:
-            for surface in model.right_ventricle.surfaces:
-                if "endocardium" in surface.name and "septum" in surface.name:
-                    right_septum = model.mesh.get_surface(surface.id)
+            right_septum = model.mesh.get_surface(model.right_ventricle.septum.id)
             # define AtrioVentricular as the closest point to septum
             target_id = pv.PolyData(
                 model.mesh.points[right_atrium_endo.global_node_ids_triangles, :]

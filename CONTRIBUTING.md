@@ -12,4 +12,4 @@ questions or submissions to this repository.
 For contributing to this project, please refer to the [PyAnsys Developer's Guide](https://dev.docs.pyansys.com/).
 Further information about contributing to PyAnsys heart can be found in [Contributing].
 
-[Contributing]: https://heart.docs.pyansys.com/version/stable/contributing.html
+[Contributing]: https://heart.health.docs.pyansys.com/version/stable/contributing.html

@@ -1,0 +1,289 @@
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import numpy as np
+import pytest
+import pyvista as pv
+
+from ansys.health.heart import __version__
+from ansys.health.heart.objects import Cap, Cavity, Mesh, SurfaceMesh
+from ansys.health.heart.parts import (
+    Artery,
+    Atrium,
+    Myocardium,
+    Part,
+    Septum,
+    Ventricle,
+    _PartType,
+)
+
+
+@pytest.mark.parametrize(
+    "cls, name, expected_keys",
+    [
+        (
+            Part,
+            "Part",
+            ["part-id", "part-type", "fiber", "active", "_version", "surfaces"],
+        ),
+        (Septum, "Septum", ["part-id", "part-type", "fiber", "active", "_version", "surfaces"]),
+        (
+            Artery,
+            "Artery",
+            [
+                "part-id",
+                "part-type",
+                "fiber",
+                "active",
+                "_version",
+                "surfaces",
+            ],
+        ),
+        (
+            Myocardium,
+            "Myocardium",
+            ["part-id", "part-type", "fiber", "active", "_version", "surfaces"],
+        ),
+        (
+            Ventricle,
+            "Ventricle",
+            ["part-id", "part-type", "fiber", "active", "_version", "surfaces", "caps", "cavity"],
+        ),
+        (
+            Atrium,
+            "Atrium",
+            ["part-id", "part-type", "fiber", "active", "_version", "surfaces", "caps", "cavity"],
+        ),
+    ],
+)
+def test_part_get_info(cls, name, expected_keys):
+    """Test getting part info for each of the Part classes."""
+    part: Part = cls(name)
+
+    info = part._to_dict()
+
+    assert list(info[name].keys()) == expected_keys
+
+
+def test_part_get_info_with_data():
+    """Test getting part info when data is present.."""
+    # Prepare a mock part with some data.
+    part = Ventricle("Part1")
+    part.pid = 1
+    part.endocardium = SurfaceMesh(pv.Tube(), name="tube1", id=10)
+    part.epicardium = SurfaceMesh(pv.Tube(radius=1.2), name="tube2", id=11)
+
+    # Create two mock caps.
+    cap1 = Cap("cap1")
+    cap1._mesh = SurfaceMesh(pv.Circle(0.2), id=100, name="cap1")
+    cap2 = Cap("cap2")
+    cap2._mesh = SurfaceMesh(pv.Circle(0.1), id=101, name="cap2")
+    part.caps.extend([cap1, cap2])
+
+    # Add a mock cavity.
+    part.cavity = Cavity(
+        surface=SurfaceMesh(
+            pv.merge([part.endocardium, cap1._mesh, cap2._mesh]), name="cavity1", id=1000
+        )
+    )
+
+    info = part._to_dict()
+
+    assert info["Part1"]["part-id"] == 1
+    assert info["Part1"]["part-type"] == _PartType.VENTRICLE.value
+    assert info["Part1"]["surfaces"] == {"tube1": 10, "tube2": 11}
+    assert info["Part1"]["caps"] == {"cap1": 100, "cap2": 101}
+    assert info["Part1"]["cavity"] == {"cavity1": 1000}
+    assert info["Part1"]["fiber"] is True
+    assert info["Part1"]["active"] is True
+    assert info["Part1"].get("_version") == __version__
+
+
+def _get_mock_mesh1():
+    from pyvista.examples import load_tetbeam
+
+    beam = load_tetbeam()
+    surface = beam.extract_surface()
+
+    mesh = Mesh()
+    mesh.add_surface(surface, name="Left ventricle endocardium", id=1)
+    mesh.add_surface(surface, name="Left ventricle epicardium", id=2)
+    mesh.add_surface(surface, name="Left ventricle septum", id=3)
+    mesh.add_surface(surface, name="Left atrium endocardium", id=4)
+    mesh.add_surface(surface, name="Left atrium epicardium", id=5)
+    mesh.add_surface(surface, name="Aorta wall", id=6)
+
+    return mesh
+
+
+@pytest.mark.parametrize(
+    "part_name,part_type,expected_class,surfaces,caps,cavity",
+    [
+        ("Septum", "septum", Septum, {}, {}, {}),
+        (
+            "Left ventricle",
+            "ventricle",
+            Ventricle,
+            {
+                "Left ventricle endocardium": 1,
+                "Left ventricle epicardium": 2,
+                "Left ventricle septum": 3,
+            },
+            {},
+            {},
+        ),
+        (
+            "Left atrium",
+            "atrium",
+            Atrium,
+            {"Left atrium endocardium": 4, "Left atrium epicardium": 5},
+            {},
+            {},
+        ),
+        ("Aorta", "artery", Artery, {"Aorta wall": 6}, {}, {}),
+        ("Myocardium", "myocardium", Myocardium, {}, {}, {}),
+        ("Myocardium", "myocardium", Myocardium, {}, {}, {}),
+    ],
+)
+def test_set_from_dict(part_name, part_type, expected_class, surfaces, caps, cavity):
+    test_dict = {
+        part_name: {
+            "part-id": 42,
+            "active": True,
+            "fiber": True,
+            "part-type": part_type,
+            "surfaces": surfaces,
+        }
+    }
+
+    part = Part._set_from_dict(test_dict)
+
+    assert isinstance(part, expected_class)
+    assert part.name == part_name
+    assert part.pid == 42
+    assert part.active is True
+    assert part.fiber is True
+
+    # surfaces not set since no mesh was passed.
+    assert all(surface.id is None for surface in part.surfaces)
+
+    # add a mesh to reconstruct surfaces.
+    part = Part._set_from_dict(test_dict, mesh=_get_mock_mesh1())
+
+    # Check that surfaces are reconstructed correctly.
+    if surfaces != {}:
+        for surface_name, surface_id in surfaces.items():
+            attribute_name = surface_name.replace(part.name + " ", "")
+            assert hasattr(part, attribute_name)
+            surface = getattr(part, attribute_name)
+
+            assert isinstance(surface, SurfaceMesh)
+            assert surface.id == surface_id
+
+
+def test_set_from_dict_invalid_type():
+    assert Part._set_from_dict("not a dict") is None
+
+
+def test_set_from_dict_missing_part_type():
+    part_name = "test_missing_part_type"
+    test_dict = {part_name: {"part-id": 99, "surfaces": {"endo": 10}}}
+    part = Part._set_from_dict(test_dict)
+    assert isinstance(part, Part)
+    assert part._part_type == _PartType.UNDEFINED
+
+
+def _get_mock_mesh():
+    """Create a mock mesh with two tetrahedra and a _volume-id array."""
+    points = np.array(
+        [
+            [0, 0, 0],
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+            [1, 1, 0],
+            [1, 0, 1],
+        ]
+    )
+    # Two tetrahedra:
+    cells = np.hstack(
+        [
+            [4, 0, 1, 2, 3],
+            [4, 1, 2, 4, 5],
+        ]
+    )
+    celltypes = np.array([pv.CellType.TETRA, pv.CellType.TETRA])
+    grid = pv.UnstructuredGrid(cells, celltypes, points)
+
+    # Mock volume IDs
+    grid.cell_data["_volume-id"] = np.array([1, 2])
+    return Mesh(grid)
+
+
+def test_get_element_ids_returns_correct_indices():
+    """Test get_element_ids returns correct indices based on _volume-id."""
+    # Setup: mesh with _volume-id array, and a part with a specific pid
+    mesh = _get_mock_mesh()
+    part = Part("TestPart")
+
+    part.pid = 2
+    # Should return indices where _volume-id == 2
+    result = part.get_element_ids(mesh)
+    expected = np.argwhere(np.array(mesh.volume_ids) == 2).flatten()
+    assert np.array_equal(result, expected)
+
+
+def test_get_element_ids_returns_empty_if_mesh_none(caplog):
+    """Test get_element_ids returns empty array if mesh is None."""
+    part = Part("TestPart")
+    part.pid = 1
+    result = part.get_element_ids(None)
+    assert isinstance(result, np.ndarray)
+    assert result.shape == (0,)
+    assert any("Mesh is not provided to get element IDs." in m for m in caplog.text.splitlines())
+
+
+def test_get_element_ids_returns_empty_if_pid_not_found():
+    """Test get_element_ids returns empty array if pid is not found in volume_ids."""
+    mesh = _get_mock_mesh()
+    part = Part("TestPart")
+    part.pid = 99  # pid not in volume_ids
+    # Should return empty array, but shape will be (0,) due to np.argwhere
+    result = part.get_element_ids(mesh)
+    assert result.shape == (0,)
+
+
+def test_get_element_ids_returns_empty_if_volume_id_missing(caplog):
+    """Test get_element_ids returns empty array and logs error if '_volume-id' is missing."""
+    mesh = _get_mock_mesh()
+    # Remove '_volume-id' to simulate missing cell data
+    mesh.cell_data.remove("_volume-id")
+
+    part = Part("TestPart")
+    part.pid = 1
+
+    result = part.get_element_ids(mesh)
+    assert isinstance(result, np.ndarray)
+    assert result.shape == (0,)
+    assert any(
+        "Mesh does not contain '_volume-id' cell data." in m for m in caplog.text.splitlines()
+    )

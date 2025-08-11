@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module contains methods for mesh operations related to the VTK library."""
+"""Module containing methods for mesh operations related to the VTK library."""
 
 import copy
 
@@ -88,7 +88,7 @@ def extrude_polydata(
     Returns
     -------
     pv.PolyData
-        Extruded PolyData object.
+        Extruded polydata object.
     """
     extrude_normal = False
     if len(extrude_direction) == 0:
@@ -276,7 +276,7 @@ def get_boundary_edge_loops(
 
 
 def get_patches_delaunay(surface: pv.PolyData, closed_only: bool = True) -> list[pv.PolyData]:
-    """Patch boundary edges with a Delaunay algorithm.
+    """Patch boundary edges with the Delaunay algorithm.
 
     Parameters
     ----------
@@ -376,7 +376,7 @@ def get_patches_with_centroid(
 def are_connected(
     mesh1: pv.PolyData | pv.UnstructuredGrid, mesh2: pv.PolyData | pv.UnstructuredGrid
 ) -> bool:
-    """Check whether two ``PolyData`` or ``UnstructuredGrids`` objects are connected.
+    """Check whether two polydata or unstructured grid objects are connected.
 
     Parameters
     ----------
@@ -413,7 +413,7 @@ def are_connected(
 
 
 def add_solid_name_to_stl(filename, solid_name, file_type: str = "ascii") -> None:
-    """Add name of the solid to STL file.
+    """Add the name of the solid to the STL file.
 
     Notes
     -----

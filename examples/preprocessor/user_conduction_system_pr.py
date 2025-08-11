@@ -1,0 +1,313 @@
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# SPDX-License-Identifier: MIT
+#
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""
+Full-heart conduction system example
+====================================
+
+This example demonstrates how to build a conduction system for a full-heart model,
+including the Purkinje network and other conduction pathways.
+
+.. note::
+    The fractal tree used in this example was generated with LS-DYNA and is based on:
+    `F. Sahli Costabal, D. Hurtado and E. Kuhl. Generating Purkinje networks in the human heart.
+    2016, Journal of Biomechanics <https://doi.org/10.1016/j.jbiomech.2015.12.025>`_.
+
+Overview
+--------
+
+In addition to the Purkinje fibers, this example defines other key conduction pathways,
+such as the sinoatrial (SA) node to atrioventricular (AV) node path, the Bachmann bundle,
+the His bundle and its bifurcation, as well as the left and right bundle branches.
+Each conduction path is constructed using anatomical landmarks and keypoints, and is
+integrated into the heart model.
+"""
+
+###############################################################################
+# Required imports
+# ~~~~~~~~~~~~~~~~
+from pathlib import Path
+
+import numpy as np
+import pyvista as pv
+
+from ansys.health.heart.examples import (
+    get_fractal_tree_purkinje,
+    get_preprocessed_fullheart,
+)
+import ansys.health.heart.models as models
+from ansys.health.heart.models_utils import HeartModelUtils
+from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
+
+# Set the working directory and path to the model.
+workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
+path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart(resolution="2.0mm")
+
+###############################################################################
+# Load the full-heart model
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+model: models.FullHeart = models.FullHeart.load_model(
+    path_to_model, path_to_partinfo, working_directory=workdir
+)
+
+###############################################################################
+# Create conduction paths for the Purkinje network
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Load precomputed Purkinje network meshes
+left_purkinje, right_purkinje = get_fractal_tree_purkinje()
+
+# Create left Purkinje network conduction path
+left_purkinje = ConductionPath(
+    name=ConductionPathType.LEFT_PURKINJE,
+    mesh=left_purkinje,
+    is_connected=np.zeros(left_purkinje.n_points),
+    id=1,
+    relying_surface=model.left_ventricle.endocardium,
+)
+
+# Add Purkinje-myocardial junctions (PMJs) at terminal nodes
+pmj_nodes_left = left_purkinje.get_terminal_nodes()
+pmj_coordinates_left = left_purkinje.get_terminal_coordinates()
+left_purkinje.add_pmj_path(pmj_list=pmj_nodes_left)
+
+# Visualize the left Purkinje network
+left_purkinje.plot()
+
+###############################################################################
+# Create right Purkinje network
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+right_purkinje = ConductionPath(
+    name=ConductionPathType.RIGHT_PURKINJE,
+    mesh=right_purkinje,
+    is_connected=np.zeros(right_purkinje.n_points),
+    id=2,
+    relying_surface=model.right_ventricle.endocardium,
+)
+
+# Add Purkinje-myocardial junctions (PMJs) at terminal nodes
+pmj_nodes_right = right_purkinje.get_terminal_nodes()
+pmj_coordinates_right = right_purkinje.get_terminal_coordinates()
+right_purkinje.add_pmj_path(pmj_list=pmj_nodes_right)
+
+# Visualize the right Purkinje network
+right_purkinje.plot()
+
+###############################################################################
+# Visualize both Purkinje networks and PMJ points together
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Combine PMJ coordinates for visualization
+pmj_points = pv.PolyData(np.vstack([pmj_coordinates_left, pmj_coordinates_right]))
+
+# Create a plotter and add all relevant meshes
+plotter = pv.Plotter()
+plotter.add_mesh(pmj_points, color="r", render_points_as_spheres=True, point_size=5)
+plotter.add_mesh(pv.merge([left_purkinje.mesh, right_purkinje.mesh]), line_width=2)
+plotter.add_mesh(
+    pv.merge([left_purkinje.relying_surface, right_purkinje.relying_surface]),
+    opacity=0.5,
+    color="white",
+)
+plotter.add_text("Left and right Purkinje networks.", position="upper_edge")
+plotter.show()
+
+
+###############################################################################
+# Create the SA-AV node conduction path
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+sa = HeartModelUtils.define_sino_atrial_node(model, target_coord=[6, 66, 88])
+av = HeartModelUtils.define_atrio_ventricular_node(model)
+# Create the SA-AV node conduction path. The default option is to connect the
+# SA node and AV node by a geodesic path.
+sa_av = ConductionPath.create_from_keypoints(
+    name=ConductionPathType.SAN_AVN,
+    keypoints=[sa.xyz, av.xyz],
+    id=3,
+    base_mesh=model.right_atrium.endocardium,
+    connection="first",
+    line_length=None,
+    center=True,
+)
+
+# Add PMJ nodes at every 4th node along the SA-AV path (excluding endpoints)
+sa_av.add_pmj_path(list(range(1, sa_av.mesh.n_points - 1, 4)))
+
+# Visualize the SA-AV node conduction path
+sa_av.plot()
+
+###############################################################################
+# Create the His bundle and its bifurcation
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# The His bundle is constructuted inside the myocardium, not on a surface.
+
+###############################################################################
+# .. note::
+#    You can modify the conduction velocity in ``his_top.ep_material``
+#    to induce a delay in activation.
+
+# Define three keypoints for the His bundle
+his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model)
+his_left_point = HeartModelUtils.define_his_bundle_end_node(model, side="left")
+his_right_point = HeartModelUtils.define_his_bundle_end_node(model, side="right")
+
+# Top part of the His bundle.
+his_top = ConductionPath.create_from_keypoints(
+    name=ConductionPathType.HIS_TOP,
+    keypoints=[av.xyz, his_bif.xyz],
+    id=4,
+    base_mesh=model.mesh.extract_cells_by_type(10),
+)
+his_top.up_path = sa_av
+
+# Create branches for the left and right bundle branches
+his_left = ConductionPath.create_from_keypoints(
+    name=ConductionPathType.HIS_LEFT,
+    keypoints=[his_bif.xyz, his_left_point.xyz],
+    id=5,
+    base_mesh=model.mesh.extract_cells_by_type(pv.CellType.TETRA),
+)
+his_left.up_path = his_top
+his_right = ConductionPath.create_from_keypoints(
+    name=ConductionPathType.HIS_RIGHT,
+    keypoints=[his_bif.xyz, his_right_point.xyz],
+    id=6,
+    base_mesh=model.mesh.extract_cells_by_type(pv.CellType.TETRA),
+)
+his_right.up_path = his_top
+
+###############################################################################
+# Create the left and right bundle branches
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Create the left and right bundle branches by defining their keypoints
+left_bundle = ConductionPath.create_from_keypoints(
+    name=ConductionPathType.LEFT_BUNDLE_BRANCH,
+    keypoints=[his_left_point.xyz, model.left_ventricle.apex_points[0].xyz],
+    id=7,
+    base_mesh=model.left_ventricle.endocardium,
+    line_length=None,
+    center=True,
+)
+# Connect the left bundle branch to the septum by adding additional Purkinje-myocardial junctions
+pmj_list = list(
+    range(
+        int((0.4 * left_bundle.mesh.n_points)),
+        int((0.9 * left_bundle.mesh.n_points)),
+        4,  # every 4 nodes
+    )
+)
+left_bundle.add_pmj_path(pmj_list, merge_with="node")
+left_bundle.up_path = his_left
+left_bundle.down_path = left_purkinje
+
+# Build the right bundle branch
+surface_ids = [
+    model.right_ventricle.endocardium.id,
+    model.right_ventricle.septum.id,
+]
+endo_surface = model.mesh.get_surface(surface_ids)
+right_bundle = ConductionPath.create_from_keypoints(
+    name=ConductionPathType.RIGHT_BUNDLE_BRANCH,
+    keypoints=[his_right_point.xyz, model.right_ventricle.apex_points[0].xyz],
+    id=8,
+    base_mesh=endo_surface,
+    line_length=None,
+)
+right_bundle.up_path = his_right
+right_bundle.down_path = right_purkinje
+
+
+###############################################################################
+# Create the Bachmann bundle
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+surface_ids = [
+    model.left_atrium.epicardium.id,
+    model.right_atrium.epicardium.id,
+]
+surface = model.mesh.get_surface(surface_ids)
+bachman_bundle = ConductionPath.create_from_keypoints(
+    name=ConductionPathType.BACHMANN_BUNDLE,
+    keypoints=[sa.xyz, [46, 102, 97]],
+    id=9,
+    base_mesh=surface,
+    line_length=None,
+    center=True,
+)
+bachman_bundle.add_pmj_path(list(range(1, bachman_bundle.mesh.n_points - 1, 4)))
+bachman_bundle.up_path = sa_av
+
+###############################################################################
+# Create the mid and post SA-AV node conduction paths
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# The mid and post SA-AV node conduction paths are created by providing a list of keypoints.
+mid_sa_av = ConductionPath.create_from_keypoints(
+    name=ConductionPathType.MID_SAN_AVN,
+    keypoints=[
+        sa.xyz,
+        [10, 79, 64],
+        [18, 95, 41],
+        [32, 93, 31],
+        [43, 88, 26],
+        av.xyz,
+    ],
+    id=10,
+    base_mesh=model.right_atrium.endocardium,
+    line_length=None,
+    center=True,
+)
+mid_sa_av.add_pmj_path(list(range(5, mid_sa_av.mesh.n_points - 5, 4)))
+mid_sa_av.up_path = sa_av
+mid_sa_av.down_path = sa_av
+post_sa_av = ConductionPath.create_from_keypoints(
+    name=ConductionPathType.POST_SAN_AVN,
+    keypoints=[sa.xyz, [2, 65, 53], [6, 73, 34], [25, 75, 26], av.xyz],
+    id=11,
+    base_mesh=model.right_atrium.endocardium,
+    line_length=None,
+    center=True,
+)
+post_sa_av.add_pmj_path(list(range(5, post_sa_av.mesh.n_points - 5, 4)))
+post_sa_av.up_path = sa_av
+post_sa_av.down_path = sa_av
+
+###############################################################################
+# Assign all conduction paths to the model and visualize the complete system
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+model.assign_conduction_paths(
+    [
+        left_purkinje,
+        right_purkinje,
+        sa_av,
+        his_top,
+        his_left,
+        his_right,
+        left_bundle,
+        right_bundle,
+        bachman_bundle,
+        mid_sa_av,
+        post_sa_av,
+    ]
+)
+
+# Visualize the entire conduction system
+model.plot_purkinje()

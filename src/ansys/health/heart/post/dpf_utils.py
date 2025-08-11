@@ -32,10 +32,13 @@ import pyvista as pv
 
 from ansys.dpf import core as dpf
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.exceptions import SupportedDPFServerNotFoundError
+from ansys.health.heart.exceptions import (
+    MissingEnvironmentVariableError,
+    SupportedDPFServerNotFoundError,
+)
 from ansys.health.heart.models import HeartModel
 
-_SUPPORTED_DPF_SERVERS = ["2024.1", "2024.1rc1", "2024.2rc0"]
+_SUPPORTED_DPF_SERVERS = ["2025.2", "2025.2rc0", "2024.1", "2024.1rc1", "2024.2rc0"]
 """List of supported DPF servers."""
 #! NOTE:
 #! 2024.1rc0: not supported due to missing ::tf operator
@@ -43,15 +46,36 @@ _SUPPORTED_DPF_SERVERS = ["2024.1", "2024.1rc1", "2024.2rc0"]
 
 
 def _check_accept_dpf():
-    if "ANSYS_DPF_ACCEPT_LA" in os.environ and os.environ["ANSYS_DPF_ACCEPT_LA"] == "Y":
-        pass
-    else:
+    if not os.getenv("ANSYS_DPF_ACCEPT_LA", None) == "Y":
         LOGGER.error(
             """DPF requires you to accept the license agreement.
             Set the environment variable "ANSYS_DPF_ACCEPT_LA" to "Y"."""
         )
-        exit()
+        raise MissingEnvironmentVariableError("ANSYS_DPF_ACCEPT_LA not set to 'Y'.")
     return
+
+
+def _get_dpf_server():
+    """Get the DPF server."""
+    server = None
+
+    # sort available servers from latest to oldest version.
+    available_dpf_servers = dict(reversed(dpf.server.available_servers().items()))
+    LOGGER.info(f"Available DPF Servers: {available_dpf_servers.keys()}")
+
+    for version, available_server in available_dpf_servers.items():
+        if version in _SUPPORTED_DPF_SERVERS:
+            LOGGER.info(f"Trying to launch DPF server {version}.")
+            server = available_server
+            break
+
+    if server is None:
+        mess = f"""Failed to launch supported DPF server:
+                    Make sure one of {_SUPPORTED_DPF_SERVERS} is installed."""
+        LOGGER.error(mess)
+        raise SupportedDPFServerNotFoundError(mess)
+
+    return server, version
 
 
 class D3plotReader:
@@ -69,23 +93,7 @@ class D3plotReader:
         _check_accept_dpf()
 
         # TODO: retrieve version from docker
-        self._server = None
-
-        # sort available servers from latest to oldest version.
-        available_dpf_servers = dict(reversed(dpf.server.available_servers().items()))
-        LOGGER.info(f"Available DPF Servers: {available_dpf_servers.keys()}")
-
-        for version, server in available_dpf_servers.items():
-            if version in _SUPPORTED_DPF_SERVERS:
-                LOGGER.info(f"Trying to launch DPF server {version}.")
-                self._server = server()
-                break
-
-        if self._server is None:
-            mess = f"""Failed to launch supported DPF server:
-                        Make sure one of {_SUPPORTED_DPF_SERVERS} is installed."""
-            LOGGER.error(mess)
-            raise SupportedDPFServerNotFoundError(mess)
+        self._server, self._dpf_version = _get_dpf_server()
 
         self.ds = dpf.DataSources()
         self.ds.set_result_file_path(path, "d3plot")
@@ -180,7 +188,7 @@ class D3plotReader:
         Parameters
         ----------
         time : float
-            Time at which to get the displacement field.
+            Time to get the displacement field at.
 
         Returns
         -------
@@ -208,7 +216,7 @@ class D3plotReader:
         hv_index: List[int]
             History variables index.
         at_step: int, default: 0
-            Step at which to get the history variables.
+            Step to get the history variables at.
 
         Returns
         -------
@@ -217,7 +225,7 @@ class D3plotReader:
 
         Notes
         -----
-        d3plot.get_history_variable(hv_index=list(range(9)), at_frame=at_frame). To
+        ``d3plot.get_history_variable(hv_index=list(range(9)), at_frame=at_frame)``. To
         get the deformation gradient (column-wise storage), see MAT_295 in the LS-DYNA manuals.
 
         """
@@ -233,7 +241,13 @@ class D3plotReader:
 
         res = []
         for i in hv_index:
-            res.append(hist_vars[i].data)
+            if self._dpf_version.startswith("2025.2"):
+                # Skip duplicate values.
+                data = hist_vars[i].data[0::3]
+            else:
+                data = hist_vars[i].data
+
+            res.append(data)
 
         return np.array(res)
 
@@ -275,7 +289,10 @@ class ICVoutReader:
             self._get_available_ids()
         except IndexError as error:
             LOGGER.error(f"{fn} does not contain icvout. {error}")
-            exit()
+            raise IndexError(
+                f"File {fn} does not contain control volume data. "
+                "Make sure the binout file contains ICVOUT results."
+            ) from error
 
     def _get_available_ids(self) -> np.ndarray:
         """Get available CV IDs and CVI IDs."""
@@ -384,7 +401,7 @@ class ICVoutReader:
 
 
 class EPpostprocessor:
-    """Postprocess EP (Electrophysiology) results."""
+    """Postprocess EP (plectrophysiology) results."""
 
     def __init__(self, results_path: Path, model: HeartModel = None):
         """Postprocess EP results.
@@ -580,7 +597,7 @@ class EPpostprocessor:
         times: np.ndarray,
         plot: bool = True,
     ) -> np.ndarray:
-        """Compute 12-Lead ECGs from 10 electrodes.
+        """Compute 12-lead ECGs from 10 electrodes.
 
         Parameters
         ----------
@@ -712,7 +729,7 @@ class D3plotToVTKExporter:
         time : float
             Time to convert.
         fname : str, default: None
-            Name of file to be save data to.
+            Name of file to save data to.
 
         Returns
         -------

@@ -149,8 +149,8 @@ class ActiveCurve:
         n : int, optional
             No. of heart beat will be written for LS-DYNA, by default 5
 
-        Note
-        ----
+        Notes
+        -----
         - If type=='stress', threshold is always 0.5e-6 and ca2+ will be shifted up with 1.0e-6
         except t=0. This ensures a continuous activation during simulation.
         """
@@ -178,7 +178,6 @@ class ActiveCurve:
         # maybe better to check it cross 1 or 2 times
         if np.max(self.ca2) < self.threshold or np.min(self.ca2) > self.threshold:
             raise ValueError("Threshold must cross ca2+ curve at least once")
-            exit()
 
     @property
     def dyna_input(self):
@@ -215,7 +214,7 @@ class ActiveCurve:
     def _stress_to_ca2(self, stress):
         if np.min(stress) < 0 or np.max(stress) > 1.0:
             LOGGER.error("Stress curve is not between 0-1.")
-            exit()
+            raise ValueError("Stress curve must be between 0-1.")
 
         # assuming actype=3, eta=0; n=1; Ca2+50=1
         ca2 = 1 / (1 - 0.999 * stress) - 1

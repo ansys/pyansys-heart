@@ -36,4 +36,7 @@ cell_models.k
 *INCLUDE
 $#                                                                      filename
 ep_settings.k                                                                   
+*INCLUDE
+$#                                                                      filename
+beam_networks.k                                                                 
 *END

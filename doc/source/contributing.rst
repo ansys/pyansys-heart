@@ -13,7 +13,7 @@ improving the documentation.
     participating, you agree to uphold this code of conduct.
 
 Overall guidance on contributing to a PyAnsys repository appears in
-`Contribute <https://dev.docs.pyansys.com/how-to/contributing.html>`_
+`Contributing <https://dev.docs.pyansys.com/how-to/contributing.html>`_
 in the *PyAnsys developer's guide*. Ensure that you are thoroughly familiar
 with this guide before attempting to contribute to PyAnsys Heart.
 

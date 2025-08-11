@@ -22,6 +22,8 @@
 
 """Module that defines classes used in the heart model."""
 
+from __future__ import annotations
+
 import copy
 from enum import Enum
 import json
@@ -34,8 +36,6 @@ import numpy as np
 import pyvista as pv
 
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.settings.material.ep_material import EPMaterial
-from ansys.health.heart.settings.material.material import MechanicalMaterialModel
 import ansys.health.heart.utils.vtk_utils as vtk_utils
 
 _SURFACE_CELL_TYPES = [pv.CellType.QUAD, pv.CellType.TRIANGLE]
@@ -124,6 +124,51 @@ def _invert_dict(dictionary: dict) -> dict:
         return {v: k for k, v in dictionary.items()}
 
 
+def _convert_int64_to_int32(
+    mesh: Mesh | pv.UnstructuredGrid | pv.PolyData | SurfaceMesh, array_names: list[str] = None
+):
+    """Change the datatype of cell and point arrays to int32.
+
+    Parameters
+    ----------
+    mesh : Mesh | pv.UnstructuredGrid | pv.PolyData | SurfaceMesh
+        The ``PyVista`` mesh object containing the cell and point data arrays to convert.
+    array_names : list[str], default: None
+        List of specific array names to convert. If not provided, all arrays in
+        the mesh will be checked and converted if necessary.
+
+    Returns
+    -------
+    Mesh | pv.UnstructuredGrid | pv.PolyData | SurfaceMesh
+        The input mesh with cell and point data arrays converted to ``int32``.
+
+    Notes
+    -----
+    ``PyVista`` uses ``int64`` by default, which is not compatible with
+    the ``PyVista`` sphinx plot directive for interactive plots in the documentation.
+    This method changes the datatype of the cell and point arrays to ``int32``.
+    """
+    if array_names is None:
+        array_names = mesh.array_names
+
+    cell_data_keys = mesh.cell_data.keys()
+    point_data_keys = mesh.point_data.keys()
+
+    for array_name in mesh.array_names:
+        try:
+            # convert cell data to int32
+            if array_name in cell_data_keys and mesh.cell_data[array_name].dtype == np.int64:
+                mesh.cell_data[array_name] = mesh.cell_data[array_name].astype(np.int32)
+
+            # convert point data to int32
+            if array_name in point_data_keys and mesh.point_data[array_name].dtype == np.int64:
+                mesh.point_data[array_name] = mesh.point_data[array_name].astype(np.int32)
+
+        except Exception as err:
+            LOGGER.debug(f"Failed to convert {array_name} to int32. {err}")
+    return mesh
+
+
 # TODO: Deprecate
 class Feature:
     """Feature class."""
@@ -188,7 +233,7 @@ class SurfaceMesh(pv.PolyData):
 
     @property
     def triangles(self):
-        """Triangular faces of the surface ''num_faces'' x 3."""
+        """Triangular faces of the surface ``num_faces`` x 3."""
         faces = np.reshape(self.faces, (self.n_cells, 3 + 1))[:, 1:]
         return faces
 
@@ -299,77 +344,6 @@ class SurfaceMesh(pv.PolyData):
 
         self.compute_normals(inplace=True, auto_orient_normals=True, flip_normals=True)
         return self
-
-
-# TODO: Refactor BeamMesh: why is this different from "Mesh"?
-@deprecated(reason="BeamMesh is replaced by new class.")
-class _BeamMesh(pv.UnstructuredGrid, Feature):
-    """Beam class."""
-
-    all_beam_nodes = []
-    # beam nodes array
-
-    @property
-    def nodes(self):
-        """Node coordinates."""
-        return np.array(self.points)
-
-    @nodes.setter
-    def nodes(self, array: np.ndarray):
-        if isinstance(array, type(None)):
-            return
-        try:
-            self.points = array
-        except Exception as e:
-            LOGGER.error(f"Failed to set nodes. {e}")
-            return
-
-    @property
-    def edges(self):
-        """Tetrahedrons ``num_tetra`` x 4."""
-        return self.cells_dict[pv.CellType.LINE]
-
-    @edges.setter
-    def edges(self, value: np.ndarray):
-        # sets lines of UnstructuredGrid
-        try:
-            points = self.points
-            celltypes = np.full(value.shape[0], pv.CellType.LINE, dtype=np.int8)
-            lines = np.hstack([np.full(len(celltypes), 2)[:, None], value])
-            super().__init__(lines, celltypes, points)
-        except Exception as e:
-            LOGGER.error(f"Failed to set lines. {e}")
-            return
-
-    def __init__(
-        self,
-        name: str = None,
-        edges: np.ndarray = None,
-        nodes: np.ndarray = None,
-        beam_nodes_mask: np.ndarray = None,
-        pid: int = None,
-        nsid: int = -1,
-    ) -> None:
-        super().__init__(self)
-        Feature.__init__(self, name)
-
-        self.edges = edges
-        """Beam edges."""
-
-        self.nodes = nodes
-        """Node coordinates."""
-
-        self.pid = pid
-        """Part ID associated with the network."""
-
-        self.nsid: int = nsid
-        """Surface ID associated with the network."""
-
-        self._all_beam_nodes: np.ndarray = np.empty((0, 3))
-        """Temporary attribute to save all previously created beam nodes to."""
-
-        self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
-        """Initialize dummy EP material model."""
 
 
 class Cavity(Feature):
@@ -505,16 +479,16 @@ class Point(Feature):
 
 
 class Mesh(pv.UnstructuredGrid):
-    """Mesh class, which inherits from ``pyvista UnstructuredGrid``.
+    """Mesh class, which inherits from the PyVista unstructured grid object.
 
     Notes
     -----
-    This class inherits from ``pyvista.UnstructuredGrid`` and adds additional
-    attributes and convenience methods for enhanced functionality. We use ``_volume_id``,
-    ``_surface_id``, and ``_line_id`` cell arrays to keep track of *labeled* selections of
-    cells. ``_volume_id`` is used to group 3D volume cells together.
+    This class inherits from the ``pyvista.UnstructuredGrid`` object and adds additional
+    attributes and convenience methods for enhanced functionality. The ``_volume_id``,
+    ``_surface_id``, and ``_line_id`` cell arrays keep track of *labeled* selections of
+    cells. The ``_volume_id`` cell array is used to group 3D volume cells together.
     Any non-3D volume cell is labeled as ``numpy.nan``. Similarly 2D and 1D cells are tracked
-    through ``_surface_id`` and ``_line_id`` respectively.
+    through the ``_surface_id`` and ``_line_id`` cell arrays respectively.
     """
 
     @property
@@ -572,7 +546,7 @@ class Mesh(pv.UnstructuredGrid):
         Returns
         -------
         np.ndarray
-            Array with unique surface IDs.
+            NumPy array with unique surface IDs.
         """
         try:
             mask = np.isin(self.celltypes, _SURFACE_CELL_TYPES)
@@ -590,12 +564,12 @@ class Mesh(pv.UnstructuredGrid):
 
     @property
     def volume_ids(self) -> np.ndarray:
-        """Unique volume IDs.
+        """NumPy array with unique volume IDs.
 
         Returns
         -------
         np.ndarray
-            Array with unique volume IDs.
+            NumPy array with unique volume IDs.
         """
         try:
             mask = np.isin(self.celltypes, _VOLUME_CELL_TYPES)
@@ -607,18 +581,39 @@ class Mesh(pv.UnstructuredGrid):
             return None
 
     @property
+    def _unused_volume_id(self) -> int:
+        """Get unused volume ID."""
+        if self.volume_ids is None:
+            return 1
+        return int(np.max(self.volume_ids) + 1)
+
+    @property
+    def _unused_surface_id(self) -> int:
+        """Get unused surface ID."""
+        if self.surface_ids is None:
+            return 1
+        return int(np.max(self.surface_ids) + 1)
+
+    @property
+    def _unused_line_id(self) -> int:
+        """Get unused line ID."""
+        if self.line_ids is None:
+            return 1
+        return int(np.max(self.line_ids) + 1)
+
+    @property
     def volume_names(self) -> List[str]:
         """List of volume names."""
         return [v for k, v in self._volume_id_to_name.items()]
 
     @property
     def line_ids(self) -> np.ndarray:
-        """Unique line IDs.
+        """NumPy array with unique line IDs.
 
         Returns
         -------
         np.ndarray
-            Array with unique line IDs.
+            NumPy array with unique line IDs.
         """
         try:
             mask = self.celltypes == pv.CellType.LINE
@@ -629,12 +624,21 @@ class Mesh(pv.UnstructuredGrid):
             return None
 
     @property
+    def line_names(self) -> List[str]:
+        """List of volume names."""
+        return [v for k, v in self._line_id_to_name.items()]
+
+    @property
     def _surface_name_to_id(self):
         return _invert_dict(self._surface_id_to_name)
 
     @property
     def _volume_name_to_id(self):
         return _invert_dict(self._volume_id_to_name)
+
+    @property
+    def _line_name_to_id(self):
+        return _invert_dict(self._line_id_to_name)
 
     @property
     def _global_cell_ids(self):
@@ -655,6 +659,8 @@ class Mesh(pv.UnstructuredGrid):
         """Surface ID to name map."""
         self._volume_id_to_name: dict = {}
         """Volume ID to name map."""
+        self._line_id_to_name: dict = {}
+        """Line ID to name map."""
         pass
 
     def _add_mesh(
@@ -663,6 +669,7 @@ class Mesh(pv.UnstructuredGrid):
         keep_data: bool = True,
         fill_float: np.float64 = np.nan,
         fill_int: int = -1,
+        merge_points: bool = False,
     ):
         """Add another mesh to this object.
 
@@ -676,34 +683,51 @@ class Mesh(pv.UnstructuredGrid):
             Mesh to add, either ``PolyData`` or ``UnstructuredGrid``.
         keep_data : bool, default: True
             Whether to try to keep mesh point/cell data.
+        merge_points : bool, default: False
+            Flag specifying whether to merge the points.
         """
         mesh = copy.copy(mesh_input)
+        # NOTE: PyVista 0.45.0 sometimes has more data cell/point data arrays than number of
+        # cells/points. This seems to happen mostly in PolyData objects, casting to an unstructured
+        # grid seems to fix this. Aternatively we can call clean and deactivate all flags.
+        # However, that may have other side effects.
+        if isinstance(mesh, pv.PolyData):
+            mesh = mesh.cast_to_unstructured_grid()
+
         if keep_data:
             # add cell/point arrays in self
             cell_data_names = [k for k in mesh.cell_data.keys()]
             point_data_names = [k for k in mesh.point_data.keys()]
 
             for name in cell_data_names:
-                self.cell_data[name] = _get_fill_data(
-                    mesh, self, name, "cell", fill_int, fill_float
-                )
+                fill_data = _get_fill_data(mesh, self, name, "cell", fill_int, fill_float)
+                if isinstance(fill_data, np.ndarray) and fill_data.shape[0] == 0:
+                    continue
+                self.cell_data[name] = fill_data
 
             for name in point_data_names:
-                self.point_data[name] = _get_fill_data(
-                    mesh, self, name, "point", fill_int, fill_float
-                )
+                fill_data = _get_fill_data(mesh, self, name, "point", fill_int, fill_float)
+                if isinstance(fill_data, np.ndarray) and fill_data.shape[0] == 0:
+                    continue
+                self.point_data[name] = fill_data
 
             # add cell/point arrays mesh to be added
             cell_data_names = [k for k in self.cell_data.keys()]
             point_data_names = [k for k in self.point_data.keys()]
 
             for name in cell_data_names:
-                mesh.cell_data[name] = _get_fill_data(self, mesh, name, "cell")
+                fill_data = _get_fill_data(self, mesh, name, "cell")
+                if isinstance(fill_data, np.ndarray) and fill_data.shape[0] == 0:
+                    continue
+                mesh.cell_data[name] = fill_data
 
             for name in point_data_names:
-                mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
+                fill_data = _get_fill_data(self, mesh, name, "point")
+                if isinstance(fill_data, np.ndarray) and fill_data.shape[0] == 0:
+                    continue
+                mesh.point_data[name] = fill_data
 
-        merged = pv.merge((self, mesh), merge_points=False, main_has_priority=False)
+        merged = pv.merge((self, mesh), merge_points=merge_points, main_has_priority=False)
         super().__init__(merged)
         return self
 
@@ -732,17 +756,78 @@ class Mesh(pv.UnstructuredGrid):
         names, counts = np.unique(self.volume_names, return_counts=True)
         return names[counts > 1]
 
+    def _get_duplicate_line_names(self):
+        names, counts = np.unique(self.line_names, return_counts=True)
+        return names[counts > 1]
+
     def _get_unmapped_volumes(self):
+        if self.volume_ids is None:
+            return []
         unmapped_ids = self.volume_ids[
             np.invert(np.isin(self.volume_ids, list(self._volume_id_to_name.keys())))
         ]
         return unmapped_ids
 
     def _get_unmapped_surfaces(self):
+        if self.surface_ids is None:
+            return []
         unmapped_ids = self.surface_ids[
             np.invert(np.isin(self.surface_ids, list(self._surface_id_to_name.keys())))
         ]
         return unmapped_ids
+
+    def _get_unmapped_lines(self):
+        if self.line_ids is None:
+            return []
+        unmapped_ids = self.line_ids[
+            np.invert(np.isin(self.line_ids, list(self._line_id_to_name.keys())))
+        ]
+        return unmapped_ids
+
+    def get_unused_id_in_range(
+        self, id_type: Literal["volume", "surface", "line"], start: int = 1, end: int = 1000
+    ) -> int:
+        """
+        Get an unused ID within a specified range.
+
+        Parameters
+        ----------
+        id_type : Literal["volume", "surface", "line"]
+            The type of ID for which to retrieve an unused value.
+        start : int, default: 1
+            Start of the range (inclusive).
+        end : int, default: 1000
+            End of the range (inclusive).
+
+        Returns
+        -------
+        int
+            An unused and unique ID within the specified range.
+
+        Raises
+        ------
+        ValueError
+            If no unused ID is found in the specified range.
+
+        """
+        if id_type == "volume":
+            ids = self.volume_ids
+        elif id_type == "surface":
+            ids = self.surface_ids
+        elif id_type == "line":
+            ids = self.line_ids
+        else:
+            raise ValueError(f"Invalid id_type: {id_type}. Must be 'volume', 'surface', or 'line'.")
+
+        if ids is None:
+            return start
+
+        # Subtract existing IDs from IDs in range to get candidate IDs
+        candidate_ids = set(range(start, end + 1)) - set(ids)
+        if candidate_ids != {}:
+            return min(candidate_ids)
+        else:
+            raise ValueError(f"No unused ID found in the range {start} to {end}.")
 
     def save(self, filename: Union[str, pathlib.Path], **kwargs):
         """Save mesh."""
@@ -756,7 +841,7 @@ class Mesh(pv.UnstructuredGrid):
 
         Notes
         -----
-        This tries to read a JSON file with the volume/surface ID to name map
+        This method tries to read a JSON file with the volume/surface ID to a name map
         with extension ``.namemap.json`` in the same directory as the file. Alternatively,
         you can read the name map manually by calling ``._load_id_to_name_map(filename)``.
 
@@ -826,17 +911,25 @@ class Mesh(pv.UnstructuredGrid):
         # TODO: Ensure there are no duplicate names.
         unmapped_volumes = self._get_unmapped_volumes()
         unmapped_surfaces = self._get_unmapped_surfaces()
+        unmapped_lines = self._get_unmapped_lines()
 
         duplicate_volume_names = self._get_duplicate_volume_names()
         duplicate_surface_names = self._get_duplicate_surface_names()
+        duplicate_line_names = self._get_duplicate_line_names()
 
-        if len(unmapped_volumes) > 0 or len(unmapped_surfaces) > 0:
+        if len(unmapped_volumes) > 0 or len(unmapped_surfaces) > 0 or len(unmapped_lines) > 0:
             LOGGER.debug(f"Volume IDs {unmapped_volumes} are not associated with a volume name.")
             LOGGER.debug(f"Surface IDs {unmapped_surfaces} are not associated with a surface name.")
+            LOGGER.debug(f"Line IDs {unmapped_lines} are not associated with a surface name.")
             return False
-        if len(duplicate_surface_names) > 0 or len(duplicate_volume_names) > 0:
+        if (
+            len(duplicate_surface_names) > 0
+            or len(duplicate_volume_names) > 0
+            or len(duplicate_line_names) > 0
+        ):
             LOGGER.debug(f"Volume names {duplicate_volume_names} occur more than once.")
-            LOGGER.debug(f"Surface names {duplicate_surface_names} occur more than once")
+            LOGGER.debug(f"Surface names {duplicate_surface_names} occur more than once.")
+            LOGGER.debug(f"Line names {duplicate_line_names} occur more than once.")
             return False
         else:
             return True
@@ -882,9 +975,9 @@ class Mesh(pv.UnstructuredGrid):
         volume : pv.PolyData
             PolyData representation of the volume to add.
         id : int
-            ID of the volume to add. This ID is tracked as ``_volume-id``
+            ID of the volume to add. This ID is tracked as ``_volume-id``.
         name : str, default: None
-            Name of the added volume. The added value is not tracked by default.
+            Name of the added volume. The added volume is not tracked by default.
         """
         if not id:
             if "_volume-id" not in volume.cell_data.keys():
@@ -945,7 +1038,7 @@ class Mesh(pv.UnstructuredGrid):
 
         return self_copy
 
-    def add_lines(self, lines: pv.PolyData, id: int = None):
+    def add_lines(self, lines: pv.PolyData, id: int = None, name: str = None):
         """Add lines.
 
         Parameters
@@ -954,10 +1047,12 @@ class Mesh(pv.UnstructuredGrid):
             PolyData representation of the lines to add.
         id : int
             ID of the surface to add. This ID is tracked as ``_line-id``.
+        name : str, optional
+            Name of the added lines. The added lines are not tracked by default.
         """
         if not id:
             if "_line-id" not in lines.cell_data.keys():
-                LOGGER.error("Failed to set '_surface-id'.")
+                LOGGER.error("Failed to set '_line-id'")
                 return None
         else:
             if not isinstance(id, int):
@@ -965,15 +1060,19 @@ class Mesh(pv.UnstructuredGrid):
                 return None
             lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
 
-        self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
+        self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan, merge_points=False)
+
+        if name:
+            self._line_id_to_name[id] = name
+
         return self_copy
 
     def get_volume(self, sid: int) -> pv.UnstructuredGrid:
-        """Get a volume as an ``UnstructuredGrid`` object."""
+        """Get a volume as a PyVista unstructured grid object."""
         return self._get_submesh(sid, scalar="_volume-id")
 
     def get_volume_by_name(self, name: str) -> pv.UnstructuredGrid:
-        """Get the surface associated with ``name``."""
+        """Get the surface associated with a given name."""
         if name not in list(self._volume_name_to_id.keys()):
             LOGGER.error(f"No volume is associated with {name}.")
             return None
@@ -982,7 +1081,7 @@ class Mesh(pv.UnstructuredGrid):
 
     def get_surface(self, sid: int) -> Union[pv.PolyData, SurfaceMesh]:
         # ?: Return SurfaceMesh instead of PolyData?
-        """Get a surface as a ``PolyData`` object.
+        """Get a surface as a PyVista polydata object.
 
         Notes
         -----
@@ -1000,7 +1099,7 @@ class Mesh(pv.UnstructuredGrid):
 
     def get_surface_by_name(self, name: str) -> Union[pv.PolyData, SurfaceMesh]:
         # ?: Return SurfaceMesh instead of PolyData?
-        """Get the surface associated with ``name``."""
+        """Get the surface associated with a given name."""
         if name not in list(self._surface_name_to_id.keys()):
             LOGGER.error(f"No surface is associated with {name}.")
             return None
@@ -1008,8 +1107,16 @@ class Mesh(pv.UnstructuredGrid):
         return self.get_surface(surface_id)
 
     def get_lines(self, sid: int) -> pv.PolyData:
-        """Get lines as a ``PolyData`` object."""
+        """Get lines as a PyVista polydata object."""
         return self._get_submesh(sid, scalar="_line-id").extract_surface()
+
+    def get_lines_by_name(self, name: str) -> pv.PolyData:
+        """Get the lines associated with a given name."""
+        if name not in list(self._line_name_to_id.keys()):
+            LOGGER.error(f"No lines associated with {name}")
+            return None
+        line_id = self._line_name_to_id[name]
+        return self.get_lines(line_id)
 
     def remove_surface(self, sid: int):
         """Remove a surface with a given ID.
@@ -1044,290 +1151,138 @@ class Mesh(pv.UnstructuredGrid):
         mask = self.cell_data["_line-id"] == lid
         return self.remove_cells(mask, inplace=True)
 
+    @staticmethod
+    def _get_shifted_id(solid_mesh: Mesh, conduction_mesh: Mesh) -> np.ndarray:
+        """Get the shifted IDs of the conduction mesh.
 
-class _ConductionType(Enum):
-    """Enum containing types of conduction systems."""
+        Parameters
+        ----------
+        solid_mesh : Mesh
+            Solid mesh.
+        conduction_mesh : Mesh
+            Path mesh with "_is-connected" cell data.
 
-    LEFT_PURKINJE = "Left-purkinje"
-    """Left Purkinje network."""
-    RIGHT_PURKINJE = "Right-purkinje"
-    """Right Purkinje network."""
-    SAN_AVN = "SAN_to_AVN"
-    """Sino-atrial node to atrio-ventricular node."""
-    LEFT_BUNDLE_BRANCH = "Left bundle branch"
-    """Left bundle branch."""
-    RIGHT_BUNDLE_BRANCH = "Right bundle branch"
-    """Right bundle branch."""
-    HIS = "His"
-    """His segment."""
-    BACHMANN_BUNDLE = "Bachman bundle"
-    """Bachmann bundle."""
+        Returns
+        -------
+        np.ndarray
+            Shifted node IDs of the conduction mesh.
+        """
+        from scipy import spatial
 
+        kdtree = spatial.cKDTree(solid_mesh.points)
 
-class _BeamsMesh(Mesh):
-    """Mesh class that inherits from ``Mesh``.
+        is_connected = conduction_mesh["_is-connected"].astype(bool)
+        querry_points = conduction_mesh.points[is_connected]
+        dst, solid_id = kdtree.query(querry_points)
+        LOGGER.info(f"Maximal distance from solid-beam connected node:{np.max(dst)}")
 
-    Notes
-    -----
-    This class inherits from ``Mesh and adds additional
-    attributes and convenience methods for enhanced functionality. Lines of the same component are
-    tracked as ``_line_id``. Connections to the volume mesh are tracked using the pointdata field
-    ``_is-connected``.
-    """
+        shifted_ids = np.linspace(
+            0, conduction_mesh.n_points - 1, num=conduction_mesh.n_points, dtype=int
+        )
+        # for connected nodes, replace by solid mesh ID
+        shifted_ids[is_connected] = solid_id
+        # for beam-only nodes, shift their IDs
+        for i in range(conduction_mesh.n_points):
+            if not is_connected[i]:
+                shifted_ids[i] += solid_mesh.n_points - np.sum(is_connected[:i])
 
-    def __init__(self, *args):
-        super().__init__(*args)
+        return shifted_ids
 
-        self._line_id_to_name: dict = {}
-        """Line ID to name map."""
-        self.ep_material: dict = {}
-        """EP material map."""
-        self._line_id_to_pid: dict = {}
-        """Line ID to part ID map."""
-        pass
+    @staticmethod
+    def _safe_line_merge(base: Mesh, add_mesh: Mesh, merge_id: list, target_id: list) -> Mesh:
+        """Safely merge two line meshes by specify the node ID to be merged.
 
-    def _get_submesh(
-        self, sid: int, scalar: Literal["_surface-id", "_line-id", "_volume-id"]
-    ) -> pv.PolyData:
-        # NOTE: extract_cells cleans the object, removing any unused points.
-        if scalar not in self.cell_data.keys():
-            LOGGER.debug(f"{scalar} does not exist in 'cell_data'.")
-            return None
-        mask = np.isin(self.cell_data[scalar], sid)
-        self._set_global_ids()
-        return self.extract_cells(mask)
+        Parameters
+        ----------
+        base : Mesh
+            Base mesh to merge into.
+        add_mesh : Mesh
+            Mesh to add to merge into the base mesh.
+        merged_id : list
+            List of node IDs to be merged.
+        target_id : list
+            List of node IDs in the base to be merged.
 
-    def _add_mesh(
-        self,
-        mesh_input: pv.PolyData,
-        keep_data: bool = True,
-        fill_float: np.float64 = np.nan,
-        fill_int: int = 0,
-    ):
-        """Add another mesh to this object.
+        Returns
+        -------
+        Mesh
+            Merged line mesh.
 
         Notes
         -----
-        Adding the mesh is always in place.
-
-        Parameters
-        ----------
-        mesh_input : pv.PolyData | pv.UnstructuredGrid
-            Mesh to add, which is either ``PolyData`` or ``UnstructuredGrid``.
-        keep_data : bool, default: True
-            Whether to try to keep mesh point/cell data.
+            point_data["_is-connected"] and cell_data["_line-id"] will be merged.
         """
-        mesh = copy.copy(mesh_input)
-        if keep_data:
-            # add cell/point arrays in self
-            cell_data_names = [k for k in mesh.cell_data.keys()]
-            point_data_names = [k for k in mesh.point_data.keys()]
 
-            for name in cell_data_names:
-                self.cell_data[name] = _get_fill_data(
-                    mesh, self, name, "cell", fill_int, fill_float
-                )
+        def get_lines(m: pv.UnstructuredGrid | pv.PolyData):
+            if m.GetNumberOfCells() == 0:
+                return np.empty(shape=(0, 2), dtype=np.int_)
+            if isinstance(m, pv.UnstructuredGrid):
+                return m.cells.reshape(-1, 3)[:, 1:]
+            elif isinstance(m, pv.PolyData):
+                return m.lines.reshape(-1, 3)[:, 1:]
 
-            for name in point_data_names:
-                self.point_data[name] = _get_fill_data(
-                    mesh, self, name, "point", fill_int, fill_float
-                )
+        base_points = base.points
+        base_lines = get_lines(base)
 
-            # add cell/point arrays mesh to be added
-            cell_data_names = [k for k in self.cell_data.keys()]
-            point_data_names = [k for k in self.point_data.keys()]
-
-            for name in cell_data_names:
-                mesh.cell_data[name] = _get_fill_data(self, mesh, name, "cell")
-
-            for name in point_data_names:
-                mesh.point_data[name] = _get_fill_data(self, mesh, name, "point")
-
-        merged = pv.merge((self, mesh), merge_points=True, main_has_priority=False)
-        super().__init__(merged)
-        return self
-
-    def get_unique_lines_id(self) -> int:
-        """Get unique lines ID."""
-        new_id: int
-        if "_line-id" not in self.cell_data.keys():
-            new_id = 1
+        if base.GetNumberOfCells() == 0:
+            point_data = np.empty(shape=(0,))
+            cell_data = np.empty(shape=(0,))
         else:
-            new_id = np.max(np.unique(self.cell_data["_line-id"])) + 1
-        return int(new_id)
+            point_data = base.point_data["_is-connected"]
+            cell_data = base.cell_data["_line-id"]
 
-    def add_lines(self, lines: pv.PolyData, id: int = None, name: str = None):
-        """Add lines.
+        if merge_id == []:
+            # no merge
+            new_points = add_mesh.points
+            new_point_data = add_mesh.point_data["_is-connected"]
+            new_lines = get_lines(add_mesh) + len(base_points)
 
-        Parameters
-        ----------
-        lines : pv.PolyData
-            PolyData representation of the lines to add.
-        id : int
-            ID of the surface to add. This ID is tracked as ``_line-id``.
-        name: str
-            Name of the lines to add.
-        """
-        if not id:
-            return None
+        elif merge_id == [0]:
+            new_points = add_mesh.points[1:]
+            # first node is merged, lead to an offset of all lines
+            new_lines = get_lines(add_mesh) + len(base_points) - 1
+            # replace first node
+            new_lines[0, 0] = target_id[0]
+
+            # point data
+            new_point_data = add_mesh.point_data["_is-connected"][1:]
+
+        elif merge_id == [0, -1]:
+            # first node is merged, lead to an offset of all lines
+            # last node is just dropped
+            new_points = add_mesh.points[1:-1]
+            new_lines = get_lines(add_mesh) + len(base_points) - 1
+            # replace first node
+            new_lines[0, 0] = target_id[0]
+            # replace last node
+            new_lines[-1, 1] = target_id[1]
+
+            # point data
+            new_point_data = add_mesh.point_data["_is-connected"][1:-1]
         else:
-            if not isinstance(id, int):
-                LOGGER.debug("'sid' should be an integer.")
-                return None
-            lines.cell_data["_line-id"] = np.ones(lines.n_cells, dtype=float) * id
-            if "_is-connected" not in lines.point_data.keys():
-                lines.point_data["_is-connected"] = np.zeros(lines.n_points, dtype=int)
-        self_copy = self._add_mesh(lines, keep_data=True, fill_float=np.nan)
-        if name:
-            self._line_id_to_name[id] = name
-            self.ep_material[id] = EPMaterial.DummyMaterial()
-        return self_copy
+            NotImplementedError("Do not handle this merge lines.")
 
-    def get_line_id_from_name(self, name: str) -> int:
-        """Get the line ID from name using the ``_line_id_to_name`` attribute."""
-        position_in_list = list(self._line_id_to_name.values()).index(name)
-        line_id = list(self._line_id_to_name.keys())[position_in_list]
-        return line_id
+        merged = pv.PolyData()
+        merged.points = np.vstack((base_points, new_points))
+        merged_lines = np.vstack((base_lines, new_lines))
+        merged.lines = np.hstack(
+            (2 * np.ones(len(merged_lines), dtype=int)[:, np.newaxis], merged_lines)
+        )
+        merged.cell_data["_line-id"] = np.hstack((cell_data, add_mesh.cell_data["_line-id"]))
+        merged.point_data["_is-connected"] = np.hstack((point_data, new_point_data))
 
-    def get_lines_by_name(self, name: str) -> pv.PolyData:
-        # ?: Return SurfaceMesh instead of PolyData?
-        """Get the lines associated with the ``name` attribute."""
-        if name not in list(self._line_id_to_name.values()):
-            LOGGER.error(f"No lines associated with {name}")
-            return None
-        line_id = self.get_line_id_from_name(name)
-        return self.get_lines(line_id)
-
-    def get_lines(self, sid: int) -> pv.PolyData:
-        """Get lines as a ``PolyData`` object."""
-        return self._get_submesh(sid, scalar="_line-id").extract_surface()
+        return Mesh(merged)
 
 
-class PartType(Enum):
-    """Stores valid part types."""
-
-    VENTRICLE = "ventricle"
-    ATRIUM = "atrium"
-    SEPTUM = "septum"
-    ARTERY = "artery"
-    MYOCARDIUM = "myocardium"
-    UNDEFINED = "undefined"
-
-
+@deprecated(
+    reason="""Importing Part class with ``from ansys.health.heart.objects import Part``
+    is deprecated. Import with ``from ansys.health.heart.parts import Part`` instead.""",
+)
 class Part:
-    """Part class."""
+    """Part class for backward compatibility."""
 
-    @property
-    def surfaces(self) -> List[SurfaceMesh]:
-        """List of surfaces belonging to the part."""
-        surfaces = []
-        for key, value in self.__dict__.items():
-            if isinstance(value, SurfaceMesh):
-                surfaces.append(value)
-        return surfaces
+    def __init__(self, *args, **kwargs):
+        from ansys.health.heart.parts import Part as RealPart
 
-    @property
-    def surface_names(self) -> List[str]:
-        """List of surface names belonging to the part."""
-        surface_names = []
-        for key, value in self.__dict__.items():
-            if isinstance(value, SurfaceMesh):
-                surface_names.append(value.name)
-        return surface_names
-
-    def get_point(self, pointname: str) -> Point:
-        """Get point from the part."""
-        for point in self.points:
-            if point.name == pointname:
-                return point
-        LOGGER.error("Cannot find point {0:s}.".format(pointname))
-        return None
-
-    def __init__(self, name: str = None, part_type: PartType = PartType.UNDEFINED) -> None:
-        self.name = name
-        """Part name."""
-        self.pid = None
-        """Part ID."""
-        self.mid = None
-        """Material ID associated with the part."""
-        self.part_type: PartType = part_type
-        """Type of the part."""
-        self.element_ids: np.ndarray = np.empty((0, 4), dtype=int)
-        """Array holding element IDs that make up the part."""
-        self.points: List[Point] = []
-        """Points of interest belonging to the part."""
-        self.caps: List[Cap] = []
-        """List of caps belonging to the part."""
-        self.cavity: Cavity = None
-
-        self.fiber: bool = False
-        """Flag indicating if the part has fiber/sheet data."""
-        self.active: bool = False
-        """Flag indicating if active stress is established."""
-
-        self.meca_material: MechanicalMaterialModel = MechanicalMaterialModel.DummyMaterial()
-        """Material model is to be assiggned in the simulator."""
-
-        self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
-        """EP material model is to be assigned in the simulator."""
-
-        """Cavity belonging to the part."""
-        if self.part_type in [PartType.VENTRICLE]:
-            self.apex_points: List[Point] = []
-            """Points on the apex."""
-
-        self._add_surfaces()
-
-    def _add_surfaces(self):
-        """Add surfaces to the part."""
-        if self.part_type in [PartType.VENTRICLE, PartType.ATRIUM]:
-            self.endocardium = SurfaceMesh(name="{0} endocardium".format(self.name))
-            """Endocardium."""
-            self.epicardium = SurfaceMesh(name="{0} epicardium".format(self.name))
-            """Epicardium."""
-            if self.part_type == PartType.VENTRICLE:
-                self.septum = SurfaceMesh(name="{0} endocardium septum".format(self.name))
-                """Septum surface."""
-        elif self.part_type in [PartType.ARTERY]:
-            self.wall = SurfaceMesh(name="{0} wall".format(self.name))
-            """Wall."""
-        return
-
-    def _add_myocardium_part(self):
-        self.myocardium = Part(name="myocardium", part_type=PartType.MYOCARDIUM)
-        return
-
-    def _add_septum_part(self):
-        self.septum = Part(name="septum", part_type=PartType.SEPTUM)
-        return
-
-    def _get_info(self):
-        """Get part information to reconstruct from a mesh file."""
-        info = {
-            self.name: {
-                "part-id": self.pid,
-                "part-type": self.part_type.value,
-                "surfaces": {},
-                "caps": {},
-                "cavity": {},
-            }
-        }
-
-        info2 = {}
-        info2["surfaces"] = {}
-        info2["caps"] = {}
-        info2["cavity"] = {}
-        for surface in self.surfaces:
-            if isinstance(surface, SurfaceMesh):
-                if surface.id:
-                    info2["surfaces"][surface.name] = surface.id
-
-        for cap in self.caps:
-            info2["caps"][cap.name] = cap._mesh.id
-
-        if self.cavity:
-            info2["cavity"][self.cavity.surface.name] = self.cavity.surface.id
-
-        info[self.name].update(info2)
-
-        return info
+        self.__class__ = RealPart
+        self.__init__(*args, **kwargs)

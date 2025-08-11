@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 """
-Use dynalib to create some commonly used material cards and their default values.
+Use PyDYNA keywords module to create commonly used material cards and their default values.
 
 Notes
 -----
@@ -53,7 +53,7 @@ class MaterialCap(keywords.MatNull):
         Inherits from the Null type material.
     """
 
-    def __init__(self, mid: int = 1):
+    def __init__(self, mid: int = 1) -> None:
         super().__init__(mid=mid, ro=1.04e-6)
 
 
@@ -81,7 +81,7 @@ class MaterialNeoHook(custom_keywords.Mat077H):
         c10: float,
         nu: float,
         kappa: float,
-    ):
+    ) -> None:
         super().__init__(mid=mid, ro=rho, pr=nu, n=0, c10=c10)
         setattr(self, "user_comment", f"nu deduced from kappa={kappa}")
         return
@@ -90,7 +90,7 @@ class MaterialNeoHook(custom_keywords.Mat077H):
 class MaterialHGOMyocardium(keywords.Mat295):
     """HGO material model, which is derived from Mat295."""
 
-    def __init__(self, id: int, mat: Mat295, ignore_active: bool = False):
+    def __init__(self, id: int, mat: Mat295, ignore_active: bool = False) -> None:
         """Init a keyword of *mat295.
 
         Parameters
@@ -163,7 +163,7 @@ class MaterialHGOMyocardium(keywords.Mat295):
 def active_curve(
     curve_type: str = "Strocchi2020",
     endtime: float = 15,
-):
+) -> tuple[np.ndarray, np.ndarray]:
     """Compute various (normalized) curves used for the active module.
 
     Parameters
@@ -223,7 +223,7 @@ def active_curve(
         calcium_array = np.append(calcium_array, 0.0)
 
     elif curve_type == "TrueCalcium":
-        file_path = resource_path("ansys.heart.writer", "calcium_from_EP.txt").__enter__()
+        file_path = resource_path("ansys.health.heart.writer", "calcium_from_EP.txt").__enter__()
         a = np.loadtxt(file_path)
         time_array = a[:, 0] / 1000
         calcium_array = a[:, 1]
@@ -233,7 +233,3 @@ def active_curve(
     # plt.show()
 
     return time_array, calcium_array
-
-
-if __name__ == "__main__":
-    pass

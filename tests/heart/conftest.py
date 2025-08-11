@@ -199,8 +199,34 @@ def get_fourchamber() -> models.FourChamber:
         "heart_model.partinfo.json",
     )
 
-    model: models.FourChamber = models.FourChamber(working_directory=".")
+    model: models.FourChamber = models.FourChamber.load_model(
+        vtu_file, json_file, working_directory="."
+    )
 
-    model.load_model_from_mesh(vtu_file, json_file)
+    return model
+
+
+def get_fullheart() -> models.FullHeart:
+    vtu_file = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "FullHeart",
+        "heart_model.vtu",
+    )
+
+    json_file = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "FullHeart",
+        "heart_model.partinfo.json",
+    )
+
+    model: models.FullHeart = models.FullHeart.load_model(
+        vtu_file, json_file, working_directory="."
+    )
 
     return model

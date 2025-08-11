@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Post process script related to Laplace solving (UHC, fibers)."""
+"""Postprocessing script related to Laplace solving (UHC, fibers)."""
 
 import os
 
@@ -29,6 +29,7 @@ import numpy as np
 import pyvista as pv
 
 from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.exceptions import D3PlotNotSupportedError
 from ansys.health.heart.post.dpf_utils import D3plotReader
 from ansys.health.heart.settings.settings import AtrialFiber
 
@@ -68,7 +69,7 @@ def read_laplace_solution(
             t = t[::3]
         else:
             LOGGER.error("Failed to read d3plot.")
-            exit()
+            raise D3PlotNotSupportedError("Failed to read d3plot.")
 
         grid.point_data[name] = np.array(t, dtype=float)
 
@@ -83,8 +84,8 @@ def read_laplace_solution(
 def update_transmural_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData) -> np.ndarray:
     """Use surface normal for transmural direction.
 
-    Note
-    ----
+    Notes
+    -----
     Assume mesh is coarse compared to the thickness. Solid cell normal
     is interpolated from closest surface normal.
 
@@ -165,7 +166,7 @@ def compute_la_fiber_cs(
     settings : AtrialFiber
         Atrial fiber settings.
     endo_surface : pv.PolyData, default: None
-        _description_. If given, normal direction is updated by the surface
+        ``_description_``. If given, normal direction is updated by the surface
         normal instead of the Laplace solution.
 
     Notes
@@ -244,7 +245,7 @@ def compute_ra_fiber_cs(
     settings : AtrialFiber
         Atrial fiber settings.
     endo_surface : pv.PolyData, default: None
-        _description_. If given, normal direction is updated by the surface normal
+        ``_description_``. If given, normal direction is updated by the surface normal
         instead of the Laplace solution.
 
     Notes
@@ -428,7 +429,7 @@ def compute_rotation_angle(
     w : np.ndarray
         Intral ventricular interpolation weight.
     rotation : list[float, float]
-        Rotation angles in degree at endocardium and epicardium.
+        Rotation angles in degrees at endocardium and epicardium.
     outflow_tracts : list[float, float], default: None
         Rotation angle of enendocardium do and epicardium on outflow tract.
 
@@ -437,8 +438,8 @@ def compute_rotation_angle(
     np.ndarray
         Cell-wise rotation angles.
 
-    Note
-    ----
+    Notes
+    -----
     Compute for all cells, but filter by left/right mask outside of this function.
     """
     rot_endo, rot_epi = set_rotation_bounds(w, rotation[0], rotation[1], outflow_tracts)
@@ -481,7 +482,7 @@ def compute_ventricle_fiber_by_drbm(
     Returns
     -------
     pv.UnstructuredGrid
-        Grid contains ``fiber``, ``cross-fiber``, and ``sheet`` vectors.
+        Grid containing ``fiber``, ``cross-fiber``, and ``sheet`` vectors.
     """
     solutions = ["trans", "ab_l", "ot_l", "w_l"]
     if not left_only:

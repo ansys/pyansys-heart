@@ -25,7 +25,7 @@
 from ansys.dyna.core.keywords import keywords
 
 
-def _function_alpha(alpha_endo: float = -60, alpha_epi: float = 60):
+def _function_alpha(alpha_endo: float = -60, alpha_epi: float = 60) -> str:
     """Define the alpha angle for the fiber definition."""
     return "\n".join(
         [
@@ -47,7 +47,7 @@ def _function_alpha(alpha_endo: float = -60, alpha_epi: float = 60):
     )
 
 
-def _function_beta(beta_endo: float = 25, beta_epi: float = -65):
+def _function_beta(beta_endo: float = 25, beta_epi: float = -65) -> str:
     """Define the beta angle for the fiber definition in ventricles."""
     return "\n".join(
         [
@@ -69,7 +69,7 @@ def _function_beta(beta_endo: float = 25, beta_epi: float = -65):
     )
 
 
-def _function_beta_septum(beta_endo: float = -65, beta_epi: float = 25):
+def _function_beta_septum(beta_endo: float = -65, beta_epi: float = 25) -> str:
     """Define the beta angle for the fiber definition in the septum."""
     return "\n".join(
         [
@@ -91,13 +91,13 @@ def _function_beta_septum(beta_endo: float = -65, beta_epi: float = 25):
     )
 
 
-def _constant_flow_template():
+def _constant_flow_template() -> str:
     """Constant flow template."""
     template = "float {0}(float t, float dp, float area) \n{{\nreturn {1};\n}}"
     return template
 
 
-def _valve_template():
+def _valve_template() -> str:
     """Diode valve model template."""
     template = (
         "float {0}(float t, float dp)\n"
@@ -117,7 +117,7 @@ def _valve_template():
     return template
 
 
-def _afterload_windkessel_template():
+def _afterload_windkessel_template() -> str:
     """Use the same model as in :func:`windkessel_template` but without preload."""
     template = (
         "float {0}(float t, float dp)\n"
@@ -264,7 +264,7 @@ def _afterload_windkessel_template():
     return template
 
 
-def _ed_load_template():
+def _ed_load_template() -> str:
     """
     Define function template to apply ED pressure.
 
@@ -294,7 +294,7 @@ def _ed_load_template():
     return template
 
 
-def _windkessel_template():
+def _windkessel_template() -> str:
     """Windkessel template.
 
     Notes
@@ -481,8 +481,8 @@ def _windkessel_template():
 def _define_function_0d_system(
     function_id: int,
     function_name: str,
-    parameters: dict,
-):
+    parameters: dict[str, dict[str, float]],
+) -> keywords.DefineFunction:
     """Generate a define function.
 
     Parameters
@@ -491,12 +491,12 @@ def _define_function_0d_system(
         Function ID that defines the interaction between control volumes.
     function_name : str
         Function name.
-    parameters : dict
+    parameters : dict[str, dict[str, float]]
         Parameters of the system model.
 
     Returns
     -------
-    str
+    keywords.DefineFunction
         Formatted keyword for the define function.
     """
     if "constant_preload_windkessel_afterload" in function_name:

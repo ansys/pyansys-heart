@@ -25,11 +25,14 @@
 Options for simulation:
 
 - EP-only
-    with/without fibers.
-    with/without Purkinje.
+
+  - With/without fibers
+  - With/without Purkinje
+
 - Electro-mechanics
-    simplified EP (imposed activation).
-    coupled electro-mechanics.
+
+  - Simplified EP (imposed activation)
+  - Coupled electro-mechanics
 """
 
 import copy
@@ -47,8 +50,9 @@ import pyvista as pv
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import LSDYNANotFoundError, LSDYNATerminationError
-from ansys.health.heart.models import FourChamber, HeartModel, LeftVentricle
-from ansys.health.heart.objects import _ConductionType
+import ansys.health.heart.models as models
+from ansys.health.heart.models_utils import HeartModelUtils
+from ansys.health.heart.objects import SurfaceMesh
 from ansys.health.heart.post.auto_process import mech_post, zerop_post
 from ansys.health.heart.post.laplace_post import (
     compute_la_fiber_cs,
@@ -56,10 +60,10 @@ from ansys.health.heart.post.laplace_post import (
     compute_ventricle_fiber_by_drbm,
     read_laplace_solution,
 )
-from ansys.health.heart.pre.conduction_beam import ConductionSystem
+from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.settings import DynaSettings, SimulationSettings
 from ansys.health.heart.utils.misc import _read_orth_element_kfile
-import ansys.health.heart.writer.dynawriter as writers
+import ansys.health.heart.writer as writers
 
 _KILL_ANSYSCL_PRIOR_TO_RUN = True
 """Flag indicating whether to kill all Ansys license clients prior to an LS-DYNA run."""
@@ -70,7 +74,7 @@ class BaseSimulator:
 
     def __init__(
         self,
-        model: HeartModel,
+        model: models.FullHeart | models.FourChamber | models.BiVentricle | models.LeftVentricle,
         dyna_settings: DynaSettings = None,
         simulation_directory: pathlib = "",
     ) -> None:
@@ -86,8 +90,8 @@ class BaseSimulator:
             Directory to start the simulation in.
 
         """
-        self.model: HeartModel = model
-        """HeartModel to simulate."""
+        self.model = model
+        """Heart model to simulate."""
         if not dyna_settings:
             LOGGER.warning("Setting default LS-DYNA settings.")
             self.dyna_settings = DynaSettings()
@@ -126,7 +130,7 @@ class BaseSimulator:
         Parameters
         ----------
         method : Literal["LSDYNA", "D-RBM"], default: "LSDYNA"
-            Method to compute the fiber orientation.
+            Method for computing the fiber orientation.
         rotation_angles : dict, default: None
             Rotation angle alpha and beta.
         """
@@ -140,7 +144,10 @@ class BaseSimulator:
             for name in ["alpha", "beta", "beta_septum"]:
                 if name not in rotation_angles.keys():
                     LOGGER.error(f"Must provide key {name} for D-RBM method.")
-                    exit()
+                    raise KeyError(
+                        f"Must provide key {name} for D-RBM method. "
+                        "Please check the settings or provide the rotation angles."
+                    )
 
             self._compute_fibers_lsdyna(rotation_angles)
 
@@ -152,12 +159,18 @@ class BaseSimulator:
             for a, b in zip(["alpha", "beta"], ["_left", "_right", "_ot"]):
                 if a + b not in rotation_angles.keys():
                     LOGGER.error(f"Must provide key {name} for D-RBM method.")
-                    exit()
+                    raise KeyError(
+                        f"Must provide key {name} for D-RBM method. "
+                        "Please check the settings or provide the rotation angles."
+                    )
             self._compute_fibers_drbm(rotation_angles)
 
         else:
             LOGGER.error(f"Method {method} is not recognized.")
-            exit()
+            raise ValueError(
+                f"Method {method} is not recognized. "
+                "Please use 'LSDYNA' or 'D-RBM' as the method for computing fibers."
+            )
 
         return
 
@@ -168,7 +181,7 @@ class BaseSimulator:
         grid = compute_ventricle_fiber_by_drbm(
             export_directory,
             settings=rotation_angles,
-            left_only=isinstance(self.model, LeftVentricle),
+            left_only=isinstance(self.model, models.LeftVentricle),
         )
         grid.save(os.path.join(export_directory, "drbm_fibers.vtu"))
 
@@ -246,15 +259,16 @@ class BaseSimulator:
         top : list[list[float]], default: None
             List of nodal coordinates to define the top path.
 
-        The top path is a set of nodes connecting the superior (SVC) and inferior (IVC) vena cava.
-        For more information, see the "Notes" section.
-        The default method (``top=None``) might not work for some anatomical structures.
-        In such cases, you can define the start and end points by providing a list of coordinates
-        like this: ``[[x1, y1, z1], [x2, y2, z2]]``. These two nodes should be located on the
-        SVC and IVC rings, approximately at the 12 o'clock position.
+            The top path is a set of nodes connecting the superior (SVC) and inferior (IVC)
+            vena cava. For more information, see the "Notes" section.
 
-        You can also add an intermediate point to enforce the geodesic path, like this:
-        ``[[x1, y1, z1], [x3, y3, z3], [x2, y2, z2]]``.
+            The default method (``top=None``) might not work for some anatomical structures.
+            In such cases, you can define the start and end points by providing a list of
+            coordinates like this: ``[[x1, y1, z1], [x2, y2, z2]]``. These two nodes should
+            be located on the SVC and IVC rings, approximately at the 12 o'clock position.
+
+            You can also add an intermediate point to enforce the geodesic path, like this:
+            ``[[x1, y1, z1], [x3, y3, z3], [x2, y2, z2]]``.
 
         Returns
         -------
@@ -264,7 +278,7 @@ class BaseSimulator:
         Notes
         -----
         The method is described in `Modeling cardiac muscle fibers in ventricular and atrial
-        electrophysiology simulations <https://doi.org/10.1016/j.cma.2020.113468>`.
+        electrophysiology simulations <https://doi.org/10.1016/j.cma.2020.113468>`_
         """
         LOGGER.info("Computing right atrium fiber...")
         export_directory = os.path.join(self.root_directory, "ra_fiber")
@@ -347,7 +361,7 @@ class BaseSimulator:
         Parameters
         ----------
         export_directory: str
-            LSDYNA directory
+            LS-DYNA directory
         type: str
             Simulation type.
         kwargs : dict
@@ -355,6 +369,7 @@ class BaseSimulator:
 
         Returns
         -------
+        UnstructuredGrid
             UnstructuredGrid with array to map data back to the full mesh.
 
         """
@@ -407,7 +422,7 @@ class EPSimulator(BaseSimulator):
 
     def __init__(
         self,
-        model: HeartModel,
+        model: models.FullHeart | models.FourChamber | models.BiVentricle | models.LeftVentricle,
         dyna_settings: DynaSettings,
         simulation_directory: pathlib = "",
     ) -> None:
@@ -416,14 +431,14 @@ class EPSimulator(BaseSimulator):
 
         return
 
-    def simulate(self, folder_name="main-ep", extra_k_files: list[str] = []):
+    def simulate(self, folder_name="main-ep", extra_k_files: list[str] | None = None):
         """Launch the EP simulation.
 
         Parameters
         ----------
         folder_name : str, default: ``'main-ep'``
             Simulation folder name.
-        extra_k_files : list[str], default: []
+        extra_k_files : list[str], default: None
             User-defined k files.
         """
         directory = os.path.join(self.root_directory, folder_name)
@@ -468,57 +483,51 @@ class EPSimulator(BaseSimulator):
 
         input_file = os.path.join(directory, "main.k")
         self._run_dyna(input_file)
+        LOGGER.info("Simulation completed successfully.")
 
         self.dyna_settings.num_cpus = orig_num_cpus
         LOGGER.debug(f"Set number of CPUs back to {orig_num_cpus}.")
 
-        LOGGER.info("Simulation completed successfully.")
-
         LOGGER.info("Assign the Purkinje network to the model...")
 
-        purkinje_k_file = os.path.join(directory, "purkinjeNetwork_001.k")
-        self.model.add_purkinje_from_kfile(purkinje_k_file, _ConductionType.LEFT_PURKINJE.value)
+        left_purkinje = ConductionPath.create_from_k_file(
+            ConductionPathType.LEFT_PURKINJE,
+            k_file=os.path.join(directory, "purkinjeNetwork_001.k"),
+            id=1,
+            base_mesh=self.model.left_ventricle.endocardium,
+            model=self.model,
+        )
 
-        if not isinstance(self.model, LeftVentricle):
-            purkinje_k_file = os.path.join(directory, "purkinjeNetwork_002.k")
-            self.model.add_purkinje_from_kfile(
-                purkinje_k_file, _ConductionType.RIGHT_PURKINJE.value
+        if isinstance(self.model, models.LeftVentricle):
+            self.model.assign_conduction_paths([left_purkinje])
+            return left_purkinje
+        else:
+            right_purkinje = ConductionPath.create_from_k_file(
+                ConductionPathType.RIGHT_PURKINJE,
+                k_file=os.path.join(directory, "purkinjeNetwork_002.k"),
+                id=2,
+                base_mesh=self.model.right_ventricle.endocardium,
+                model=self.model,
             )
+            self.model.assign_conduction_paths([left_purkinje, right_purkinje])
+            return [left_purkinje, right_purkinje]
 
     def compute_conduction_system(self):
         """Compute the conduction system."""
-        if isinstance(self.model, FourChamber):
-            beam_length = self.settings.purkinje.edgelen.m
+        if isinstance(self.model, models.FourChamber):
+            # TODO: refinement is not correctly used
+            # beam_length = self.settings.purkinje.edgelen.m
 
-            cs = ConductionSystem(self.model)
-            cs.compute_sa_node()
-            cs.compute_av_node()
-            cs.compute_av_conduction()
-            _, left_point, right_point = cs.compute_his_conduction(beam_length=beam_length)
-            end_coord = cs.m.conduction_system.get_lines_by_name(
-                _ConductionType.LEFT_PURKINJE.value
-            ).points[0]
-            cs.compute_left_right_bundle(
-                left_point.xyz, end_coord=end_coord, side=_ConductionType.LEFT_BUNDLE_BRANCH.value
+            beam_list = HeartModelUtils.define_full_conduction_system(
+                self.model, os.path.join(self.root_directory, "purkinjegeneration")
             )
-            end_coord = cs.m.conduction_system.get_lines_by_name(
-                _ConductionType.RIGHT_PURKINJE.value
-            ).points[0]
-            cs.compute_left_right_bundle(
-                right_point.xyz, end_coord=end_coord, side=_ConductionType.RIGHT_BUNDLE_BRANCH.value
-            )
-            # # TODO: define end point by uhc, or let user choose
-            # Note: must on surface after zerop if coupled with meca
-            # cs._compute_bachman_bundle(
-            #     start_coord=self.model.right_atrium.get_point("SA_node").xyz,
-            #     end_coord=np.array([-34, 163, 413]),
-            # )
-            cs._connect_to_solid(component_id=3, local_point_ids=0)
+            self.model.assign_conduction_paths(beam_list)
         else:
-            LOGGER.info("Computation is only implemented for four-chamber heart models.")
-        return cs
+            LOGGER.info("Computation is only implemented for other than FourChamber models.")
 
-    def _write_main_simulation_files(self, folder_name, extra_k_files: list[str] = []):
+        return beam_list
+
+    def _write_main_simulation_files(self, folder_name, extra_k_files: list[str] | None = None):
         """Write LS-DYNA files that are used to start the main EP simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
 
@@ -557,7 +566,7 @@ class MechanicsSimulator(BaseSimulator):
 
     def __init__(
         self,
-        model: HeartModel,
+        model: models.FullHeart | models.FourChamber | models.BiVentricle | models.LeftVentricle,
         dyna_settings: DynaSettings,
         simulation_directory: pathlib = "",
         initial_stress: bool = True,
@@ -575,7 +584,7 @@ class MechanicsSimulator(BaseSimulator):
         folder_name: str = "main-mechanics",
         zerop_folder: str | None = None,
         auto_post: bool = True,
-        extra_k_files: list[str] = [],
+        extra_k_files: list[str] | None = None,
     ):
         """Launch the main mechanical simulation.
 
@@ -585,10 +594,10 @@ class MechanicsSimulator(BaseSimulator):
             Simulation folder name.
         zerop_folder : str | None, default: None
             Folder containing stress-free simulation.
-            If ``None``, ``zeropressure`` under the root directory is used.
+            If ``None``, the ``zeropressure`` folder under the root directory is used.
         auto_post : bool, default: True
             Whether to run postprocessing scripts.
-        extra_k_files : list[str], default: []
+        extra_k_files : list[str], default: None
             User-defined k files.
         """
         if "apico-basal" not in self.model.mesh.point_data.keys():
@@ -652,8 +661,8 @@ class MechanicsSimulator(BaseSimulator):
         self,
         folder_name="zeropressure",
         overwrite: bool = True,
-        extra_k_files: list[str] = [],
-    ):
+        extra_k_files: list[str] | None = None,
+    ) -> tuple[dict, np.ndarray, np.ndarray]:
         """Compute the stress-free configuration of the model.
 
         Parameters
@@ -662,8 +671,15 @@ class MechanicsSimulator(BaseSimulator):
             Simulation folder name.
         overwrite : bool, default: True
             Whether to run simulation and overwrite files.
-        extra_k_files : list[str], default: []
+        extra_k_files : list[str], default: None
             User-defined k files.
+
+        Returns
+        -------
+        tuple[dict, np.ndarray, np.ndarray]
+            Dictionary with convergence information,
+            stress free configuration, and
+            (re)computed end-of-diastole configuration.
         """
         directory = os.path.join(self.root_directory, folder_name)
 
@@ -686,19 +702,19 @@ class MechanicsSimulator(BaseSimulator):
 
         self.model.mesh.points = guess_ed_coord
 
-        #! Note that it is not always clear if the contents of the retrieved
-        #! surface is actually properly copied to the object that the surface
-        #! is an attribute (part.surface) of. That is, is `=` actually working here?
+        # Update surfaces of all parts
+        # TODO: move it into Part or Model
         for part in self.model.parts:
-            for surface in part.surfaces:
-                surface = self.model.mesh.get_surface(surface.id)
+            for key, value in part.__dict__.items():
+                if isinstance(value, SurfaceMesh):
+                    part.__setattr__(key, self.model.mesh.get_surface(value.id))
 
-        return
+        return report, stress_free_coord, guess_ed_coord
 
     def _write_main_simulation_files(
         self,
         folder_name,
-        extra_k_files: list[str] = [],
+        extra_k_files: list[str] | None = None,
     ):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
@@ -712,13 +728,15 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
-    def _write_stress_free_configuration_files(self, folder_name, extra_k_files: list[str] = []):
+    def _write_stress_free_configuration_files(
+        self, folder_name, extra_k_files: list[str] | None = None
+    ):
         """Write LS-DYNA files to compute the stress-free configuration."""
         export_directory = os.path.join(self.root_directory, folder_name)
 
         model = copy.deepcopy(self.model)
         # Isolation part need to be created in Zerop because main will use its dynain.lsda
-        if isinstance(model, FourChamber) and isinstance(self, EPMechanicsSimulator):
+        if isinstance(model, models.FourChamber) and isinstance(self, EPMechanicsSimulator):
             model._create_atrioventricular_isolation()
 
         dyna_writer = writers.ZeroPressureMechanicsDynaWriter(model, self.settings)
@@ -733,7 +751,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
 
     def __init__(
         self,
-        model: HeartModel,
+        model: models.FullHeart | models.FourChamber | models.BiVentricle | models.LeftVentricle,
         dyna_settings: DynaSettings,
         simulation_directory: pathlib = "",
     ) -> None:
@@ -746,7 +764,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         folder_name: str = "ep_meca",
         zerop_folder: str | None = None,
         auto_post: bool = True,
-        extra_k_files: list[str] = [],
+        extra_k_files: list[str] | None = None,
     ):
         """Launch the main electro-mechanical simulation.
 
@@ -755,11 +773,11 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         folder_name : str, default: ``'main-mechanics'``
             Simulation folder name.
         zerop_folder : str | None, default: None
-            Folder containing the stress-free simulation.
-            Use ``'zeropressure'`` under the root_directory if ``None`` is used.
+            Folder containing stress-free simulation.
+            If ``None``, the ``zeropressure`` folder under the root directory is used.
         auto_post : bool, default: True
             Whether to run postprocessing scripts.
-        extra_k_files : list[str], default: []
+        extra_k_files : list[str], default: None
             User-defined k files.
         """
         # MechanicalSimulator handle dynain file from zerop
@@ -776,7 +794,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
     def _write_main_simulation_files(
         self,
         folder_name,
-        extra_k_files: list[str] = [],
+        extra_k_files: list[str] | None = None,
     ):
         """Write LS-DYNA files that are used to start the main simulation."""
         export_directory = os.path.join(self.root_directory, folder_name)
@@ -830,10 +848,12 @@ def run_lsdyna(
     if _KILL_ANSYSCL_PRIOR_TO_RUN:
         _kill_all_ansyscl()
 
+    LOGGER.info(f"Starting LS-DYNA with {commands}...")
+
     mess = []
     with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
         for line in p.stdout:
-            LOGGER.info(line.rstrip())
+            LOGGER.debug(line.rstrip())
             mess.append(line)
 
     os.chdir(simulation_directory)
@@ -841,6 +861,8 @@ def run_lsdyna(
     if "N o r m a l    t e r m i n a t i o n" not in "".join(mess):
         if "numNodePurkinje" not in "".join(mess):
             LOGGER.error("LS-DYNA did not terminate properly.")
-            raise LSDYNATerminationError()
+            raise LSDYNATerminationError(mess)
+
+    LOGGER.info("LS-DYNA simulation successful...")
 
     return

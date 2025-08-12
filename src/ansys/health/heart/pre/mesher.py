@@ -23,7 +23,6 @@
 """Module containing methods for interaction with Fluent meshing."""
 
 import glob
-import json
 import os
 from pathlib import Path
 import shutil
@@ -297,17 +296,10 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
 
         case LaunchMode.CONTAINER:
             LOGGER.info(f"Launching Fluent in Container mode with config: {launch_config}")
-            container_dict = pyfluent.PureMeshing.from_container(
-                **launch_config, **_extra_launch_kwargs, dry_run=True
-            )
-            container_dict["environment"]["FLUENT_ALLOW_REMOTE_GRPC_CONNECTION"] = "1"
-            container_dict["mount_source"] = f"{working_directory}"
-            container_dict["mount_target"] = "/mnt/pyfluent/meshing"
-
-            launch_config["container_dict"] = container_dict
-            LOGGER.warning("Container config: {0}".format(json.dumps(container_dict, indent=2)))
-
-            # set the UI mode to no GUI or graphics
+            launch_config["container_dict"] = {
+                "mount_source": f"{working_directory}",
+                "mount_target": "/mnt/pyfluent/meshing",
+            }
             launch_config["ui_mode"] = pyfluent.UIMode.NO_GUI_OR_GRAPHICS
             session = pyfluent.PureMeshing.from_container(**launch_config, **_extra_launch_kwargs)
 

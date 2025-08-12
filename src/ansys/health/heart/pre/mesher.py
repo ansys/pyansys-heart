@@ -306,7 +306,6 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
 
             launch_config["container_dict"] = container_dict
             LOGGER.warning("Container config: {0}".format(json.dumps(container_dict, indent=2)))
-            LOGGER.warning("Launch config: {0}".format(json.dumps(launch_config, indent=2)))
 
             # set the UI mode to no GUI or graphics
             launch_config["ui_mode"] = pyfluent.UIMode.NO_GUI_OR_GRAPHICS

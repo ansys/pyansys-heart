@@ -46,7 +46,7 @@ from ansys.health.heart.utils.vtk_utils import (
 )
 import ansys.platform.instancemanagement as pypim
 
-_supported_fluent_versions = ["26.2", "25.2", "25.1", "24.2", "24.1"]
+_supported_fluent_versions = ["25.2", "25.1", "24.2", "24.1"]
 """List of supported Fluent versions."""
 _supported_fluent_versions_container = ["25.2", "24.2", "24.1"]
 

@@ -192,7 +192,8 @@ jobs:
         if: matrix.tests.needs_fluent
         run: |
           sudo rm -rf /usr/share/dotnet
-          docker pull ghcr.io/ansys/pyfluent:${{ env.FLUENT_IMAGE_TAG }}
+          # docker pull ghcr.io/ansys/pyfluent:${{ env.FLUENT_IMAGE_TAG }}
+          docker pull ghcr.io/ansys/pyfluent:e606459490fca010b950678be91ccb9714d26c617f72c428e9075f8b5ae3f3ce
           docker image prune -f
 
       - name: Run Tox

@@ -82,7 +82,7 @@ def _get_supported_fluent_version() -> str:
         try:
             if _uses_container:
                 config_dict = {
-                    "FLUENT_ALLOW_REMOTE_GRPC_CONNECTION": "1",
+                    "environment": {"FLUENT_ALLOW_REMOTE_GRPC_CONNECTION": "1"},
                 }
             else:
                 config_dict = None

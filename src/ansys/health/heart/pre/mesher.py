@@ -288,6 +288,11 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
         "file_transfer_service": transfer_strategy,
     }
 
+    if _launch_mode == LaunchMode.CONTAINER:
+        if not os.environ.get("FLUENT_ALLOW_REMOTE_GRPC_CONNECTION"):
+            LOGGER.warning("Setting Fluent environment variable to allow remote gRPC connections.")
+            os.environ["FLUENT_ALLOW_REMOTE_GRPC_CONNECTION"] = "1"
+
     match _launch_mode:
         case LaunchMode.PIM:
             launch_config["ui_mode"] = None

@@ -18,6 +18,7 @@ env:
   PYFLUENT_START_INSTANCE: 0
   PYFLUENT_LAUNCH_CONTAINER: 1
   FLUENT_IMAGE_TAG: v25.2.0
+  FLUENT_ALLOW_REMOTE_GRPC_CONNECTION: "1"
 
 jobs:
 
@@ -192,8 +193,7 @@ jobs:
         if: matrix.tests.needs_fluent
         run: |
           sudo rm -rf /usr/share/dotnet
-          # docker pull ghcr.io/ansys/pyfluent:${{ env.FLUENT_IMAGE_TAG }}
-          docker pull ghcr.io/ansys/pyfluent@sha256:e606459490fca010b950678be91ccb9714d26c617f72c428e9075f8b5ae3f3ce
+          docker pull ghcr.io/ansys/pyfluent:${{ env.FLUENT_IMAGE_TAG }}
           docker image prune -f
 
       - name: Run Tox

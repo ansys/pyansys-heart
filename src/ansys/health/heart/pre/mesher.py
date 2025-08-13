@@ -87,7 +87,10 @@ def _get_supported_fluent_version() -> str:
             )
             return version
         except Exception:
-            pass
+            LOGGER.debug(
+                f"Fluent version {version} is not supported. "
+                + f"Trying next version from supported versions: {_supported_fluent_versions}."
+            )
     raise SupportedFluentVersionNotFoundError(
         f"""Did not find a supported Fluent version.
         Install one of these versions: {_supported_fluent_versions}"""

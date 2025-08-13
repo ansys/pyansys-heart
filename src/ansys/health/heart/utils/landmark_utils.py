@@ -263,7 +263,8 @@ def _calculate_longitudinal_points(model, short_axis):
     # to have a flat segment 17, project endocardical apex point on short axis
     x = apex_ed - apex_ep
     y = p_basal - apex_ep
-    apex_ed = y * np.dot(x, y) / np.dot(y, y) + apex_ep
+    # TODO: temporary solution, move the apex upper so it can be projected to surface
+    apex_ed = 1.5 * y * np.dot(x, y) / np.dot(y, y) + apex_ep
     return p_basal, p_mid, p_apical, apex_ed, apex_ep
 
 

@@ -63,6 +63,17 @@ def test_compute_thickness(get_left_ventricle):
 
 
 @pytest.mark.requires_dpf
+def test_compute_strain(get_left_ventricle):
+    test_dir = get_left_ventricle[0]
+    model = get_left_ventricle[1]
+    d3plot = os.path.join(os.path.join(test_dir, "main", "d3plot"))
+
+    s = AhaStrainCalculator(model, d3plot)
+    s._compute_new_strain()
+    assert True
+
+
+@pytest.mark.requires_dpf
 def test_compute_myocardial_strain(get_left_ventricle):
     test_dir = get_left_ventricle[0]
     model = get_left_ventricle[1]

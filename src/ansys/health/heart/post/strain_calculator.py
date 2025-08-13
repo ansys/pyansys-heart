@@ -29,7 +29,11 @@ import pyvista as pv
 
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.post.dpf_utils import D3plotReader
-from ansys.health.heart.utils.landmark_utils import compute_aha17, compute_element_cs
+from ansys.health.heart.utils.landmark_utils import (
+    compute_aha17,
+    compute_aha17_landmarks,
+    compute_element_cs,
+)
 from ansys.health.heart.utils.vtk_utils import find_corresponding_points, generate_thickness_lines
 
 
@@ -53,6 +57,108 @@ class AhaStrainCalculator:
         self._aha_elements = np.where(~np.isnan(self.aha_labels))[0]
 
         self.d3plot = D3plotReader(d3plot_file)
+
+    def _compute_new_strain(self, time_array: np.ndarray | list = None):
+        save = True
+        if time_array is None:
+            time_array = self.d3plot.time
+
+        surface_endo = self.model.left_ventricle.endocardium.copy()
+        hlength_array = []
+        vlength_array = []
+        for it, t in enumerate(time_array):
+            coordinates = (
+                self.d3plot.model.results.coordinates.on_time_scoping(float(t)).eval()[0].data
+            )
+            surface_endo.points = coordinates[surface_endo["_global-point-ids"]]
+            _, hlines, vlines = compute_aha17_landmarks(
+                self.model, self.model.short_axis, self.model.l2cv_axis, surface=surface_endo
+            )
+
+            hlength_array.append([hl.length for hl in hlines])
+            vlength_array.append([vl.length for vl in vlines])
+
+            if save:
+                surface_endo.save(f"endo_{it}.vtp")
+                pv.MultiBlock(hlines).save(f"hlines_{it}.vtm")
+                pv.MultiBlock(vlines).save(f"vlines_{it}.vtm")
+
+        hlength_array = np.array(hlength_array)
+        vlength_array = np.array(vlength_array)
+
+        # length variation of horizontal and vertical lines
+        # compared to the first image
+        h_strain = (hlength_array - hlength_array[0]) / hlength_array[0]
+        v_strain = (vlength_array - vlength_array[0]) / vlength_array[0]
+        """
+        save strain values with the following format:
+
+        P1---H1---P2---H2---P3----H3--P4---H4---P5---H5---P6---H6---P1
+        |          |         |         |         |         |         |
+        |          |         |         |         |         |         |
+        V1   S4   V2    S5  V3    S6  V4    S1  V5   S2   V6   S3   V1
+        |          |         |         |         |         |         |
+        |          |         |         |         |         |         |
+        P7---H7---P8---H8---P9----H9--P10--H10--P11--H11--P12--H12--P7
+        |          |         |         |         |         |         |
+        |          |         |         |         |         |         |
+        V7  S10   V8   S11  V9   S12  V10  S7   V11  S8   V12  S9   V7
+        |          |         |         |         |         |         |
+        |          |         |         |         |         |         |
+        P13--H13--P14--H14--P15--H15--P16--H16--P17--H17--P18--H18--P13
+            P19---H19---P20---H20---P21---H21---P22---H22---P19
+            |           |           |           |           |
+            |           |           |           |           |
+            V13  S15   V14   S16   V15   S13   V16   S14   V13
+            |           |           |           |           |
+            |           |           |           |           |
+            P23---H23---P24---H24---P25---H25---P26---H26---P23
+        """
+        # longitudinal strain
+        # seg 17 is always 0
+        aha_l_strain = np.zeros((len(time_array), 17))
+        aha_l_strain[:, 0] = 0.5 * (v_strain[:, 3] + v_strain[:, 4])
+        aha_l_strain[:, 1] = 0.5 * (v_strain[:, 4] + v_strain[:, 5])
+        aha_l_strain[:, 2] = 0.5 * (v_strain[:, 5] + v_strain[:, 0])
+        aha_l_strain[:, 3] = 0.5 * (v_strain[:, 0] + v_strain[:, 1])
+        aha_l_strain[:, 4] = 0.5 * (v_strain[:, 1] + v_strain[:, 2])
+        aha_l_strain[:, 5] = 0.5 * (v_strain[:, 2] + v_strain[:, 3])
+
+        aha_l_strain[:, 6] = 0.5 * (v_strain[:, 9] + v_strain[:, 10])
+        aha_l_strain[:, 7] = 0.5 * (v_strain[:, 10] + v_strain[:, 11])
+        aha_l_strain[:, 8] = 0.5 * (v_strain[:, 11] + v_strain[:, 6])
+        aha_l_strain[:, 9] = 0.5 * (v_strain[:, 6] + v_strain[:, 7])
+        aha_l_strain[:, 10] = 0.5 * (v_strain[:, 7] + v_strain[:, 8])
+        aha_l_strain[:, 11] = 0.5 * (v_strain[:, 8] + v_strain[:, 9])
+
+        aha_l_strain[:, 12] = 0.5 * (v_strain[:, 14] + v_strain[:, 15])
+        aha_l_strain[:, 13] = 0.5 * (v_strain[:, 15] + v_strain[:, 12])
+        aha_l_strain[:, 14] = 0.5 * (v_strain[:, 12] + v_strain[:, 13])
+        aha_l_strain[:, 15] = 0.5 * (v_strain[:, 13] + v_strain[:, 14])
+
+        # circumferential strain
+        # seg 17 is always 0
+        aha_c_strain = np.zeros((len(time_array), 17))
+        aha_c_strain[:, 0] = 0.5 * (h_strain[:, 3] + h_strain[:, 9])
+        aha_c_strain[:, 1] = 0.5 * (h_strain[:, 4] + h_strain[:, 10])
+        aha_c_strain[:, 2] = 0.5 * (h_strain[:, 5] + h_strain[:, 11])
+        aha_c_strain[:, 3] = 0.5 * (h_strain[:, 0] + h_strain[:, 6])
+        aha_c_strain[:, 4] = 0.5 * (h_strain[:, 1] + h_strain[:, 7])
+        aha_c_strain[:, 5] = 0.5 * (h_strain[:, 2] + h_strain[:, 8])
+
+        aha_c_strain[:, 6] = 0.5 * (h_strain[:, 9] + h_strain[:, 15])
+        aha_c_strain[:, 7] = 0.5 * (h_strain[:, 10] + h_strain[:, 16])
+        aha_c_strain[:, 8] = 0.5 * (h_strain[:, 11] + h_strain[:, 17])
+        aha_c_strain[:, 9] = 0.5 * (h_strain[:, 6] + h_strain[:, 12])
+        aha_c_strain[:, 10] = 0.5 * (h_strain[:, 7] + h_strain[:, 13])
+        aha_c_strain[:, 11] = 0.5 * (h_strain[:, 8] + h_strain[:, 14])
+
+        aha_c_strain[:, 12] = 0.5 * (h_strain[:, 20] + h_strain[:, 24])
+        aha_c_strain[:, 13] = 0.5 * (h_strain[:, 21] + h_strain[:, 25])
+        aha_c_strain[:, 14] = 0.5 * (h_strain[:, 18] + h_strain[:, 22])
+        aha_c_strain[:, 15] = 0.5 * (h_strain[:, 19] + h_strain[:, 23])
+
+        return aha_l_strain, aha_c_strain
 
     def _compute_thickness_lines(self, time_array: np.ndarray | list = None) -> list[pv.PolyData]:
         """Compute ventricular myocardium thickness.

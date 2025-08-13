@@ -26,6 +26,7 @@ from typing import Literal
 
 from deprecated import deprecated
 import numpy as np
+import pyvista as pv
 from scipy.spatial.transform import Rotation
 
 from ansys.health.heart.models import HeartModel
@@ -77,6 +78,187 @@ def compute_anatomy_axis(
     l2cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
 
     return (l4cv_axis, l2cv_axis, short_axis)
+
+
+def compute_aha17_landmarks(
+    model: HeartModel,
+    short_axis: dict,
+    long_axis: dict,
+):
+    """_summary_.
+
+    P1--H1----P2---H2---P3----H3--P4---H4---P5---H5---P6---H6---P1
+    |          |         |         |         |         |         |
+    |          |         |         |         |         |         |
+    V1        V2        V3        V4        V5        V6        V1
+    |          |         |         |         |         |         |
+    |          |         |         |         |         |         |
+    P7---H7---P8---H8---P9----H9--P10--H10--P11--H11--P12--H12--P7
+    |          |         |         |         |         |         |
+    |          |         |         |         |         |         |
+    V7        V8        V9        V10       V11       V12       V7
+    |          |         |         |         |         |         |
+    |          |         |         |         |         |         |
+    P13--H13--P14--H14--P15--H15--P16--H16--P17--H17--P18--H18--P13
+          P19---H19---P20---H20---P21---H21---P22---H22---P19
+           |           |           |           |           |
+           |           |           |           |           |
+           V13        V14         V15         V16         V17
+           |           |           |           |           |
+           |           |           |           |           |
+          P23---H23---P24---H24---P25---H25---P26---H26---P23
+
+    Parameters
+    ----------
+    model : HeartModel
+        _description_.
+    short_axis : dict
+        _description_.
+    l4cv_axis : dict
+        _description_.
+
+    Returns
+    -------
+    np.ndarray
+        _description_.
+    """
+    p_basal, p_mid, p_apical, apex_endo, apex_epi = _calculate_longitudinal_points(
+        model, short_axis
+    )
+    axe_60, axe_120, axe_180, axe_45, axe_135 = _calculate_rotation_axis(short_axis, long_axis)
+
+    # Note: epicardium is not supported because it's incomplete for more than left ventricle model
+    surf: pv.PolyData = model.left_ventricle.endocardium
+
+    coords = []
+
+    for center in [p_basal, p_mid, p_apical]:
+        for normal in [-axe_60, -axe_120, axe_180, axe_60, axe_120, -axe_180]:
+            point, _ = surf.ray_trace(center, center + 1e6 * normal, first_point=True)
+            coords.append(point)
+    for center in [p_apical, apex_endo]:
+        for normal in [-axe_45, -axe_135, axe_45, axe_135]:
+            point, _ = surf.ray_trace(center, center + 1e6 * normal, first_point=True)
+            coords.append(point)
+
+    coords = np.array(coords)
+
+    hline = [
+        _project_line_segment(surf, p_basal, coords[0], coords[1]),
+        _project_line_segment(surf, p_basal, coords[1], coords[2]),
+        _project_line_segment(surf, p_basal, coords[2], coords[3]),
+        _project_line_segment(surf, p_basal, coords[3], coords[4]),
+        _project_line_segment(surf, p_basal, coords[4], coords[5]),
+        _project_line_segment(surf, p_basal, coords[5], coords[0]),
+        _project_line_segment(surf, p_mid, coords[6], coords[7]),
+        _project_line_segment(surf, p_mid, coords[7], coords[8]),
+        _project_line_segment(surf, p_mid, coords[8], coords[9]),
+        _project_line_segment(surf, p_mid, coords[9], coords[10]),
+        _project_line_segment(surf, p_mid, coords[10], coords[11]),
+        _project_line_segment(surf, p_mid, coords[11], coords[6]),
+        _project_line_segment(surf, p_apical, coords[12], coords[13]),
+        _project_line_segment(surf, p_apical, coords[13], coords[14]),
+        _project_line_segment(surf, p_apical, coords[14], coords[15]),
+        _project_line_segment(surf, p_apical, coords[15], coords[16]),
+        _project_line_segment(surf, p_apical, coords[16], coords[17]),
+        _project_line_segment(surf, p_apical, coords[17], coords[12]),
+        _project_line_segment(surf, p_apical, coords[18], coords[19]),
+        _project_line_segment(surf, p_apical, coords[19], coords[20]),
+        _project_line_segment(surf, p_apical, coords[20], coords[21]),
+        _project_line_segment(surf, p_apical, coords[21], coords[18]),
+        _project_line_segment(surf, apex_endo, coords[22], coords[23]),
+        _project_line_segment(surf, apex_endo, coords[23], coords[24]),
+        _project_line_segment(surf, apex_endo, coords[24], coords[25]),
+        _project_line_segment(surf, apex_endo, coords[25], coords[22]),
+    ]
+
+    hlines = pv.MultiBlock(hline)
+    hlines.save("hlines.vtm")
+
+    vline = [
+        _project_line_segment(surf, p_basal, coords[0], coords[6]),
+        _project_line_segment(surf, p_basal, coords[1], coords[7]),
+        _project_line_segment(surf, p_basal, coords[2], coords[8]),
+        _project_line_segment(surf, p_basal, coords[3], coords[9]),
+        _project_line_segment(surf, p_basal, coords[4], coords[10]),
+        _project_line_segment(surf, p_basal, coords[5], coords[11]),
+        _project_line_segment(surf, p_mid, coords[6], coords[12]),
+        _project_line_segment(surf, p_mid, coords[7], coords[13]),
+        _project_line_segment(surf, p_mid, coords[8], coords[14]),
+        _project_line_segment(surf, p_mid, coords[9], coords[15]),
+        _project_line_segment(surf, p_mid, coords[10], coords[16]),
+        _project_line_segment(surf, p_mid, coords[11], coords[17]),
+        _project_line_segment(surf, p_apical, coords[18], coords[22]),
+        _project_line_segment(surf, p_apical, coords[19], coords[23]),
+        _project_line_segment(surf, p_apical, coords[20], coords[24]),
+        _project_line_segment(surf, p_apical, coords[21], coords[25]),
+    ]
+
+    vlines = pv.MultiBlock()
+    for h in vline:
+        vlines.append(h)
+    vlines.save("vlines.vtm")
+    return surf, coords
+
+
+def _project_line_segment(
+    surf: pv.PolyData, center: np.ndarray, p1: np.ndarray, p2: np.ndarray
+) -> pv.PolyData:
+    """Project a line segment onto a surface.
+
+    Parameters
+    ----------
+    surf : pv.PolyData
+        The surface to project onto.
+    center : np.ndarray
+        The center point of the projection.
+    p1 : np.ndarray
+        The first point of the line segment.
+    p2 : np.ndarray
+        The second point of the line segment.
+
+    Returns
+    -------
+    pv.PolyData
+        The projected line segment.
+    """
+    segment_points = np.linspace(p1, p2, num=100)
+
+    # Project each point
+    projected_points = []
+    for pt in segment_points:
+        start = center
+        end = center + 1e9 * (pt - center)
+        intersection = surf.ray_trace(start, end, first_point=True)[0]
+        if intersection.size > 0:
+            projected_points.append(intersection)
+
+    # Convert to array
+    projected_points = np.array(projected_points)
+
+    # Create curve
+    projected_line = pv.Spline(projected_points, n_points=len(projected_points))
+
+    return projected_line
+
+
+def _calculate_longitudinal_points(model, short_axis):
+    """Define landmarks along the short axis."""
+    for apex in model.left_ventricle.apex_points:
+        if "endocardium" in apex.name:
+            apex_ed = apex.xyz
+        elif "epicardium" in apex.name:
+            apex_ep = apex.xyz
+
+    p_basal = short_axis["center"]
+    p_mid = 1 / 3 * (apex_ep - p_basal) + p_basal
+    p_apical = 2 / 3 * (apex_ep - p_basal) + p_basal
+
+    # to have a flat segment 17, project endocardical apex point on short axis
+    x = apex_ed - apex_ep
+    y = p_basal - apex_ep
+    apex_ed = y * np.dot(x, y) / np.dot(y, y) + apex_ep
+    return p_basal, p_mid, p_apical, apex_ed, apex_ep
 
 
 def compute_aha17(
@@ -235,6 +417,24 @@ def compute_aha17(
 
     aha_ids[ele_ids] = label
     return aha_ids
+
+
+def _calculate_rotation_axis(short_axis, l4cv_axis):
+    short_normal = short_axis["normal"]
+
+    # define reference cut plane
+    # default: rotate 60 from long axis
+    long_axis = l4cv_axis["normal"]
+    axe_60 = Rotation.from_rotvec(np.radians(60) * short_normal).apply(  # noqa:E501
+        long_axis
+    )
+
+    axe_120 = Rotation.from_rotvec(np.radians(60) * short_normal).apply(axe_60)
+    axe_180 = -Rotation.from_rotvec(np.radians(60) * short_normal).apply(axe_120)
+    axe_45 = Rotation.from_rotvec(np.radians(-15) * short_normal).apply(axe_60)
+    axe_135 = Rotation.from_rotvec(np.radians(90) * short_normal).apply(axe_45)
+
+    return axe_60, axe_120, axe_180, axe_45, axe_135
 
 
 @deprecated(reason="Using gradient from UVC to get better results.")

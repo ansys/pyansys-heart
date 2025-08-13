@@ -34,6 +34,7 @@ import ansys.fluent.core as pyfluent
 from ansys.fluent.core.launcher.launch_options import LaunchMode
 from ansys.fluent.core.session_meshing import Meshing as MeshingSession
 import ansys.fluent.core.utils.file_transfer_service as file_transfer_service
+from ansys.fluent.core.utils.fluent_version import AnsysVersionNotFound
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import SupportedFluentVersionNotFoundError
 from ansys.health.heart.objects import Mesh, SurfaceMesh
@@ -86,8 +87,10 @@ def _get_supported_fluent_version() -> str:
                 + f"version from supported versions: {_supported_fluent_versions}."
             )
             return version
-        except Exception:
-            pass
+        except AnsysVersionNotFound:
+            LOGGER.debug(f"Fluent version {version} is not available. Trying next version.")
+            continue
+
     raise SupportedFluentVersionNotFoundError(
         f"""Did not find a supported Fluent version.
         Install one of these versions: {_supported_fluent_versions}"""

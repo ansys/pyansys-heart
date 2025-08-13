@@ -25,6 +25,7 @@
 import pytest
 
 import ansys.fluent.core as pyfluent
+from ansys.health.heart.pre.mesher import _get_supported_fluent_version
 
 # marks all tests with the 'requires_fluent' tag after this line
 pytestmark = pytest.mark.requires_fluent
@@ -44,7 +45,7 @@ def test_launch_fluent():
             ui_mode="no_gui",
             dimension=3,
             container_dict=container_dict,
-            product_version="25.2",  # _get_supported_fluent_version(),
+            product_version=_get_supported_fluent_version(),
         )
         assert session.is_server_healthy()
         # try to initialize workflow

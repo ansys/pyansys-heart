@@ -122,14 +122,16 @@ def compute_aha17_landmarks(
     np.ndarray
         _description_.
     """
+    # Note: epicardium is not supported because it's incomplete for more than left ventricle model
+    surf: pv.PolyData = model.left_ventricle.endocardium
+
+    # get anatomical points
     p_basal, p_mid, p_apical, apex_endo, apex_epi = _calculate_longitudinal_points(
         model, short_axis
     )
     axe_60, axe_120, axe_180, axe_45, axe_135 = _calculate_rotation_axis(short_axis, long_axis)
 
-    # Note: epicardium is not supported because it's incomplete for more than left ventricle model
-    surf: pv.PolyData = model.left_ventricle.endocardium
-
+    # define points for the segments
     coords = []
 
     for center in [p_basal, p_mid, p_apical]:
@@ -172,9 +174,6 @@ def compute_aha17_landmarks(
         _project_line_segment(surf, apex_endo, coords[25], coords[22]),
     ]
 
-    hlines = pv.MultiBlock(hline)
-    hlines.save("hlines.vtm")
-
     vline = [
         _project_line_segment(surf, p_basal, coords[0], coords[6]),
         _project_line_segment(surf, p_basal, coords[1], coords[7]),
@@ -194,11 +193,7 @@ def compute_aha17_landmarks(
         _project_line_segment(surf, p_apical, coords[21], coords[25]),
     ]
 
-    vlines = pv.MultiBlock()
-    for h in vline:
-        vlines.append(h)
-    vlines.save("vlines.vtm")
-    return surf, coords
+    return surf, coords, hline, vline
 
 
 def _project_line_segment(

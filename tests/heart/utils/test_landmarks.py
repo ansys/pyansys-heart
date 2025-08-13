@@ -24,6 +24,7 @@ import os
 
 import numpy as np
 import pytest
+import pyvista as pv
 
 import ansys.health.heart.models as models
 from ansys.health.heart.utils.landmark_utils import (
@@ -105,11 +106,15 @@ def test_compute_aha17_landmarks(model):
         "center": np.array([26.07305844, 125.37379059, 376.52369382]),
         "normal": np.array([0.60711636, -0.73061828, -0.31242063]),
     }
-    surf, coords = compute_aha17_landmarks(model, short, l4cv)
+    surf, coords, hline, vline = compute_aha17_landmarks(model, short, l4cv)
 
-    surf.save("surf.vtk")
+    # surf.save("surf.vtk")
 
-    np.savetxt("points.txt", coords)
+    # np.savetxt("points.txt", coords)
+    hlines = pv.MultiBlock(hline)
+    hlines.save("hlines.vtm")
+    vlines = pv.MultiBlock(vline)
+    vlines.save("vlines.vtm")
 
 
 def test_compute_element_cs(model):

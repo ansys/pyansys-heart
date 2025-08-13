@@ -107,6 +107,12 @@ simulator.settings.load_defaults()
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Compute fiber orientation and plot the fibers on the entire model.
 
+# Import the appendage landmarks.
+from ansys.health.heart.pre.database_utils import right_atrium_appendage_landmarks
+
+# Get the right atrium appendage landmark of the first case of Rodero2021.
+right_atrium_appendage_coordinates = right_atrium_appendage_landmarks.get("Rodero2021").get(1)
+
 # Compute ventricular fibers.
 simulator.compute_fibers(method="D-RBM")
 
@@ -116,7 +122,7 @@ simulator.model.left_atrium.active = True
 simulator.model.right_atrium.fiber = True
 simulator.model.left_atrium.fiber = True
 simulator.compute_left_atrial_fiber()
-simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
+simulator.compute_right_atrial_fiber(appendage=right_atrium_appendage_coordinates)
 simulator.model.plot_fibers(n_seed_points=1000)
 
 ###############################################################################

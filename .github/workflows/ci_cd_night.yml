@@ -50,7 +50,7 @@ jobs:
          ANSYS_VERSION : ${{ env.ANSYS_VERSION }}
 
      - name: Login to GitHub Container Registry
-       uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+       uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
        if: matrix.tests.needs_fluent
        with:
          registry: ghcr.io
@@ -78,7 +78,7 @@ jobs:
     name: Documentation Style Check
     runs-on: ubuntu-latest
     steps:
-      - uses: ansys/actions/doc-style@2031be5b84d9f8c1d56a54912209aa489b469a0f # v10.0.13
+      - uses: ansys/actions/doc-style@1096998b81f7ebdea116b683e11f3a8bda759ca6 # v10.0.14
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -142,7 +142,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: doc-build
     steps:
-      - uses: ansys/actions/doc-deploy-dev@2031be5b84d9f8c1d56a54912209aa489b469a0f # v10.0.13
+      - uses: ansys/actions/doc-deploy-dev@1096998b81f7ebdea116b683e11f3a8bda759ca6 # v10.0.14
         with:
           doc-artifact-name: "documentation-html"
           cname: ${{ env.DOCUMENTATION_CNAME }}

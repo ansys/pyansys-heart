@@ -24,7 +24,6 @@ import os
 
 import numpy as np
 import pytest
-import pyvista as pv
 
 import ansys.health.heart.models as models
 from ansys.health.heart.utils.landmark_utils import (
@@ -83,9 +82,9 @@ def test_compute_aha17(model):
     }
 
     aha_ids = compute_aha17(model, short, l4cv)
-    # solid = model.mesh.extract_cells_by_type(10)
-    # solid.cell_data["aha"] = aha_ids
-    # solid.save("aha.vtk")
+    solid = model.mesh.extract_cells_by_type(10)
+    solid.cell_data["aha"] = aha_ids
+    solid.save("aha.vtk")
 
     assert np.sum(aha_ids == 10) == 10591
     assert np.sum(aha_ids == 12) == 11220
@@ -94,11 +93,8 @@ def test_compute_aha17(model):
 
 
 def test_compute_aha17_landmarks(model):
-    l4cv = {
-        "center": np.array([30.05990578, 109.49603257, 375.8178529]),
-        "normal": np.array([-0.54847906, -0.10082087, -0.83006378]),
-    }
-    l4cv = {
+    # note give l2cv
+    l2cv = {
         "center": np.array([42.8065945, 105.236255, 367.91265619]),
         "normal": np.array([0.57496125, 0.67530147, -0.46193883]),
     }
@@ -106,15 +102,19 @@ def test_compute_aha17_landmarks(model):
         "center": np.array([26.07305844, 125.37379059, 376.52369382]),
         "normal": np.array([0.60711636, -0.73061828, -0.31242063]),
     }
-    surf, coords, hline, vline = compute_aha17_landmarks(model, short, l4cv)
+    coords, hline, vline = compute_aha17_landmarks(model, short, l2cv)
 
-    # surf.save("surf.vtk")
+    # np.savetxt("points.txt", np.array(coords))
+    # hlines = pv.MultiBlock(hline)
+    # hlines.save("hlines.vtm")
+    # vlines = pv.MultiBlock(vline)
+    # vlines.save("vlines.vtm")
 
-    # np.savetxt("points.txt", coords)
-    hlines = pv.MultiBlock(hline)
-    hlines.save("hlines.vtm")
-    vlines = pv.MultiBlock(vline)
-    vlines.save("vlines.vtm")
+    assert np.allclose(coords[0], np.array([5.5856953, 113.95523, 363.41443]))
+    assert pytest.approx(hline[0].length, abs=0.1) == 31.6
+    assert pytest.approx(hline[10].length, abs=0.1) == 29.8
+    assert pytest.approx(vline[0].length, abs=0.1) == 26.9
+    assert pytest.approx(vline[10].length, abs=0.1) == 26.4
 
 
 def test_compute_element_cs(model):

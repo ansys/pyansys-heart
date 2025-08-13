@@ -81,29 +81,34 @@ def compute_anatomy_axis(
 
 
 def compute_aha17_landmarks(
-    model: HeartModel,
-    short_axis: dict,
-    long_axis: dict,
-):
-    """_summary_.
+    model: HeartModel, short_axis: dict, long_axis: dict, surface: pv.PolyData = None
+) -> tuple[list[np.ndarray], list[pv.PolyData], list[pv.PolyData]]:
+    """Compute AHA17 landmarks for the left ventricle.
 
-    P1--H1----P2---H2---P3----H3--P4---H4---P5---H5---P6---H6---P1
+    The AHA17 landmarks are defined by
+    - 26 points
+    - 26 horizontal lines
+    - 16 vertical lines
+
+    They split left ventricle into 17 segments as follow:
+
+    P1---H1---P2---H2---P3----H3--P4---H4---P5---H5---P6---H6---P1
     |          |         |         |         |         |         |
     |          |         |         |         |         |         |
-    V1        V2        V3        V4        V5        V6        V1
+    V1   S4   V2    S5  V3    S6  V4    S1  V5   S2   V6   S3   V1
     |          |         |         |         |         |         |
     |          |         |         |         |         |         |
     P7---H7---P8---H8---P9----H9--P10--H10--P11--H11--P12--H12--P7
     |          |         |         |         |         |         |
     |          |         |         |         |         |         |
-    V7        V8        V9        V10       V11       V12       V7
+    V7  S10   V8   S11  V9   S12  V10  S7   V11  S8   V12  S9   V7
     |          |         |         |         |         |         |
     |          |         |         |         |         |         |
     P13--H13--P14--H14--P15--H15--P16--H16--P17--H17--P18--H18--P13
           P19---H19---P20---H20---P21---H21---P22---H22---P19
            |           |           |           |           |
            |           |           |           |           |
-           V13        V14         V15         V16         V17
+           V13  S15   V14   S16   V15   S13   V16   S14   V13
            |           |           |           |           |
            |           |           |           |           |
           P23---H23---P24---H24---P25---H25---P26---H26---P23
@@ -111,19 +116,27 @@ def compute_aha17_landmarks(
     Parameters
     ----------
     model : HeartModel
-        _description_.
+        Heart model.
     short_axis : dict
-        _description_.
-    l4cv_axis : dict
-        _description_.
+        Short axis.
+    long_axis : dict
+        Long axis.
+    surface : pv.PolyData, default: None
+        Surface to be evaluated, only endocardium is supported.
+        If not given, the endocardium from heart model is used.
 
     Returns
     -------
-    np.ndarray
-        _description_.
+    tuple[np.ndarray, list[pv.PolyData], list[pv.PolyData]]
+        List of coordinates of the landmarks
+
+        List of horizontal lines
+
+        List of vertical lines
     """
     # Note: epicardium is not supported because it's incomplete for more than left ventricle model
-    surf: pv.PolyData = model.left_ventricle.endocardium
+    if surface is None:
+        surface: pv.PolyData = model.left_ventricle.endocardium
 
     # get anatomical points
     p_basal, p_mid, p_apical, apex_endo, apex_epi = _calculate_longitudinal_points(
@@ -132,68 +145,66 @@ def compute_aha17_landmarks(
     axe_60, axe_120, axe_180, axe_45, axe_135 = _calculate_rotation_axis(short_axis, long_axis)
 
     # define points for the segments
-    coords = []
+    points = []
 
     for center in [p_basal, p_mid, p_apical]:
         for normal in [-axe_60, -axe_120, axe_180, axe_60, axe_120, -axe_180]:
-            point, _ = surf.ray_trace(center, center + 1e6 * normal, first_point=True)
-            coords.append(point)
+            point, _ = surface.ray_trace(center, center + 1e6 * normal, first_point=True)
+            points.append(point)
     for center in [p_apical, apex_endo]:
         for normal in [-axe_45, -axe_135, axe_45, axe_135]:
-            point, _ = surf.ray_trace(center, center + 1e6 * normal, first_point=True)
-            coords.append(point)
-
-    coords = np.array(coords)
+            point, _ = surface.ray_trace(center, center + 1e6 * normal, first_point=True)
+            points.append(point)
 
     hline = [
-        _project_line_segment(surf, p_basal, coords[0], coords[1]),
-        _project_line_segment(surf, p_basal, coords[1], coords[2]),
-        _project_line_segment(surf, p_basal, coords[2], coords[3]),
-        _project_line_segment(surf, p_basal, coords[3], coords[4]),
-        _project_line_segment(surf, p_basal, coords[4], coords[5]),
-        _project_line_segment(surf, p_basal, coords[5], coords[0]),
-        _project_line_segment(surf, p_mid, coords[6], coords[7]),
-        _project_line_segment(surf, p_mid, coords[7], coords[8]),
-        _project_line_segment(surf, p_mid, coords[8], coords[9]),
-        _project_line_segment(surf, p_mid, coords[9], coords[10]),
-        _project_line_segment(surf, p_mid, coords[10], coords[11]),
-        _project_line_segment(surf, p_mid, coords[11], coords[6]),
-        _project_line_segment(surf, p_apical, coords[12], coords[13]),
-        _project_line_segment(surf, p_apical, coords[13], coords[14]),
-        _project_line_segment(surf, p_apical, coords[14], coords[15]),
-        _project_line_segment(surf, p_apical, coords[15], coords[16]),
-        _project_line_segment(surf, p_apical, coords[16], coords[17]),
-        _project_line_segment(surf, p_apical, coords[17], coords[12]),
-        _project_line_segment(surf, p_apical, coords[18], coords[19]),
-        _project_line_segment(surf, p_apical, coords[19], coords[20]),
-        _project_line_segment(surf, p_apical, coords[20], coords[21]),
-        _project_line_segment(surf, p_apical, coords[21], coords[18]),
-        _project_line_segment(surf, apex_endo, coords[22], coords[23]),
-        _project_line_segment(surf, apex_endo, coords[23], coords[24]),
-        _project_line_segment(surf, apex_endo, coords[24], coords[25]),
-        _project_line_segment(surf, apex_endo, coords[25], coords[22]),
+        _project_line_segment(surface, p_basal, points[0], points[1]),
+        _project_line_segment(surface, p_basal, points[1], points[2]),
+        _project_line_segment(surface, p_basal, points[2], points[3]),
+        _project_line_segment(surface, p_basal, points[3], points[4]),
+        _project_line_segment(surface, p_basal, points[4], points[5]),
+        _project_line_segment(surface, p_basal, points[5], points[0]),
+        _project_line_segment(surface, p_mid, points[6], points[7]),
+        _project_line_segment(surface, p_mid, points[7], points[8]),
+        _project_line_segment(surface, p_mid, points[8], points[9]),
+        _project_line_segment(surface, p_mid, points[9], points[10]),
+        _project_line_segment(surface, p_mid, points[10], points[11]),
+        _project_line_segment(surface, p_mid, points[11], points[6]),
+        _project_line_segment(surface, p_apical, points[12], points[13]),
+        _project_line_segment(surface, p_apical, points[13], points[14]),
+        _project_line_segment(surface, p_apical, points[14], points[15]),
+        _project_line_segment(surface, p_apical, points[15], points[16]),
+        _project_line_segment(surface, p_apical, points[16], points[17]),
+        _project_line_segment(surface, p_apical, points[17], points[12]),
+        _project_line_segment(surface, p_apical, points[18], points[19]),
+        _project_line_segment(surface, p_apical, points[19], points[20]),
+        _project_line_segment(surface, p_apical, points[20], points[21]),
+        _project_line_segment(surface, p_apical, points[21], points[18]),
+        _project_line_segment(surface, apex_endo, points[22], points[23]),
+        _project_line_segment(surface, apex_endo, points[23], points[24]),
+        _project_line_segment(surface, apex_endo, points[24], points[25]),
+        _project_line_segment(surface, apex_endo, points[25], points[22]),
     ]
 
     vline = [
-        _project_line_segment(surf, p_basal, coords[0], coords[6]),
-        _project_line_segment(surf, p_basal, coords[1], coords[7]),
-        _project_line_segment(surf, p_basal, coords[2], coords[8]),
-        _project_line_segment(surf, p_basal, coords[3], coords[9]),
-        _project_line_segment(surf, p_basal, coords[4], coords[10]),
-        _project_line_segment(surf, p_basal, coords[5], coords[11]),
-        _project_line_segment(surf, p_mid, coords[6], coords[12]),
-        _project_line_segment(surf, p_mid, coords[7], coords[13]),
-        _project_line_segment(surf, p_mid, coords[8], coords[14]),
-        _project_line_segment(surf, p_mid, coords[9], coords[15]),
-        _project_line_segment(surf, p_mid, coords[10], coords[16]),
-        _project_line_segment(surf, p_mid, coords[11], coords[17]),
-        _project_line_segment(surf, p_apical, coords[18], coords[22]),
-        _project_line_segment(surf, p_apical, coords[19], coords[23]),
-        _project_line_segment(surf, p_apical, coords[20], coords[24]),
-        _project_line_segment(surf, p_apical, coords[21], coords[25]),
+        _project_line_segment(surface, p_basal, points[0], points[6]),
+        _project_line_segment(surface, p_basal, points[1], points[7]),
+        _project_line_segment(surface, p_basal, points[2], points[8]),
+        _project_line_segment(surface, p_basal, points[3], points[9]),
+        _project_line_segment(surface, p_basal, points[4], points[10]),
+        _project_line_segment(surface, p_basal, points[5], points[11]),
+        _project_line_segment(surface, p_mid, points[6], points[12]),
+        _project_line_segment(surface, p_mid, points[7], points[13]),
+        _project_line_segment(surface, p_mid, points[8], points[14]),
+        _project_line_segment(surface, p_mid, points[9], points[15]),
+        _project_line_segment(surface, p_mid, points[10], points[16]),
+        _project_line_segment(surface, p_mid, points[11], points[17]),
+        _project_line_segment(surface, p_apical, points[18], points[22]),
+        _project_line_segment(surface, p_apical, points[19], points[23]),
+        _project_line_segment(surface, p_apical, points[20], points[24]),
+        _project_line_segment(surface, p_apical, points[21], points[25]),
     ]
 
-    return surf, coords, hline, vline
+    return points, hline, vline
 
 
 def _project_line_segment(
@@ -414,12 +425,12 @@ def compute_aha17(
     return aha_ids
 
 
-def _calculate_rotation_axis(short_axis, l4cv_axis):
-    short_normal = short_axis["normal"]
+def _calculate_rotation_axis(short: dict, long: dict):
+    short_normal = short["normal"]
 
     # define reference cut plane
     # default: rotate 60 from long axis
-    long_axis = l4cv_axis["normal"]
+    long_axis = long["normal"]
     axe_60 = Rotation.from_rotvec(np.radians(60) * short_normal).apply(  # noqa:E501
         long_axis
     )

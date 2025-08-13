@@ -308,8 +308,8 @@ def unpack_case(tar_path: Path, reduce_size: bool = True) -> str | bool:
             if unsafe_members:
                 names = [m.name for m in unsafe_members]
                 raise ValueError(f"Unsafe tar members detected in '{tar_path}': {names}")
-
-            tar_ball.extractall(path=tar_dir, members=members)
+            # Ignore bandit warnings, because members are validated
+            tar_ball.extractall(path=tar_dir, members=members)  # nosec: B202
 
             path = _infer_extraction_path_from_tar(tar_path)
             return path

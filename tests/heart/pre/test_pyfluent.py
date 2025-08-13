@@ -34,9 +34,6 @@ pytestmark = pytest.mark.requires_fluent
 def test_launch_fluent():
     """Launch pyfluent in meshing mode and check health."""
     try:
-        container_dict = {
-            "environment": {"FLUENT_ALLOW_REMOTE_GRPC_CONNECTION": "1"},
-        }
         session = pyfluent.launch_fluent(
             mode="meshing",
             precision="double",
@@ -44,7 +41,6 @@ def test_launch_fluent():
             start_transcript=False,
             ui_mode="no_gui",
             dimension=3,
-            container_dict=container_dict,
             product_version=_get_supported_fluent_version(),
         )
         assert session.is_server_healthy()

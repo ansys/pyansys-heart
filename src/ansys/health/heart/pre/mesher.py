@@ -80,16 +80,7 @@ def _get_supported_fluent_version() -> str:
 
     for version in _supported_fluent_versions:
         try:
-            if _uses_container:
-                config_dict = {
-                    "environment": {"FLUENT_ALLOW_REMOTE_GRPC_CONNECTION": "1"},
-                }
-            else:
-                config_dict = None
-
-            pyfluent.launch_fluent(
-                product_version=version, dry_run=True, container_dict=config_dict
-            )
+            pyfluent.launch_fluent(product_version=version, dry_run=True)
             LOGGER.info(
                 f"Found Fluent {version} as latest compatible "
                 + f"version from supported versions: {_supported_fluent_versions}."

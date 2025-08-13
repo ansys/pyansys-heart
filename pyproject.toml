@@ -24,22 +24,22 @@ classifiers = [
 
 dependencies = [
     "ansys-dpf-core>=0.13.6,!=0.14.0,<0.15",
-    "ansys-fluent-core>=0.30.0",
-    "deprecated>=1.2.18",
+    "ansys-fluent-core==0.35.dev0",
     "ansys.dyna.core>=0.7.1",
+    "deprecated>=1.2.18",
     "h5py>=3.6.0",
+    "httpx>=0.27.2",
     "matplotlib>=3.10.1",
+    "natsort>=8.4.0",
     "networkx>=3.2.1",
     "numpy<=2.2.6",
     "pandas<=3.0.0",
     "pint>=0.24.4",
     "pyvista>=0.44.1,<0.47",
+    "rich>=13.9.4",
     "scipy<=1.15.3",
     "validators>=0.34.0",
     "vtk>=9.1.0,<9.6,!=9.4.*",
-    "httpx>=0.27.2",
-    "natsort>=8.4.0",
-    "rich>=13.9.4",
 ]
 
 # Optional dependencies:
@@ -48,17 +48,17 @@ doc = [
     "ansys-sphinx-theme[autoapi]==1.5.2",
     "jupyter_sphinx==0.5.3",
     "myst-parser==4.0.1",
-    "numpydoc==1.8.0",
     "nbsphinx==0.9.7",
+    "numpydoc==1.8.0",
+    "pyvista[jupyter]==0.45.3",
     "pypandoc==1.15",
     "sphinx==8.1.3",
     "sphinx-autodoc-typehints==3.0.1",
     "sphinx-copybutton==0.5.2",
     "sphinx-gallery==0.19.0",
     "sphinx-jinja==2.0.2",
-    "sphinxcontrib-video==0.4.1",
     "sphinx_design",
-    "pyvista[jupyter]==0.45.3",
+    "sphinxcontrib-video==0.4.1",
     "trame-vtk==2.9.1"
 ]
 tests = [

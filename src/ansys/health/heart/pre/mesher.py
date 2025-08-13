@@ -31,7 +31,7 @@ import numpy as np
 import pyvista as pv
 
 import ansys.fluent.core as pyfluent
-from ansys.fluent.core.launcher.launch_options import LaunchMode
+from ansys.fluent.core.launcher import LaunchMode
 from ansys.fluent.core.session_meshing import Meshing as MeshingSession
 import ansys.fluent.core.utils.file_transfer_service as file_transfer_service
 from ansys.fluent.core.utils.fluent_version import AnsysVersionNotFound

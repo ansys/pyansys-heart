@@ -82,7 +82,7 @@ def compute_anatomy_axis(
 
 def compute_aha17_points(
     model: HeartModel, short_axis: dict, long_axis: dict, surface: pv.PolyData = None
-) -> tuple[list[np.ndarray], list[pv.PolyData], list[pv.PolyData]]:
+) -> list[np.ndarray]:
     """Compute AHA17 landmarks for the left ventricle.
 
     The AHA17 landmarks are defined by
@@ -154,12 +154,13 @@ def compute_aha17_points(
                 raise ValueError("Cannot find point on surface from basal, mid, or apical.")
             else:
                 points.append(point)
+
     for center in [p_apical, apex_endo]:
         for normal in [-axe_45, -axe_135, axe_45, axe_135]:
             point = surface.copy().ray_trace(center, center + 1e3 * normal, first_point=True)[0]
             if point.size == 0:
-                surface.save("debug_endo.vtp")
-                pv.Line(center, center + 1e2 * normal).save("debug_points.vtp")
+                # surface.save("debug_endo.vtp")
+                # pv.Line(center, center + 1e2 * normal).save("debug_points.vtp")
                 raise ValueError("Cannot find point on surface from apical or apex.")
             else:
                 points.append(point)
@@ -187,8 +188,8 @@ def compute_aha17_lines(
     """
     p_basal = np.mean(np.array(points[0:6]), axis=0)
     p_mid = np.mean(np.array(points[6:12]), axis=0)
-    p_apical = np.mean(np.array(points[12:18]), axis=0)
-    apex_endo = np.mean(np.array(points[18:24]), axis=0)
+    p_apical = np.mean(np.array(points[12:22]), axis=0)
+    apex_endo = np.mean(np.array(points[22:25]), axis=0)
 
     hline = [
         _project_line_segment(surface, p_basal, points[0], points[1]),
@@ -266,20 +267,21 @@ def _project_line_segment(
 
     # Project each point
     projected_points = []
+
     for pt in segment_points:
         start = center
         end = center + 100.0 * (pt - center)
-        # Note: copy is needed, or ray_trace will fail after several times of calling
+        # NOTE: copy() is needed, or ray_trace will fail after several times of calling
         intersection = surf.copy().ray_trace(start, end, first_point=True)[0]
         if intersection.size == 0:
             # pv.PolyData([p1, p2, center,pt]).save("debug_points.vtp")
             # pv.Line(start,end).save("debug_points2.vtp")
             # surf.save("debug_endo.vtp")
-            raise ValueError(f"Cannot find intersection for segment from {p1} to {p2} on surface.")
+            # raise ValueError(f"Cannot find intersection for segment.")
+            print("Cannot find intersection on the surface.")
         else:
             projected_points.append(intersection)
 
-    # Convert to array
     projected_points = np.array(projected_points)
 
     # Create curve

@@ -70,9 +70,7 @@ class AhaStrainCalculator:
         points = compute_aha17_points(
             self.model, self.model.short_axis, self.model.l2cv_axis, surface=surface_endo
         )
-        ids = []
-        for p in points:
-            ids.append(surface_endo.find_closest_point(p))
+        ids = [surface_endo.find_closest_point(p) for p in points]
 
         hlength_array = []
         vlength_array = []
@@ -87,9 +85,11 @@ class AhaStrainCalculator:
                 # )
                 points = [surface_endo.points[id] for id in ids]
                 hlines, vlines = compute_aha17_lines(surface_endo, points)
+
             except ValueError as e:
                 print(f"Error computing AHA strain at time {t}: {e}")
                 exit()
+
             hlength_array.append([hl.length for hl in hlines])
             vlength_array.append([vl.length for vl in vlines])
 

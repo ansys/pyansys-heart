@@ -71,10 +71,13 @@ class AhaStrainCalculator:
                 self.d3plot.model.results.coordinates.on_time_scoping(float(t)).eval()[0].data
             )
             surface_endo.points = coordinates[surface_endo["_global-point-ids"]]
-            _, hlines, vlines = compute_aha17_landmarks(
-                self.model, self.model.short_axis, self.model.l2cv_axis, surface=surface_endo
-            )
-
+            try:
+                _, hlines, vlines = compute_aha17_landmarks(
+                    self.model, self.model.short_axis, self.model.l2cv_axis, surface=surface_endo
+                )
+            except ValueError as e:
+                print(f"Error computing AHA strain at time {t}: {e}")
+                exit()
             hlength_array.append([hl.length for hl in hlines])
             vlength_array.append([vl.length for vl in vlines])
 

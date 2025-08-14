@@ -40,7 +40,9 @@ import glob
 import os
 import pathlib
 import shutil
-import subprocess
+
+# subprocess is used to run LS-DYNA commands, excluding bandit warning
+import subprocess  # nosec: B404
 from typing import Literal
 
 import natsort
@@ -851,7 +853,8 @@ def run_lsdyna(
     LOGGER.info(f"Starting LS-DYNA with {commands}...")
 
     mess = []
-    with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
+    # Excluding bandit warning for subprocess usage
+    with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:  # nosec: B603
         for line in p.stdout:
             LOGGER.debug(line.rstrip())
             mess.append(line)

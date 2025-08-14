@@ -31,7 +31,8 @@ from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, Heart
 from ansys.health.heart.post.dpf_utils import D3plotReader
 from ansys.health.heart.utils.landmark_utils import (
     compute_aha17,
-    compute_aha17_landmarks,
+    compute_aha17_lines,
+    compute_aha17_points,
     compute_element_cs,
 )
 from ansys.health.heart.utils.vtk_utils import find_corresponding_points, generate_thickness_lines
@@ -72,9 +73,10 @@ class AhaStrainCalculator:
             )
             surface_endo.points = coordinates[surface_endo["_global-point-ids"]]
             try:
-                _, hlines, vlines = compute_aha17_landmarks(
+                points = compute_aha17_points(
                     self.model, self.model.short_axis, self.model.l2cv_axis, surface=surface_endo
                 )
+                hlines, vlines = compute_aha17_lines(surface_endo, points)
             except ValueError as e:
                 print(f"Error computing AHA strain at time {t}: {e}")
                 exit()

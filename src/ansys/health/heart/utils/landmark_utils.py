@@ -80,7 +80,7 @@ def compute_anatomy_axis(
     return (l4cv_axis, l2cv_axis, short_axis)
 
 
-def compute_aha17_landmarks(
+def compute_aha17_points(
     model: HeartModel, short_axis: dict, long_axis: dict, surface: pv.PolyData = None
 ) -> tuple[list[np.ndarray], list[pv.PolyData], list[pv.PolyData]]:
     """Compute AHA17 landmarks for the left ventricle.
@@ -164,6 +164,32 @@ def compute_aha17_landmarks(
             else:
                 points.append(point)
 
+    return points
+
+
+def compute_aha17_lines(
+    surface: pv.PolyData, points: list[np.ndarray]
+) -> tuple[list[pv.PolyData], list[pv.PolyData]]:
+    """Compute AHA 17 lines.
+
+    Parameters
+    ----------
+    surface : pv.PolyData
+        The surface to project the l
+        lines onto.
+    points : list[np.ndarray]
+        The list of points defining the lines.
+
+    Returns
+    -------
+    tuple[list[pv.PolyData], list[pv.PolyData]]
+        The horizontal and vertical lines.
+    """
+    p_basal = np.mean(np.array(points[0:6]), axis=0)
+    p_mid = np.mean(np.array(points[6:12]), axis=0)
+    p_apical = np.mean(np.array(points[12:18]), axis=0)
+    apex_endo = np.mean(np.array(points[18:24]), axis=0)
+
     hline = [
         _project_line_segment(surface, p_basal, points[0], points[1]),
         _project_line_segment(surface, p_basal, points[1], points[2]),
@@ -212,7 +238,7 @@ def compute_aha17_landmarks(
         _project_line_segment(surface, p_apical, points[21], points[25]),
     ]
 
-    return points, hline, vline
+    return hline, vline
 
 
 def _project_line_segment(

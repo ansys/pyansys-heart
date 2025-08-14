@@ -64,7 +64,16 @@ class AhaStrainCalculator:
         if time_array is None:
             time_array = self.d3plot.time
 
-        surface_endo = self.model.left_ventricle.endocardium.copy()
+        surface_endo: pv.PolyData = self.model.left_ventricle.endocardium.copy()
+
+        # AHA points are bounded to nodes of endocardium surface.
+        points = compute_aha17_points(
+            self.model, self.model.short_axis, self.model.l2cv_axis, surface=surface_endo
+        )
+        ids = []
+        for p in points:
+            ids.append(surface_endo.find_closest_point(p))
+
         hlength_array = []
         vlength_array = []
         for it, t in enumerate(time_array):
@@ -73,9 +82,10 @@ class AhaStrainCalculator:
             )
             surface_endo.points = coordinates[surface_endo["_global-point-ids"]]
             try:
-                points = compute_aha17_points(
-                    self.model, self.model.short_axis, self.model.l2cv_axis, surface=surface_endo
-                )
+                # points = compute_aha17_points(
+                #     self.model, self.model.short_axis, self.model.l2cv_axis, surface=surface_endo
+                # )
+                points = [surface_endo.points[id] for id in ids]
                 hlines, vlines = compute_aha17_lines(surface_endo, points)
             except ValueError as e:
                 print(f"Error computing AHA strain at time {t}: {e}")

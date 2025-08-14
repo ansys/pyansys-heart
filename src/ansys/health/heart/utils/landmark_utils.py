@@ -149,15 +149,17 @@ def compute_aha17_landmarks(
 
     for center in [p_basal, p_mid, p_apical]:
         for normal in [-axe_60, -axe_120, axe_180, axe_60, axe_120, -axe_180]:
-            point = surface.ray_trace(center, center + 1e6 * normal, first_point=True)[0]
+            point = surface.copy().ray_trace(center, center + 1e3 * normal, first_point=True)[0]
             if point.size == 0:
                 raise ValueError("Cannot find point on surface from basal, mid, or apical.")
             else:
                 points.append(point)
     for center in [p_apical, apex_endo]:
         for normal in [-axe_45, -axe_135, axe_45, axe_135]:
-            point = surface.ray_trace(center, center + 1e6 * normal, first_point=True)[0]
+            point = surface.copy().ray_trace(center, center + 1e3 * normal, first_point=True)[0]
             if point.size == 0:
+                surface.save("debug_endo.vtp")
+                pv.Line(center, center + 1e2 * normal).save("debug_points.vtp")
                 raise ValueError("Cannot find point on surface from apical or apex.")
             else:
                 points.append(point)
@@ -234,13 +236,14 @@ def _project_line_segment(
     pv.PolyData
         The projected line segment.
     """
-    segment_points = np.linspace(p1, p2, num=100)
+    segment_points = np.linspace(p1, p2, num=10)
 
     # Project each point
     projected_points = []
     for pt in segment_points:
         start = center
-        end = center + 5.0 * (pt - center)
+        end = center + 100.0 * (pt - center)
+        # Note: copy is needed, or ray_trace will fail after several times of calling
         intersection = surf.copy().ray_trace(start, end, first_point=True)[0]
         if intersection.size == 0:
             # pv.PolyData([p1, p2, center,pt]).save("debug_points.vtp")

@@ -22,7 +22,7 @@
 
 """Stateless methods for the heart model."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import os
 from typing import Literal
 
@@ -39,17 +39,34 @@ from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPat
 class LandMarks:
     """Heart anatomical points."""
 
-    SA_NODE = Point("SA_node", xyz=None, node_id=None)
-    AV_NODE = Point("AV_node", xyz=None, node_id=None)
-    HIS_BIF_NODE = Point("His_bifurcation", xyz=None, node_id=None)
-    HIS_LEFT_END_NODE = Point("His_left_end", xyz=None, node_id=None)
-    HIS_RIGHT_END_NODE = Point("His_right_end", xyz=None, node_id=None)
-    BACHMAN_END_NODE = Point("Bachman_end", xyz=None, node_id=None)
-    LEFT_FASCILE_END = Point("Left_fasicle_end", xyz=None, node_id=None)
-
-    # NOTE bring APEX here
-    LEFT_APEX = Point("Left_apex", xyz=None, node_id=None)
-    RIGHT_APEX = Point("Right_apex", xyz=None, node_id=None)
+    SA_NODE: Point = field(default_factory=lambda: Point("SA_node", xyz=None, node_id=None))
+    """Sinoatrial node."""
+    AV_NODE: Point = field(default_factory=lambda: Point("AV_node", xyz=None, node_id=None))
+    """Atrioventricular node."""
+    HIS_BIF_NODE: Point = field(
+        default_factory=lambda: Point("His_bifurcation", xyz=None, node_id=None)
+    )
+    """His bundle bifurcation node."""
+    HIS_LEFT_END_NODE: Point = field(
+        default_factory=lambda: Point("His_left_end", xyz=None, node_id=None)
+    )
+    """His bundle left end node."""
+    HIS_RIGHT_END_NODE: Point = field(
+        default_factory=lambda: Point("His_right_end", xyz=None, node_id=None)
+    )
+    """His bundle right end node."""
+    BACHMANN_END_NODE: Point = field(
+        default_factory=lambda: Point("Bachmann_end", xyz=None, node_id=None)
+    )
+    """Bachmann bundle end node."""
+    LEFT_FASCILE_END: Point = field(
+        default_factory=lambda: Point("Left_fasicle_end", xyz=None, node_id=None)
+    )
+    """Left fascicle end node."""
+    LEFT_APEX: Point = field(default_factory=lambda: Point("Left_apex", xyz=None, node_id=None))
+    """Left ventricle apex (endocardium)."""
+    RIGHT_APEX: Point = field(default_factory=lambda: Point("Right_apex", xyz=None, node_id=None))
+    """Right ventricle apex (endocardium)."""
 
 
 class HeartModelUtils:

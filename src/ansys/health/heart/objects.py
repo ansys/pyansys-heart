@@ -24,6 +24,7 @@
 
 from __future__ import annotations
 
+from abc import ABC
 import copy
 from enum import Enum
 import json
@@ -169,20 +170,16 @@ def _convert_int64_to_int32(
     return mesh
 
 
-class _BaseObject:
-    """Base object class."""
+class _BaseObject(ABC):
+    """Abstract object class."""
 
     def __init__(self, name: str = None) -> None:
         self.name = name
         """Name."""
         self._node_set_id: int = None
-        """Nodeset ID associated with feature."""
+        """Nodeset ID associated with object."""
         self._seg_set_id: int = None
-        """Segment set ID associated with feature."""
-        self.pid: int = None
-        """Part ID associated with object."""
-
-        pass
+        """Segment set ID associated with object."""
 
 
 class SurfaceMesh(pv.PolyData):
@@ -453,6 +450,9 @@ class Cap(_BaseObject):
         super().__init__(name)
         """Centroid of the cap ID (in case centroid node is created)."""
         self._mesh: SurfaceMesh = None
+
+        self._pid: int = None
+        """Part ID associated with the cap."""
 
         if cap_type is None or isinstance(cap_type, CapType):
             self.type = cap_type

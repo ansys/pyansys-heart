@@ -39,33 +39,33 @@ from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPat
 class LandMarks:
     """Heart anatomical points."""
 
-    SA_NODE: Point = field(default_factory=lambda: Point("SA_node", xyz=None, node_id=None))
+    sa_node: Point = field(default_factory=lambda: Point("SA_node", xyz=None, node_id=None))
     """Sinoatrial node."""
-    AV_NODE: Point = field(default_factory=lambda: Point("AV_node", xyz=None, node_id=None))
+    av_node: Point = field(default_factory=lambda: Point("AV_node", xyz=None, node_id=None))
     """Atrioventricular node."""
-    HIS_BIF_NODE: Point = field(
+    his_bif_node: Point = field(
         default_factory=lambda: Point("His_bifurcation", xyz=None, node_id=None)
     )
     """His bundle bifurcation node."""
-    HIS_LEFT_END_NODE: Point = field(
+    his_left_end_node: Point = field(
         default_factory=lambda: Point("His_left_end", xyz=None, node_id=None)
     )
     """His bundle left end node."""
-    HIS_RIGHT_END_NODE: Point = field(
+    his_right_end_node: Point = field(
         default_factory=lambda: Point("His_right_end", xyz=None, node_id=None)
     )
     """His bundle right end node."""
-    BACHMANN_END_NODE: Point = field(
+    bachmann_end_node: Point = field(
         default_factory=lambda: Point("Bachmann_end", xyz=None, node_id=None)
     )
     """Bachmann bundle end node."""
-    LEFT_FASCILE_END: Point = field(
+    left_fascicle_end_node: Point = field(
         default_factory=lambda: Point("Left_fasicle_end", xyz=None, node_id=None)
     )
     """Left fascicle end node."""
-    LEFT_APEX: Point = field(default_factory=lambda: Point("Left_apex", xyz=None, node_id=None))
+    left_apex: Point = field(default_factory=lambda: Point("Left_apex", xyz=None, node_id=None))
     """Left ventricle apex (endocardium)."""
-    RIGHT_APEX: Point = field(default_factory=lambda: Point("Right_apex", xyz=None, node_id=None))
+    right_apex: Point = field(default_factory=lambda: Point("Right_apex", xyz=None, node_id=None))
     """Right ventricle apex (endocardium)."""
 
 
@@ -119,10 +119,10 @@ class HeartModelUtils:
 
         sino_atrial_node_id = right_atrium_endo.global_node_ids_triangles[target_id]
 
-        LandMarks.SA_NODE.xyz = model.mesh.points[sino_atrial_node_id, :]
-        LandMarks.SA_NODE.node_id = sino_atrial_node_id
+        LandMarks.sa_node.xyz = model.mesh.points[sino_atrial_node_id, :]
+        LandMarks.sa_node.node_id = sino_atrial_node_id
 
-        return LandMarks.SA_NODE
+        return LandMarks.sa_node
 
     @staticmethod
     def define_atrio_ventricular_node(
@@ -164,10 +164,10 @@ class HeartModelUtils:
 
         # assign a point
         av_id = right_atrium_endo.global_node_ids_triangles[target_id]
-        LandMarks.AV_NODE.xyz = model.mesh.points[av_id, :]
-        LandMarks.AV_NODE.node_id = av_id
+        LandMarks.av_node.xyz = model.mesh.points[av_id, :]
+        LandMarks.av_node.node_id = av_id
 
-        return LandMarks.AV_NODE
+        return LandMarks.av_node
 
     @staticmethod
     def define_his_bundle_bifurcation_node(
@@ -190,7 +190,7 @@ class HeartModelUtils:
             HIS bifurcation node.
         """
         if target_coord is None:
-            av_coord = LandMarks.AV_NODE.xyz
+            av_coord = LandMarks.av_node.xyz
             if av_coord is None:
                 LOGGER.error("AV node need to be defined before.")
                 return
@@ -216,10 +216,10 @@ class HeartModelUtils:
         pointcloud_id = septum_pointcloud.find_closest_point(target_coord)
 
         bifurcation_id = septum_point_ids[pointcloud_id]
-        LandMarks.HIS_BIF_NODE.xyz = model.mesh.points[bifurcation_id, :]
-        LandMarks.HIS_BIF_NODE.node_id = bifurcation_id
+        LandMarks.his_bif_node.xyz = model.mesh.points[bifurcation_id, :]
+        LandMarks.his_bif_node.node_id = bifurcation_id
 
-        return LandMarks.HIS_BIF_NODE
+        return LandMarks.his_bif_node
 
     @staticmethod
     def define_his_bundle_end_node(
@@ -258,7 +258,7 @@ class HeartModelUtils:
             return
         else:
             # find n-th closest point to bifurcation
-            bifurcation_coord = LandMarks.HIS_BIF_NODE.xyz
+            bifurcation_coord = LandMarks.his_bif_node.xyz
             if bifurcation_coord is None:
                 LOGGER.error("AV node need to be defined before.")
                 return
@@ -269,15 +269,15 @@ class HeartModelUtils:
             his_end_id = endo.global_node_ids_triangles[temp_id]
 
         if side == "left":
-            LandMarks.HIS_LEFT_END_NODE.node_id = his_end_id
-            LandMarks.HIS_LEFT_END_NODE.xyz = model.mesh.points[his_end_id, :]
-            return LandMarks.HIS_LEFT_END_NODE
+            LandMarks.his_left_end_node.node_id = his_end_id
+            LandMarks.his_left_end_node.xyz = model.mesh.points[his_end_id, :]
+            return LandMarks.his_left_end_node
 
         elif side == "right":
-            LandMarks.HIS_RIGHT_END_NODE.node_id = his_end_id
-            LandMarks.HIS_RIGHT_END_NODE.xyz = model.mesh.points[his_end_id, :]
+            LandMarks.his_right_end_node.node_id = his_end_id
+            LandMarks.his_right_end_node.xyz = model.mesh.points[his_end_id, :]
 
-            return LandMarks.HIS_RIGHT_END_NODE
+            return LandMarks.his_right_end_node
 
     @staticmethod
     def define_bachman_bundle_end_node(

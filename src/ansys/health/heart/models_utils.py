@@ -74,14 +74,18 @@ class HeartModelUtils:
 
     @staticmethod
     def define_sino_atrial_node(
-        model: models.FullHeart | models.FourChamber, target_coord: np.ndarray | list = None
-    ) -> LandMarks | None:
+        model: models.FullHeart | models.FourChamber,
+        landmarks: LandMarks,
+        target_coord: np.ndarray | list = None,
+    ) -> Point | None:
         """Define Sino-atrial node.
 
         Parameters
         ----------
         model : models.FullHeart | models.FourChamber
             Heart model.
+        landmarks : LandMarks
+            Landmarks instance to store the SA node.
         target_coord : np.ndarray | list, default: None
             If ``None``, the target coordinate is computed as the midpoint between
             the centroids of the superior and inferior vena cavae. If a coordinate is provided,
@@ -89,8 +93,8 @@ class HeartModelUtils:
 
         Returns
         -------
-        LandMarks | None
-            SA node.
+        Point | None
+            SA node Point object.
         """
         try:
             right_atrium_endo = model.mesh.get_surface(model.right_atrium.endocardium.id)
@@ -119,21 +123,25 @@ class HeartModelUtils:
 
         sino_atrial_node_id = right_atrium_endo.global_node_ids_triangles[target_id]
 
-        LandMarks.sa_node.xyz = model.mesh.points[sino_atrial_node_id, :]
-        LandMarks.sa_node.node_id = sino_atrial_node_id
+        landmarks.sa_node.xyz = model.mesh.points[sino_atrial_node_id, :]
+        landmarks.sa_node.node_id = sino_atrial_node_id
 
-        return LandMarks.sa_node
+        return landmarks.sa_node
 
     @staticmethod
     def define_atrio_ventricular_node(
-        model: models.FullHeart | models.FourChamber, target_coord: np.ndarray | list = None
-    ) -> LandMarks | None:
+        model: models.FullHeart | models.FourChamber,
+        landmarks: LandMarks,
+        target_coord: np.ndarray | list = None,
+    ) -> Point | None:
         """Define Atrio-ventricular node.
 
         Parameters
         ----------
         model : models.FullHeart | models.FourChamber
             Heart model.
+        landmarks : LandMarks
+            Landmarks instance to store the AV node.
         target_coord : np.ndarray | list, default: None
             If ``None``, the target coordinate is computed as the closest point on the right atrium
             endocardium surface to the right ventricle septum. If a coordinate is provided, the
@@ -141,8 +149,8 @@ class HeartModelUtils:
 
         Returns
         -------
-        LandMarks | None
-            AV node.
+        Point | None
+            AV node Point object.
         """
         try:
             right_atrium_endo = model.mesh.get_surface(model.right_atrium.endocardium.id)
@@ -164,21 +172,25 @@ class HeartModelUtils:
 
         # assign a point
         av_id = right_atrium_endo.global_node_ids_triangles[target_id]
-        LandMarks.av_node.xyz = model.mesh.points[av_id, :]
-        LandMarks.av_node.node_id = av_id
+        landmarks.av_node.xyz = model.mesh.points[av_id, :]
+        landmarks.av_node.node_id = av_id
 
-        return LandMarks.av_node
+        return landmarks.av_node
 
     @staticmethod
     def define_his_bundle_bifurcation_node(
-        model: models.FourChamber | models.FullHeart, target_coord: np.ndarray | list = None
-    ) -> LandMarks | None:
+        model: models.FourChamber | models.FullHeart,
+        landmarks: LandMarks,
+        target_coord: np.ndarray | list = None,
+    ) -> Point | None:
         """Define His bundle bifurcation node.
 
         Parameters
         ----------
         model : models.FourChamber | models.FullHeart
             Heart model.
+        landmarks : LandMarks
+            Landmarks instance to get AV node and store HIS bifurcation node.
         target_coord : np.ndarray | list, default: None
             If ``None``, the target coordinate is computed as the closest point in the septum to
             the AV node. If a coordinate is provided, the closest point in the septum to that
@@ -186,11 +198,11 @@ class HeartModelUtils:
 
         Returns
         -------
-        LandMarks | None
-            HIS bifurcation node.
+        Point | None
+            HIS bifurcation node Point object.
         """
         if target_coord is None:
-            av_coord = LandMarks.av_node.xyz
+            av_coord = landmarks.av_node.xyz
             if av_coord is None:
                 LOGGER.error("AV node need to be defined before.")
                 return
@@ -216,24 +228,27 @@ class HeartModelUtils:
         pointcloud_id = septum_pointcloud.find_closest_point(target_coord)
 
         bifurcation_id = septum_point_ids[pointcloud_id]
-        LandMarks.his_bif_node.xyz = model.mesh.points[bifurcation_id, :]
-        LandMarks.his_bif_node.node_id = bifurcation_id
+        landmarks.his_bif_node.xyz = model.mesh.points[bifurcation_id, :]
+        landmarks.his_bif_node.node_id = bifurcation_id
 
-        return LandMarks.his_bif_node
+        return landmarks.his_bif_node
 
     @staticmethod
     def define_his_bundle_end_node(
         model: models.FullHeart | models.FourChamber,
+        landmarks: LandMarks,
         target_coord: np.ndarray | list = None,
         side: Literal["left", "right"] = "left",
         n_close: int = 20,
-    ) -> LandMarks | None:
+    ) -> Point | None:
         """Define His bundle end node.
 
         Parameters
         ----------
         model : models.FullHeart | models.FourChamber
             Heart model.
+        landmarks : LandMarks
+            Landmarks instance to get HIS bifurcation node and store end nodes.
         target_coord : np.ndarray | list, default: None
             If ``None``, the target coordinate is computed as the n-th closest point
             on the endocardium to the His bundle bifurcation node.
@@ -245,7 +260,7 @@ class HeartModelUtils:
 
         Returns
         -------
-        LandMarks | None
+        Point | None
             End node of His left or right bundle.
         """
         if side == "left":
@@ -258,9 +273,9 @@ class HeartModelUtils:
             return
         else:
             # find n-th closest point to bifurcation
-            bifurcation_coord = LandMarks.his_bif_node.xyz
+            bifurcation_coord = landmarks.his_bif_node.xyz
             if bifurcation_coord is None:
-                LOGGER.error("AV node need to be defined before.")
+                LOGGER.error("HIS bifurcation node need to be defined before.")
                 return
             temp_id = pv.PolyData(
                 model.mesh.points[endo.global_node_ids_triangles, :]
@@ -269,15 +284,14 @@ class HeartModelUtils:
             his_end_id = endo.global_node_ids_triangles[temp_id]
 
         if side == "left":
-            LandMarks.his_left_end_node.node_id = his_end_id
-            LandMarks.his_left_end_node.xyz = model.mesh.points[his_end_id, :]
-            return LandMarks.his_left_end_node
+            landmarks.his_left_end_node.node_id = his_end_id
+            landmarks.his_left_end_node.xyz = model.mesh.points[his_end_id, :]
+            return landmarks.his_left_end_node
 
         elif side == "right":
-            LandMarks.his_right_end_node.node_id = his_end_id
-            LandMarks.his_right_end_node.xyz = model.mesh.points[his_end_id, :]
-
-            return LandMarks.his_right_end_node
+            landmarks.his_right_end_node.node_id = his_end_id
+            landmarks.his_right_end_node.xyz = model.mesh.points[his_end_id, :]
+            return landmarks.his_right_end_node
 
     @staticmethod
     def define_bachman_bundle_end_node(
@@ -295,8 +309,10 @@ class HeartModelUtils:
 
     @staticmethod
     def define_full_conduction_system(
-        model: models.FullHeart | models.FourChamber, purkinje_folder: str
-    ) -> list[ConductionPath]:
+        model: models.FullHeart | models.FourChamber,
+        purkinje_folder: str,
+        landmarks: LandMarks = None,
+    ) -> tuple[list[ConductionPath], LandMarks]:
         """Define the full conduction system.
 
         Parameters
@@ -305,12 +321,17 @@ class HeartModelUtils:
             Heart model.
         purkinje_folder : str
             Folder with LS-DYNA's Purkinje generation.
+        landmarks : LandMarks, optional
+            Existing landmarks instance. If None, a new one is created.
 
         Returns
         -------
-        list[ConductionPath]
-            List of conduction paths.
+        tuple[list[ConductionPath], LandMarks]
+            List of conduction paths and the landmarks instance.
         """
+        if landmarks is None:
+            landmarks = LandMarks()
+
         left_purkinje = ConductionPath.create_from_k_file(
             ConductionPathType.LEFT_PURKINJE,
             k_file=os.path.join(purkinje_folder, "purkinjeNetwork_001.k"),
@@ -327,8 +348,8 @@ class HeartModelUtils:
             model=model,
         )
 
-        sa = HeartModelUtils.define_sino_atrial_node(model)
-        av = HeartModelUtils.define_atrio_ventricular_node(model)
+        sa = HeartModelUtils.define_sino_atrial_node(model, landmarks)
+        av = HeartModelUtils.define_atrio_ventricular_node(model, landmarks)
 
         sa_av = ConductionPath.create_from_keypoints(
             name=ConductionPathType.SAN_AVN,
@@ -339,9 +360,9 @@ class HeartModelUtils:
             connection="first",
         )
 
-        his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model)
-        his_left_point = HeartModelUtils.define_his_bundle_end_node(model, side="left")
-        his_right_point = HeartModelUtils.define_his_bundle_end_node(model, side="right")
+        his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model, landmarks)
+        his_left_point = HeartModelUtils.define_his_bundle_end_node(model, landmarks, side="left")
+        his_right_point = HeartModelUtils.define_his_bundle_end_node(model, landmarks, side="right")
 
         his_top = ConductionPath.create_from_keypoints(
             name=ConductionPathType.HIS_TOP,
@@ -401,7 +422,8 @@ class HeartModelUtils:
         )
         right_bundle.up_path = his_right
         right_bundle.down_path = right_purkinje
-        return [
+
+        paths = [
             left_purkinje,
             right_purkinje,
             sa_av,
@@ -411,3 +433,5 @@ class HeartModelUtils:
             left_bundle,
             right_bundle,
         ]
+
+        return paths, landmarks

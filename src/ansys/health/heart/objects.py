@@ -169,22 +169,18 @@ def _convert_int64_to_int32(
     return mesh
 
 
-# TODO: Deprecate
-class Feature:
-    """Feature class."""
+class _BaseObject:
+    """Base object class."""
 
     def __init__(self, name: str = None) -> None:
-        #! This class can be deprecated.
         self.name = name
-        """Name of feature."""
-        self.type = None
-        """Type of feature."""
+        """Name."""
         self._node_set_id: int = None
         """Nodeset ID associated with feature."""
         self._seg_set_id: int = None
         """Segment set ID associated with feature."""
         self.pid: int = None
-        """Part ID associated with feature."""
+        """Part ID associated with object."""
 
         pass
 
@@ -346,7 +342,7 @@ class SurfaceMesh(pv.PolyData):
         return self
 
 
-class Cavity(Feature):
+class Cavity(_BaseObject):
     """Cavity class."""
 
     def __init__(self, surface: SurfaceMesh = None, centroid: np.ndarray = None, name=None) -> None:
@@ -409,7 +405,7 @@ class CapType(Enum):
     """Cap with unknown association."""
 
 
-class Cap(Feature):
+class Cap(_BaseObject):
     """Cap class."""
 
     @property
@@ -466,7 +462,7 @@ class Cap(Feature):
         return
 
 
-class Point(Feature):
+class Point(_BaseObject):
     """Point class, which can be used to collect relevant points in the mesh."""
 
     def __init__(self, name: str = None, xyz: np.ndarray = None, node_id: int = None) -> None:

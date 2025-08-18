@@ -338,7 +338,7 @@ def add_conduction_beams(writer):
         )
         from ansys.health.heart.models_utils import HeartModelUtils
 
-        beam_list = HeartModelUtils.define_full_conduction_system(
+        beam_list, landmarks = HeartModelUtils.define_full_conduction_system(
             writer.model, purkinje_folder=folder
         )
         writer.model.assign_conduction_paths(beam_list)

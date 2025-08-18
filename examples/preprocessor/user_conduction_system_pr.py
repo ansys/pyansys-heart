@@ -55,7 +55,7 @@ from ansys.health.heart.examples import (
     get_preprocessed_fullheart,
 )
 import ansys.health.heart.models as models
-from ansys.health.heart.models_utils import HeartModelUtils
+from ansys.health.heart.models_utils import HeartModelUtils, LandMarks
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 
 # Set the working directory and path to the model.
@@ -165,9 +165,12 @@ sa_av.plot()
 #    to induce a delay in activation.
 
 # Define three keypoints for the His bundle
-his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model)
-his_left_point = HeartModelUtils.define_his_bundle_end_node(model, side="left")
-his_right_point = HeartModelUtils.define_his_bundle_end_node(model, side="right")
+landmarks = LandMarks()
+his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model, landmarks)
+his_left_point = HeartModelUtils.define_his_bundle_end_node(model, side="left", landmarks=landmarks)
+his_right_point = HeartModelUtils.define_his_bundle_end_node(
+    model, side="right", landmarks=landmarks
+)
 
 # Top part of the His bundle.
 his_top = ConductionPath.create_from_keypoints(

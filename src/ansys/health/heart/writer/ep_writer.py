@@ -31,7 +31,6 @@ import scipy.spatial as spatial
 from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
-from ansys.health.heart.models_utils import LandMarks
 from ansys.health.heart.pre.conduction_path import ConductionPathType
 from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
 import ansys.health.heart.settings.settings as sett
@@ -667,10 +666,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
             if ConductionPathType.SAN_AVN in [beam.name for beam in self.model.conduction_paths]:
                 # Active SA node (belong to both solid and beam)
-                stim_nodes = list(self.model.mesh.find_closest_point(LandMarks.sa_node.xyz, n=5))
+                stim_nodes = list(
+                    self.model.mesh.find_closest_point(self.model._landmarks.sa_node.xyz, n=5)
+                )
 
                 # add 1 more beam node to initiate wave propagation
-                p = self.model.conduction_mesh.find_closest_point(LandMarks.sa_node.xyz, n=2)
+                p = self.model.conduction_mesh.find_closest_point(
+                    self.model._landmarks.sa_node.xyz, n=2
+                )
                 # take the second point, the first point is SA node itself
                 pointid = self.model.conduction_mesh["_shifted_id"][p[1]]
                 stim_nodes.append(pointid)

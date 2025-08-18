@@ -53,7 +53,7 @@ import pyvista as pv
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import LSDYNANotFoundError, LSDYNATerminationError
 import ansys.health.heart.models as models
-from ansys.health.heart.models_utils import HeartModelUtils
+import ansys.health.heart.models_utils as heart_model_utils
 from ansys.health.heart.objects import SurfaceMesh
 from ansys.health.heart.post.auto_process import mech_post, zerop_post
 from ansys.health.heart.post.laplace_post import (
@@ -520,7 +520,7 @@ class EPSimulator(BaseSimulator):
             # TODO: refinement is not correctly used
             # beam_length = self.settings.purkinje.edgelen.m
 
-            beam_list, self.model._landmarks = HeartModelUtils.define_full_conduction_system(
+            beam_list, self.model._landmarks = heart_model_utils.define_full_conduction_system(
                 self.model, os.path.join(self.root_directory, "purkinjegeneration")
             )
 

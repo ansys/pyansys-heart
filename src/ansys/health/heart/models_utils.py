@@ -35,369 +35,365 @@ from ansys.health.heart.objects import CapType, Point
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 
 
-class HeartModelUtils:
-    """Stateless methods for the heart model."""
+def define_sino_atrial_node(
+    model: models.FullHeart | models.FourChamber,
+    landmarks: LandMarks,
+    target_coord: np.ndarray | list = None,
+) -> Point | None:
+    """Define Sino-atrial node.
 
-    @staticmethod
-    def define_sino_atrial_node(
-        model: models.FullHeart | models.FourChamber,
-        landmarks: LandMarks,
-        target_coord: np.ndarray | list = None,
-    ) -> Point | None:
-        """Define Sino-atrial node.
+    Parameters
+    ----------
+    model : models.FullHeart | models.FourChamber
+        Heart model.
+    landmarks : LandMarks
+        Landmarks instance to store the SA node.
+    target_coord : np.ndarray | list, default: None
+        If ``None``, the target coordinate is computed as the midpoint between
+        the centroids of the superior and inferior vena cavae. If a coordinate is provided,
+        the closest point on the right atrium endocardium surface to that coordinate is used.
 
-        Parameters
-        ----------
-        model : models.FullHeart | models.FourChamber
-            Heart model.
-        landmarks : LandMarks
-            Landmarks instance to store the SA node.
-        target_coord : np.ndarray | list, default: None
-            If ``None``, the target coordinate is computed as the midpoint between
-            the centroids of the superior and inferior vena cavae. If a coordinate is provided,
-            the closest point on the right atrium endocardium surface to that coordinate is used.
+    Returns
+    -------
+    Point | None
+        SA node Point object.
+    """
+    try:
+        right_atrium_endo = model.mesh.get_surface(model.right_atrium.endocardium.id)
+    except AttributeError:
+        LOGGER.error("Cannot find right atrium to create SinoAtrial node")
+        return
 
-        Returns
-        -------
-        Point | None
-            SA node Point object.
-        """
-        try:
-            right_atrium_endo = model.mesh.get_surface(model.right_atrium.endocardium.id)
-        except AttributeError:
-            LOGGER.error("Cannot find right atrium to create SinoAtrial node")
-            return
+    if target_coord is None:
+        sup_vcava_centroid = next(
+            cap.centroid
+            for cap in model.right_atrium.caps
+            if cap.type == CapType.SUPERIOR_VENA_CAVA
+        )
+        inf_vcava_centroid = next(
+            cap.centroid
+            for cap in model.right_atrium.caps
+            if cap.type == CapType.INFERIOR_VENA_CAVA
+        )
 
-        if target_coord is None:
-            sup_vcava_centroid = next(
-                cap.centroid
-                for cap in model.right_atrium.caps
-                if cap.type == CapType.SUPERIOR_VENA_CAVA
-            )
-            inf_vcava_centroid = next(
-                cap.centroid
-                for cap in model.right_atrium.caps
-                if cap.type == CapType.INFERIOR_VENA_CAVA
-            )
+        # define SinoAtrial node:
+        target_coord = sup_vcava_centroid - (inf_vcava_centroid - sup_vcava_centroid) / 2
 
-            # define SinoAtrial node:
-            target_coord = sup_vcava_centroid - (inf_vcava_centroid - sup_vcava_centroid) / 2
+    target_id = pv.PolyData(
+        model.mesh.points[right_atrium_endo.global_node_ids_triangles, :]
+    ).find_closest_point(target_coord)
 
+    sino_atrial_node_id = right_atrium_endo.global_node_ids_triangles[target_id]
+
+    landmarks.sa_node.xyz = model.mesh.points[sino_atrial_node_id, :]
+    landmarks.sa_node.node_id = sino_atrial_node_id
+
+    return landmarks.sa_node
+
+
+def define_atrio_ventricular_node(
+    model: models.FullHeart | models.FourChamber,
+    landmarks: LandMarks,
+    target_coord: np.ndarray | list = None,
+) -> Point | None:
+    """Define Atrio-ventricular node.
+
+    Parameters
+    ----------
+    model : models.FullHeart | models.FourChamber
+        Heart model.
+    landmarks : LandMarks
+        Landmarks instance to store the AV node.
+    target_coord : np.ndarray | list, default: None
+        If ``None``, the target coordinate is computed as the closest point on the right atrium
+        endocardium surface to the right ventricle septum. If a coordinate is provided, the
+        closest point on the right atrium endocardium surface to that coordinate is used.
+
+    Returns
+    -------
+    Point | None
+        AV node Point object.
+    """
+    try:
+        right_atrium_endo = model.mesh.get_surface(model.right_atrium.endocardium.id)
+    except AttributeError:
+        LOGGER.error("Cannot find right atrium to create SinoAtrial node")
+        return
+
+    if target_coord is None:
+        right_septum = model.mesh.get_surface(model.right_ventricle.septum.id)
+        # define AtrioVentricular as the closest point to septum
+        target_id = pv.PolyData(
+            model.mesh.points[right_atrium_endo.global_node_ids_triangles, :]
+        ).find_closest_point(right_septum.center)
+
+    else:
         target_id = pv.PolyData(
             model.mesh.points[right_atrium_endo.global_node_ids_triangles, :]
         ).find_closest_point(target_coord)
 
-        sino_atrial_node_id = right_atrium_endo.global_node_ids_triangles[target_id]
+    # assign a point
+    av_id = right_atrium_endo.global_node_ids_triangles[target_id]
+    landmarks.av_node.xyz = model.mesh.points[av_id, :]
+    landmarks.av_node.node_id = av_id
 
-        landmarks.sa_node.xyz = model.mesh.points[sino_atrial_node_id, :]
-        landmarks.sa_node.node_id = sino_atrial_node_id
+    return landmarks.av_node
 
-        return landmarks.sa_node
 
-    @staticmethod
-    def define_atrio_ventricular_node(
-        model: models.FullHeart | models.FourChamber,
-        landmarks: LandMarks,
-        target_coord: np.ndarray | list = None,
-    ) -> Point | None:
-        """Define Atrio-ventricular node.
+def define_his_bundle_bifurcation_node(
+    model: models.FourChamber | models.FullHeart,
+    landmarks: LandMarks,
+    target_coord: np.ndarray | list = None,
+) -> Point | None:
+    """Define His bundle bifurcation node.
 
-        Parameters
-        ----------
-        model : models.FullHeart | models.FourChamber
-            Heart model.
-        landmarks : LandMarks
-            Landmarks instance to store the AV node.
-        target_coord : np.ndarray | list, default: None
-            If ``None``, the target coordinate is computed as the closest point on the right atrium
-            endocardium surface to the right ventricle septum. If a coordinate is provided, the
-            closest point on the right atrium endocardium surface to that coordinate is used.
+    Parameters
+    ----------
+    model : models.FourChamber | models.FullHeart
+        Heart model.
+    landmarks : LandMarks
+        Landmarks instance to get AV node and store HIS bifurcation node.
+    target_coord : np.ndarray | list, default: None
+        If ``None``, the target coordinate is computed as the closest point in the septum to
+        the AV node. If a coordinate is provided, the closest point in the septum to that
+        coordinate is used.
 
-        Returns
-        -------
-        Point | None
-            AV node Point object.
-        """
-        try:
-            right_atrium_endo = model.mesh.get_surface(model.right_atrium.endocardium.id)
-        except AttributeError:
-            LOGGER.error("Cannot find right atrium to create SinoAtrial node")
+    Returns
+    -------
+    Point | None
+        HIS bifurcation node Point object.
+    """
+    if target_coord is None:
+        av_coord = landmarks.av_node.xyz
+        if av_coord is None:
+            LOGGER.error("AV node need to be defined before.")
             return
+        target_coord = av_coord
 
-        if target_coord is None:
-            right_septum = model.mesh.get_surface(model.right_ventricle.septum.id)
-            # define AtrioVentricular as the closest point to septum
-            target_id = pv.PolyData(
-                model.mesh.points[right_atrium_endo.global_node_ids_triangles, :]
-            ).find_closest_point(right_septum.center)
+    septum_point_ids = np.unique(
+        np.ravel(model.mesh.tetrahedrons[model.septum.get_element_ids(model.mesh)])
+    )
 
-        else:
-            target_id = pv.PolyData(
-                model.mesh.points[right_atrium_endo.global_node_ids_triangles, :]
-            ).find_closest_point(target_coord)
+    # remove nodes on surface, to make sure His bundle nodes are inside of septum
+    septum_point_ids = np.setdiff1d(
+        septum_point_ids,
+        model.mesh.get_surface(model.left_ventricle.endocardium.id).global_node_ids_triangles,
+    )
+    septum_point_ids = np.setdiff1d(
+        septum_point_ids,
+        model.mesh.get_surface(model.right_ventricle.septum.id).global_node_ids_triangles,
+    )
 
-        # assign a point
-        av_id = right_atrium_endo.global_node_ids_triangles[target_id]
-        landmarks.av_node.xyz = model.mesh.points[av_id, :]
-        landmarks.av_node.node_id = av_id
+    septum_pointcloud = pv.PolyData(model.mesh.points[septum_point_ids, :])
 
-        return landmarks.av_node
+    # Define start point: closest to artria
+    pointcloud_id = septum_pointcloud.find_closest_point(target_coord)
 
-    @staticmethod
-    def define_his_bundle_bifurcation_node(
-        model: models.FourChamber | models.FullHeart,
-        landmarks: LandMarks,
-        target_coord: np.ndarray | list = None,
-    ) -> Point | None:
-        """Define His bundle bifurcation node.
+    bifurcation_id = septum_point_ids[pointcloud_id]
+    landmarks.his_bif_node.xyz = model.mesh.points[bifurcation_id, :]
+    landmarks.his_bif_node.node_id = bifurcation_id
 
-        Parameters
-        ----------
-        model : models.FourChamber | models.FullHeart
-            Heart model.
-        landmarks : LandMarks
-            Landmarks instance to get AV node and store HIS bifurcation node.
-        target_coord : np.ndarray | list, default: None
-            If ``None``, the target coordinate is computed as the closest point in the septum to
-            the AV node. If a coordinate is provided, the closest point in the septum to that
-            coordinate is used.
+    return landmarks.his_bif_node
 
-        Returns
-        -------
-        Point | None
-            HIS bifurcation node Point object.
-        """
-        if target_coord is None:
-            av_coord = landmarks.av_node.xyz
-            if av_coord is None:
-                LOGGER.error("AV node need to be defined before.")
-                return
-            target_coord = av_coord
 
-        septum_point_ids = np.unique(
-            np.ravel(model.mesh.tetrahedrons[model.septum.get_element_ids(model.mesh)])
-        )
+def define_his_bundle_end_node(
+    model: models.FullHeart | models.FourChamber,
+    landmarks: LandMarks,
+    target_coord: np.ndarray | list = None,
+    side: Literal["left", "right"] = "left",
+    n_close: int = 20,
+) -> Point | None:
+    """Define His bundle end node.
 
-        # remove nodes on surface, to make sure His bundle nodes are inside of septum
-        septum_point_ids = np.setdiff1d(
-            septum_point_ids,
-            model.mesh.get_surface(model.left_ventricle.endocardium.id).global_node_ids_triangles,
-        )
-        septum_point_ids = np.setdiff1d(
-            septum_point_ids,
-            model.mesh.get_surface(model.right_ventricle.septum.id).global_node_ids_triangles,
-        )
+    Parameters
+    ----------
+    model : models.FullHeart | models.FourChamber
+        Heart model.
+    landmarks : LandMarks
+        Landmarks instance to get HIS bifurcation node and store end nodes.
+    target_coord : np.ndarray | list, default: None
+        If ``None``, the target coordinate is computed as the n-th closest point
+        on the endocardium to the His bundle bifurcation node.
+        Not implemented yet if a coordinate is provided.
+    side : Literal[&quot;left&quot;, &quot;right&quot;], default: "left"
+        Side of the heart to define the end node for.
+    n_close : int, default: 20
+        n-th closest point to the bifurcation node, to avoid too close to the bifurcation node.
 
-        septum_pointcloud = pv.PolyData(model.mesh.points[septum_point_ids, :])
+    Returns
+    -------
+    Point | None
+        End node of His left or right bundle.
+    """
+    if side == "left":
+        endo = model.mesh.get_surface(model.left_ventricle.endocardium.id)
+    elif side == "right":
+        endo = model.mesh.get_surface(model.right_ventricle.septum.id)
 
-        # Define start point: closest to artria
-        pointcloud_id = septum_pointcloud.find_closest_point(target_coord)
-
-        bifurcation_id = septum_point_ids[pointcloud_id]
-        landmarks.his_bif_node.xyz = model.mesh.points[bifurcation_id, :]
-        landmarks.his_bif_node.node_id = bifurcation_id
-
-        return landmarks.his_bif_node
-
-    @staticmethod
-    def define_his_bundle_end_node(
-        model: models.FullHeart | models.FourChamber,
-        landmarks: LandMarks,
-        target_coord: np.ndarray | list = None,
-        side: Literal["left", "right"] = "left",
-        n_close: int = 20,
-    ) -> Point | None:
-        """Define His bundle end node.
-
-        Parameters
-        ----------
-        model : models.FullHeart | models.FourChamber
-            Heart model.
-        landmarks : LandMarks
-            Landmarks instance to get HIS bifurcation node and store end nodes.
-        target_coord : np.ndarray | list, default: None
-            If ``None``, the target coordinate is computed as the n-th closest point
-            on the endocardium to the His bundle bifurcation node.
-            Not implemented yet if a coordinate is provided.
-        side : Literal[&quot;left&quot;, &quot;right&quot;], default: "left"
-            Side of the heart to define the end node for.
-        n_close : int, default: 20
-            n-th closest point to the bifurcation node, to avoid too close to the bifurcation node.
-
-        Returns
-        -------
-        Point | None
-            End node of His left or right bundle.
-        """
-        if side == "left":
-            endo = model.mesh.get_surface(model.left_ventricle.endocardium.id)
-        elif side == "right":
-            endo = model.mesh.get_surface(model.right_ventricle.septum.id)
-
-        if target_coord is not None:
-            LOGGER.error("Do not support user defined point.")
+    if target_coord is not None:
+        LOGGER.error("Do not support user defined point.")
+        return
+    else:
+        # find n-th closest point to bifurcation
+        bifurcation_coord = landmarks.his_bif_node.xyz
+        if bifurcation_coord is None:
+            LOGGER.error("HIS bifurcation node need to be defined before.")
             return
-        else:
-            # find n-th closest point to bifurcation
-            bifurcation_coord = landmarks.his_bif_node.xyz
-            if bifurcation_coord is None:
-                LOGGER.error("HIS bifurcation node need to be defined before.")
-                return
-            temp_id = pv.PolyData(
-                model.mesh.points[endo.global_node_ids_triangles, :]
-            ).find_closest_point(bifurcation_coord, n=n_close)[n_close - 1]
+        temp_id = pv.PolyData(
+            model.mesh.points[endo.global_node_ids_triangles, :]
+        ).find_closest_point(bifurcation_coord, n=n_close)[n_close - 1]
 
-            his_end_id = endo.global_node_ids_triangles[temp_id]
+        his_end_id = endo.global_node_ids_triangles[temp_id]
 
-        if side == "left":
-            landmarks.his_left_end_node.node_id = his_end_id
-            landmarks.his_left_end_node.xyz = model.mesh.points[his_end_id, :]
-            return landmarks.his_left_end_node
+    if side == "left":
+        landmarks.his_left_end_node.node_id = his_end_id
+        landmarks.his_left_end_node.xyz = model.mesh.points[his_end_id, :]
+        return landmarks.his_left_end_node
 
-        elif side == "right":
-            landmarks.his_right_end_node.node_id = his_end_id
-            landmarks.his_right_end_node.xyz = model.mesh.points[his_end_id, :]
-            return landmarks.his_right_end_node
+    elif side == "right":
+        landmarks.his_right_end_node.node_id = his_end_id
+        landmarks.his_right_end_node.xyz = model.mesh.points[his_end_id, :]
+        return landmarks.his_right_end_node
 
-    @staticmethod
-    def define_bachman_bundle_end_node(
-        model: models.FullHeart | models.FourChamber, target_coord=None
-    ) -> LandMarks | None:
-        """Define Bachmann bundle end node."""
-        NotImplementedError
 
-    @staticmethod
-    def define_fascile_bundle_end_node(
-        model: models.FullHeart | models.FourChamber, target_coord=None
-    ) -> LandMarks | None:
-        """Define fascile bundle end node."""
-        NotImplementedError
+def define_bachman_bundle_end_node(
+    model: models.FullHeart | models.FourChamber, target_coord=None
+) -> LandMarks | None:
+    """Define Bachmann bundle end node."""
+    NotImplementedError
 
-    @staticmethod
-    def define_full_conduction_system(
-        model: models.FullHeart | models.FourChamber,
-        purkinje_folder: str,
-        landmarks: LandMarks = None,
-    ) -> tuple[list[ConductionPath], LandMarks]:
-        """Define the full conduction system.
 
-        Parameters
-        ----------
-        model : models.FullHeart | models.FourChamber
-            Heart model.
-        purkinje_folder : str
-            Folder with LS-DYNA's Purkinje generation.
-        landmarks : LandMarks, optional
-            Existing landmarks instance. If None, a new one is created.
+def define_fascile_bundle_end_node(
+    model: models.FullHeart | models.FourChamber, target_coord=None
+) -> LandMarks | None:
+    """Define fascile bundle end node."""
+    NotImplementedError
 
-        Returns
-        -------
-        tuple[list[ConductionPath], LandMarks]
-            List of conduction paths and the landmarks instance.
-        """
-        if landmarks is None:
-            landmarks = LandMarks()
 
-        left_purkinje = ConductionPath.create_from_k_file(
-            ConductionPathType.LEFT_PURKINJE,
-            k_file=os.path.join(purkinje_folder, "purkinjeNetwork_001.k"),
-            id=1,
-            base_mesh=model.left_ventricle.endocardium,
-            model=model,
+def define_full_conduction_system(
+    model: models.FullHeart | models.FourChamber,
+    purkinje_folder: str,
+    landmarks: LandMarks = None,
+) -> tuple[list[ConductionPath], LandMarks]:
+    """Define the full conduction system.
+
+    Parameters
+    ----------
+    model : models.FullHeart | models.FourChamber
+        Heart model.
+    purkinje_folder : str
+        Folder with LS-DYNA's Purkinje generation.
+    landmarks : LandMarks, optional
+        Existing landmarks instance. If None, a new one is created.
+
+    Returns
+    -------
+    tuple[list[ConductionPath], LandMarks]
+        List of conduction paths and the landmarks instance.
+    """
+    if landmarks is None:
+        landmarks = LandMarks()
+
+    left_purkinje = ConductionPath.create_from_k_file(
+        ConductionPathType.LEFT_PURKINJE,
+        k_file=os.path.join(purkinje_folder, "purkinjeNetwork_001.k"),
+        id=1,
+        base_mesh=model.left_ventricle.endocardium,
+        model=model,
+    )
+
+    right_purkinje = ConductionPath.create_from_k_file(
+        ConductionPathType.RIGHT_PURKINJE,
+        k_file=os.path.join(purkinje_folder, "purkinjeNetwork_002.k"),
+        id=2,
+        base_mesh=model.right_ventricle.endocardium,
+        model=model,
+    )
+
+    sa = define_sino_atrial_node(model, landmarks)
+    av = define_atrio_ventricular_node(model, landmarks)
+
+    sa_av = ConductionPath.create_from_keypoints(
+        name=ConductionPathType.SAN_AVN,
+        keypoints=[sa.xyz, av.xyz],
+        id=3,
+        base_mesh=model.right_atrium.endocardium,
+        line_length=None,
+        connection="first",
+    )
+
+    his_bif = define_his_bundle_bifurcation_node(model, landmarks)
+    his_left_point = define_his_bundle_end_node(model, landmarks, side="left")
+    his_right_point = define_his_bundle_end_node(model, landmarks, side="right")
+
+    his_top = ConductionPath.create_from_keypoints(
+        name=ConductionPathType.HIS_TOP,
+        keypoints=[av.xyz, his_bif.xyz],
+        id=4,
+        base_mesh=model.mesh.extract_cells_by_type(10),
+    )
+    his_top.up_path = sa_av
+
+    his_left = ConductionPath.create_from_keypoints(
+        name=ConductionPathType.HIS_LEFT,
+        keypoints=[his_bif.xyz, his_left_point.xyz],
+        id=5,
+        base_mesh=model.mesh.extract_cells_by_type(10),
+    )
+    his_left.up_path = his_top
+
+    his_right = ConductionPath.create_from_keypoints(
+        name=ConductionPathType.HIS_RIGHT,
+        keypoints=[his_bif.xyz, his_right_point.xyz],
+        id=6,
+        base_mesh=model.mesh.extract_cells_by_type(10),
+    )
+    his_right.up_path = his_top
+
+    left_bundle = ConductionPath.create_from_keypoints(
+        name=ConductionPathType.LEFT_BUNDLE_BRANCH,
+        keypoints=[his_left_point.xyz, model.left_ventricle.apex_points[0].xyz],
+        id=7,
+        base_mesh=model.left_ventricle.endocardium,
+        line_length=None,
+        center=True,
+    )
+
+    # Create Purkinje junctions on the lower part of the left bundle branch,
+    # so depolarization begins in the left side of the septum.
+    pmj_list = list(
+        range(
+            int((0.4 * left_bundle.mesh.n_points)),
+            int((0.9 * left_bundle.mesh.n_points)),
+            4,  # every 4 nodes
         )
+    )
+    left_bundle.add_pmj_path(pmj_list, merge_with="cell")
+    left_bundle.up_path = his_left
+    left_bundle.down_path = left_purkinje
 
-        right_purkinje = ConductionPath.create_from_k_file(
-            ConductionPathType.RIGHT_PURKINJE,
-            k_file=os.path.join(purkinje_folder, "purkinjeNetwork_002.k"),
-            id=2,
-            base_mesh=model.right_ventricle.endocardium,
-            model=model,
-        )
+    surface_ids = [model.right_ventricle.endocardium.id, model.right_ventricle.septum.id]
+    endo_surface = model.mesh.get_surface(surface_ids)
 
-        sa = HeartModelUtils.define_sino_atrial_node(model, landmarks)
-        av = HeartModelUtils.define_atrio_ventricular_node(model, landmarks)
+    right_bundle = ConductionPath.create_from_keypoints(
+        name=ConductionPathType.RIGHT_BUNDLE_BRANCH,
+        keypoints=[his_right_point.xyz, model.right_ventricle.apex_points[0].xyz],
+        id=8,
+        base_mesh=endo_surface,
+        line_length=None,
+    )
+    right_bundle.up_path = his_right
+    right_bundle.down_path = right_purkinje
 
-        sa_av = ConductionPath.create_from_keypoints(
-            name=ConductionPathType.SAN_AVN,
-            keypoints=[sa.xyz, av.xyz],
-            id=3,
-            base_mesh=model.right_atrium.endocardium,
-            line_length=None,
-            connection="first",
-        )
+    paths = [
+        left_purkinje,
+        right_purkinje,
+        sa_av,
+        his_top,
+        his_left,
+        his_right,
+        left_bundle,
+        right_bundle,
+    ]
 
-        his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model, landmarks)
-        his_left_point = HeartModelUtils.define_his_bundle_end_node(model, landmarks, side="left")
-        his_right_point = HeartModelUtils.define_his_bundle_end_node(model, landmarks, side="right")
-
-        his_top = ConductionPath.create_from_keypoints(
-            name=ConductionPathType.HIS_TOP,
-            keypoints=[av.xyz, his_bif.xyz],
-            id=4,
-            base_mesh=model.mesh.extract_cells_by_type(10),
-        )
-        his_top.up_path = sa_av
-
-        his_left = ConductionPath.create_from_keypoints(
-            name=ConductionPathType.HIS_LEFT,
-            keypoints=[his_bif.xyz, his_left_point.xyz],
-            id=5,
-            base_mesh=model.mesh.extract_cells_by_type(10),
-        )
-        his_left.up_path = his_top
-
-        his_right = ConductionPath.create_from_keypoints(
-            name=ConductionPathType.HIS_RIGHT,
-            keypoints=[his_bif.xyz, his_right_point.xyz],
-            id=6,
-            base_mesh=model.mesh.extract_cells_by_type(10),
-        )
-        his_right.up_path = his_top
-
-        left_bundle = ConductionPath.create_from_keypoints(
-            name=ConductionPathType.LEFT_BUNDLE_BRANCH,
-            keypoints=[his_left_point.xyz, model.left_ventricle.apex_points[0].xyz],
-            id=7,
-            base_mesh=model.left_ventricle.endocardium,
-            line_length=None,
-            center=True,
-        )
-
-        # Create Purkinje junctions on the lower part of the left bundle branch,
-        # so depolarization begins in the left side of the septum.
-        pmj_list = list(
-            range(
-                int((0.4 * left_bundle.mesh.n_points)),
-                int((0.9 * left_bundle.mesh.n_points)),
-                4,  # every 4 nodes
-            )
-        )
-        left_bundle.add_pmj_path(pmj_list, merge_with="cell")
-        left_bundle.up_path = his_left
-        left_bundle.down_path = left_purkinje
-
-        surface_ids = [model.right_ventricle.endocardium.id, model.right_ventricle.septum.id]
-        endo_surface = model.mesh.get_surface(surface_ids)
-
-        right_bundle = ConductionPath.create_from_keypoints(
-            name=ConductionPathType.RIGHT_BUNDLE_BRANCH,
-            keypoints=[his_right_point.xyz, model.right_ventricle.apex_points[0].xyz],
-            id=8,
-            base_mesh=endo_surface,
-            line_length=None,
-        )
-        right_bundle.up_path = his_right
-        right_bundle.down_path = right_purkinje
-
-        paths = [
-            left_purkinje,
-            right_purkinje,
-            sa_av,
-            his_top,
-            his_left,
-            his_right,
-            left_bundle,
-            right_bundle,
-        ]
-
-        return paths, landmarks
+    return paths, landmarks

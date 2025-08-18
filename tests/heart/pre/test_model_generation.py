@@ -38,6 +38,7 @@ import scipy
 import yaml
 
 import ansys.health.heart.models as models
+from ansys.health.heart.models_utils import define_full_conduction_system
 from ansys.health.heart.pre.database_utils import get_compatible_input
 from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
 import ansys.health.heart.writer as writers
@@ -336,11 +337,8 @@ def add_conduction_beams(writer):
         folder = os.path.join(
             get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
         )
-        from ansys.health.heart.models_utils import HeartModelUtils
 
-        beam_list, landmarks = HeartModelUtils.define_full_conduction_system(
-            writer.model, purkinje_folder=folder
-        )
+        beam_list, landmarks = define_full_conduction_system(writer.model, purkinje_folder=folder)
         writer.model._landmarks = landmarks
         writer.model.assign_conduction_paths(beam_list)
 

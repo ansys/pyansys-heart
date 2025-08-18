@@ -39,10 +39,10 @@ $   Only used for Euler Implicit
 $   physical constants
     float Rp, Ca;
     float Ra, Rv;
-    Rp = 0.00015518725895106;
-    Ca = 12887655.94236524;
-    Ra = 4.655617768531799e-06;
-    Rv = 4.655617768531799e-06;
+    Rp = 1.5518725895105997e-04;
+    Ca = 1.2887655942365238e+07;
+    Ra = 4.6556177685317995e-06;
+    Rv = 4.6556177685317995e-06;
 $   physical variables
     float chi_av, chi_mv;
     float pk, part, pven;
@@ -53,7 +53,7 @@ $   only for save data purpose
     float qk2, qven2, qart2, qp2;
     float vart2;
 $   constant pre load:
-    pven = 0.001999835811225;
+    pven = 1.9998358112249997e-03;
 $   time related variables
     int icall=0, is_new_dt=0;
 $   t: current time (input)
@@ -62,7 +62,7 @@ $   t_old: time of the last step
     float t_last=0.0, t_old=0.0, dt;
 $   initialisation at t=0
     if (icall == 0) {
-          part = 0.009332567119049997;
+          part = 9.3325671190499972e-03;
 $   initial arterial volume
           vart = Ca * part;
           qp = part / Rp;
@@ -184,10 +184,10 @@ $   Only used for Euler Implicit
 $   physical constants
     float Rp, Ca;
     float Ra, Rv;
-    Rp = 1.93984073688825e-05;
-    Ca = 57994451.74064357;
-    Ra = 1.62946621898613e-06;
-    Rv = 2.3278088842659e-06;
+    Rp = 1.9398407368882496e-05;
+    Ca = 5.7994451740643568e+07;
+    Ra = 1.6294662189861296e-06;
+    Rv = 2.3278088842658997e-06;
 $   physical variables
     float chi_av, chi_mv;
     float pk, part, pven;
@@ -198,7 +198,7 @@ $   only for save data purpose
     float qk2, qven2, qart2, qp2;
     float vart2;
 $   constant pre load:
-    pven = 0.00106657909932;
+    pven = 1.0665790993199997e-03;
 $   time related variables
     int icall=0, is_new_dt=0;
 $   t: current time (input)
@@ -207,7 +207,7 @@ $   t_old: time of the last step
     float t_last=0.0, t_old=0.0, dt;
 $   initialisation at t=0
     if (icall == 0) {
-          part = 0.001999835811225;
+          part = 1.9998358112249997e-03;
 $   initial arterial volume
           vart = Ca * part;
           qp = part / Rp;

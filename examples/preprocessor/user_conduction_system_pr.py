@@ -135,8 +135,12 @@ plotter.show()
 ###############################################################################
 # Create the SA-AV node conduction path
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-sa = HeartModelUtils.define_sino_atrial_node(model, target_coord=[6, 66, 88])
-av = HeartModelUtils.define_atrio_ventricular_node(model)
+
+# Initialize landmarks to store anatomical points
+landmarks = LandMarks()
+
+sa = HeartModelUtils.define_sino_atrial_node(model, landmarks=landmarks, target_coord=[6, 66, 88])
+av = HeartModelUtils.define_atrio_ventricular_node(model, landmarks=landmarks)
 # Create the SA-AV node conduction path. The default option is to connect the
 # SA node and AV node by a geodesic path.
 sa_av = ConductionPath.create_from_keypoints(
@@ -166,7 +170,6 @@ sa_av.plot()
 #    to induce a delay in activation.
 
 # Define three keypoints for the His bundle
-landmarks = LandMarks()
 his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model, landmarks)
 his_left_point = HeartModelUtils.define_his_bundle_end_node(model, side="left", landmarks=landmarks)
 his_right_point = HeartModelUtils.define_his_bundle_end_node(

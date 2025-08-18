@@ -341,6 +341,7 @@ def add_conduction_beams(writer):
         beam_list, landmarks = HeartModelUtils.define_full_conduction_system(
             writer.model, purkinje_folder=folder
         )
+        writer.model._landmarks = landmarks
         writer.model.assign_conduction_paths(beam_list)
 
 

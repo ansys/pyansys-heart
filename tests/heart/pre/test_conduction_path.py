@@ -28,7 +28,8 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from ansys.health.heart.models_utils import HeartModelUtils, LandMarks
+from ansys.health.heart.landmarks import LandMarks
+from ansys.health.heart.models_utils import HeartModelUtils
 from ansys.health.heart.pre.conduction_path import (
     ConductionPath,
     ConductionPathType,

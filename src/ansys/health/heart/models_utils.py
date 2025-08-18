@@ -22,7 +22,6 @@
 
 """Stateless methods for the heart model."""
 
-from dataclasses import dataclass, field
 import os
 from typing import Literal
 
@@ -30,43 +29,10 @@ import numpy as np
 import pyvista as pv
 
 from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.landmarks import LandMarks
 import ansys.health.heart.models as models
 from ansys.health.heart.objects import CapType, Point
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
-
-
-@dataclass
-class LandMarks:
-    """Heart anatomical points."""
-
-    sa_node: Point = field(default_factory=lambda: Point("SA_node", xyz=None, node_id=None))
-    """Sinoatrial node."""
-    av_node: Point = field(default_factory=lambda: Point("AV_node", xyz=None, node_id=None))
-    """Atrioventricular node."""
-    his_bif_node: Point = field(
-        default_factory=lambda: Point("His_bifurcation", xyz=None, node_id=None)
-    )
-    """His bundle bifurcation node."""
-    his_left_end_node: Point = field(
-        default_factory=lambda: Point("His_left_end", xyz=None, node_id=None)
-    )
-    """His bundle left end node."""
-    his_right_end_node: Point = field(
-        default_factory=lambda: Point("His_right_end", xyz=None, node_id=None)
-    )
-    """His bundle right end node."""
-    bachmann_end_node: Point = field(
-        default_factory=lambda: Point("Bachmann_end", xyz=None, node_id=None)
-    )
-    """Bachmann bundle end node."""
-    left_fascicle_end_node: Point = field(
-        default_factory=lambda: Point("Left_fasicle_end", xyz=None, node_id=None)
-    )
-    """Left fascicle end node."""
-    left_apex: Point = field(default_factory=lambda: Point("Left_apex", xyz=None, node_id=None))
-    """Left ventricle apex (endocardium)."""
-    right_apex: Point = field(default_factory=lambda: Point("Right_apex", xyz=None, node_id=None))
-    """Right ventricle apex (endocardium)."""
 
 
 class HeartModelUtils:

@@ -54,8 +54,9 @@ from ansys.health.heart.examples import (
     get_fractal_tree_purkinje,
     get_preprocessed_fullheart,
 )
+from ansys.health.heart.landmarks import LandMarks
 import ansys.health.heart.models as models
-from ansys.health.heart.models_utils import HeartModelUtils, LandMarks
+from ansys.health.heart.models_utils import HeartModelUtils
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 
 # Set the working directory and path to the model.

@@ -38,7 +38,7 @@ import yaml
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import InvalidHeartModelError
-from ansys.health.heart.models_utils import LandMarks
+from ansys.health.heart.landmarks import LandMarks
 from ansys.health.heart.objects import (
     Cap,
     CapType,

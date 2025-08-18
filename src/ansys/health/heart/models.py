@@ -38,6 +38,7 @@ import yaml
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import InvalidHeartModelError
+from ansys.health.heart.models_utils import LandMarks
 from ansys.health.heart.objects import (
     Cap,
     CapType,
@@ -263,7 +264,10 @@ class HeartModel:
         """Set incremental part IDs."""
 
         self.electrodes: list[Point] = []
-        """Electrodes positions for ECG computing."""
+        """Electrodes positions for computing ECGs."""
+
+        self._landmarks: LandMarks = None
+        """Landmarks of the heart model."""
 
         self._conduction_paths: list[ConductionPath] = []
         """Conduction paths list."""

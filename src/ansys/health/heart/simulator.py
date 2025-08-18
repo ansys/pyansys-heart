@@ -520,9 +520,10 @@ class EPSimulator(BaseSimulator):
             # TODO: refinement is not correctly used
             # beam_length = self.settings.purkinje.edgelen.m
 
-            beam_list, _ = HeartModelUtils.define_full_conduction_system(
+            beam_list, self.model._landmarks = HeartModelUtils.define_full_conduction_system(
                 self.model, os.path.join(self.root_directory, "purkinjegeneration")
             )
+
             self.model.assign_conduction_paths(beam_list)
         else:
             LOGGER.info("Computation is only implemented for other than FourChamber models.")

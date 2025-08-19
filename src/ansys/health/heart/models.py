@@ -264,7 +264,7 @@ class HeartModel:
         """Set incremental part IDs."""
 
         self.electrodes: list[Point] = []
-        """Electrodes positions for computing ECGs."""
+        """Electrode positions for computing ECGs."""
 
         self._landmarks: LandMarks = None
         """Landmarks of the heart model."""

@@ -56,7 +56,7 @@ def define_sino_atrial_node(
     Returns
     -------
     Point | None
-        SA node Point object.
+        Sino-atrial node.
     """
     try:
         right_atrium_endo = model.mesh.get_surface(model.right_atrium.endocardium.id)
@@ -112,7 +112,7 @@ def define_atrio_ventricular_node(
     Returns
     -------
     Point | None
-        AV node Point object.
+        Atrioventricular node.
     """
     try:
         right_atrium_endo = model.mesh.get_surface(model.right_atrium.endocardium.id)
@@ -161,7 +161,7 @@ def define_his_bundle_bifurcation_node(
     Returns
     -------
     Point | None
-        HIS bifurcation node Point object.
+        His bifurcation node.
     """
     if target_coord is None:
         av_coord = landmarks.av_node.xyz
@@ -223,7 +223,7 @@ def define_his_bundle_end_node(
     Returns
     -------
     Point | None
-        End node of His left or right bundle.
+        His end node.
     """
     if side == "left":
         endo = model.mesh.get_surface(model.left_ventricle.endocardium.id)

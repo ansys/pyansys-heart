@@ -50,7 +50,7 @@ def test_compute_his_bif_node():
     fourchamber = get_fourchamber()
     landmarks = LandMarks()
 
-    # First define AV node as it's required for HIS bifurcation
+    # First define AV node as it is required for the His bifurcation
     heart_model_utils.define_atrio_ventricular_node(fourchamber, landmarks)
 
     bif_node = heart_model_utils.define_his_bundle_bifurcation_node(
@@ -64,7 +64,7 @@ def test_compute_his_end_node():
     fourchamber = get_fourchamber()
     landmarks = LandMarks()
 
-    # need pre steps
+    # Compute prerequisite landmarks
     heart_model_utils.define_atrio_ventricular_node(fourchamber, landmarks)
     heart_model_utils.define_his_bundle_bifurcation_node(fourchamber, landmarks)
 

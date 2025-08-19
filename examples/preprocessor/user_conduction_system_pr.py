@@ -54,8 +54,9 @@ from ansys.health.heart.examples import (
     get_fractal_tree_purkinje,
     get_preprocessed_fullheart,
 )
+from ansys.health.heart.landmarks import LandMarks
 import ansys.health.heart.models as models
-from ansys.health.heart.models_utils import HeartModelUtils
+import ansys.health.heart.models_utils as model_utils
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 
 # Set the working directory and path to the model.
@@ -134,8 +135,12 @@ plotter.show()
 ###############################################################################
 # Create the SA-AV node conduction path
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-sa = HeartModelUtils.define_sino_atrial_node(model, target_coord=[6, 66, 88])
-av = HeartModelUtils.define_atrio_ventricular_node(model)
+
+# Initialize landmarks to store anatomical points
+landmarks = LandMarks()
+
+sa = model_utils.define_sino_atrial_node(model, landmarks=landmarks, target_coord=[6, 66, 88])
+av = model_utils.define_atrio_ventricular_node(model, landmarks=landmarks)
 # Create the SA-AV node conduction path. The default option is to connect the
 # SA node and AV node by a geodesic path.
 sa_av = ConductionPath.create_from_keypoints(
@@ -165,9 +170,9 @@ sa_av.plot()
 #    to induce a delay in activation.
 
 # Define three keypoints for the His bundle
-his_bif = HeartModelUtils.define_his_bundle_bifurcation_node(model)
-his_left_point = HeartModelUtils.define_his_bundle_end_node(model, side="left")
-his_right_point = HeartModelUtils.define_his_bundle_end_node(model, side="right")
+his_bif = model_utils.define_his_bundle_bifurcation_node(model, landmarks)
+his_left_point = model_utils.define_his_bundle_end_node(model, side="left", landmarks=landmarks)
+his_right_point = model_utils.define_his_bundle_end_node(model, side="right", landmarks=landmarks)
 
 # Top part of the His bundle.
 his_top = ConductionPath.create_from_keypoints(

@@ -20,7 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from unittest.mock import Mock
+
 import numpy as np
+import pytest
 
 from ansys.health.heart.landmarks import LandMarks
 import ansys.health.heart.models_utils as heart_model_utils
@@ -79,3 +82,19 @@ def test_compute_his_end_node():
 
     assert np.allclose(right.xyz, np.array([2.93215687, 106.09459183, 365.20590901]))
     assert right.node_id == 43585
+
+
+def test_define_bachman_bundle_end_node_not_implemented():
+    """Test that Bachmann bundle function raises NotImplementedError."""
+    model = Mock()
+
+    with pytest.raises(NotImplementedError):
+        heart_model_utils.define_bachman_bundle_end_node(model)
+
+
+def test_define_fascile_bundle_end_node_not_implemented():
+    """Test that fascile bundle function raises NotImplementedError."""
+    model = Mock()
+
+    with pytest.raises(NotImplementedError):
+        heart_model_utils.define_fascile_bundle_end_node(model)

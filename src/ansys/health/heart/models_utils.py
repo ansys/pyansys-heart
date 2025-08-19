@@ -260,14 +260,14 @@ def define_bachman_bundle_end_node(
     model: models.FullHeart | models.FourChamber, target_coord=None
 ) -> LandMarks | None:
     """Define Bachmann bundle end node."""
-    NotImplementedError
+    raise NotImplementedError
 
 
 def define_fascile_bundle_end_node(
     model: models.FullHeart | models.FourChamber, target_coord=None
 ) -> LandMarks | None:
     """Define fascile bundle end node."""
-    NotImplementedError
+    raise NotImplementedError
 
 
 def define_full_conduction_system(

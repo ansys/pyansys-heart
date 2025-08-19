@@ -627,3 +627,30 @@ _Rodero2021_labels = {
     "Superior vena cava inlet": 16,
     "Inferior vena cava inlet": 17,
 }
+
+# Rodero2021 left atrial appendage landmarks. These landmarks are used as input
+# to compute the fibers on the left atrium.
+right_atrium_appendage_landmarks = {
+    "Rodero2021": {
+        1: [39, 29, 98],
+        2: [37, 41, 103],
+        3: [39, 60, 99],
+        4: [33, 34, 102],
+        5: [25, 44, 91],
+        6: [26, 36, 86],
+        7: [33, 28, 91],
+        8: [35, 39, 94],
+        9: [39, 27, 100],
+        10: [33, 36, 96],
+        11: [30, 50, 91],
+        12: [28, 42, 93],
+        13: [27, 46, 89],
+        14: [44, 23, 101],
+        15: [37, 32, 88],
+        16: [36, 39, 98],
+        17: [28, 30, 94],
+        18: [26, 30, 83],
+        19: [39, 33, 88],
+        20: [32, 38, 95],
+    }
+}

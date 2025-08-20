@@ -352,7 +352,7 @@ class ConductionPath:
         Returns
         -------
         ConductionPath | None
-            The updated conduction path if successful, None otherwise.
+           Updated conduction path if successful, None otherwise.
         """
         if not np.array_equal(surface.faces, self.relying_surface.faces):
             LOGGER.error(f"New surface  does not match the relying surface of {self.name}.")
@@ -811,7 +811,7 @@ def _create_path_in_solid(
         for tri in triangles:
             if i in tri and j in tri:
                 segment.append(tri)
-                break  # keep only one triangle per line is enough
+                break  # keeping only one triangle per line is enough
     segment = np.array(segment)
 
     surf = pv.PolyData(
@@ -819,7 +819,7 @@ def _create_path_in_solid(
         np.hstack([np.insert(segment[i], 0, 3) for i in range(segment.shape[0])]),
     )
 
-    # keep global point ids as a necessary property for the surface mesh
+    # keep global point IDs as a necessary property for the surface mesh
     surf.point_data["_global-point-ids"] = sub_mesh.point_data["_global-point-ids"]
     surf = surf.clean()  # remove unused nodes
 

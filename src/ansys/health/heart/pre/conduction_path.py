@@ -819,7 +819,7 @@ def _create_path_in_solid(
         np.hstack([np.insert(segment[i], 0, 3) for i in range(segment.shape[0])]),
     )
 
-    # keep global point ids as a necessary property for the surface mesh
+    # keep global point IDs as a necessary property for the surface mesh
     surf.point_data["_global-point-ids"] = sub_mesh.point_data["_global-point-ids"]
     surf = surf.clean()  # remove unused nodes
 

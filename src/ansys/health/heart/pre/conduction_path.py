@@ -811,7 +811,7 @@ def _create_path_in_solid(
         for tri in triangles:
             if i in tri and j in tri:
                 segment.append(tri)
-                break  # keep only one triangle per line is enough
+                break  # keeping only one triangle per line is enough
     segment = np.array(segment)
 
     surf = pv.PolyData(

@@ -326,7 +326,7 @@ def test_update_to_surface(simple_conduction_path):
 
 
 def test_create_path_on_surface_center():
-    """Test conductionbeams can be initialized correctly on a pyvista sphere with 3 keypoints."""
+    """Test that conduction beams can be initialized correctly on a PyVista sphere with three keypoints."""
     # Create a sphere mesh
     sphere = pv.Sphere(radius=1.0, theta_resolution=30, phi_resolution=30)
     # Define 3 keypoints on the sphere surface

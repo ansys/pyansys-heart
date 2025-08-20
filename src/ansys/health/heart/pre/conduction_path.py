@@ -352,7 +352,7 @@ class ConductionPath:
         Returns
         -------
         ConductionPath | None
-            The updated conduction path if successful, None otherwise.
+           Updated conduction path if successful, None otherwise.
         """
         if not np.array_equal(surface.faces, self.relying_surface.faces):
             LOGGER.error(f"New surface  does not match the relying surface of {self.name}.")

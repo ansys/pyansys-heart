@@ -823,13 +823,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 LOGGER.debug("Already created material for {}. Skipping.".format(cap.name))
                 continue
 
-            cap.pid = self.get_unique_part_id()
+            cap._pid = self.get_unique_part_id()
 
             part_kw = keywords.Part()
             part_kw.parts = pd.DataFrame(
                 {
                     "heading": [cap.name],
-                    "pid": [cap.pid],
+                    "pid": [cap._pid],
                     "secid": [section_id],
                     "mid": [mat_null_id],
                 }
@@ -868,7 +868,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
                 shell_kw = create_element_shell_keyword(
                     shells=cap_mesh.triangles_global + 1,
-                    part_id=cap.pid,
+                    part_id=cap._pid,
                     id_offset=shell_id_offset,
                 )
 
@@ -1036,8 +1036,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             save_part_ids.append(part.pid)
 
         for cap in self.model.all_caps:
-            if cap.pid is not None:  # MV,TV for atrial parts get None
-                save_part_ids.append(cap.pid)
+            if cap._pid is not None:  # MV,TV for atrial parts get None
+                save_part_ids.append(cap._pid)
 
         partset_id = self.get_unique_partset_id()
         kw = keywords.SetPartList(sid=partset_id)

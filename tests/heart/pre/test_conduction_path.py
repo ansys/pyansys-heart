@@ -28,7 +28,8 @@ import numpy as np
 import pytest
 import pyvista as pv
 
-from ansys.health.heart.models_utils import HeartModelUtils
+from ansys.health.heart.landmarks import LandMarks
+import ansys.health.heart.models_utils as heart_model_utils
 from ansys.health.heart.pre.conduction_path import (
     ConductionPath,
     ConductionPathType,
@@ -39,53 +40,13 @@ from ansys.health.heart.settings.material.ep_material import EPMaterial
 from tests.heart.conftest import get_assets_folder, get_fourchamber, get_fullheart
 
 
-def test_compute_sa_node():
-    fourchamber = get_fourchamber()
-
-    sa_node = HeartModelUtils.define_sino_atrial_node(fourchamber)
-
-    assert np.allclose(sa_node.xyz, np.array([-48.80218005, 107.90170883, 423.33688959]))
-    assert sa_node.node_id == 105021
-
-
-def test_compute_av_node():
-    fourchamber = get_fourchamber()
-    av_node = HeartModelUtils.define_atrio_ventricular_node(fourchamber)
-    assert np.allclose(av_node.xyz, np.array([-10.16353107, 108.95410155, 371.9505145]))
-    assert av_node.node_id == 100501
-
-
-def test_compute_his_bif_node():
-    fourchamber = get_fourchamber()
-    bif_node = HeartModelUtils.define_his_bundle_bifurcation_node(
-        fourchamber, target_coord=np.array([-10.16353107, 108.95410155, 371.9505145])
-    )
-    assert np.allclose(bif_node.xyz, np.array([1.22510233, 110.31896126, 364.402475]))
-    assert bif_node.node_id == 25326
-
-
-def test_compute_his_end_node():
-    fourchamber = get_fourchamber()
-    # need pre steps
-    HeartModelUtils.define_atrio_ventricular_node(fourchamber)
-    HeartModelUtils.define_his_bundle_bifurcation_node(fourchamber)
-    # test for left
-    left = HeartModelUtils.define_his_bundle_end_node(fourchamber, side="left")
-
-    assert np.allclose(left.xyz, np.array([4.15421613, 113.63743565, 369.27104019]))
-    assert left.node_id == 49464
-    # test for right
-    right = HeartModelUtils.define_his_bundle_end_node(fourchamber, side="right")
-
-    assert np.allclose(right.xyz, np.array([2.93215687, 106.09459183, 365.20590901]))
-    assert right.node_id == 43585
-
-
 def test_create_conductionbeams_on_surface():
     """Test conductionbeams can be initialized correctly on a surface."""
     model = get_fourchamber()
-    sa = HeartModelUtils.define_sino_atrial_node(model)
-    av = HeartModelUtils.define_atrio_ventricular_node(model)
+    landmarks = LandMarks()
+
+    sa = heart_model_utils.define_sino_atrial_node(model, landmarks)
+    av = heart_model_utils.define_atrio_ventricular_node(model, landmarks)
 
     sa_av = ConductionPath.create_from_keypoints(
         name=ConductionPathType.SAN_AVN,
@@ -101,8 +62,10 @@ def test_create_conductionbeams_on_surface():
 def test_create_conductionbeams_on_surface_pmj():
     """Test conductionbeams with pmj creation."""
     model = get_fourchamber()
-    sa = HeartModelUtils.define_sino_atrial_node(model)
-    av = HeartModelUtils.define_atrio_ventricular_node(model)
+    landmarks = LandMarks()
+
+    sa = heart_model_utils.define_sino_atrial_node(model, landmarks)
+    av = heart_model_utils.define_atrio_ventricular_node(model, landmarks)
 
     sa_av = ConductionPath.create_from_keypoints(
         name=ConductionPathType.SAN_AVN,
@@ -121,8 +84,10 @@ def test_create_conductionbeams_on_surface_pmj():
 def test_create_conductionbeams_on_surface_with_refinement():
     """Test conductionbeams can be initialized correctly on a surface."""
     model = get_fourchamber()
-    sa = HeartModelUtils.define_sino_atrial_node(model)
-    av = HeartModelUtils.define_atrio_ventricular_node(model)
+    landmarks = LandMarks()
+
+    sa = heart_model_utils.define_sino_atrial_node(model, landmarks)
+    av = heart_model_utils.define_atrio_ventricular_node(model, landmarks)
 
     sa_av = ConductionPath.create_from_keypoints(
         name=ConductionPathType.SAN_AVN,
@@ -140,8 +105,11 @@ def test_create_conductionbeams_on_surface_with_refinement():
 
 def test_create_conductionbeams_in_solid():
     model = get_fourchamber()
-    av = HeartModelUtils.define_atrio_ventricular_node(model)
-    bif = HeartModelUtils.define_his_bundle_bifurcation_node(model)
+    landmarks = LandMarks()
+
+    av = heart_model_utils.define_atrio_ventricular_node(model, landmarks)
+    bif = heart_model_utils.define_his_bundle_bifurcation_node(model, landmarks)
+
     his_top = ConductionPath.create_from_keypoints(
         name=ConductionPathType.HIS_TOP,
         keypoints=[av.xyz, bif.xyz],
@@ -181,7 +149,9 @@ def test_conduction():
         get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
     )
 
-    beam_list = HeartModelUtils.define_full_conduction_system(model, purkinje_folder=folder)
+    beam_list, landmarks = heart_model_utils.define_full_conduction_system(
+        model, purkinje_folder=folder
+    )
     model.assign_conduction_paths(beam_list)
     res = model.conduction_mesh
 

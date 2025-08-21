@@ -29,6 +29,7 @@ import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation
 
+from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import HeartModel
 from ansys.health.heart.objects import CapType
 
@@ -278,7 +279,7 @@ def _project_line_segment(
             # pv.Line(start,end).save("debug_points2.vtp")
             # surf.save("debug_endo.vtp")
             # raise ValueError(f"Cannot find intersection for segment.")
-            print("Cannot find intersection on the surface.")
+            LOGGER.warning("Cannot find intersection on the surface.")
         else:
             projected_points.append(intersection)
 

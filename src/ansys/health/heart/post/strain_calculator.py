@@ -24,9 +24,11 @@
 
 import pathlib
 
+from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 
+from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.post.dpf_utils import D3plotReader
 from ansys.health.heart.utils.landmark_utils import (
@@ -59,14 +61,30 @@ class AhaStrainCalculator:
 
         self.d3plot = D3plotReader(d3plot_file)
 
-    def _compute_new_strain(self, time_array: np.ndarray | list = None):
-        save = True
+    def compute_longitudinal_radial_strain(
+        self, time_array: np.ndarray | list = None, vtk_dir: pathlib.Path | str = None
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Compute longitudinal and radial strain.
+
+        Parameters
+        ----------
+        time_array: np.ndarray | list, optional
+            Array of time points to compute strain at. If None, use all time points.
+        vtk_dir: pathlib.Path | str, optional
+            Directory to save VTK files. If None, do not save VTK files.
+
+        Returns
+        -------
+        tuple[np.ndarray, np.ndarray]
+            Longitudinal and radial strain arrays of 17 segments.
+        """
         if time_array is None:
             time_array = self.d3plot.time
 
         surface_endo: pv.PolyData = self.model.left_ventricle.endocardium.copy()
 
-        # AHA points are bounded to nodes of endocardium surface.
+        # Find AHA points on the endocardium surface.
         points = compute_aha17_points(
             self.model, self.model.short_axis, self.model.l2cv_axis, surface=surface_endo
         )
@@ -87,13 +105,13 @@ class AhaStrainCalculator:
                 hlines, vlines = compute_aha17_lines(surface_endo, points)
 
             except ValueError as e:
-                print(f"Error computing AHA strain at time {t}: {e}")
+                LOGGER.error(f"Error in computing AHA strain at time {t}: {e}")
                 exit()
 
             hlength_array.append([hl.length for hl in hlines])
             vlength_array.append([vl.length for vl in vlines])
 
-            if save:
+            if vtk_dir is not None:
                 surface_endo.save(f"endo_{it}.vtp")
                 pv.MultiBlock(hlines).save(f"hlines_{it}.vtm")
                 pv.MultiBlock(vlines).save(f"vlines_{it}.vtm")
@@ -105,6 +123,7 @@ class AhaStrainCalculator:
         # compared to the first image
         h_strain = (hlength_array - hlength_array[0]) / hlength_array[0]
         v_strain = (vlength_array - vlength_array[0]) / vlength_array[0]
+
         """
         save strain values with the following format:
 
@@ -265,6 +284,10 @@ class AhaStrainCalculator:
             res.append(thickness_lines)
         return res
 
+    @deprecated(
+        reason="""This method will be deprecated in the future. Use
+                "`compute_longitudinal_radial_strain` instead."""
+    )
     def compute_aha_strain(
         self, out_dir: str = None, write_vtk: bool = False, t_to_keep: float = 10e10
     ) -> np.ndarray:
@@ -316,6 +339,10 @@ class AhaStrainCalculator:
 
         return strain
 
+    @deprecated(
+        reason="""This method will be deprecated in the future. Use
+                "`compute_longitudinal_radial_strain` instead."""
+    )
     def compute_aha_strain_at(self, frame: int = 0, out_dir: pathlib.Path = None) -> np.ndarray:
         """
         Export AHA strain and/or save a VTK file for a given frame.
@@ -353,6 +380,10 @@ class AhaStrainCalculator:
 
         return aha_lrc
 
+    @deprecated(
+        reason="""This method will be deprecated in the future. Use
+                "`compute_longitudinal_radial_strain` instead."""
+    )
     def _compute_myocardial_strain(
         self, at_frame, reference=None
     ) -> tuple[list[float], list[float], list[float]]:

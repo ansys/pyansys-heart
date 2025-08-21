@@ -68,9 +68,11 @@ def test_compute_strain(get_left_ventricle):
     model = get_left_ventricle[1]
     d3plot = os.path.join(os.path.join(test_dir, "main", "d3plot"))
 
-    s = AhaStrainCalculator(model, d3plot)
-    s._compute_new_strain()
-    assert True
+    c = AhaStrainCalculator(model, d3plot)
+    l_strain, c_strain = c.compute_longitudinal_radial_strain()
+    assert l_strain.shape == (2, 17)
+    assert l_strain[1, 1] == pytest.approx(0.000386, abs=1e-3)
+    assert c_strain[1, 1] == pytest.approx(-0.00183, abs=1e-3)
 
 
 @pytest.mark.requires_dpf

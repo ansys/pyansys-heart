@@ -20,11 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""
-Compute average fiber orientations with respect to UHCs in each AHA region in the LV.
-
-from davoks
-"""
+"""Compute average fiber orientations with respect to UHCs in each AHA region in the LV."""
 
 import os
 import pathlib

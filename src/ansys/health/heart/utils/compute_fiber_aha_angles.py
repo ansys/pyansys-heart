@@ -35,19 +35,6 @@ import ansys.health.heart.models as models
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
 
 
-def angle_between_vectors(x: np.ndarray, y: np.ndarray) -> np.ndarray:
-    """Computes angles between N number of M-dimensional vectors
-    Input:  shape(x): (N,M)
-            shape(y): (N,M)
-    Output: shape(): (N,)
-    """  # noqa
-    return (
-        np.arccos(np.clip(np.sum(x * y, axis=1) / (norm(x, axis=1) * norm(y, axis=1)), -1, 1))
-        * 180
-        / np.pi
-    )
-
-
 def signed_angle_between_vectors(x: np.ndarray, y: np.ndarray, n: np.ndarray):
     """Compute signed angles between N number of M-dimensional vectors.
 

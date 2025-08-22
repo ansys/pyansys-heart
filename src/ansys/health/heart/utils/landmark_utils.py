@@ -301,9 +301,11 @@ def _calculate_longitudinal_points(model, short_axis):
     """Define landmarks along the short axis."""
     for apex in model.left_ventricle.apex_points:
         if "endocardium" in apex.name:
-            apex_ed = apex.xyz
+            surface = model.left_ventricle.endocardium
+            apex_ed = surface.points[np.where(surface["_global-point-ids"] == apex.node_id)[0][0]]
         elif "epicardium" in apex.name:
-            apex_ep = apex.xyz
+            surface = model.left_ventricle.epicardium
+            apex_ep = surface.points[np.where(surface["_global-point-ids"] == apex.node_id)[0][0]]
 
     p_basal = short_axis["center"]
     p_mid = 1 / 3 * (apex_ep - p_basal) + p_basal
@@ -312,7 +314,7 @@ def _calculate_longitudinal_points(model, short_axis):
     # to have a flat segment 17, project endocardical apex point on short axis
     x = apex_ed - apex_ep
     y = p_basal - apex_ep
-    # TODO: temporary solution, move the apex upper so it can be projected to surface
+    # slightly move the apex upper so it can be projected to surface
     apex_ed = 1.5 * y * np.dot(x, y) / np.dot(y, y) + apex_ep
     return p_basal, p_mid, p_apical, apex_ed, apex_ep
 

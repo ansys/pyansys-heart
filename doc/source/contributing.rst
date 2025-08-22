@@ -1,80 +1,51 @@
-==========
+.. _contributing:
+
 Contribute
-==========
+##########
 
-Overall guidance on contributing to a PyAnsys repository appears in the *PyAnsys Developer's Guide*, see:
-`Contribute <https://dev.docs.pyansys.com/>`_. Ensure that you are thoroughly familiar
-with this guide before attempting to contribute to `PyAnsys Heart <https://github.com/ansys/pyansys-heart>`_.
+Thank you for your interest in contributing to PyHeart. Contributions for
+making the project better can include fixing bugs, adding new features, and
+improving the documentation.
 
-The following contribution information is specific to `PyAnsys Heart <https://github.com/ansys/pyansys-heart>`_.
+.. important::
 
-Clone the repository
---------------------
-Clone and install the latest version of PyAnsys Heart in
-development mode by running this code:
+    This project adheres to the `Contributor Covenant Code of Conduct`_. By
+    participating, you agree to uphold this code of conduct.
 
-.. code::
+Overall guidance on contributing to a PyAnsys repository appears in
+`Contributing <https://dev.docs.pyansys.com/how-to/contributing.html>`_
+in the *PyAnsys developer's guide*. Ensure that you are thoroughly familiar
+with this guide before attempting to contribute to PyAnsys Heart.
 
-    git clone https://github.com/pyansys/pyansys-heart
-    cd pyansys-heart
-    pip install -e .
+The following contribution information is specific to PyAnsys Heart. Start by
+selecting your role in the project:
 
+.. grid:: 1 2 3 3
+    :padding: 2 2 2 2
 
-Post issues
------------
-Use the `PyAnsys Heart Issues <https://github.com/ansys/pyansys-heart/issues>`_
-page to submit questions, report bugs, and request new features. When possible, you
-should use these issue templates:
+    .. grid-item-card:: :fa:`user` User
+        :link: contribute/user
+        :link-type: doc
 
-* Bug, problem, error: For filing a bug report
-* Documentation error: For requesting modifications to the documentation
-* Adding an example: For proposing a new example
-* New feature: For requesting enhancements to the code
+        Report bugs, suggest features, and ask questions.
 
-If your issue does not fit into one of these template categories, you can click
-the link for opening a blank issue.
+    .. grid-item-card:: :fa:`book` Documentarian
+        :link: contribute/documentarian
+        :link-type: doc
 
-To reach the project support team, email `pyansys.core@ansys.com <pyansys.core@ansys.com>`_.
+        Improve the documentation and write new content.
 
-View documentation
-------------------
-Documentation for the latest stable release of PyAnsys Heart is hosted at
-https://heart.docs.pyansys.com/.
+    .. grid-item-card:: :fa:`laptop-code` Developer
+        :link: contribute/developer
+        :link-type: doc
 
-In the upper right corner of the documentation's title bar, there is an option
-for switching from viewing the documentation for the latest stable release
-to viewing the documentation for the development version or previously
-released versions.
+        Fix bugs, add new features, and improve the codebase.
 
-Adhere to code style
---------------------
+.. toctree::
+    :hidden:
+    :maxdepth: 3
+    :caption: Contribute
 
-PyAnsys Heart follows the PEP8 standard as outlined in
-`PEP 8 <https://dev.docs.pyansys.com/coding-style/pep8.html>`_ in
-the *PyAnsys Developer's Guide* and implements style checking using
-`pre-commit <https://pre-commit.com/>`_.
-
-To ensure your code meets minimum code styling standards, run these commands::
-
-  pip install pre-commit
-  pre-commit run --all-files
-
-You can also install this as a pre-commit hook by running this command::
-
-  pre-commit install
-
-This way, it's not possible for you to push code that fails the style checks::
-
-  $ pre-commit install
-  $ git commit -am "added my cool feature"
-  black....................................................................Passed
-  blacken-docs.............................................................Passed
-  isort....................................................................Passed
-  flake8...................................................................Passed
-  codespell................................................................Passed
-  pydocstyle...............................................................Passed
-  check for merge conflicts................................................Passed
-  debug statements (python)................................................Passed
-  check yaml...............................................................Passed
-  trim trailing whitespace.................................................Passed
-  Validate GitHub Workflows................................................Passed
+    User<contribute/user>
+    Documentarian<contribute/documentarian>
+    Developer<contribute/developer>

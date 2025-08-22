@@ -4,8 +4,8 @@ build-backend = "flit_core.buildapi"
 
 [project]
 # Check https://flit.readthedocs.io/en/latest/pyproject_toml.html for all available sections
-name = "pyansys-heart"
-version = "0.9.dev0"
+name = "ansys-health-heart"
+version = "0.15.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
 requires-python = ">=3.10,<4"
@@ -18,64 +18,67 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Information Analysis",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 
 dependencies = [
-    "ansys-dpf-core==0.13.3",
-    "ansys-fluent-core==0.26.0",
-    "deprecated==1.2.14",
-    "ansys.dyna.core==0.6.1",
+    "ansys-dpf-core>=0.13.6,!=0.14.0,<0.15",
+    "ansys-fluent-core>=0.34.2",
+    "ansys.dyna.core>=0.7.1",
+    "deprecated>=1.2.18",
     "h5py>=3.6.0",
-    "importlib-metadata >=4.0",
-    "Jinja2==3.1.2",
-    "matplotlib==3.8.2",
-    "meshio==5.3.4",
-    "networkx==3.2.1",
-    "numpy<=2.1.2",
+    "httpx>=0.27.2",
+    "matplotlib>=3.10.1",
+    "natsort>=8.4.0",
+    "networkx>=3.2.1",
+    "numpy<=2.2.6",
     "pandas<=3.0.0",
-    "pint==0.24.4",
-    "pyvista==0.44.1",
-    "scipy<=1.14.1",
-    "tqdm==4.66.1",
-    "validators==0.34.0",
-    "vtk>=9.1.0, < 9.4",
-    "wget==3.2",
-    "natsort==8.4.0"
+    "pint>=0.24.4",
+    "pyvista>=0.44.1,<0.46",
+    "rich>=13.9.4",
+    "scipy<=1.15.3",
+    "validators>=0.34.0",
+    "vtk>=9.1.0,<9.6,!=9.4.*",
 ]
 
 # Optional dependencies:
 [project.optional-dependencies]
 doc = [
-    "ansys-sphinx-theme[autoapi]==1.0.7",
+    "ansys-sphinx-theme[autoapi]==1.5.2",
     "jupyter_sphinx==0.5.3",
-    "myst-parser==4.0.0",
+    "myst-parser==4.0.1",
+    "nbsphinx==0.9.7",
     "numpydoc==1.8.0",
-    "nbsphinx==0.9.5",
-    "sphinx==8.0.2",
-    "sphinx-autodoc-typehints==2.2.3",
+    "pyvista[jupyter]==0.45.3",
+    "pypandoc==1.15",
+    "sphinx==8.1.3",
+    "sphinx-autodoc-typehints==3.0.1",
     "sphinx-copybutton==0.5.2",
-    "sphinx-gallery==0.14.0",
-    "sphinxcontrib-video",
+    "sphinx-gallery==0.19.0",
+    "sphinx-jinja==2.0.2",
+    "sphinx_design",
+    "sphinxcontrib-video==0.4.1",
+    "trame-vtk==2.9.1"
+]
+tests = [
+    "pytest==8.4.1",
+    "pytest-cov==6.2.1",
 ]
 
-tests = ["pytest==8.0.1"]
-
 [project.urls]
-Source = "https://github.com/ansys/pyansys-heart"
-Issues = "https://github.com/ansys/pyansys-heart/issues"
-Documentation = "https://heart.docs.pyansys.com/"
-Releases = "https://github.com/ansys/pyansys-heart/releases"
+source = "https://github.com/ansys/pyansys-heart"
+issues = "https://github.com/ansys/pyansys-heart/issues"
+documentation = "https://heart.health.docs.pyansys.com/"
+releases = "https://github.com/ansys/pyansys-heart/releases"
 
 [tool.flit.module]
-name = "ansys.heart"
+name = "ansys.health.heart"
 
 [tool.ruff]
 line-length = 100
 fix = true
-extend-exclude = ["src/ansys/heart/writer/custom_dynalib_keywords/**"]
+extend-exclude = ["src/ansys/health/heart/writer/custom_keywords/**"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -111,10 +114,10 @@ convention = "numpy"
 [tool.ruff.lint.isort]
 combine-as-imports = true
 force-sort-within-sections = true
-known-first-party = ["ansys.heart"]
+known-first-party = ["ansys.health.heart"]
 
 [tool.coverage.run]
-source = ["ansys.heart"]
+source = ["ansys.health.heart"]
 
 [tool.coverage.report]
 show_missing = true
@@ -122,6 +125,55 @@ show_missing = true
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
-markers = ["extract_models", "requires_fluent", "k_file_writer", "local", "downloader"]
+markers = ["extract_models", "requires_fluent", "k_file_writer", "requires_dpf"]
 tmp_path_retention_count = 0                                      # do not keep the temporary path that is created
 tmp_path_retention_policy = "none"                                # directories always removed, regardless of outcome
+
+
+[tool.towncrier]
+directory = "doc/source/changelog"
+filename = "doc/source/changelog.rst"
+template = "doc/source/changelog/template.jinja"
+start_string = ".. towncrier release notes start\n"
+title_format = "`{version} <https://github.com/ansys/pyansys-heart/releases/tag/v{version}>`_ ({project_date})"
+issue_format = "`#{issue} <https://github.com/ansys/pyansys-heart/pull/{issue}>`_"
+
+[[tool.towncrier.type]]
+directory = "added"
+name = "Added"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "changed"
+name = "Changed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "fixed"
+name = "Fixed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "documentation"
+name = "Documentation"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "test"
+name = "Test"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "dependencies"
+name = "Dependencies"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "maintenance"
+name = "Maintenance"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "miscellaneous"
+name = "Miscellaneous"
+showcontent = true

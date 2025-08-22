@@ -1,29 +1,38 @@
 Installation
 ============
 
-This guide helps you install PyAnsys Heart. It provides information on how to install
-the package from PyPI, from a wheel file, or from the source code.
+This page explains how to install PyAnsys Heart from PyPI, the GitHub source code, or a wheel file.
 
-PyPI
-----
+.. note::
 
-Before installing PyAnsys Heart, to ensure that you have the latest version
-of the `pip <https://pip.pypa.io/en/stable/installation/>`_
-package manager, run the following command:
+    If you do not have access to PyAnsys Heart, follow the instructions in :ref:`install_from_wheel`.
+    You might need to request the wheel file from your Ansys contact.
+
+.. warning::
+
+    Consider installing using a virtual environment to avoid conflicts with other packages. For more information,
+    see `Creation of virtual environments <Python documentation_>`_ in the Python documentation.
+
+Install from PyPI
+-----------------
+
+Before you install PyAnsys Heart, ensure that you have the latest version
+of the `pip`_ package manager:
 
 .. code:: bash
 
     python -m pip install --upgrade pip
 
-Then, to install PyAnsys Heart, run the following command:
+Then, install PyAnsys Heart:
 
 .. code:: bash
 
-    python -m pip install pyansys-heart
+    python -m pip install ansys-health-heart
 
-GitHub
-------
-To install the latest version of PyAnsys Heart from the source code,
+Install from GitHub source code
+-------------------------------
+
+To install the latest version of PyAnsys Heart from the GitHub source code,
 clone the repository:
 
 .. code:: bash
@@ -32,33 +41,30 @@ clone the repository:
     cd pyansys-heart
     pip install -e .
 
-to verify the installation, run the following command:
+Then, verify the installation:
 
 .. code:: bash
 
     python -m pip install tox
     tox
 
+.. _install_from_wheel:
+
 Install from a wheel file
 -------------------------
 
-if you lack the internet connection, you can install PyAnsys Heart from a wheel file.
-You should install PyAnsys Heart by downloading the wheelhouse archive for your
-corresponding machine architecture from the repository’s
-`Release page <https://github.com/ansys/pyansys-heart/releases>`_.
+If you do not have an internet connection, you can install PyAnsys Heart from a wheel file.
+Download the wheelhouse archive for your corresponding machine architecture
+from the `repository’s Releases page <PyAnsys Heart release page_>`_.
 
 Each release contains a wheel file for the corresponding Python version and
 machine architecture. For example, to install the wheel file for
-Python 3.10 on a Windows machine, run the following command:
+Python 3.10 on a Windows machine, run the following commands:
 
 .. code:: bash
 
-    unzip pyansys-heart-v0.6.1-wheelhouse-windows-latest-3.12.zip wheelhouse
-    pip install pyansys-heart -f wheelhouse --no-index --upgrade --ignore-installed
+    unzip ansys-health-heart-v0.13.0-wheelhouse-windows-latest-3.12.zip wheelhouse
+    pip install ansys-health-heart -f wheelhouse --no-index --upgrade --ignore-installed
 
 If you are on Windows with Python 3.12, unzip the wheelhouse archive to a wheelhouse
-directory and then install using the same pip install command as in the preceding example.
-
-Consider installing using a virtual environment to avoid conflicts with other packages. For more information,
-refer to the `Python documentation <https://docs.python.org/3/library/venv.html>`_.
-
+directory and then install using the same ``pip install`` command as in the preceding example.

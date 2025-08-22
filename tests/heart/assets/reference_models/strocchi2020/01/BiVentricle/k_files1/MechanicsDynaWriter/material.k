@@ -507,10 +507,11 @@ $#                a1                  o1
               3992.0                 0.0
               4000.0                 0.0
 *MAT_295
+$nu deduced from kappa=1.0
 $#     mid       rho      aopt
          1     0.001       2.0
 $#   title     itype      beta        nu
-ISO               -3       0.0     0.499
+ISO               -3       2.00.49882093
 $#      k1        k2
    0.00236      1.75
 $#   title     atype    intype        nf
@@ -1037,10 +1038,11 @@ $#                a1                  o1
               3992.0                 0.0
               4000.0                 0.0
 *MAT_295
+$nu deduced from kappa=1.0
 $#     mid       rho      aopt
          2     0.001       2.0
 $#   title     itype      beta        nu
-ISO               -3       0.0     0.499
+ISO               -3       2.00.49882093
 $#      k1        k2
    0.00236      1.75
 $#   title     atype    intype        nf
@@ -1567,10 +1569,11 @@ $#                a1                  o1
               3992.0                 0.0
               4000.0                 0.0
 *MAT_295
+$nu deduced from kappa=1.0
 $#     mid       rho      aopt
          3     0.001       2.0
 $#   title     itype      beta        nu
-ISO               -3       0.0     0.499
+ISO               -3       2.00.49882093
 $#      k1        k2
    0.00236      1.75
 $#   title     atype    intype        nf

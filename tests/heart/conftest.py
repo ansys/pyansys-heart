@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -27,7 +27,8 @@ import sys
 
 import pytest
 
-from ansys.heart.core.helpers.downloader import download_case_from_zenodo, unpack_case
+import ansys.health.heart.models as models
+from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
 
 ROOT_FOLDER = os.path.join(pathlib.Path(__file__).parent)
 
@@ -119,7 +120,7 @@ def compare_string_with_file(output: str, reference_file: str) -> None:
 
 
 def remove_keys_from_dict(dictionary: dict, exclude_keys=[]):
-    """Removes specific keys from the dictionary"""
+    """Removes specific keys from the dictionary."""
     new_d = {k: dictionary[k] for k in set(list(dictionary.keys())) - set(exclude_keys)}
     return new_d
 
@@ -177,3 +178,55 @@ if is_debugging():
     @pytest.hookimpl(tryfirst=True)
     def pytest_internalerror(excinfo):
         raise excinfo.value
+
+
+def get_fourchamber() -> models.FourChamber:
+    vtu_file = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "FourChamber",
+        "heart_model.vtu",
+    )
+
+    json_file = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "FourChamber",
+        "heart_model.partinfo.json",
+    )
+
+    model: models.FourChamber = models.FourChamber.load_model(
+        vtu_file, json_file, working_directory="."
+    )
+
+    return model
+
+
+def get_fullheart() -> models.FullHeart:
+    vtu_file = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "FullHeart",
+        "heart_model.vtu",
+    )
+
+    json_file = os.path.join(
+        get_assets_folder(),
+        "reference_models",
+        "strocchi2020",
+        "01",
+        "FullHeart",
+        "heart_model.partinfo.json",
+    )
+
+    model: models.FullHeart = models.FullHeart.load_model(
+        vtu_file, json_file, working_directory="."
+    )
+
+    return model

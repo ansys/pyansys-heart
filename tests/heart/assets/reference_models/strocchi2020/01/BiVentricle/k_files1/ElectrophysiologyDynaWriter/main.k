@@ -2,7 +2,7 @@
 *CONTROL_TERMINATION
 $#  endtim    endcyc     dtmin    endeng    endmas     nosol
      800.0         0       0.0       0.0     1e+08         0
-*CONTROL_TIMESTEP
+*CONTROL_TIME_STEP
 $#  dtinit    tssfac      isdo    tslimt     dt2ms      lctm     erode     ms1st
        1.0       0.0         0       0.0       1.0         0         0         0
 $#  dt2msf   dt2mslc     imscl    unused    unused     rmscl     emscl      ihdo

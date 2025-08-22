@@ -72,19 +72,19 @@ $#    beta        cm
 $$ Aorta $$
 *EM_MAT_001
 $#     mid     mtype     sigma     eosid    unused   lambda_    deatht   rdltype
-         5         4       0.5                                   1e+28         0
+         5         1       0.0                                   1e+28         0
 $#   empty      freq     epsrr    eosid2     epsri    eosid3      eps0
                                                                       
 $#    beta        cm
-     140.0      0.01
+       0.0       0.0
 $$ Pulmonary artery $$
 *EM_MAT_001
 $#     mid     mtype     sigma     eosid    unused   lambda_    deatht   rdltype
-         6         4       0.5                                   1e+28         0
+         6         1       0.0                                   1e+28         0
 $#   empty      freq     epsrr    eosid2     epsri    eosid3      eps0
                                                                       
 $#    beta        cm
-     140.0      0.01
+       0.0       0.0
 $$ Atrioventricular isolation $$
 *EM_MAT_001
 $#     mid     mtype     sigma     eosid    unused   lambda_    deatht   rdltype

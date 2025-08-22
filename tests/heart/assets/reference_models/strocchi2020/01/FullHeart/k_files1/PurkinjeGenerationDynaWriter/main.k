@@ -5,14 +5,14 @@ $#  purkid  buildnet      ssid       mid nodestart  pointstx  pointsty  pointstz
 $# edgelen      ngen   nbrinit    nsplit   inodeid   iedgeid
        1.5       200         3         4     61109    251857
 $# pmjtype pmjradiuspmjrestype    pmjres
-         1       0.7         1     0.001
+         2       1.5         1     0.001
 *EM_EP_PURKINJE_NETWORK2
 $#  purkid  buildnet      ssid       mid nodestart  pointstx  pointsty  pointstz
          2         1         3         9           45.478263 78.501683 333.32541
 $# edgelen      ngen   nbrinit    nsplit   inodeid   iedgeid
        1.5       200         3         4    122216    503712
 $# pmjtype pmjradiuspmjrestype    pmjres
-         1       0.7         1     0.001
+         2       1.5         1     0.001
 *INCLUDE
 $#                                                                      filename
 parts.k                                                                         

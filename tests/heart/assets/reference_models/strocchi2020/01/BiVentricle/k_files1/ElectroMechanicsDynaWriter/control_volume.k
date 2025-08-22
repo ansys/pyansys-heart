@@ -1,7 +1,28 @@
 *KEYWORD
+*SECTION_SHELL
+$#   secid    elform      shrf       nip     propt   qr/irid     icomp     setyp
+         6         4    0.8333         3       1.0         0         0         1
+$#      t1        t2        t3        t4      nloc     marea      idof    edgset
+       1.0       0.0       0.0       0.0       0.0       0.0       0.0         0
+*MAT_NULL
+$#     mid        ro        pc        mu     terod     cerod        ym        pr
+         8     0.001                                                            
+*PART
+$#                                                             heading
+null flow area                                                        
+$#     pid     secid       mid     eosid      hgid      grav    adpopt      tmid
+        11         6         8                                                  
 *DEFINE_CONTROL_VOLUME
 $#      id       sid        p0
          1         1          
+*SET_SEGMENT_ADD
+$#     sid
+        12
+$#    sets      sets
+         8         9
+*DEFINE_CONTROL_VOLUME_FLOW_AREA
+$#    FAID     FCIID     FASID   FASTYPE       PID
+         1         1        12         2        11
 *DEFINE_CONTROL_VOLUME_INTERACTION
 $#      id     cvid1     cvid2     lcid      area 
          1         1         0         2          
@@ -18,10 +39,10 @@ $   Only used for Euler Implicit
 $   physical constants
     float Rp, Ca;
     float Ra, Rv;
-    Rp = 0.00015518725895105997;
-    Ca = 12887655.942365238;
-    Ra = 4.6556177685317995e-06;
-    Rv = 4.6556177685317995e-06;
+    Rp = 1.551872589511e-04;
+    Ca = 1.288765594237e+07;
+    Ra = 4.655617768532e-06;
+    Rv = 4.655617768532e-06;
 $   physical variables
     float chi_av, chi_mv;
     float pk, part, pven;
@@ -32,7 +53,7 @@ $   only for save data purpose
     float qk2, qven2, qart2, qp2;
     float vart2;
 $   constant pre load:
-    pven = 0.0019998358112249997;
+    pven = 1.999835811225e-03;
 $   time related variables
     int icall=0, is_new_dt=0;
 $   t: current time (input)
@@ -41,7 +62,7 @@ $   t_old: time of the last step
     float t_last=0.0, t_old=0.0, dt;
 $   initialisation at t=0
     if (icall == 0) {
-          part = 0.009332567119049997;
+          part = 9.332567119050e-03;
 $   initial arterial volume
           vart = Ca * part;
           qp = part / Rp;
@@ -160,6 +181,14 @@ $   LSDYNA defines outflow as positive
 *DEFINE_CONTROL_VOLUME
 $#      id       sid        p0
          2         2          
+*SET_SEGMENT_ADD
+$#     sid
+        13
+$#    sets      sets
+        10        11
+*DEFINE_CONTROL_VOLUME_FLOW_AREA
+$#    FAID     FCIID     FASID   FASTYPE       PID
+         2         2        13         2        11
 *DEFINE_CONTROL_VOLUME_INTERACTION
 $#      id     cvid1     cvid2     lcid      area 
          2         2         0         3          
@@ -176,10 +205,10 @@ $   Only used for Euler Implicit
 $   physical constants
     float Rp, Ca;
     float Ra, Rv;
-    Rp = 1.9398407368882496e-05;
-    Ca = 57994451.74064357;
-    Ra = 1.6294662189861296e-06;
-    Rv = 2.3278088842658997e-06;
+    Rp = 1.939840736888e-05;
+    Ca = 5.799445174064e+07;
+    Ra = 1.629466218986e-06;
+    Rv = 2.327808884266e-06;
 $   physical variables
     float chi_av, chi_mv;
     float pk, part, pven;
@@ -190,7 +219,7 @@ $   only for save data purpose
     float qk2, qven2, qart2, qp2;
     float vart2;
 $   constant pre load:
-    pven = 0.0010665790993199997;
+    pven = 1.066579099320e-03;
 $   time related variables
     int icall=0, is_new_dt=0;
 $   t: current time (input)
@@ -199,7 +228,7 @@ $   t_old: time of the last step
     float t_last=0.0, t_old=0.0, dt;
 $   initialisation at t=0
     if (icall == 0) {
-          part = 0.0019998358112249997;
+          part = 1.999835811225e-03;
 $   initial arterial volume
           vart = Ca * part;
           qp = part / Rp;

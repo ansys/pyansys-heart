@@ -1,0 +1,142 @@
+{
+    "USER_LOADING_SET" : [
+    {
+      "fields": [
+        {
+          "name": "SID",
+          "type": "integer",
+          "default": null,
+          "position": 0,
+          "width": 10,
+          "help": "ID of the set to apply user-defined loading to. Set type depends on the type of loading. See LTYPE."
+        },
+        {
+          "name": "LTYPE",
+          "type": "string",
+          "default": null,
+          "position": 10,
+          "width": 10,
+          "help": "Loading type"
+        },
+        {
+          "name": "LCID",
+          "type": "integer",
+          "default": null,
+          "position": 20,
+          "width": 10,
+          "help": "Load curve, which is a function of time. Its current value, crv, is passed to the user subroutine LOADSETUD."
+        },
+        {
+            "name": "CID",
+            "type": "integer",
+            "default": null,
+            "position": 30,
+            "width": 10,
+            "help": "Optional coordinate system that scale factors SFi is defined on. Global system is the default system."
+        },
+        {
+            "name": "SF1",
+            "type": "real",
+            "default": null,
+            "position": 40,
+            "width": 10,
+            "help": "Scale factor of loading magnitude, when LTYPE."
+        },
+        {
+            "name": "SF2",
+            "type": "real",
+            "default": null,
+            "position": 50,
+            "width": 10,
+            "help": "Scale factor of loading magnitude, when LTYPE."
+        },
+        {
+            "name": "SF3",
+            "type": "real",
+            "default": null,
+            "position": 60,
+            "width": 10,
+            "help": "Scale factor of loading magnitude, when LTYPE."
+        },
+        {
+            "name": "IDULS",
+            "type": "integer",
+            "default": null,
+            "position": 70,
+            "width": 10,
+            "help": "Each USER_LOADING_SET can be assigned a unique ID, which is passed to the user subroutine LOADSETUD and allows multiple loading definitions by using a single-user subroutine, LOADSETUD. If no value is specified, LS-DYNA assigns a sequence number to each USER_LOADING_SET based on its definition sequence."
+        }
+      ]
+    }
+  ],
+  "USER_LOADING" : [
+    {
+      "fields": [
+        {
+          "name": "PARM1",
+          "type": "real",
+          "default": null,
+          "position": 0,
+          "width": 10,
+          "help": "Nth user input parameter."
+        },
+        {
+            "name": "PARM2",
+            "type": "real",
+            "default": null,
+            "position": 10,
+            "width": 10,
+            "help": "Nth user input parameter."
+        },
+        {
+            "name": "PARM3",
+            "type": "real",
+            "default": null,
+            "position": 20,
+            "width": 10,
+            "help": "Nth user input parameter."
+        },
+        {
+            "name": "PARM4",
+            "type": "real",
+            "default": null,
+            "position": 30,
+            "width": 10,
+            "help": "Nth user input parameter."
+        },
+        {
+            "name": "PARM5",
+            "type": "real",
+            "default": null,
+            "position": 40,
+            "width": 10,
+            "help": "Nth user input parameter."
+        },
+        {
+            "name": "PARM6",
+            "type": "real",
+            "default": null,
+            "position": 50,
+            "width": 10,
+            "help": "Nth user input parameter."
+        },
+        {
+            "name": "PARM7",
+            "type": "real",
+            "default": null,
+            "position": 60,
+            "width": 10,
+            "help": "Nth user input parameter."
+        },
+        {
+            "name": "PARM8",
+            "type": "real",
+            "default": null,
+            "position": 70,
+            "width": 10,
+            "help": "Nth user input parameter."
+        }
+      ]
+    }
+  ]
+}

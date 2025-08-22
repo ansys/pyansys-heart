@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -19,7 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+import os
+import tempfile
 import unittest.mock as mock
 
 import numpy as np
@@ -27,10 +28,27 @@ import pytest
 import pyvista as pv
 import pyvista.examples as examples
 
-from ansys.heart.core.models import FullHeart
-from ansys.heart.core.objects import BeamMesh, Mesh, Part, PartType, Point
-from ansys.heart.simulator.settings.settings import SimulationSettings, Stimulation
-import ansys.heart.writer.dynawriter as writers
+from ansys.health.heart.models import FullHeart
+from ansys.health.heart.objects import (
+    Mesh,
+    Point,
+)
+import ansys.health.heart.parts as anatomy
+from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
+from ansys.health.heart.settings.settings import Mechanics, SimulationSettings, Stimulation
+import ansys.health.heart.writer as writers
+
+
+def _get_mock_conduction_system() -> Mesh:
+    """Get a mock conduction system."""
+    edges = examples.load_tetbeam().extract_feature_edges()
+    conduction_system = Mesh(edges)
+    conduction_system.point_data["_is-connected"] = 0
+    conduction_system.cell_data["_line-id"] = 10
+    conduction_system.point_data["_is-connected"][0:10] = 1
+    conduction_system.point_data["_shifted_id"] = 1
+
+    return conduction_system
 
 
 @pytest.fixture()
@@ -44,26 +62,22 @@ def _mock_model():
 
     model.electrodes = [p1, p2]
 
+    lines = pv.line_segments_from_points([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]])
+    model.conduction_paths = [
+        ConductionPath(ConductionPathType.LEFT_PURKINJE, lines, 1, [False, False], pv.Sphere())
+    ]
+
+    model.conduction_mesh = _get_mock_conduction_system()
+
     yield model
-
-
-def _add_beam_network(model: FullHeart):
-    """Add a beam network to the model."""
-    lines = pv.line_segments_from_points([[0, 0, 0], [1, 0, 0]])
-    beams = BeamMesh(name="beams")
-    beams.nodes = lines.points
-    beams.edges = np.array([lines.lines[1:]])
-    beams.pid = 1000
-    model.beam_network = [beams]
-    return model
 
 
 def _add_parts(model: FullHeart):
     """Add parts to model."""
     model.parts = [
-        Part(name="left_ventricle", part_type=PartType.VENTRICLE),
-        Part(name="Right ventricle", part_type=PartType.VENTRICLE),
-        Part(name="Septum", part_type=PartType.SEPTUM),
+        anatomy.Ventricle(name="left_ventricle"),
+        anatomy.Ventricle(name="Right ventricle"),
+        anatomy.Septum(name="Septum"),
     ]
     for ii, part in enumerate(model.parts):
         part.pid = ii
@@ -90,7 +104,7 @@ def test_add_segment_from_surface(_mock_model):
     model = _mock_model
     writer = writers.ElectroMechanicsDynaWriter(model)
     model.mesh.add_surface(pv.Sphere(), name="test", id=1)
-    writer._add_segment_from_surface(name="test")
+    writer._add_segment_from_surface(pv.Sphere(), name="test")
 
     assert len(writer.kw_database.segment_sets.keywords) == 1
     assert writer.kw_database.segment_sets.keywords[0].get_title() == "*SET_SEGMENT_TITLE"
@@ -129,16 +143,15 @@ def test_add_stimulation_keyword(_mock_model, solvertype, expected_kw):
 @pytest.mark.parametrize(
     "solvertype,expected_num_keywords",
     [
-        ("Monodomain", 5),
-        ("Eikonal", 5),
-        ("ReactionEikonal", 5),
+        ("Monodomain", 6),
+        ("Eikonal", 6),
+        ("ReactionEikonal", 6),
     ],
 )
 def test_update_ep_settings(_mock_model, solvertype, expected_num_keywords):
     """Test updating EP settings."""
     model = _mock_model
 
-    model = _add_beam_network(model)
     model = _add_parts(model)
 
     settings = SimulationSettings()
@@ -146,7 +159,7 @@ def test_update_ep_settings(_mock_model, solvertype, expected_num_keywords):
     settings.electrophysiology.analysis.solvertype = solvertype
 
     writer = writers.ElectroMechanicsDynaWriter(model, settings)
-    writer._update_ep_settings()
+    writer._update_ep_settings(beam_pid=[1, 2, 3])
 
     assert len(writer.kw_database.ep_settings.keywords) == expected_num_keywords
 
@@ -184,12 +197,7 @@ def test_update_create_fibers(_mock_model):
 def test_update_use_purkinje(_mock_model: FullHeart):
     """Test update use purkinje."""
     model = _mock_model
-    model = _add_beam_network(model)
     model = _add_parts(model)
-    model.beam_network[0].name = "Left-purkinje"
-    model.mesh.add_surface(pv.Sphere(), id=10, name="Left ventricle endocardium")
-    model.left_ventricle = model.parts[0]
-    model.left_ventricle.endocardium = model.mesh.get_surface(10)
 
     settings = SimulationSettings()
     settings.load_defaults()
@@ -210,3 +218,25 @@ def test_update_use_purkinje(_mock_model: FullHeart):
     ]
     for expected_kw in expected_kw_titles:
         assert expected_kw in kw_titles, f"Did not find {expected_kw} in keywords"
+
+
+def test_export(_mock_model):
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        setting = mock.Mock(spec=Mechanics).return_value
+        setting.mechanics.system.name = "ConstantPreloadWindkesselAfterload"
+        w = writers.MechanicsDynaWriter(_mock_model, setting)
+        w.kw_database.main.append("*END")
+        w.export(tempdir)
+        # test export
+        assert os.listdir(tempdir) == ["main.k"]
+
+        user_file = os.path.join(tempdir, "..", "user.k")
+        with open(user_file, "w") as tmpfile:
+            tmpfile.write("*END")
+
+        # test raise with not found file
+        with pytest.raises(FileNotFoundError):
+            w.export(tempdir, user_k=[user_file + "0"])
+        # test write with user file
+        w.export(tempdir, user_k=[user_file])
+        assert set(os.listdir(tempdir)) == {"main.k", "user.k"}

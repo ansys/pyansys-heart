@@ -24,7 +24,7 @@
 
 import numpy as np
 
-from ansys.health.heart.utils.compute_fiber_aha_angles import signed_angle_between_vectors
+from ansys.health.heart.utils.misc import signed_angle_between_vectors
 
 
 def test_compute_signed_angle():

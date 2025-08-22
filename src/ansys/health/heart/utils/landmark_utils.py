@@ -240,6 +240,12 @@ def compute_aha17_lines(
         _project_line_segment(surface, p_apical, points[21], points[25]),
     ]
 
+    for id, line in enumerate(hline):
+        line.cell_data["id"] = id + 1
+
+    for id, line in enumerate(vline):
+        line.cell_data["id"] = id + 1
+
     return hline, vline
 
 

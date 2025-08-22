@@ -112,9 +112,10 @@ class AhaStrainCalculator:
             vlength_array.append([vl.length for vl in vlines])
 
             if vtk_dir is not None:
-                surface_endo.save(f"endo_{it}.vtp")
-                pv.MultiBlock(hlines).save(f"hlines_{it}.vtm")
-                pv.MultiBlock(vlines).save(f"vlines_{it}.vtm")
+                vtk_dir = pathlib.Path(vtk_dir)
+                surface_endo.save(vtk_dir / f"endo_{it}.vtp")
+                pv.merge(hlines).save(vtk_dir / f"hlines_{it}.vtp")
+                pv.merge(vlines).save(vtk_dir / f"vlines_{it}.vtp")
 
         hlength_array = np.array(hlength_array)
         vlength_array = np.array(vlength_array)

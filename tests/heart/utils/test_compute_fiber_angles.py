@@ -27,7 +27,7 @@ import numpy as np
 from ansys.health.heart.utils.misc import signed_angle_between_vectors
 
 
-def test_compute_signed_angle():
+def test_compute_signed_angles():
     """Test computing signed angles between vectors."""
 
     # Local coordinate system

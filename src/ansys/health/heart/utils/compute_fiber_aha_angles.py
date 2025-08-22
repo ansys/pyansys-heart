@@ -52,8 +52,26 @@ def angle_between_vectors(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     )
 
 
-def signed_angle_between_vectors(x, y, n):
-    """Computes signed angles between N number of M-dimensional vectors
+def signed_angle_between_vectors(x: np.ndarray, y: np.ndarray, n: np.ndarray):
+    """Compute signed angles between N number of M-dimensional vectors.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        (N,M) array for which to compute the angles.
+    y : np.ndarray
+        (N,M) array with reference vectors.
+    n : np.ndarray
+        (N,M) array with normal vectors of the reference plane.
+
+    Returns
+    -------
+    np.ndarray
+        Array of signed angles in degrees of size (N,).
+
+    Notes
+    -----
+    Computes signed angles between N number of M-dimensional vectors
         Input:  shape(x): (N,M)
                 shape(y): (N,M)
                 shape(n): (N,M)
@@ -73,10 +91,19 @@ def signed_angle_between_vectors(x, y, n):
 
     ==>  (Va x Vb) . Vn == |Va| * |Vb| * sin(beta)
 
-    """  # noqa
-    n /= norm(n, axis=1)[:, None]  # normalize normal vectors
+    """
+    # normalize vectors
+    n /= norm(n, axis=1)[:, None]
+    x /= norm(x, axis=1)[:, None]
+    y /= norm(y, axis=1)[:, None]
 
-    return np.arctan2(np.sum(np.cross(x, y) * n, axis=1), np.sum(x * y, axis=1)) * 180 / np.pi
+    nan_mask = np.isclose(np.linalg.norm(np.cross(x, n), axis=1), 0)
+
+    angles = np.arctan2(np.sum(np.cross(x, y) * n, axis=1), np.sum(x * y, axis=1))
+
+    angles[nan_mask] = np.nan  # Set angles where x is parallel to n to NaN
+
+    return angles * 180 / np.pi
 
 
 def compute_aha_fiber_angles(mesh: pv.UnstructuredGrid, out_dir):

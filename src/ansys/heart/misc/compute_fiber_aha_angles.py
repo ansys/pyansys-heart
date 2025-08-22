@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -35,11 +35,11 @@ from numpy.linalg import norm
 import pandas as pd
 import pyvista as pv
 
-import ansys.heart.core.models as models
-from ansys.heart.simulator.simulator import DynaSettings, EPSimulator
+import ansys.health.heart.models as models
+from ansys.health.heart.simulator import DynaSettings, EPSimulator
 
 
-def angle_btw_vectors(x, y):
+def angle_btw_vectors(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Computes angles between N number of M-dimensional vectors
     Input:  shape(x): (N,M)
             shape(y): (N,M)
@@ -52,7 +52,7 @@ def angle_btw_vectors(x, y):
     )
 
 
-def signed_angle_btw_vectors(x, y, n):
+def signed_angle_between_vectors(x, y, n):
     """Computes signed angles between N number of M-dimensional vectors
         Input:  shape(x): (N,M)
                 shape(y): (N,M)
@@ -132,10 +132,10 @@ def compute_aha_fiber_angles(mesh: pv.UnstructuredGrid, out_dir):
     el_grad_r = el_grad_r / np.linalg.norm(el_grad_r, axis=1)[:, None]
 
     # compute angle between fibers and transmural vectors
-    el_angles_t = signed_angle_btw_vectors(el_fibers, el_grad_t, el_grad_r)
+    el_angles_t = signed_angle_between_vectors(el_fibers, el_grad_t, el_grad_r)
 
     # compute angle between fibers and rotational vectors
-    el_angles_r = signed_angle_btw_vectors(el_grad_r, el_fibers, el_grad_t)
+    el_angles_r = signed_angle_between_vectors(el_grad_r, el_fibers, el_grad_t)
 
     # get aha17 label for left ventricle elements
     aha17_label = aha_ids[aha_elements]
@@ -271,7 +271,7 @@ if __name__ == "__main__":
     simulator.compute_fibers()
 
     # get AHA labels
-    from ansys.heart.core.helpers.landmarks import compute_aha17
+    from ansys.health.heart.utils.landmark_utils import compute_aha17
 
     aha_ids = compute_aha17(simulator.model, simulator.model.short_axis, simulator.model.l4cv_axis)
     grid = simulator.model.mesh.extract_cells_by_type(10)

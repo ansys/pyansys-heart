@@ -39,7 +39,7 @@ import ansys.health.heart.models as models
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
 
 
-def angle_btw_vectors(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+def angle_between_vectors(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     """Computes angles between N number of M-dimensional vectors
     Input:  shape(x): (N,M)
             shape(y): (N,M)
@@ -83,11 +83,10 @@ def compute_aha_fiber_angles(mesh: pv.UnstructuredGrid, out_dir):
     """Computes average fiber inclination in each AHA region
     as a function of the transmural depth
     """  # noqa
-    assert "aha17" in mesh.cell_data
-    assert "fiber" in mesh.cell_data
-    assert "sheet" in mesh.cell_data
-    assert "transmural" in mesh.point_data
-    assert "rotational" in mesh.point_data
+    expected_arrays = ["aha17", "fiber", "sheet", "transmural", "rotational"]
+    for arr in expected_arrays:
+        if arr not in mesh.cell_data and arr not in mesh.point_data:
+            raise ValueError(f"Expected array '{arr}' not found in mesh data.")
 
     aha_ids = mesh["aha17"]
     aha_elements = np.where(~np.isnan(aha_ids))[0]

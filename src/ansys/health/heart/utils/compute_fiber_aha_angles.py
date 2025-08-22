@@ -37,9 +37,16 @@ from ansys.health.heart.utils.misc import signed_angle_between_vectors
 
 
 def compute_aha_fiber_angles(mesh: pv.UnstructuredGrid, out_dir):
-    """Computes average fiber inclination in each AHA region
-    as a function of the transmural depth
-    """  # noqa
+    """Compute the average fiber helix (inclination) and transverse angles.
+
+    Notes
+    -----
+    The helix (or inclination) angle is computed as the signed angle between the fiber direction
+    and the circumferential direction, with the transmural direction as the normal vector.
+
+    The transverse angle is computed as the signed angle between the fiber direction and the
+    transmural direction, with the longitudinal direction as the normal vector.
+    """
     expected_arrays = ["aha17", "fiber", "sheet", "transmural", "rotational"]
     for arr in expected_arrays:
         if arr not in mesh.cell_data and arr not in mesh.point_data:

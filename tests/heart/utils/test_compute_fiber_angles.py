@@ -36,7 +36,9 @@ def test_compute_signed_angles():
     e_l = np.array([0.0, 0.0, 1.0])  # longitudinal direction
 
     # Test fiber directions
-    fiber = np.array([e_c, -e_c, e_l, 2 * e_l, e_t, -e_t, [1.0, 1.0, 1.0], [1.0, 0.0, -1.0]])
+    fiber = np.array(
+        [e_c, -e_c, e_l, 2 * e_l, e_t, -e_t, [1.0, 1.0, 1.0], [1.0, 0.0, -1.0], [-1.0, 0.0, -1.0]]
+    )
     expected_angles = np.array(
         [
             0.0,  # angle between two equal vectors is 0
@@ -47,6 +49,7 @@ def test_compute_signed_angles():
             np.nan,  # undefined due to parallel with normal vector
             45.0,  # angle should be 45 degrees for the vector [1, 1, 1]
             -45.0,  # angle should be -45 degrees for the vector [1, 0, -1]
+            -135.0,  # angle should be -135 degrees for the vector [1, 0, -1]
         ]
     )
 

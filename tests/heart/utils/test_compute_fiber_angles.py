@@ -24,20 +24,33 @@
 
 import numpy as np
 
-from ansys.health.heart.utils.misc import signed_angle_between_vectors
+from ansys.health.heart.utils.misc import angle_between_vectors
 
 
 def test_compute_signed_angles():
     """Test computing signed angles between vectors."""
 
-    # Local coordinate system
-    e_c = np.array([1.0, 0.0, 0.0])  # circumferential direction
-    e_t = np.array([0.0, 1.0, 0.0])  # transverse direction
-    e_l = np.array([0.0, 0.0, 1.0])  # longitudinal direction
+    # Local element coordinate system
+    # <e_t, e_c, e_l> transmural, circumferential, longitudinal directions
+    e_t = np.array([1.0, 0.0, 0.0])  # transmural direction
+    e_c = np.array([0.0, 1.0, 0.0])  # circumferential direction
+    e_l = np.array([0.0, 0.0, 1.0])  # longitudinal direction e_l = e_t X e_c
 
     # Test fiber directions
     fiber = np.array(
-        [e_c, -e_c, e_l, 2 * e_l, e_t, -e_t, [1.0, 1.0, 1.0], [1.0, 0.0, -1.0], [-1.0, 0.0, -1.0]]
+        [
+            e_c,
+            -e_c,
+            e_l,
+            2 * e_l,
+            e_t,
+            -e_t,
+            [1.0, 1.0, 1.0],
+            [1.0, 0.0, -1.0],
+            [-1.0, 0.0, -1.0],
+            [0.0, -1.0, 1.0],
+            [0.0, -1.0, -1.0],
+        ]
     )
     expected_angles = np.array(
         [
@@ -48,8 +61,10 @@ def test_compute_signed_angles():
             np.nan,  # undefined due to parallel with normal vector
             np.nan,  # undefined due to parallel with normal vector
             45.0,  # angle should be 45 degrees for the vector [1, 1, 1]
-            -45.0,  # angle should be -45 degrees for the vector [1, 0, -1]
-            -135.0,  # angle should be -135 degrees for the vector [1, 0, -1]
+            -90.0,  # angle should be -90 degrees for the vector [1, 0, -1]
+            -90.0,  # angle should be -90 degrees for the vector [1, 0, -1]
+            135.0,  # angle should be -45 degrees for the vector [0, -1, 1]
+            -135.0,  # angle should be -135 degrees for the vector [0, -1, -1]
         ]
     )
 
@@ -59,6 +74,26 @@ def test_compute_signed_angles():
     e_t = np.tile(e_t, (num_fibers, 1))
     e_l = np.tile(e_l, (num_fibers, 1))
 
-    computed_angles = signed_angle_between_vectors(x=fiber, y=e_c, n=e_t)
+    computed_angles = angle_between_vectors(
+        x=e_c, y=fiber, n=e_t, representation="2-quadrant-signed"
+    )
 
+    assert np.allclose(computed_angles, expected_angles, equal_nan=True)
+
+    computed_angles = angle_between_vectors(x=e_c, y=fiber, n=e_t, representation="4-quadrant")
+    expected_angles = np.array(
+        [
+            0.0,  # angle between two equal vectors is 0
+            180.0,  # angle between opposite vectors is 180
+            90.0,  # angle between circumferential and longitudinal is 90 degrees
+            90.0,  # angle between circumferential and longitudinal is 90 degrees
+            np.nan,  # undefined due to parallel with normal vector
+            np.nan,  # undefined due to parallel with normal vector
+            45.0,  # angle should be 45 degrees for the vector [1, 1, 1]
+            270,
+            270,
+            135.0,  # angle should be 315 degrees for the vector [1, 0, -1]
+            225.0,  # angle should be 225 degrees for the vector [1, 0, -1]
+        ]
+    )
     assert np.allclose(computed_angles, expected_angles, equal_nan=True)

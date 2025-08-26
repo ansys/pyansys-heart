@@ -23,6 +23,7 @@
 """Module containing miscellaneous methods."""
 
 import os
+from typing import Literal
 
 import numpy as np
 from numpy.linalg import norm
@@ -282,17 +283,26 @@ def interpolate_slerp(
     return result
 
 
-def signed_angle_between_vectors(x: np.ndarray, y: np.ndarray, n: np.ndarray):
-    """Compute signed angles between N number of M-dimensional vectors.
+def angle_between_vectors(
+    x: np.ndarray,
+    y: np.ndarray,
+    n: np.ndarray,
+    representation: Literal["2-quadrant-signed", "4-quadrant"] = "2-quadrant-signed",
+):
+    """Compute signed angles from between N number of M-dimensional vectors.
 
     Parameters
     ----------
     x : np.ndarray
-        (N,M) array for which to compute the angles.
-    y : np.ndarray
         (N,M) array with reference vectors.
+    y : np.ndarray
+        (N,M) array with vectors for which to compute the angle.
     n : np.ndarray
-        (N,M) array with normal vectors of the reference plane.
+        (N,M) array with normal vectors of the plane on which to project y.
+    representation : Literal["2-quadrant-signed", "4-quadrant"], default: "2-quadrant-signed"
+        Representation of the angle:
+            - "2-quadrant-signed": angles in the range [-180, 180)
+            - "4-quadrant": angles in the range [0, 360)
 
     Returns
     -------
@@ -301,25 +311,8 @@ def signed_angle_between_vectors(x: np.ndarray, y: np.ndarray, n: np.ndarray):
 
     Notes
     -----
-    Computes signed angles between N number of M-dimensional vectors
-        Input:  shape(x): (N,M)
-                shape(y): (N,M)
-                shape(n): (N,M)
-        Output: shape(): (N,)
-
-    Va . Vb == |Va| * |Vb| * cos(alpha)    (by definition)
-            == |Va| * |Vb| * cos(beta)     (cos(alpha) == cos(-alpha) == cos(360° - alpha)
-
-
-    Va x Vb == |Va| * |Vb| * sin(alpha) * n1
-        (by definition; n1 is a unit vector perpendicular to Va and Vb with
-         orientation matching the right-hand rule)
-
-    Therefore (again assuming Vn is normalized):
-       n1 . Vn == 1 when beta < 180
-       n1 . Vn == -1 when beta > 180
-
-    ==>  (Va x Vb) . Vn == |Va| * |Vb| * sin(beta)
+    Projects y vectors onto the planes defined by the n vectors and then computes the angle
+    between the x and the projected y vectors.
 
     """
     # normalize vectors
@@ -329,8 +322,18 @@ def signed_angle_between_vectors(x: np.ndarray, y: np.ndarray, n: np.ndarray):
 
     nan_mask = np.isclose(np.linalg.norm(np.cross(x, n), axis=1), 0)
 
-    angles = np.arctan2(np.sum(np.cross(x, y) * n, axis=1), np.sum(x * y, axis=1))
+    # project y onto n
+    y_proj = y - np.sum(y * n, axis=1, keepdims=True) * n
+    y_proj /= norm(y_proj, axis=1)[:, None]
 
-    angles[nan_mask] = np.nan  # Set angles where x is parallel to n to NaN
+    # compute angle between projected y and x, positive angle following right-hand rule around n
+    angles = np.arctan2(np.sum(np.cross(x, y_proj) * n, axis=1), np.sum(x * y_proj, axis=1))
 
-    return angles * 180 / np.pi
+    angles[nan_mask] = np.nan  # Set angles where y is parallel to n to NaN
+
+    angles = np.degrees(angles)
+
+    if representation == "4-quadrant":
+        return np.mod(angles + 360, 360)
+    else:
+        return angles

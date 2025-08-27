@@ -289,14 +289,14 @@ def angle_between_vectors(
     n: np.ndarray,
     representation: Literal["2-quadrant-signed", "4-quadrant"] = "2-quadrant-signed",
 ):
-    """Compute signed angles from between N number of M-dimensional vectors.
+    """Compute signed angles between N number of M-dimensional vectors.
 
     Parameters
     ----------
     x : np.ndarray
-        (N,M) array with reference vectors.
+        (N,M) array with first (reference) vectors.
     y : np.ndarray
-        (N,M) array with vectors for which to compute the angle.
+        (N,M) array with second vectors. The angle is computed from vectors x to vectors y.
     n : np.ndarray
         (N,M) array with normal vectors of the plane on which to project y.
     representation : Literal["2-quadrant-signed", "4-quadrant"], default: "2-quadrant-signed"

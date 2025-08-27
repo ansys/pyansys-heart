@@ -33,7 +33,7 @@ import pyvista as pv
 from ansys.health.heart.utils.misc import angle_between_vectors
 
 
-def compute_gradient(mesh: pv.UnstructuredGrid, scalar: str, interpolate_to_cell: bool = False):
+def _compute_gradient(mesh: pv.UnstructuredGrid, scalar: str, interpolate_to_cell: bool = False):
     """Compute gradient of a scalar field on the mesh.
 
     Parameters
@@ -93,7 +93,7 @@ def _get_angles_from_mesh(grid: pv.UnstructuredGrid) -> pd.DataFrame:
     return data_helix, data_transverse, legend_entries
 
 
-def compute_aha_fiber_angles1(mesh: pv.UnstructuredGrid, out_dir: str):
+def compute_aha_fiber_angles(mesh: pv.UnstructuredGrid, out_dir: str):
     """Compute the average fiber helix and transverse angles."""
     expected_arrays = ["aha17", "fiber", "sheet", "transmural", "rotational"]
     for arr in expected_arrays:
@@ -114,13 +114,13 @@ def compute_aha_fiber_angles1(mesh: pv.UnstructuredGrid, out_dir: str):
     el_sheets = aha_model.cell_data["sheet"]  # noqa N841
 
     # TODO : interpolate t instead of grad_t
-    aha_model.cell_data["grad_transmural"] = compute_gradient(
+    aha_model.cell_data["grad_transmural"] = _compute_gradient(
         aha_model, "transmural", interpolate_to_cell=True
     )
     el_grad_t = aha_model.cell_data["grad_transmural"]
 
     # compute rotational vector from derivative of rotational coordinate
-    aha_model.cell_data["grad_rotational"] = compute_gradient(
+    aha_model.cell_data["grad_rotational"] = _compute_gradient(
         aha_model, "rotational", interpolate_to_cell=True
     )
     el_grad_r = aha_model.cell_data["grad_rotational"]
@@ -135,14 +135,6 @@ def compute_aha_fiber_angles1(mesh: pv.UnstructuredGrid, out_dir: str):
     el_grad_r = el_grad_r / np.linalg.norm(el_grad_r, axis=1)[:, None]
 
     aha_model.cell_data["grad_rotational"] = el_grad_r
-
-    # visualize: rotational vector
-    # plotter = pv.Plotter()
-    # aha_model.set_active_scalars("aha17")
-    # glyph = aha_model.glyph("grad_transmural", scale=False)
-    # plotter.add_mesh(aha_model, opacity=0.1, color="white")
-    # plotter.add_mesh(glyph, color="blue")
-    # plotter.show()
 
     # compute longitudinal vector as cross product of transmural and rotational vectors
     el_grad_l = np.cross(el_grad_t, el_grad_r)
@@ -173,8 +165,8 @@ def compute_aha_fiber_angles1(mesh: pv.UnstructuredGrid, out_dir: str):
     aha_model.cell_data["depth_bin"] = 0.0
     depth_bin = 1
     for lower, upper in zip(depth_lower_limit, depth_upper_limit):
-        mask = aha_model["depth"] > lower
-        mask &= aha_model["depth"] < upper
+        mask = aha_model.cell_data["depth"] > lower
+        mask &= aha_model.cell_data["depth"] < upper
 
         aha_model.cell_data["depth_bin"][mask] = float(depth_bin)
         depth_bin += 1
@@ -192,35 +184,9 @@ def compute_aha_fiber_angles1(mesh: pv.UnstructuredGrid, out_dir: str):
     df_transverse_angle = pd.DataFrame(data=data_transverse.T, index=rows, columns=cols)
     df_transverse_angle.to_csv(os.path.join(out_dir, "AHA_fiber_angles_t.csv"), index=True)
 
-    # fig, axs = plt.subplots(1, 2)
-    # axs[0].plot(depth_bin_ctrs, data_helix, "o-")
-    # axs[0].set_title(r"Helix Angle alpha_h")
-    # axs[0].set_xlim([-1, 1])
-    # axs[0].set_xlabel("transmural depth")
-    # axs[0].set_ylabel("angle [deg]")
-    # axs[1].plot(depth_bin_ctrs, data_transverse, "o-")
-    # axs[1].set_title(r"Transverse Angle alpha_t")
-    # axs[1].set_xlabel("transmural depth [-]")
-    # axs[1].set_xlim([-1, 1])
-    # axs[0].legend(legend_entries)
-    # fig.show()
+    aha_model.save(os.path.join(out_dir, "aha_model.vtu"))
 
-    # aha_model.save(os.path.join(out_dir, "aha_model.vtu"))
-
-    # sub_model: pv.UnstructuredGrid = aha_model.threshold([1, 1], "aha17").threshold(
-    #     [1, 1], "depth_bin"
-    # )
-
-    # # plot components: transmural, rotational and longitudinal vectors
-    # plotter = pv.Plotter()
-    # plotter.add_mesh(sub_model.glyph("grad_transmural", scale=False), color="b")
-    # plotter.add_mesh(sub_model.glyph("grad_rotational", scale=False), color="r")
-    # plotter.add_mesh(sub_model.glyph("grad_longitudinal", scale=False), color="g")
-    # plotter.add_mesh(sub_model.glyph("fiber", scale=False), color="white")
-    # plotter.add_mesh(aha_model, opacity=0.5, color="white")
-    # plotter.show()
-
-    return df_helix_angle, df_transverse_angle
+    return df_helix_angle, df_transverse_angle, aha_model
 
 
 def plot_fiber_aha_angles(data: pd.DataFrame | str):

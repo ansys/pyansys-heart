@@ -7,7 +7,7 @@ Release notes
 
 .. towncrier release notes start
 
-`0.14.2 <https://github.com/ansys/pyansys-heart/releases/tag/v0.14.2>`_ (August 08, 2025)
+`0.14.3 <https://github.com/ansys/pyansys-heart/releases/tag/v0.14.3>`_ (August 27, 2025)
 =========================================================================================
 
 .. tab-set::
@@ -55,6 +55,9 @@ Release notes
 
         * - Missing input files when Fluent is launched in PIM Mode
           - `#1189 <https://github.com/ansys/pyansys-heart/pull/1189>`_
+
+        * - Data files for examples
+          - `#1223 <https://github.com/ansys/pyansys-heart/pull/1223>`_
 
 
   .. tab-item:: Documentation

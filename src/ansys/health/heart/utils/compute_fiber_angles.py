@@ -23,6 +23,7 @@
 """Compute average fiber orientations with respect to UHCs in each AHA region in the LV."""
 
 import os
+from typing import Literal
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -93,21 +94,43 @@ def _get_angles_from_mesh(grid: pv.UnstructuredGrid) -> pd.DataFrame:
     return data_helix, data_transverse, legend_entries
 
 
-def compute_aha_fiber_angles(mesh: pv.UnstructuredGrid, out_dir: str):
-    """Compute the average fiber helix and transverse angles."""
+def _compute_aha_fiber_angles(
+    mesh: pv.UnstructuredGrid, out_dir: str, num_layers: int = 9
+) -> tuple[pd.DataFrame, pd.DataFrame, pv.UnstructuredGrid]:
+    """Compute the average helix and transverse angles over N number of layers.
+
+    Parameters
+    ----------
+    mesh : pv.UnstructuredGrid
+        Mesh containing the fiber orientations, transmural, and rotational data.
+    out_dir : str
+        Output directory for saving results.
+    num_layers : int, default: 9
+        Number of layers to compute average angles over.
+
+    Returns
+    -------
+    tuple[pd.DataFrame, pd.DataFrame, pv.UnstructuredGrid]
+        DataFrames containing the average helix and transverse angles, and the updated mesh.
+
+    Raises
+    ------
+    ValueError
+        If the expected arrays are not found in the mesh data.
+    """
     expected_arrays = ["aha17", "fiber", "sheet", "transmural", "rotational"]
     for arr in expected_arrays:
         if arr not in mesh.cell_data and arr not in mesh.point_data:
             raise ValueError(f"Expected array '{arr}' not found in mesh data.")
+
+    if num_layers < 1 or not isinstance(num_layers, int):
+        raise ValueError("num_layers must be a positive integer.")
 
     aha_ids = mesh["aha17"]
     aha_elements = np.where(~np.isnan(aha_ids))[0]
     aha_model: pv.UnstructuredGrid = mesh.extract_cells(aha_elements)
     # aha_model.cell_data["fiber"] = aha_model.cell_data["fiber"] * -1  # flip fiber direction
     aha_ids = aha_model.cell_data["aha17"]
-
-    # flip fibers
-    # aha_model.cell_data["fiber"] = 1 * aha_model.cell_data["fiber"]
 
     # load fibers and sheets at cells
     el_fibers = aha_model.cell_data["fiber"]
@@ -189,7 +212,9 @@ def compute_aha_fiber_angles(mesh: pv.UnstructuredGrid, out_dir: str):
     return df_helix_angle, df_transverse_angle, aha_model
 
 
-def plot_fiber_aha_angles(data: pd.DataFrame | str):
+def plot_fiber_aha_angles(
+    data: pd.DataFrame | str, angle_type: Literal["helix", "transverse"] = "helix"
+):
     """
     Plot average fiber helical orientation in each AHA as a function of transmural depth
 
@@ -235,8 +260,15 @@ def plot_fiber_aha_angles(data: pd.DataFrame | str):
         axs[i, j].set_xlim(xmin=-1, xmax=1)
         axs[i, j].set_ylim(ymin=-100, ymax=100)
 
+    if angle_type == "transverse":
+        y_label = "$\\alpha_t$"
+    elif angle_type == "helix":
+        y_label = "$\\alpha_h$"
+    else:
+        y_label = "$\\alpha$"
+
     for ax in axs.flat:
-        ax.set(xlabel="Transmural Depth", ylabel="$\\alpha_h$")
+        ax.set(xlabel="Transmural Depth", ylabel=y_label)
 
     for ax in axs.flat:
         ax.label_outer()

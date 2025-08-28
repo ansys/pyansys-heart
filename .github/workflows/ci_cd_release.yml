@@ -170,16 +170,10 @@ jobs:
          docker image prune -f
 
      - name: Run Tox
-       if: ${{ ! matrix.tests.needs_dpf }}
        env:
          PYFLUENT_UI_MODE: "hidden_gui"
        run: |
          uv tool run tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
-
-     - name: Run Tox
-       if: matrix.tests.needs_dpf
-       run: |
-         uv tool run tox -e tests -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -- -m "${{ matrix.tests.markers }}" -vv
 
   build-library:
     name: "Build library"

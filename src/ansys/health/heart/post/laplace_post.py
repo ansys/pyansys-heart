@@ -525,6 +525,10 @@ def compute_ventricle_fiber_by_drbm(
 
     el, en, et = orthogonalization(grid["grad_trans"], k)
 
+    grid.cell_data["e_l"] = el  # rotational direction
+    grid.cell_data["e_n"] = en  # normal/longitudinal direction
+    grid.cell_data["e_t"] = et  # transmural direction
+
     # normalized transmural distance
     if left_only:
         grid["d"] = grid["trans"]
@@ -584,5 +588,7 @@ def compute_ventricle_fiber_by_drbm(
         grid.cell_data["fiber"][i] = qq[:, 0]
         grid.cell_data["cross-fiber"][i] = qq[:, 1]
         grid.cell_data["sheet"][i] = qq[:, 2]
+
+    grid.save("d-rbm-fibers.vtu")
 
     return grid.copy()

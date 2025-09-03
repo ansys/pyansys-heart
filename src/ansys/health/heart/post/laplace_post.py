@@ -118,7 +118,7 @@ def update_transmural_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData)
 def orthogonalization(
     grad_trans: np.ndarray, k: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Orthogonalization.
+    """Create a orthonormal coordinate system.
 
     Parameters
     ----------

@@ -523,9 +523,9 @@ def compute_ventricle_fiber_by_drbm(
     # if not left_only:
     #     grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
 
-    el, en, et = orthogonalization(grid["grad_trans"], k)
+    ec, en, et = orthogonalization(grid["grad_trans"], k)
 
-    grid.cell_data["e_l"] = el  # rotational direction
+    grid.cell_data["e_c"] = ec  # circumferential direction
     grid.cell_data["e_n"] = en  # normal/longitudinal direction
     grid.cell_data["e_t"] = et  # transmural direction
 
@@ -575,7 +575,7 @@ def compute_ventricle_fiber_by_drbm(
 
     # apply rotation
     for i in range(grid.n_cells):
-        q = np.array([el[i], en[i], et[i]]).T
+        q = np.array([ec[i], en[i], et[i]]).T
         # rotate alpha around e_t
         a = alpha[i] * np.pi / 180
         rot1 = np.array([[np.cos(a), -np.sin(a), 0], [np.sin(a), np.cos(a), 0], [0, 0, 1]])

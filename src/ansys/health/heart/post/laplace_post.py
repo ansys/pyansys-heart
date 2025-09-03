@@ -491,8 +491,12 @@ def compute_rotation_angle(
     rot_endo, rot_epi = set_rotation_bounds(w, rotation[0], rotation[1], outflow_tracts)
 
     # interpolate along transmural direction
+    # follow definition in Doste et al:
+    # α = α_endo(w) · (1 − d) + α_epi(w) · d
+
     angle = np.zeros(grid.n_cells)
-    angle = rot_epi * (np.ones(grid.n_cells) - grid["d"]) + rot_endo * grid["d"]
+    # angle = rot_epi * (np.ones(grid.n_cells) - grid["d"]) + rot_endo * grid["d"]
+    angle = rot_endo * (np.ones(grid.n_cells) - grid["d"]) + rot_epi * grid["d"]
     return angle
 
 
@@ -569,7 +573,8 @@ def compute_ventricle_fiber_by_drbm(
     # if not left_only:
     #     grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
 
-    ec, en, et = orthogonalization(grid["grad_trans"], k)
+    # ec, en, et = orthogonalization2(grid["grad_trans"], k)
+    en, et, ec = orthogonalization2(k, grid["grad_trans"])
 
     grid.cell_data["e_c"] = ec  # circumferential direction
     grid.cell_data["e_n"] = en  # normal/longitudinal direction

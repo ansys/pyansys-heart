@@ -31,6 +31,7 @@ from ansys.health.heart.post.laplace_post import (
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
     compute_ventricle_fiber_by_drbm,
+    orthogonalization2,
 )
 from ansys.health.heart.settings.settings import AtrialFiber
 from tests.heart.conftest import get_assets_folder
@@ -134,3 +135,30 @@ def test_compute_ventricle_fiber_by_drbm(_set_env_vars):
         assert np.allclose(res["fiber"][0], np.array([0.03520965, 0.96476314, 0.26075345]))
         assert res["label"][-1] == 2
         assert np.allclose(res["fiber"][-1], np.array([-0.70556093, 0.21479473, 0.67531252]))
+
+
+def test_orthogonalization2():
+    """Test the orthogonalization function."""
+    # Create two non-parallel vectors for 5 cells
+    e_1 = np.tile(np.array([1, 0, 0]), (5, 1))
+    e_2 = np.tile(np.array([1, 1, 0]), (5, 1))
+
+    v1, v2, v3 = orthogonalization2(e_1, e_2)
+
+    # Check shapes
+    assert v1.shape == (5, 3)
+    assert v2.shape == (5, 3)
+    assert v3.shape == (5, 3)
+
+    # Check normalization
+    np.testing.assert_allclose(np.linalg.norm(v1, axis=1), 1)
+    np.testing.assert_allclose(np.linalg.norm(v2, axis=1), 1)
+    np.testing.assert_allclose(np.linalg.norm(v3, axis=1), 1)
+
+    # Check orthogonality
+    np.testing.assert_allclose(np.einsum("ij,ij->i", v1, v2), 0, atol=1e-7)
+    np.testing.assert_allclose(np.einsum("ij,ij->i", v1, v3), 0, atol=1e-7)
+    np.testing.assert_allclose(np.einsum("ij,ij->i", v2, v3), 0, atol=1e-7)
+
+    # Check right-hand rule
+    np.testing.assert_allclose(np.cross(v1, v2), v3, atol=1e-7)

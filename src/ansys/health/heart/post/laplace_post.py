@@ -518,8 +518,10 @@ def compute_ventricle_fiber_by_drbm(
     grid.cell_data["k"] = k
 
     # build local coordinate system
-    if not left_only:
-        grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
+
+    # We flip orientation also for the septal elements, hence inconsistency with LV-only model
+    # if not left_only:
+    #     grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
 
     el, en, et = orthogonalization(grid["grad_trans"], k)
 

@@ -623,7 +623,7 @@ class LaplaceWriter(BaseDynaWriter):
                 if combined_av_mv
                 else (6, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
                 (7, "w_r", [tv_nodeset_id, ra_nodeset_id, pv_nodeset_id], [1, 1, 0]),
-                (8, "lr", [lv_endo_nodeset_id, rv_endo_nodeset_id], [1, -1]),
+                (8, "lr", [lv_endo_nodeset_id, rv_endo_nodeset_id], [2, -1]),
             ]
 
         for case_id, job_name, set_ids, bc_values in cases:

@@ -631,19 +631,9 @@ def compute_ventricle_fiber_by_drbm(
     beta[left_mask] = compute_rotation_angle1(grid["d"][left_mask], settings["beta_left"])
     beta[right_mask] = compute_rotation_angle1(grid["d"][right_mask], settings["beta_right"])
 
-    # save data for inspection
+    # save rotation angles
     grid.cell_data["alpha"] = alpha
     grid.cell_data["beta"] = beta
-    #
-    grid.cell_data["fiber"] = np.zeros((grid.n_cells, 3))
-
-    # use f,n,s in Quateroni, it's n, cross fiber
-    # use FTS in Bayer, it's S, sheet normal
-    grid.cell_data["cross-fiber"] = np.zeros((grid.n_cells, 3))
-
-    # use f,n,s in Quateroni, it's s, sheet
-    # use FTS in Bayer, it's T, transverse
-    grid.cell_data["sheet"] = np.zeros((grid.n_cells, 3))
 
     # 1) rotate vector ec counterclockwise around et by an angle alpha
     rot_alpha = R.from_rotvec(alpha[:, None] * et, degrees=True)
@@ -661,6 +651,8 @@ def compute_ventricle_fiber_by_drbm(
     # NOTE Can add additional rotation in transverse direction, by specifying a
     # transverse angle gamma.
 
+    # {f,n,s} in Piersanti et al. cross-fiber is sheet normal n
+    # {F,T,S} in Bayer et al. cross-fiber is sheet normal S
     grid.cell_data["fiber"] = fibers
     grid.cell_data["cross-fiber"] = cross_fibers
     grid.cell_data["sheet"] = sheets

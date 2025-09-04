@@ -30,6 +30,7 @@ import pyvista as pv
 from ansys.health.heart.post.laplace_post import (
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
+    compute_rotation_angle1,
     compute_ventricle_fiber_by_drbm,
     orthogonalization2,
 )
@@ -162,3 +163,13 @@ def test_orthogonalization2():
 
     # Check right-hand rule
     np.testing.assert_allclose(np.cross(v1, v2), v3, atol=1e-7)
+
+
+def test_compute_rotation_angle1():
+    transmural_distance = np.array([0, 0.5, 1])
+    rotation = [60, -60]
+    angles = compute_rotation_angle1(transmural_distance, rotation)
+
+    # expected angles at transmural distances 0, 0.5, and 1
+    expected = np.array([60, 0, -60])
+    np.testing.assert_allclose(angles, expected)

@@ -195,6 +195,7 @@ def orthogonalization2(
     e_2 /= np.linalg.norm(e_2, axis=1)[:, None]
 
     # Ensure e_2 and e_3 are orthogonal respecting the right hand rule
+    # from e_1 to e_2
     e_3 = np.cross(e_1, e_2)
 
     return e_1, e_2, e_3
@@ -497,6 +498,23 @@ def compute_rotation_angle(
     angle = np.zeros(grid.n_cells)
     # angle = rot_epi * (np.ones(grid.n_cells) - grid["d"]) + rot_endo * grid["d"]
     angle = rot_endo * (np.ones(grid.n_cells) - grid["d"]) + rot_epi * grid["d"]
+    return angle
+
+
+def compute_rotation_angle1(
+    transmural_distance: float | list | np.ndarray,
+    rotation: list[float, float],
+    weight: list | np.ndarray = None,
+):
+    """Compute the rotation angle a for a given transmural depth and weight factor."""
+    if len(rotation) != 2:
+        raise ValueError("Rotation must be a list or array of two elements.")
+
+    rotation_endo, rotation_epi = rotation
+
+    # follow definition in Doste et al:
+    # α = α_endo(w) · (1 − d) + α_epi(w) · d
+    angle = rotation_endo * (1 - transmural_distance) + rotation_epi * transmural_distance
     return angle
 
 

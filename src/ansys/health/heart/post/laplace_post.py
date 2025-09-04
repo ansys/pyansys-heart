@@ -621,7 +621,7 @@ def compute_ventricle_fiber_by_drbm(
         grid["d"][right_mask] = d_r
         grid["d"] = grid["d"] * -1 + 1
 
-    # rotation angles for each cell
+    # rotation angles alpha and beta for each cell
     alpha = np.zeros(grid.n_cells)
     beta = np.zeros(grid.n_cells)
 

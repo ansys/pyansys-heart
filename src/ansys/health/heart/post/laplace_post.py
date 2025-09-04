@@ -27,6 +27,7 @@ import os
 from deprecated import deprecated
 import numpy as np
 import pyvista as pv
+from scipy.spatial.transform import Rotation as R  # noqa N817
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import D3PlotNotSupportedError
@@ -563,6 +564,7 @@ def compute_ventricle_fiber_by_drbm(
         # label to 1 for all cells
         left_mask = np.ones(grid.n_cells, dtype=bool)
         grid.cell_data["label"] = np.ones(grid.n_cells, dtype=int)
+        right_mask = np.invert(left_mask)
     else:
         # label to 1 for left ventricle, 2 for right ventricle
         left_mask = grid["lr"] >= 0
@@ -571,6 +573,12 @@ def compute_ventricle_fiber_by_drbm(
         label[left_mask] = 1
         label[right_mask] = 2
         grid.cell_data["label"] = label
+
+        left_mask = grid["trans"] <= 0
+        right_mask = grid["trans"] > 0
+        grid.cell_data["label1"] = np.zeros(grid.n_cells, dtype=int)
+        grid.cell_data["label1"][left_mask] = 1
+        grid.cell_data["label1"][right_mask] = 2
 
     # normal direction
     k = np.zeros((grid.n_cells, 3))
@@ -585,52 +593,47 @@ def compute_ventricle_fiber_by_drbm(
 
     grid.cell_data["k"] = k
 
-    # build local coordinate system
+    # Build local coordinate system:
+    # The right ventricle transmural gradient is flipped to ensure
+    # a consistent coordinate system:
+    # e_t points from endocardium to epicardium
+    # e_n points from apex to base
+    # e_c = e_n x e_t
+    grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
 
-    # We flip orientation also for the septal elements, hence inconsistency with LV-only model
-    # if not left_only:
-    #     grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
-
-    # ec, en, et = orthogonalization2(grid["grad_trans"], k)
+    # Create orthonormal coordinate system
     en, et, ec = orthogonalization2(k, grid["grad_trans"])
 
+    # Add (unrotated) local coordinate system
     grid.cell_data["e_c"] = ec  # circumferential direction
     grid.cell_data["e_n"] = en  # normal/longitudinal direction
     grid.cell_data["e_t"] = et  # transmural direction
 
-    # normalized transmural distance
     if left_only:
         grid["d"] = grid["trans"]
     else:
-        d_l = grid["trans"] / 2
-        d_r = np.absolute(grid["trans"])
+        # normalize transmural distance to [0,1) in each ventricle
+        # where 0 is endocardium, and 1 is epicardium
+        d_l = np.absolute(grid["trans"][left_mask] / 2)
+        d_r = np.absolute(grid["trans"][right_mask])
         grid["d"] = np.zeros(grid.n_cells, dtype=float)
-        grid["d"][left_mask] = d_l[left_mask]
-        grid["d"][right_mask] = d_r[right_mask]
+        grid["d"][left_mask] = d_l
+        grid["d"][right_mask] = d_r
+        grid["d"] = grid["d"] * -1 + 1
 
     # rotation angles for each cell
     alpha = np.zeros(grid.n_cells)
     beta = np.zeros(grid.n_cells)
 
-    alpha[left_mask] = compute_rotation_angle(
-        grid, grid["w_l"], settings["alpha_left"], settings["alpha_ot"]
-    )[left_mask]
-    beta[left_mask] = compute_rotation_angle(
-        grid, grid["w_l"], settings["beta_left"], settings["beta_ot"]
-    )[left_mask]
+    alpha[left_mask] = compute_rotation_angle1(grid["d"][left_mask], settings["alpha_left"])
+    alpha[right_mask] = compute_rotation_angle1(grid["d"][right_mask], settings["alpha_right"])
 
-    if not left_only:
-        alpha[right_mask] = compute_rotation_angle(
-            grid, grid["w_r"], settings["alpha_right"], settings["alpha_ot"]
-        )[right_mask]
-        beta[right_mask] = compute_rotation_angle(
-            grid, grid["w_r"], settings["beta_right"], settings["beta_ot"]
-        )[right_mask]
+    beta[left_mask] = compute_rotation_angle1(grid["d"][left_mask], settings["beta_left"])
+    beta[right_mask] = compute_rotation_angle1(grid["d"][right_mask], settings["beta_right"])
 
     # save data for inspection
     grid.cell_data["alpha"] = alpha
     grid.cell_data["beta"] = beta
-
     #
     grid.cell_data["fiber"] = np.zeros((grid.n_cells, 3))
 
@@ -642,21 +645,25 @@ def compute_ventricle_fiber_by_drbm(
     # use FTS in Bayer, it's T, transverse
     grid.cell_data["sheet"] = np.zeros((grid.n_cells, 3))
 
-    # apply rotation
-    for i in range(grid.n_cells):
-        q = np.array([ec[i], en[i], et[i]]).T
-        # rotate alpha around e_t
-        a = alpha[i] * np.pi / 180
-        rot1 = np.array([[np.cos(a), -np.sin(a), 0], [np.sin(a), np.cos(a), 0], [0, 0, 1]])
-        # rotate beta around e_l
-        b = beta[i] * np.pi / 180
-        rot2 = np.array([[1, 0, 0], [0, np.cos(b), np.sin(b)], [0, -np.sin(b), np.cos(b)]])
-        # apply rotation
-        qq = np.matmul(np.matmul(q, rot1), rot2)
+    # 1) rotate vector ec counterclockwise around et by an angle alpha
+    rot_alpha = R.from_rotvec(alpha[:, None] * et, degrees=True)
 
-        grid.cell_data["fiber"][i] = qq[:, 0]
-        grid.cell_data["cross-fiber"][i] = qq[:, 1]
-        grid.cell_data["sheet"][i] = qq[:, 2]
+    fibers = rot_alpha.apply(ec)
+    cross_fibers = rot_alpha.apply(en)
+    sheets = et
+
+    # 2) rotate vector ec counterclockwise around el or fibers by an angle beta
+    rot_beta = R.from_rotvec(beta[:, None] * fibers, degrees=True)
+
+    cross_fibers = rot_beta.apply(cross_fibers)
+    sheets = rot_beta.apply(sheets)
+
+    # NOTE Can add additional rotation in transverse direction, by specifying a
+    # transverse angle gamma.
+
+    grid.cell_data["fiber"] = fibers
+    grid.cell_data["cross-fiber"] = cross_fibers
+    grid.cell_data["sheet"] = sheets
 
     grid.save("d-rbm-fibers.vtu")
 

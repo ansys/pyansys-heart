@@ -567,18 +567,11 @@ def compute_ventricle_fiber_by_drbm(
         right_mask = np.invert(left_mask)
     else:
         # label to 1 for left ventricle, 2 for right ventricle
-        left_mask = grid["lr"] >= 0
-        right_mask = grid["lr"] < 0
-        label = np.zeros(grid.n_cells, dtype=int)
-        label[left_mask] = 1
-        label[right_mask] = 2
-        grid.cell_data["label"] = label
-
         left_mask = grid["trans"] <= 0
         right_mask = grid["trans"] > 0
-        grid.cell_data["label1"] = np.zeros(grid.n_cells, dtype=int)
-        grid.cell_data["label1"][left_mask] = 1
-        grid.cell_data["label1"][right_mask] = 2
+        grid.cell_data["label"] = np.zeros(grid.n_cells, dtype=int)
+        grid.cell_data["label"][left_mask] = 1
+        grid.cell_data["label"][right_mask] = 2
 
     # normal direction
     k = np.zeros((grid.n_cells, 3))

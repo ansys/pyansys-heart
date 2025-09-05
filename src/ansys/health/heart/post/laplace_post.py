@@ -555,7 +555,7 @@ def compute_ventricle_fiber_by_drbm(
     """
     solutions = ["trans", "ab_l", "ot_l", "w_l"]
     if not left_only:
-        solutions.extend(["ab_r", "ot_r", "w_r", "lr"])
+        solutions.extend(["ab_r", "ot_r", "w_r"])
 
     data = read_laplace_solution(directory, field_list=solutions, read_heatflux=True)
     grid = data.point_data_to_cell_data()

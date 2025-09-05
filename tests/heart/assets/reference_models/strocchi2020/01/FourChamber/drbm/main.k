@@ -45,10 +45,10 @@ $#   scid1     scid2     scid3     scid4     scid5     scid6     scid7     scid8
 *CASE_BEGIN_1
 *BOUNDARY_TEMPERATURE_SET
 $#    nsid      lcid     cmult       loc    tdeath    tbirth
-         1         0       2.0         0     1e+20       0.0
+         1         0      -2.0         0     1e+20       0.0
 *BOUNDARY_TEMPERATURE_SET
 $#    nsid      lcid     cmult       loc    tdeath    tbirth
-         2         0      -1.0         0     1e+20       0.0
+         2         0       1.0         0     1e+20       0.0
 *BOUNDARY_TEMPERATURE_SET
 $#    nsid      lcid     cmult       loc    tdeath    tbirth
          3         0       0.0         0     1e+20       0.0
@@ -149,21 +149,6 @@ $#    nsid      lcid     cmult       loc    tdeath    tbirth
 $#    nsid      lcid     cmult       loc    tdeath    tbirth
          7         0       0.0         0     1e+20       0.0
 *CASE_END_7
-*CASE
-$#  caseid                                                                 jobid
-         8lr                                                                    
-$#                                                                      commands
-                                                                                
-$#   scid1     scid2     scid3     scid4     scid5     scid6     scid7     scid8
-         8                                                                      
-*CASE_BEGIN_8
-*BOUNDARY_TEMPERATURE_SET
-$#    nsid      lcid     cmult       loc    tdeath    tbirth
-         1         0       1.0         0     1e+20       0.0
-*BOUNDARY_TEMPERATURE_SET
-$#    nsid      lcid     cmult       loc    tdeath    tbirth
-         2         0      -1.0         0     1e+20       0.0
-*CASE_END_8
 *INCLUDE
 $#                                                                      filename
 parts.k                                                                         

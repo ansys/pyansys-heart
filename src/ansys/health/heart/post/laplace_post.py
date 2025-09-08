@@ -462,17 +462,15 @@ def compute_rotation_angle(
 
 def _compute_rotation_angle(
     transmural_distance: float | list | np.ndarray,
-    rotation: list[float, float],
+    rotation_endocardium: float,
+    rotation_epicardium: float,
 ):
     """Compute the rotation angle a for a given transmural depth and weight factor."""
-    if len(rotation) != 2:
-        raise ValueError("Rotation must be a list or array of two elements.")
-
-    rotation_endo, rotation_epi = rotation
-
     # follow definition in Doste et al:
     # α = α_endo(w) · (1 − d) + α_epi(w) · d
-    angle = rotation_endo * (1 - transmural_distance) + rotation_epi * transmural_distance
+    angle = (
+        rotation_endocardium * (1 - transmural_distance) + rotation_epicardium * transmural_distance
+    )
     return angle
 
 
@@ -575,11 +573,19 @@ def compute_ventricle_fiber_by_drbm(
     alpha = np.zeros(grid.n_cells)
     beta = np.zeros(grid.n_cells)
 
-    alpha[left_mask] = _compute_rotation_angle(grid["d"][left_mask], settings["alpha_left"])
-    alpha[right_mask] = _compute_rotation_angle(grid["d"][right_mask], settings["alpha_right"])
+    alpha[left_mask] = _compute_rotation_angle(
+        grid["d"][left_mask], settings["alpha_left"][0], settings["alpha_left"][1]
+    )
+    alpha[right_mask] = _compute_rotation_angle(
+        grid["d"][right_mask], settings["alpha_right"][0], settings["alpha_right"][1]
+    )
 
-    beta[left_mask] = _compute_rotation_angle(grid["d"][left_mask], settings["beta_left"])
-    beta[right_mask] = _compute_rotation_angle(grid["d"][right_mask], settings["beta_right"])
+    beta[left_mask] = _compute_rotation_angle(
+        grid["d"][left_mask], settings["beta_left"][0], settings["beta_left"][1]
+    )
+    beta[right_mask] = _compute_rotation_angle(
+        grid["d"][right_mask], settings["beta_right"][0], settings["beta_right"][1]
+    )
 
     # save rotation angles
     grid.cell_data["alpha"] = alpha

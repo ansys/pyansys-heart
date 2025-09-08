@@ -170,10 +170,9 @@ def test_orthogonalization():
     np.testing.assert_allclose(np.cross(v1, v2), v3, atol=1e-7)
 
 
-def test_compute_rotation_angle1():
+def test_compute_rotation_angle():
     transmural_distance = np.array([0, 0.5, 1])
-    rotation = [60, -60]
-    angles = _compute_rotation_angle(transmural_distance, rotation)
+    angles = _compute_rotation_angle(transmural_distance, 60, -60)
 
     # expected angles at transmural distances 0, 0.5, and 1
     expected = np.array([60, 0, -60])

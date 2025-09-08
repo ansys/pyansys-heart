@@ -116,51 +116,45 @@ def update_transmural_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData)
     return grad_trans
 
 
-def orthogonalization(
-    e_1: np.ndarray, e_2: np.ndarray
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def orthogonalization(e1: np.ndarray, e2: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Create a orthonormal coordinate system.
 
     Parameters
     ----------
-    e_1 : np.ndarray
+    e1 : np.ndarray
         First unit (N,M) vector of the coordinate system.
-    e_2 : np.ndarray
+    e2 : np.ndarray
         Second unit (N,M) vector of the coordinate system.
 
     Notes
     -----
-    e_3 is orthogonal to the plane spanned by e_1 and e_2 following the right hand rule.
-    Project e_2 onto e_1, and subtract to ensure orthogonality.
+    e3 is orthogonal to the plane spanned by e1 and e2 following the right hand rule.
+    Project e2 onto e1, and subtract to ensure orthogonality.
 
     Returns
     -------
     tuple[np.ndarray, np.ndarray, np.ndarray]
-        Local orthonormal coordinate system ``e_1, e_2, e_3``.
+        Local orthonormal coordinate system ``e1, e2, e3``.
     """
-    norm = np.linalg.norm(e_1, axis=1)
-    bad_vectors = np.argwhere(norm == 0).ravel()
+    e1_norm = np.linalg.norm(e1, axis=1)
+    bad_vectors = np.argwhere(e1_norm == 0).ravel()
 
-    LOGGER.debug(
-        f"{len(bad_vectors)} vectors have a null gradient in transmural direction."
-        f" This should only be at valve regions and can be checked from the VTK file."
-    )
+    LOGGER.debug(f"{len(bad_vectors)} vectors have length zero.")
 
-    norm = np.where(norm != 0, norm, 1)
-    e_1 = e_1 / norm[:, None]
+    e1_norm = np.where(e1_norm != 0, e1_norm, 1)
+    e1 = e1 / e1_norm[:, None]
 
-    # Ensure e_1 and e_2 are orthogonal
-    dot_prod = np.einsum("ij,ij->i", e_1, e_2)
-    e_2 = e_2 - dot_prod[:, None] * e_1
+    # Ensure e1 and e2 are orthogonal
+    dot_prod = np.einsum("ij,ij->i", e1, e2)
+    e2 = e2 - dot_prod[:, None] * e1
 
     # Normalize
-    e_2 /= np.linalg.norm(e_2, axis=1)[:, None]
+    e2 /= np.linalg.norm(e2, axis=1)[:, None]
 
-    # Ensure e_2 and e_3 are orthogonal respecting the right hand rule
-    # from e_1 to e_2
-    e_3 = np.cross(e_1, e_2)
+    # Use right hand rule to compute e3
+    e3 = np.cross(e1, e2)
 
-    return e_1, e_2, e_3
+    return e1, e2, e3
 
 
 def compute_la_fiber_cs(

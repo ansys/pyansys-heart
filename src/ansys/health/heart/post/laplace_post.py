@@ -522,8 +522,8 @@ def compute_rotation_angle1(
 def compute_ventricle_fiber_by_drbm(
     directory: str,
     settings: dict = {
-        "alpha_left": [-60, 60],
-        "alpha_right": [-60, 60],
+        "alpha_left": [60, -60],
+        "alpha_right": [90, -25],
         "alpha_ot": None,
         "beta_left": [-65, 25],
         "beta_right": [-65, 25],

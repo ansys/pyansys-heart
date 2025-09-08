@@ -101,7 +101,6 @@ def test_compute_ra_fiber_cs(_set_env_vars):
         assert pytest.approx(np.dot(res["e_l"][0], res["e_t"][0])) == 0
 
 
-@pytest.mark.xfail(reason="DRBM results changed after code refactor.")
 def test_compute_ventricle_fiber_by_drbm(_set_env_vars):
     dir = os.path.join(get_assets_folder(), "post", "drbm")
     input_grid = pv.read(os.path.join(dir, "data.vtu"))
@@ -112,31 +111,36 @@ def test_compute_ventricle_fiber_by_drbm(_set_env_vars):
     ):
         # test no outflow tract
         res = compute_ventricle_fiber_by_drbm(".")
-        assert np.sum(res["label"] == 1) == 86210
+        assert np.sum(res["label"] == 1) == 96695
 
         assert res["label"][0] == 1
-        assert np.allclose(res["fiber"][0], np.array([0.03515216, 0.964732, 0.26087638]))
         assert res["label"][-1] == 2
-        assert np.allclose(res["fiber"][-1], np.array([0.70611833, 0.32320625, -0.63002748]))
+        assert np.isclose(np.min(res["alpha"]), -60, rtol=1e-1)
+        assert np.isclose(np.max(res["alpha"]), 90, rtol=1e-1)
+        assert np.allclose(res["fiber"][0], np.array([-0.07979692, 0.43617534, -0.89631664]))
+        assert np.allclose(res["fiber"][-1], np.array([0.33103764, 0.77190818, 0.54274473]))
 
         # test with outflow tract
         res = compute_ventricle_fiber_by_drbm(
             ".",
             settings={
-                "alpha_left": [60, -60],
-                "alpha_right": [90, -25],
+                "alpha_left": [40, -40],
+                "alpha_right": [80, -25],
                 "alpha_ot": [90, 0],
                 "beta_left": [-20, 20],
                 "beta_right": [0, 20],
                 "beta_ot": [0, 0],
             },
         )
-        assert np.sum(res["label"] == 1) == 86210
+        assert np.sum(res["label"] == 1) == 96695
 
+        assert np.isclose(np.min(res["alpha"]), -40, rtol=1e-1)
+        assert np.isclose(np.max(res["alpha"]), 80, rtol=1e-1)
         assert res["label"][0] == 1
-        assert np.allclose(res["fiber"][0], np.array([0.03520965, 0.96476314, 0.26075345]))
         assert res["label"][-1] == 2
-        assert np.allclose(res["fiber"][-1], np.array([-0.70556093, 0.21479473, 0.67531252]))
+
+        assert np.allclose(res["fiber"][0], np.array([0.05671137, 0.61760931, -0.78443774]))
+        assert np.allclose(res["fiber"][-1], np.array([-0.26596645, -0.08034016, 0.9606286]))
 
 
 def test_orthogonalization2():

@@ -419,6 +419,7 @@ def set_rotation_bounds(
     return ro_endo, ro_epi
 
 
+@deprecated(reason="Use _compute_rotation_angles instead.")
 def compute_rotation_angle(
     grid: pv.UnstructuredGrid,
     w: np.ndarray,
@@ -459,10 +460,9 @@ def compute_rotation_angle(
     return angle
 
 
-def compute_rotation_angle1(
+def _compute_rotation_angle(
     transmural_distance: float | list | np.ndarray,
     rotation: list[float, float],
-    weight: list | np.ndarray = None,
 ):
     """Compute the rotation angle a for a given transmural depth and weight factor."""
     if len(rotation) != 2:
@@ -575,11 +575,11 @@ def compute_ventricle_fiber_by_drbm(
     alpha = np.zeros(grid.n_cells)
     beta = np.zeros(grid.n_cells)
 
-    alpha[left_mask] = compute_rotation_angle1(grid["d"][left_mask], settings["alpha_left"])
-    alpha[right_mask] = compute_rotation_angle1(grid["d"][right_mask], settings["alpha_right"])
+    alpha[left_mask] = _compute_rotation_angle(grid["d"][left_mask], settings["alpha_left"])
+    alpha[right_mask] = _compute_rotation_angle(grid["d"][right_mask], settings["alpha_right"])
 
-    beta[left_mask] = compute_rotation_angle1(grid["d"][left_mask], settings["beta_left"])
-    beta[right_mask] = compute_rotation_angle1(grid["d"][right_mask], settings["beta_right"])
+    beta[left_mask] = _compute_rotation_angle(grid["d"][left_mask], settings["beta_left"])
+    beta[right_mask] = _compute_rotation_angle(grid["d"][right_mask], settings["beta_right"])
 
     # save rotation angles
     grid.cell_data["alpha"] = alpha

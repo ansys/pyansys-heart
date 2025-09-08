@@ -28,9 +28,9 @@ import pytest
 import pyvista as pv
 
 from ansys.health.heart.post.laplace_post import (
+    _compute_rotation_angle,
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
-    compute_rotation_angle1,
     compute_ventricle_fiber_by_drbm,
     orthogonalization,
 )
@@ -173,7 +173,7 @@ def test_orthogonalization2():
 def test_compute_rotation_angle1():
     transmural_distance = np.array([0, 0.5, 1])
     rotation = [60, -60]
-    angles = compute_rotation_angle1(transmural_distance, rotation)
+    angles = _compute_rotation_angle(transmural_distance, rotation)
 
     # expected angles at transmural distances 0, 0.5, and 1
     expected = np.array([60, 0, -60])

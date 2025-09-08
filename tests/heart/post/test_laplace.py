@@ -32,7 +32,7 @@ from ansys.health.heart.post.laplace_post import (
     compute_ra_fiber_cs,
     compute_rotation_angle1,
     compute_ventricle_fiber_by_drbm,
-    orthogonalization2,
+    orthogonalization,
 )
 from ansys.health.heart.settings.settings import AtrialFiber
 from tests.heart.conftest import get_assets_folder
@@ -149,7 +149,7 @@ def test_orthogonalization2():
     e_1 = np.tile(np.array([1, 0, 0]), (5, 1))
     e_2 = np.tile(np.array([1, 1, 0]), (5, 1))
 
-    v1, v2, v3 = orthogonalization2(e_1, e_2)
+    v1, v2, v3 = orthogonalization(e_1, e_2)
 
     # Check shapes
     assert v1.shape == (5, 3)

@@ -117,45 +117,6 @@ def update_transmural_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData)
 
 
 def orthogonalization(
-    grad_trans: np.ndarray, k: np.ndarray
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Create a orthonormal coordinate system.
-
-    Parameters
-    ----------
-    grad_trans : np.ndarray
-        Transmural vector.
-    k : np.ndarray
-        Bundle selection vector.
-
-    Returns
-    -------
-    tuple[np.ndarray, np.ndarray, np.ndarray]
-        Local coordinate system ``e_l, e_n, e_t``.
-    """
-    norm = np.linalg.norm(grad_trans, axis=1)
-    bad_cells = np.argwhere(norm == 0).ravel()
-
-    LOGGER.debug(
-        f"{len(bad_cells)} cells have null gradient in transmural direction."
-        f" This should only be at valve regions and can be checked from the VTK file."
-    )
-
-    norm = np.where(norm != 0, norm, 1)
-    e_t = grad_trans / norm[:, None]
-
-    k_e = np.einsum("ij,ij->i", k, e_t)
-    en = k - np.einsum("i,ij->ij", k_e, e_t)
-    norm = np.linalg.norm(en, axis=1)
-    norm = np.where(norm != 0, norm, 1)
-    e_n = en / norm[:, None]
-
-    e_l = np.cross(e_n, e_t)
-
-    return e_l, e_n, e_t
-
-
-def orthogonalization2(
     e_1: np.ndarray, e_2: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Create a orthonormal coordinate system.
@@ -272,7 +233,8 @@ def compute_la_fiber_cs(
 
     bundle_selection(grid)
 
-    el, en, et = orthogonalization(grid["grad_trans"], grid["k"])
+    et, en, _ = orthogonalization(grid["grad_trans"], grid["k"])
+    el = np.cross(en, et)
 
     grid.cell_data["e_l"] = el
     grid.cell_data["e_n"] = en
@@ -412,7 +374,8 @@ def compute_ra_fiber_cs(
 
     bundle_selection(grid)
 
-    el, en, et = orthogonalization(grid["grad_trans"], grid["k"])
+    et, en, _ = orthogonalization(grid["grad_trans"], grid["k"])
+    el = np.cross(en, et)
 
     grid.cell_data["e_l"] = el
     grid.cell_data["e_n"] = en
@@ -595,7 +558,7 @@ def compute_ventricle_fiber_by_drbm(
     grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
 
     # Create orthonormal coordinate system
-    en, et, ec = orthogonalization2(k, grid["grad_trans"])
+    en, et, ec = orthogonalization(k, grid["grad_trans"])
 
     # Add (unrotated) local coordinate system
     grid.cell_data["e_c"] = ec  # circumferential direction

@@ -516,7 +516,7 @@ class EPSimulator(BaseSimulator):
 
     def compute_conduction_system(self):
         """Compute the conduction system."""
-        if isinstance(self.model, models.FourChamber):
+        if isinstance(self.model, (models.FourChamber, models.BiVentricle)):
             # TODO: refinement is not correctly used
             # beam_length = self.settings.purkinje.edgelen.m
 

@@ -143,7 +143,7 @@ def test_compute_ventricle_fiber_by_drbm(_set_env_vars):
         assert np.allclose(res["fiber"][-1], np.array([-0.26596645, -0.08034016, 0.9606286]))
 
 
-def test_orthogonalization2():
+def test_orthogonalization():
     """Test the orthogonalization function."""
     # Create two non-parallel vectors for 5 cells
     e_1 = np.tile(np.array([1, 0, 0]), (5, 1))

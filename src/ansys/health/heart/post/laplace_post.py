@@ -27,6 +27,7 @@ import os
 from deprecated import deprecated
 import numpy as np
 import pyvista as pv
+from scipy.spatial.transform import Rotation as R  # noqa N817
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import D3PlotNotSupportedError
@@ -115,43 +116,45 @@ def update_transmural_by_normal(grid: pv.UnstructuredGrid, surface: pv.PolyData)
     return grad_trans
 
 
-def orthogonalization(
-    grad_trans: np.ndarray, k: np.ndarray
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Orthogonalization.
+def orthogonalization(e1: np.ndarray, e2: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Create a orthonormal coordinate system.
 
     Parameters
     ----------
-    grad_trans : np.ndarray
-        Transmural vector.
-    k : np.ndarray
-        Bundle selection vector.
+    e1 : np.ndarray
+        First unit (N,M) vector of the coordinate system.
+    e2 : np.ndarray
+        Second unit (N,M) vector of the coordinate system.
+
+    Notes
+    -----
+    e3 is orthogonal to the plane spanned by e1 and e2 following the right hand rule.
+    Project e2 onto e1, and subtract to ensure orthogonality.
 
     Returns
     -------
     tuple[np.ndarray, np.ndarray, np.ndarray]
-        Local coordinate system ``e_l, e_n, e_t``.
+        Local orthonormal coordinate system ``e1, e2, e3``.
     """
-    norm = np.linalg.norm(grad_trans, axis=1)
-    bad_cells = np.argwhere(norm == 0).ravel()
+    e1_norm = np.linalg.norm(e1, axis=1)
+    bad_vectors = np.argwhere(e1_norm == 0).ravel()
 
-    LOGGER.debug(
-        f"{len(bad_cells)} cells have null gradient in transmural direction."
-        f" This should only be at valve regions and can be checked from the VTK file."
-    )
+    LOGGER.debug(f"{len(bad_vectors)} vectors have length zero.")
 
-    norm = np.where(norm != 0, norm, 1)
-    e_t = grad_trans / norm[:, None]
+    e1_norm = np.where(e1_norm != 0, e1_norm, 1)
+    e1 = e1 / e1_norm[:, None]
 
-    k_e = np.einsum("ij,ij->i", k, e_t)
-    en = k - np.einsum("i,ij->ij", k_e, e_t)
-    norm = np.linalg.norm(en, axis=1)
-    norm = np.where(norm != 0, norm, 1)
-    e_n = en / norm[:, None]
+    # Ensure e1 and e2 are orthogonal
+    dot_prod = np.einsum("ij,ij->i", e1, e2)
+    e2 = e2 - dot_prod[:, None] * e1
 
-    e_l = np.cross(e_n, e_t)
+    # Normalize
+    e2 /= np.linalg.norm(e2, axis=1)[:, None]
 
-    return e_l, e_n, e_t
+    # Use right hand rule to compute e3
+    e3 = np.cross(e1, e2)
+
+    return e1, e2, e3
 
 
 def compute_la_fiber_cs(
@@ -224,7 +227,8 @@ def compute_la_fiber_cs(
 
     bundle_selection(grid)
 
-    el, en, et = orthogonalization(grid["grad_trans"], grid["k"])
+    et, en, _ = orthogonalization(grid["grad_trans"], grid["k"])
+    el = np.cross(en, et)
 
     grid.cell_data["e_l"] = el
     grid.cell_data["e_n"] = en
@@ -364,7 +368,8 @@ def compute_ra_fiber_cs(
 
     bundle_selection(grid)
 
-    el, en, et = orthogonalization(grid["grad_trans"], grid["k"])
+    et, en, _ = orthogonalization(grid["grad_trans"], grid["k"])
+    el = np.cross(en, et)
 
     grid.cell_data["e_l"] = el
     grid.cell_data["e_n"] = en
@@ -414,6 +419,7 @@ def set_rotation_bounds(
     return ro_endo, ro_epi
 
 
+@deprecated(reason="Use _compute_rotation_angles instead.")
 def compute_rotation_angle(
     grid: pv.UnstructuredGrid,
     w: np.ndarray,
@@ -445,16 +451,34 @@ def compute_rotation_angle(
     rot_endo, rot_epi = set_rotation_bounds(w, rotation[0], rotation[1], outflow_tracts)
 
     # interpolate along transmural direction
+    # follow definition in Doste et al:
+    # α = α_endo(w) · (1 − d) + α_epi(w) · d
+
     angle = np.zeros(grid.n_cells)
-    angle = rot_epi * (np.ones(grid.n_cells) - grid["d"]) + rot_endo * grid["d"]
+    # angle = rot_epi * (np.ones(grid.n_cells) - grid["d"]) + rot_endo * grid["d"]
+    angle = rot_endo * (np.ones(grid.n_cells) - grid["d"]) + rot_epi * grid["d"]
+    return angle
+
+
+def _compute_rotation_angle(
+    transmural_distance: float | list | np.ndarray,
+    rotation_endocardium: float,
+    rotation_epicardium: float,
+):
+    """Compute the rotation angle a for a given transmural depth and weight factor."""
+    # follow definition in Doste et al:
+    # α = α_endo(w) · (1 − d) + α_epi(w) · d
+    angle = (
+        rotation_endocardium * (1 - transmural_distance) + rotation_epicardium * transmural_distance
+    )
     return angle
 
 
 def compute_ventricle_fiber_by_drbm(
     directory: str,
     settings: dict = {
-        "alpha_left": [-60, 60],
-        "alpha_right": [-60, 60],
+        "alpha_left": [60, -60],
+        "alpha_right": [90, -25],
         "alpha_ot": None,
         "beta_left": [-65, 25],
         "beta_right": [-65, 25],
@@ -486,7 +510,7 @@ def compute_ventricle_fiber_by_drbm(
     """
     solutions = ["trans", "ab_l", "ot_l", "w_l"]
     if not left_only:
-        solutions.extend(["ab_r", "ot_r", "w_r", "lr"])
+        solutions.extend(["ab_r", "ot_r", "w_r"])
 
     data = read_laplace_solution(directory, field_list=solutions, read_heatflux=True)
     grid = data.point_data_to_cell_data()
@@ -495,14 +519,14 @@ def compute_ventricle_fiber_by_drbm(
         # label to 1 for all cells
         left_mask = np.ones(grid.n_cells, dtype=bool)
         grid.cell_data["label"] = np.ones(grid.n_cells, dtype=int)
+        right_mask = np.invert(left_mask)
     else:
         # label to 1 for left ventricle, 2 for right ventricle
-        left_mask = grid["lr"] >= 0
-        right_mask = grid["lr"] < 0
-        label = np.zeros(grid.n_cells, dtype=int)
-        label[left_mask] = 1
-        label[right_mask] = 2
-        grid.cell_data["label"] = label
+        left_mask = grid["trans"] <= 0
+        right_mask = grid["trans"] > 0
+        grid.cell_data["label"] = np.zeros(grid.n_cells, dtype=int)
+        grid.cell_data["label"][left_mask] = 1
+        grid.cell_data["label"][right_mask] = 2
 
     # normal direction
     k = np.zeros((grid.n_cells, 3))
@@ -517,70 +541,78 @@ def compute_ventricle_fiber_by_drbm(
 
     grid.cell_data["k"] = k
 
-    # build local coordinate system
-    if not left_only:
-        grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
+    # Build local coordinate system:
+    # The right ventricle transmural gradient is flipped to ensure
+    # a consistent coordinate system:
+    # e_t points from endocardium to epicardium
+    # e_n points from apex to base
+    # e_c = e_n x e_t
+    grid.cell_data["grad_trans"][right_mask] *= -1.0  # both LV & RV point to inside
 
-    el, en, et = orthogonalization(grid["grad_trans"], k)
+    # Create orthonormal coordinate system
+    en, et, ec = orthogonalization(k, grid["grad_trans"])
 
-    # normalized transmural distance
+    # Add (unrotated) local coordinate system
+    grid.cell_data["e_c"] = ec  # circumferential direction
+    grid.cell_data["e_n"] = en  # normal/longitudinal direction
+    grid.cell_data["e_t"] = et  # transmural direction
+
     if left_only:
         grid["d"] = grid["trans"]
     else:
-        d_l = grid["trans"] / 2
-        d_r = np.absolute(grid["trans"])
+        # normalize transmural distance to [0,1) in each ventricle
+        # where 0 is endocardium, and 1 is epicardium
+        d_l = np.absolute(grid["trans"][left_mask] / 2)
+        d_r = np.absolute(grid["trans"][right_mask])
         grid["d"] = np.zeros(grid.n_cells, dtype=float)
-        grid["d"][left_mask] = d_l[left_mask]
-        grid["d"][right_mask] = d_r[right_mask]
+        grid["d"][left_mask] = d_l
+        grid["d"][right_mask] = d_r
+        grid["d"] = grid["d"] * -1 + 1
 
-    # rotation angles for each cell
+    # rotation angles alpha and beta for each cell
     alpha = np.zeros(grid.n_cells)
     beta = np.zeros(grid.n_cells)
 
-    alpha[left_mask] = compute_rotation_angle(
-        grid, grid["w_l"], settings["alpha_left"], settings["alpha_ot"]
-    )[left_mask]
-    beta[left_mask] = compute_rotation_angle(
-        grid, grid["w_l"], settings["beta_left"], settings["beta_ot"]
-    )[left_mask]
+    alpha[left_mask] = _compute_rotation_angle(
+        grid["d"][left_mask], settings["alpha_left"][0], settings["alpha_left"][1]
+    )
+    alpha[right_mask] = _compute_rotation_angle(
+        grid["d"][right_mask], settings["alpha_right"][0], settings["alpha_right"][1]
+    )
 
-    if not left_only:
-        alpha[right_mask] = compute_rotation_angle(
-            grid, grid["w_r"], settings["alpha_right"], settings["alpha_ot"]
-        )[right_mask]
-        beta[right_mask] = compute_rotation_angle(
-            grid, grid["w_r"], settings["beta_right"], settings["beta_ot"]
-        )[right_mask]
+    beta[left_mask] = _compute_rotation_angle(
+        grid["d"][left_mask], settings["beta_left"][0], settings["beta_left"][1]
+    )
+    beta[right_mask] = _compute_rotation_angle(
+        grid["d"][right_mask], settings["beta_right"][0], settings["beta_right"][1]
+    )
 
-    # save data for inspection
+    # save rotation angles
     grid.cell_data["alpha"] = alpha
     grid.cell_data["beta"] = beta
 
-    #
-    grid.cell_data["fiber"] = np.zeros((grid.n_cells, 3))
+    # 1) rotate vector ec counterclockwise around et by an angle alpha
+    rot_alpha = R.from_rotvec(alpha[:, None] * et, degrees=True)
 
-    # use f,n,s in Quateroni, it's n, cross fiber
-    # use FTS in Bayer, it's S, sheet normal
-    grid.cell_data["cross-fiber"] = np.zeros((grid.n_cells, 3))
+    fibers = rot_alpha.apply(ec)
+    cross_fibers = rot_alpha.apply(en)
+    sheets = et
 
-    # use f,n,s in Quateroni, it's s, sheet
-    # use FTS in Bayer, it's T, transverse
-    grid.cell_data["sheet"] = np.zeros((grid.n_cells, 3))
+    # 2) rotate vector ec counterclockwise around el or fibers by an angle beta
+    rot_beta = R.from_rotvec(beta[:, None] * fibers, degrees=True)
 
-    # apply rotation
-    for i in range(grid.n_cells):
-        q = np.array([el[i], en[i], et[i]]).T
-        # rotate alpha around e_t
-        a = alpha[i] * np.pi / 180
-        rot1 = np.array([[np.cos(a), -np.sin(a), 0], [np.sin(a), np.cos(a), 0], [0, 0, 1]])
-        # rotate beta around e_l
-        b = beta[i] * np.pi / 180
-        rot2 = np.array([[1, 0, 0], [0, np.cos(b), np.sin(b)], [0, -np.sin(b), np.cos(b)]])
-        # apply rotation
-        qq = np.matmul(np.matmul(q, rot1), rot2)
+    cross_fibers = rot_beta.apply(cross_fibers)
+    sheets = rot_beta.apply(sheets)
 
-        grid.cell_data["fiber"][i] = qq[:, 0]
-        grid.cell_data["cross-fiber"][i] = qq[:, 1]
-        grid.cell_data["sheet"][i] = qq[:, 2]
+    # NOTE Can add additional rotation in transverse direction, by specifying a
+    # transverse angle gamma.
+
+    # {f,n,s} in Piersanti et al. cross-fiber is sheet normal n
+    # {F,T,S} in Bayer et al. cross-fiber is sheet normal S
+    grid.cell_data["fiber"] = fibers
+    grid.cell_data["cross-fiber"] = cross_fibers
+    grid.cell_data["sheet"] = sheets
+
+    grid.save("d-rbm-fibers.vtu")
 
     return grid.copy()

@@ -27,7 +27,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, model_validator
 
 from ansys.health.heart.settings.defaults import electrophysiology as ep_defaults
-from ansys.health.heart.settings.material._pyd_cell_models import Tentusscher, TentusscherEndo
+from ansys.health.heart.settings.material.cell_models import Tentusscher, TentusscherEndo
 
 
 class EPMaterialModel(BaseModel):

@@ -25,7 +25,7 @@
 from pydantic import ValidationError
 import pytest
 
-from ansys.health.heart.settings.material._pyd_cell_models import (
+from ansys.health.heart.settings.material.cell_models import (
     Tentusscher,
     TentusscherEndo,
     TentusscherEpi,

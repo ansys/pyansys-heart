@@ -35,20 +35,21 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from ansys.health.heart.settings.material.curve import (
-    ActiveCurve,
-    constant_ca2,
-    kumaraswamy_active,
-)
-from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
-from ansys.health.heart.settings.material.material import (
+from ansys.health.heart.settings.material._pyd_cell_models import Tentusscher
+from ansys.health.heart.settings.material._pyd_material import (
     ACTIVE,
     ANISO,
     ISO,
-    ActiveModel,
+    ActiveCurve,
+    ActiveModel1,
+    ActiveModel3,
+    HGOFiber,
     Mat295,
     NeoHookean,
+    constant_ca2,
 )
+from ansys.health.heart.settings.material.curve import kumaraswamy_active
+from ansys.health.heart.settings.material.ep_material import EPMaterial
 
 ###############################################################################
 # .. note::
@@ -74,18 +75,18 @@ neo2 = Mat295(rho=0.001, iso=ISO(itype=1, beta=2, kappa=1, mu1=0.05, alpha1=2))
 iso = ISO(k1=1, k2=1, kappa=100)
 
 # step 2: create an anisotropic module
-fiber = ANISO.HGOFiber(k1=1, k2=1)
+fiber = HGOFiber(k1=1, k2=1)
 aniso1 = ANISO(fibers=[fiber])
 
 # Create fiber with sheet, and their interactions
-sheet = ANISO.HGOFiber(k1=1, k2=1)
+sheet = HGOFiber(k1=1, k2=1)
 aniso2 = ANISO(fibers=[fiber, sheet], k1fs=1, k2fs=1)
 
 # step3: create the active module
 
 # example 1:
 # create active model 1
-ac_model1 = ActiveModel.Model1()
+ac_model1 = ActiveModel1()
 # create Ca2+ curve
 ac_curve1 = ActiveCurve(constant_ca2(tb=800, ca2ionm=ac_model1.ca2ionm), type="ca2", threshold=0.5)
 # build active module
@@ -103,7 +104,7 @@ plt.show()
 
 # example 2
 # create active model 3
-ac_model3 = ActiveModel.Model3()
+ac_model3 = ActiveModel3()
 # create a stress curve and show
 ac_curve3 = ActiveCurve(kumaraswamy_active(t_end=800), type="stress")
 fig = ac_curve3.plot_time_vs_stress()
@@ -133,7 +134,7 @@ active_mat = Mat295(rho=1, iso=iso, aniso=aniso1, active=active)
 # Create EP materials
 # ~~~~~~~~~~~~~~~~~~~
 ep_mat_active = EPMaterial.Active(
-    sigma_fiber=1, sigma_sheet=0.5, beta=140, cm=0.01, cell_model=CellModel.Tentusscher()
+    sigma_fiber=1, sigma_sheet=0.5, beta=140, cm=0.01, cell_model=Tentusscher()
 )
 epinsulator = EPMaterial.Insulator()
 

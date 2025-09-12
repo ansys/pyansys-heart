@@ -82,11 +82,7 @@ class Active(EPMaterialModel):
                 self.sigma_sheet = ep_defaults.material["myocardium"]["sigma_sheet"].m
             if self.sigma_sheet_normal is None:
                 self.sigma_sheet_normal = ep_defaults.material["myocardium"]["sigma_sheet_normal"].m
-        elif (
-            self.solver_type == "Eikonal"
-            or self.solver_type == "ReactionEikonal"
-            and not all([self.sigma_fiber, self.sigma_sheet, self.sigma_sheet_normal])
-        ):
+        elif self.solver_type == "Eikonal" or self.solver_type == "ReactionEikonal":
             if self.sigma_fiber is None:
                 self.sigma_fiber = ep_defaults.material["myocardium"]["velocity_fiber"].m
             if self.sigma_sheet is None:
@@ -103,7 +99,7 @@ class ActiveBeam(Active):
     """Hold data for beam active EP material."""
 
     sigma_fiber: float = ep_defaults.material["beam"]["sigma"].m
-    cell_model: Tentusscher = Field(default_factory=lambda: TentusscherEndo())
+    cell_model: TentusscherEndo = Field(default_factory=lambda: TentusscherEndo())
     pmjres: float = ep_defaults.material["beam"]["pmjres"].m
 
 

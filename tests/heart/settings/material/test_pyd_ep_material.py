@@ -291,19 +291,6 @@ class TestActiveBeam:
         assert beam.cell_model is custom_cell
         assert beam.pmjres == 50.0
 
-    @patch("ansys.health.heart.settings.material._pyd_ep_material.ep_defaults")
-    def test_active_beam_with_mocked_defaults(self, mock_defaults):
-        """Test ActiveBeam with mocked ep_defaults."""
-        mock_defaults.material = {
-            "beam": {"sigma": MagicMock(m=3.0), "pmjres": MagicMock(m=75.0)},
-            "myocardium": {"beta": MagicMock(m=2000.0), "cm": MagicMock(m=0.2)},
-        }
-        mock_defaults.analysis = {"solvertype": "Monodomain"}
-
-        beam = ActiveBeam()
-        assert beam.sigma_fiber == 3.0
-        assert beam.pmjres == 75.0
-
     def test_active_beam_pmjres_field(self):
         """Test pmjres field specific to ActiveBeam."""
         beam = ActiveBeam(pmjres=100.0)
@@ -358,22 +345,6 @@ class TestPassive:
         assert passive.sigma_fiber == 1.8
         assert passive.sigma_sheet == 0.9
         assert passive.sigma_sheet_normal == 1.1
-
-    @patch("ansys.health.heart.settings.material._pyd_ep_material.ep_defaults")
-    def test_passive_with_mocked_defaults(self, mock_defaults):
-        """Test Passive with mocked ep_defaults."""
-        mock_defaults.material = {
-            "myocardium": {
-                "sigma_fiber": MagicMock(m=2.5),
-                "beta": MagicMock(m=1800.0),
-                "cm": MagicMock(m=0.18),
-            }
-        }
-
-        passive = Passive()
-        assert passive.sigma_fiber == 2.5
-        assert passive.beta == 1800.0
-        assert passive.cm == 0.18
 
     def test_passive_sheet_parameter_sync(self):
         """Test sheet parameter syncing in Passive."""

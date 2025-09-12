@@ -33,7 +33,7 @@ from ansys.health.heart.settings.material._pyd_cell_models import Tentusscher, T
 class EPMaterialModel(BaseModel):
     """Base class for all EP material models."""
 
-    sigma_fiber: float = None
+    sigma_fiber: Optional[float] = None
     sigma_sheet: Optional[float] = None
     sigma_sheet_normal: Optional[float] = None
     beta: Optional[float] = ep_defaults.material["myocardium"]["beta"].m

@@ -98,24 +98,6 @@ class ISO(BaseModel):
 
         return self
 
-    # def __post_init__(self):
-    #     """Test inputs."""
-    #     if self.k1 is not None and self.k2 is not None:
-    #         if abs(self.itype) != 3:  # must be HGO model
-    #             raise ValidationError(f"ITYPE {self.itype} not compatible with k1 and k2.")
-    #     elif self.mu1 is not None and self.alpha1 is not None:
-    #         if abs(self.itype) != 1:  # must be Odgen model
-    #             raise ValidationError(f"ITYPE {self.itype} not compatible with mu1 and alpha1.")
-    #     else:
-    #         raise ValidationError("ISO input is invalid.")
-
-    #     if self.kappa is not None:
-    #         # replace Poisson's coefficient
-    #         mu = self.k1 if abs(self.itype) == 3 else self.mu1
-    #         self.nu = (3 * self.kappa - 2 * mu) / (6 * self.kappa + 2 * mu)
-    #     if self.nu < 0.49:
-    #         LOGGER.warning("Poisson's ratio lower than 0.49 is not recommended.")
-
 
 class HGOFiber(BaseModel):
     """Define HGO type fiber from k1 and k2."""

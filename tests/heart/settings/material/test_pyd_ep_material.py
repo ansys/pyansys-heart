@@ -284,7 +284,7 @@ class TestActiveBeam:
 
     def test_active_beam_custom_values(self):
         """Test ActiveBeam with custom values."""
-        custom_cell = Tentusscher(gas_constant=8100.0)
+        custom_cell = TentusscherEndo(gas_constant=8100.0)
         beam = ActiveBeam(sigma_fiber=2.0, cell_model=custom_cell, pmjres=50.0)
 
         assert beam.sigma_fiber == 2.0

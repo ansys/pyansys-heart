@@ -36,7 +36,6 @@ from ansys.health.heart.pre.conduction_path import (
     _create_path_on_surface_center,
     _path_merge,
 )
-from ansys.health.heart.settings.material.ep_material import EPMaterial
 from tests.heart.conftest import get_assets_folder, get_fourchamber, get_fullheart
 
 
@@ -185,7 +184,7 @@ def test_conductionbeams_from_k():
         merge_apex=False,
     )
     assert l_pj.name == ConductionPathType.LEFT_PURKINJE
-    assert l_pj.ep_material == EPMaterial.DummyMaterial()
+    assert l_pj.ep_material is None
     ref0 = pv.read(os.path.join(folder, "left_purkinje.vtp"))
     assert meshes_equal(l_pj.mesh, ref0)
     assert l_pj.is_connected.sum() == 1114
@@ -243,10 +242,6 @@ def simple_conduction_path():
     mesh = pv.PolyData(line_points, lines=line_lines)
     is_connected = np.array([0, 0])
 
-    # Dummy EPMaterial
-    class DummyMaterial:
-        pass
-
     # Minimal ConductionPathType
     class DummyType:
         pass
@@ -258,7 +253,7 @@ def simple_conduction_path():
         id=1,
         is_connected=is_connected,
         relying_surface=surface,
-        material=DummyMaterial(),
+        material=None,
     )
     return cp
 

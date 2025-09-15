@@ -487,10 +487,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _add_Tentusscher_keyword(self, matid: int, params: dict) -> None:  # noqa N802
         cell_kw = keywords.EmEpCellmodelTentusscher(**{**params})
         cell_kw.mid = matid
-        # Note: bug in EmEpCellmodelTentusscher
+        # NOTE: bug in EmEpCellmodelTentusscher
         # the following 2 parameters cannot be assigned by above method
-        cell_kw.gas_constant = 8314.472
-        cell_kw.faraday_constant = 96485.3415
+        cell_kw.gas_constant = params.get("gas_constant", 8314.4720)
+        cell_kw.faraday_constant = params.get("faraday_constant", 96485.3415)
 
         self.kw_database.cell_models.append(cell_kw)
 

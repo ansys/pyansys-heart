@@ -34,6 +34,7 @@ from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, Heart
 from ansys.health.heart.pre.conduction_path import ConductionPathType
 import ansys.health.heart.settings.material.cell_models as cell_models
 from ansys.health.heart.settings.material.ep_material import EPMaterial
+import ansys.health.heart.settings.material.ep_material_pyd as ep_materials
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings, Stimulation
 from ansys.health.heart.writer import custom_keywords as custom_keywords
@@ -402,12 +403,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             sig3 = material_settings.myocardium["velocity_sheet_normal"].m
 
         for part in self.model.parts:
-            if isinstance(part.ep_material, EPMaterial.DummyMaterial):
+            if isinstance(part.ep_material, EPMaterial.DummyMaterial) or part.ep_material is None:
                 LOGGER.info(f"Material of {part.name} is assigned automatically.")
                 if part.active:
-                    part.ep_material = EPMaterial.Active(sigma_fiber=sig1)
+                    part.ep_material = ep_materials.Active(sigma_fiber=sig1)
                 else:
-                    part.ep_material = EPMaterial.Passive(sigma_fiber=sig1)
+                    part.ep_material = ep_materials.Passive(sigma_fiber=sig1)
                 if part.fiber:
                     part.ep_material.sigma_sheet = sig2
                     part.ep_material.sigma_sheet_normal = sig3
@@ -422,7 +423,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _update_parts_cellmodels(self) -> None:
         """Add cell model for each defined part."""
         for part in self.model.parts:
-            if isinstance(part.ep_material, EPMaterial.Active):
+            if type(part.ep_material) is ep_materials.Active:
                 ep_mid = part.pid
                 # One cell model for myocardium, default value is epi layer parameters
                 self._add_cell_model_keyword(matid=ep_mid, cellmodel=part.ep_material.cell_model)
@@ -804,7 +805,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         beam_pid = []
         registered_surfaces = [surf for part in self.model.parts for surf in part.surfaces]
         for beam in self.model.conduction_paths:
-            if isinstance(beam.ep_material, EPMaterial.DummyMaterial):
+            if isinstance(beam.ep_material, EPMaterial.DummyMaterial) or beam.ep_material is None:
                 epmat = self._get_default_beam_ep_material()
             else:
                 epmat = beam.ep_material
@@ -893,11 +894,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         return beam_pid
 
-    def _get_default_beam_ep_material(self) -> EPMaterial.ActiveBeam:
+    def _get_default_beam_ep_material(self) -> ep_materials.ActiveBeam:
         """Get default EP material for conduction beams."""
         material_settings = self.settings.electrophysiology.material
         solvertype = self.settings.electrophysiology.analysis.solvertype
-        default_epmat = EPMaterial.ActiveBeam()
+        default_epmat = ep_materials.ActiveBeam()
         if solvertype == "Monodomain":
             sig1 = material_settings.beam["sigma"].m
         else:
@@ -953,9 +954,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         return
 
     def _get_ep_material_kw(
-        self, ep_mid: int, ep_material: EPMaterial
+        self, ep_mid: int, ep_material: ep_materials.EPMaterialModel
     ) -> Union[custom_keywords.EmMat001, custom_keywords.EmMat003]:
-        if type(ep_material) is EPMaterial.Insulator:
+        if type(ep_material) is ep_materials.Insulator:
             # insulator mtype
             mtype = 1
             kw = custom_keywords.EmMat001(
@@ -967,7 +968,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
         # active myocardium
-        elif type(ep_material) is EPMaterial.Active:
+        elif type(ep_material) is ep_materials.Active:
             mtype = 2
             # "isotropic" case
             if ep_material.sigma_sheet is None:
@@ -992,7 +993,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 d3=0,
             )
 
-        elif type(ep_material) is EPMaterial.ActiveBeam:
+        elif type(ep_material) is ep_materials.ActiveBeam:
             mtype = 2
             kw = custom_keywords.EmMat001(
                 mid=ep_mid,
@@ -1001,7 +1002,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 beta=ep_material.beta,
                 cm=ep_material.cm,
             )
-        elif type(ep_material) is EPMaterial.Passive:
+        elif type(ep_material) is ep_materials.Passive:
             mtype = 4
             # isotropic
             if ep_material.sigma_sheet is None:

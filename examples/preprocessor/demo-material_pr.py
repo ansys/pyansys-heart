@@ -35,9 +35,9 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from ansys.health.heart.settings.material.cell_models import Tentusscher
+import ansys.health.heart.settings.material.cell_models as cell_models
 from ansys.health.heart.settings.material.curve import kumaraswamy_active
-from ansys.health.heart.settings.material.ep_material import EPMaterial
+import ansys.health.heart.settings.material.ep_material_pyd as ep_materials
 from ansys.health.heart.settings.material.material_pyd import (
     ACTIVE,
     ANISO,
@@ -133,10 +133,10 @@ active_mat = Mat295(rho=1, iso=iso, aniso=aniso1, active=active)
 ###############################################################################
 # Create EP materials
 # ~~~~~~~~~~~~~~~~~~~
-ep_mat_active = EPMaterial.Active(
-    sigma_fiber=1, sigma_sheet=0.5, beta=140, cm=0.01, cell_model=Tentusscher()
+ep_mat_active = ep_materials.Active(
+    sigma_fiber=1, sigma_sheet=0.5, beta=140, cm=0.01, cell_model=cell_models.Tentusscher()
 )
-epinsulator = EPMaterial.Insulator()
+epinsulator = ep_materials.Insulator()
 
 # import pyvista as pv
 

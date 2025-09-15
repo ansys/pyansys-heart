@@ -269,7 +269,7 @@ class TestActiveBeam:
 
         # Should have beam-specific defaults
         assert beam.sigma_fiber is not None  # From ep_defaults.material["beam"]
-        assert isinstance(beam.cell_model, TentusscherEndo)  # Different from Active
+        assert isinstance(beam.cell_model, Tentusscher)
         assert beam.pmjres is not None  # Beam-specific field
 
     def test_active_beam_cell_model_factory(self):
@@ -279,8 +279,8 @@ class TestActiveBeam:
 
         # Should be separate TentusscherEndo instances
         assert beam1.cell_model is not beam2.cell_model
-        assert isinstance(beam1.cell_model, TentusscherEndo)
-        assert isinstance(beam2.cell_model, TentusscherEndo)
+        assert isinstance(beam1.cell_model, Tentusscher)
+        assert isinstance(beam2.cell_model, Tentusscher)
 
     def test_active_beam_custom_values(self):
         """Test ActiveBeam with custom values."""
@@ -503,7 +503,7 @@ class TestComplexSerialization:
         restored = ActiveBeam.model_validate_json(json_str)
 
         # All fields should be preserved
-        assert isinstance(restored.cell_model, TentusscherEndo)
+        assert isinstance(restored.cell_model, Tentusscher)
         assert restored.pmjres == beam.pmjres
         assert restored.sigma_fiber == beam.sigma_fiber
         assert restored.beta == beam.beta

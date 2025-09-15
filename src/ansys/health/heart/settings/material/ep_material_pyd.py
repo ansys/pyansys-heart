@@ -27,7 +27,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, model_validator
 
 from ansys.health.heart.settings.defaults import electrophysiology as ep_defaults
-from ansys.health.heart.settings.material.cell_models import Tentusscher, TentusscherEndo
+from ansys.health.heart.settings.material.cell_models import Tentusscher
 
 
 class EPMaterialModel(BaseModel):
@@ -100,7 +100,8 @@ class ActiveBeam(Active):
     """Hold data for beam active EP material."""
 
     sigma_fiber: float = ep_defaults.material["beam"]["sigma"].m
-    cell_model: TentusscherEndo = Field(default_factory=lambda: TentusscherEndo())
+    # TODO: replace by TentusscherEndo
+    cell_model: Tentusscher = Tentusscher()
     pmjres: float = ep_defaults.material["beam"]["pmjres"].m
 
 

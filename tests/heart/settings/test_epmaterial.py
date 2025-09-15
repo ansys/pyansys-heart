@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import ansys.health.heart.settings.material.cell_models as cell_models
-from ansys.health.heart.settings.material.ep_material import EPMaterial
+import ansys.health.heart.settings.material.ep_material_pyd as ep_materials
 
 midcelldata = dict(
     [
@@ -254,22 +254,22 @@ def test_cellmodel():
 
 
 def test_active():
-    active0 = EPMaterial.Active(sigma_fiber=1)
+    active0 = ep_materials.Active(sigma_fiber=1)
     assert active0.sigma_sheet is not None
-    active = EPMaterial.Active(sigma_fiber=1, sigma_sheet=1, sigma_sheet_normal=1)
+    active = ep_materials.Active(sigma_fiber=1, sigma_sheet=1, sigma_sheet_normal=1)
     assert active.sigma_sheet_normal == 1
-    active_beam = EPMaterial.ActiveBeam(sigma_fiber=1)
+    active_beam = ep_materials.ActiveBeam(sigma_fiber=1)
     assert active_beam.pmjres is not None
 
 
 def test_passive():
-    passive = EPMaterial.Passive(sigma_fiber=1, sigma_sheet_normal=4)
+    passive = ep_materials.Passive(sigma_fiber=1, sigma_sheet_normal=4)
     assert not hasattr(passive, "cell_model")
     assert passive.sigma_sheet_normal == 4
 
 
 def test_insulator():
-    insulator = EPMaterial.Insulator()
+    insulator = ep_materials.Insulator()
     assert insulator.sigma_fiber == 0
     assert insulator.beta == 0
     assert insulator.cm == 0

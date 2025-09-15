@@ -31,9 +31,9 @@ import scipy.spatial as spatial
 from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
-from ansys.health.heart.models_utils import LandMarks
 from ansys.health.heart.pre.conduction_path import ConductionPathType
-from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
+import ansys.health.heart.settings.material.cell_models as cell_models
+from ansys.health.heart.settings.material.ep_material import EPMaterial
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings, Stimulation
 from ansys.health.heart.writer import custom_keywords as custom_keywords
@@ -435,13 +435,13 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 mid_id,
                 epi_id,
             ) = self._create_myocardial_nodeset_layers()
-            tentusscher_endo = CellModel.TentusscherEndo()
-            tentusscher_mid = CellModel.TentusscherMid()
-            tentusscher_epi = CellModel.TentusscherEpi()
+            tentusscher_endo = cell_models.TentusscherEndo()
+            tentusscher_mid = cell_models.TentusscherMid()
+            tentusscher_epi = cell_models.TentusscherEpi()
 
-            self._add_Tentusscher_keyword(matid=-endo_id, params=tentusscher_endo.to_dictionary())
-            self._add_Tentusscher_keyword(matid=-mid_id, params=tentusscher_mid.to_dictionary())
-            self._add_Tentusscher_keyword(matid=-epi_id, params=tentusscher_epi.to_dictionary())
+            self._add_Tentusscher_keyword(matid=-endo_id, params=tentusscher_endo.model_dump())
+            self._add_Tentusscher_keyword(matid=-mid_id, params=tentusscher_mid.model_dump())
+            self._add_Tentusscher_keyword(matid=-epi_id, params=tentusscher_epi.model_dump())
 
     def _create_myocardial_nodeset_layers(self) -> tuple[int, int, int]:
         """Create myocardial node set layers."""
@@ -478,20 +478,20 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.kw_database.node_sets.append(node_set_kw)
         return endo_nodeset_id, mid_nodeset_id, epi_nodeset_id
 
-    def _add_cell_model_keyword(self, matid: int, cellmodel: CellModel) -> None:
+    def _add_cell_model_keyword(self, matid: int, cellmodel: cell_models.Tentusscher) -> None:
         """Add cell model keyword to the database."""
-        if isinstance(cellmodel, CellModel.Tentusscher):
-            self._add_Tentusscher_keyword(matid=matid, params=cellmodel.to_dictionary())
+        if isinstance(cellmodel, cell_models.Tentusscher):
+            self._add_Tentusscher_keyword(matid=matid, params=cellmodel.model_dump())
         else:
             raise NotImplementedError
 
     def _add_Tentusscher_keyword(self, matid: int, params: dict) -> None:  # noqa N802
         cell_kw = keywords.EmEpCellmodelTentusscher(**{**params})
         cell_kw.mid = matid
-        # Note: bug in EmEpCellmodelTentusscher
+        # NOTE: bug in EmEpCellmodelTentusscher
         # the following 2 parameters cannot be assigned by above method
-        cell_kw.gas_constant = 8314.472
-        cell_kw.faraday_constant = 96485.3415
+        cell_kw.gas_constant = params.get("gas_constant", 8314.4720)
+        cell_kw.faraday_constant = params.get("faraday_constant", 96485.3415)
 
         self.kw_database.cell_models.append(cell_kw)
 
@@ -667,10 +667,14 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
             if ConductionPathType.SAN_AVN in [beam.name for beam in self.model.conduction_paths]:
                 # Active SA node (belong to both solid and beam)
-                stim_nodes = list(self.model.mesh.find_closest_point(LandMarks.SA_NODE.xyz, n=5))
+                stim_nodes = list(
+                    self.model.mesh.find_closest_point(self.model._landmarks.sa_node.xyz, n=5)
+                )
 
                 # add 1 more beam node to initiate wave propagation
-                p = self.model.conduction_mesh.find_closest_point(LandMarks.SA_NODE.xyz, n=2)
+                p = self.model.conduction_mesh.find_closest_point(
+                    self.model._landmarks.sa_node.xyz, n=2
+                )
                 # take the second point, the first point is SA node itself
                 pointid = self.model.conduction_mesh["_shifted_id"][p[1]]
                 stim_nodes.append(pointid)

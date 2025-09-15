@@ -20,7 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
+import ansys.health.heart.settings.material.cell_models as cell_models
+from ansys.health.heart.settings.material.ep_material import EPMaterial
 
 midcelldata = dict(
     [
@@ -243,25 +244,20 @@ epicelldata = dict(
 
 
 def test_cellmodel():
-    tentusendo = CellModel.TentusscherEndo()
-    tentusmid = CellModel.TentusscherMid()
-    tentusepi = CellModel.TentusscherEpi()
+    tentusendo = cell_models.TentusscherEndo()
+    tentusmid = cell_models.TentusscherMid()
+    tentusepi = cell_models.TentusscherEpi()
 
-    assert tentusendo.to_dictionary().items() == endocelldata.items()
-    assert tentusmid.to_dictionary().items() == midcelldata.items()
-    assert tentusepi.to_dictionary().items() == epicelldata.items()
+    assert tentusendo.model_dump() == endocelldata
+    assert tentusmid.model_dump() == midcelldata
+    assert tentusepi.model_dump() == epicelldata
 
 
 def test_active():
-    tentusepi = CellModel.TentusscherEpi()
-    tentusendo = CellModel.TentusscherEndo()
     active0 = EPMaterial.Active(sigma_fiber=1)
     assert active0.sigma_sheet is not None
     active = EPMaterial.Active(sigma_fiber=1, sigma_sheet=1, sigma_sheet_normal=1)
     assert active.sigma_sheet_normal == 1
-    assert active.cell_model.to_dictionary().items() == tentusepi.to_dictionary().items()
-    active.cell_model = CellModel.TentusscherEndo()
-    assert active.cell_model.to_dictionary().items() == tentusendo.to_dictionary().items()
     active_beam = EPMaterial.ActiveBeam(sigma_fiber=1)
     assert active_beam.pmjres is not None
 

@@ -25,9 +25,13 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
+from deprecated import deprecated
+
 from ansys.health.heart.settings.defaults import electrophysiology as ep_defaults
+import ansys.health.heart.settings.material.cell_models as cell_models
 
 
+@deprecated("Use the cell models in src.ansys.health.heart.settings.material.cell_models instead.")
 @dataclass
 class CellModel:
     """Abstract class for different cell models."""
@@ -247,13 +251,15 @@ class EPMaterial(EPMaterialModel):
         sigma_fiber: float = sig1
         sigma_sheet: Optional[float] = sig2
         sigma_sheet_normal: Optional[float] = sig3
-        cell_model: CellModel = field(default_factory=lambda: CellModel.Tentusscher())
+        cell_model: cell_models.Tentusscher = field(
+            default_factory=lambda: cell_models.Tentusscher()
+        )
 
     class ActiveBeam(Active):
         """Hold data for beam active EP material."""
 
         sigma_fiber = ep_defaults.material["beam"]["sigma"].m
-        cell_model = field(default_factory=lambda: CellModel.TentusscherEndo())
+        cell_model = field(default_factory=lambda: cell_models.TentusscherEndo())
         pmjres: float = ep_defaults.material["beam"]["pmjres"].m
 
     class Passive(EPMaterialModel):
@@ -272,16 +278,3 @@ class EPMaterial(EPMaterialModel):
         def __repr__(self):
             """Print a message."""
             return "Material is empty."
-
-
-if __name__ == "__main__":
-    m1 = EPMaterial.DummyMaterial()
-
-    tentus1 = CellModel.Tentusscher()
-    tentus2 = CellModel.TentusscherEndo()
-
-    mat1 = EPMaterial.Insulator()
-    mat2 = EPMaterial.Passive(sigma_fiber=0, sigma_sheet=2)
-    mat3 = EPMaterial.Active(sigma_fiber=1, sigma_sheet=2, sigma_sheet_normal=3)
-    mat4 = EPMaterial.Active(sigma_fiber=1, sigma_sheet=2, sigma_sheet_normal=3)
-    print("done")

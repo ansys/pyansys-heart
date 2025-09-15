@@ -33,7 +33,7 @@ from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.pre.conduction_path import ConductionPathType
 import ansys.health.heart.settings.material.cell_models as cell_models
-import ansys.health.heart.settings.material.ep_material_pyd as ep_materials
+import ansys.health.heart.settings.material.ep_material as ep_materials
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings, Stimulation
 from ansys.health.heart.writer import custom_keywords as custom_keywords
@@ -403,7 +403,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         for part in self.model.parts:
             if (
-                not isinstance(part.ep_material, ep_materials.EPMaterialModel)
+                not isinstance(
+                    part.ep_material, (ep_materials.EPMaterialModel, ep_materials.Insulator)
+                )
                 or part.ep_material is None
             ):
                 LOGGER.info(f"Material of {part.name} is assigned automatically.")
@@ -808,7 +810,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         registered_surfaces = [surf for part in self.model.parts for surf in part.surfaces]
         for beam in self.model.conduction_paths:
             if (
-                not isinstance(beam.ep_material, ep_materials.EPMaterialModel)
+                not isinstance(
+                    beam.ep_material, (ep_materials.EPMaterialModel, ep_materials.Insulator)
+                )
                 or beam.ep_material is None
             ):
                 epmat = self._get_default_beam_ep_material()

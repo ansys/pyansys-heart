@@ -255,15 +255,6 @@ class MechanicalMaterialModel(BaseModel):
 
     pass
 
-    class DummyMaterial(BaseModel):
-        """Just for initialization."""
-
-        pass
-
-        def __repr__(self):
-            """Print a message."""
-            return "Material is empty."
-
 
 class Mat295(MechanicalMaterialModel):
     """Hold data for MAT_ANISOTROPIC_HYPERELASTIC (MAT_295)."""

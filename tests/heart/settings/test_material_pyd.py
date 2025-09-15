@@ -368,11 +368,6 @@ class TestNeoHookean:
 class TestMechanicalMaterialModel:
     """Test MechanicalMaterialModel base class."""
 
-    def test_dummy_material(self):
-        """Test DummyMaterial."""
-        dummy = MechanicalMaterialModel.DummyMaterial()
-        assert repr(dummy) == "Material is empty."
-
     def test_inheritance(self):
         """Test that all material classes inherit from MechanicalMaterialModel."""
         iso = ISO(itype=-3, k1=1.0, k2=2.0)

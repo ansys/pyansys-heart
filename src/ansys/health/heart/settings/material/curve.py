@@ -126,7 +126,7 @@ def constant_ca2(tb: float = 800, ca2ionm: float = 4.35) -> tuple[np.ndarray, np
     return (t, v)
 
 
-# TODO: User pydantic to easily (de)serialize the curve.
+# TODO: Use pydantic to easily (de)serialize the curve.
 class ActiveCurve:
     """Active stress or Ca2+ curve."""
 

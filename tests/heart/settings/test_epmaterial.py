@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import ansys.health.heart.settings.material.cell_models as cell_models
-import ansys.health.heart.settings.material.ep_material_pyd as ep_materials
+import ansys.health.heart.settings.material.ep_material as ep_materials
 
 midcelldata = dict(
     [

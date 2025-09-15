@@ -54,7 +54,7 @@ from ansys.health.heart.pre.conduction_path import (
 )
 from ansys.health.heart.pre.input import _InputModel
 import ansys.health.heart.pre.mesher as mesher
-import ansys.health.heart.settings.material.ep_material_pyd as ep_materials
+import ansys.health.heart.settings.material.ep_material as ep_materials
 from ansys.health.heart.settings.material.material import (
     ISO,
     Mat295,

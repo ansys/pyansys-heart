@@ -24,7 +24,7 @@ import numpy as np
 import pytest
 
 from ansys.health.heart.settings.material.curve import ActiveCurve, constant_ca2, strocchi_active
-import ansys.health.heart.settings.material.material as material
+import ansys.health.heart.settings.material.material_pyd as material
 
 
 class TestCa2Curve:
@@ -76,28 +76,28 @@ def test_iso():
 
 
 def test_aniso():
-    fiber = material.ANISO.HGOFiber(k1=1, k2=2)
-    sheet = material.ANISO.HGOFiber(k1=1, k2=2)
+    fiber = material.HGOFiber(k1=1, k2=2)
+    sheet = material.HGOFiber(k1=1, k2=2)
     aniso = material.ANISO(fibers=[fiber, sheet])
-    assert aniso.nf == 2
-    assert aniso.intype == 0
+    assert aniso._nf == 2
+    assert aniso._intype == 0
     assert fiber._theta == 0.0
     assert sheet._theta == 90.0
 
     aniso = material.ANISO(fibers=[fiber, sheet], k1fs=1, k2fs=2)
-    assert aniso.intype == 1
+    assert aniso._intype == 1
 
 
 def test_active():
     a = material.ACTIVE(ca2_curve=ActiveCurve(strocchi_active(), type="ca2", threshold=0.1))
-    assert a.actype == 1
+    assert a._actype == 1
     assert a.acthr == 0.1
     assert a.model.l == 1.85
     assert a.ca2_curve.type == "ca2"
 
 
 def test_active_couple():
-    active_model = material.ActiveModel.Model3(
+    active_model = material.ActiveModel3(
         ca2ion50=0.001,
         n=2,
         f=0.0,
@@ -125,10 +125,3 @@ def test_mat295():
 def test_neohookean():
     m = material.NeoHookean(rho=1, c10=1, nu=0.499)
     assert m.nu == 0.499
-
-
-def test_dummy(capsys):
-    m = material.MechanicalMaterialModel.DummyMaterial()
-    print(m)
-    captured = capsys.readouterr()
-    assert captured.out == "Material is empty.\n"

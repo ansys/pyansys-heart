@@ -231,7 +231,7 @@ class ACTIVE(BaseModel):
     model: ActiveModel = ActiveModel1()
     """Active model."""
 
-    ca2_curve: ActiveCurve = ActiveCurve(constant_ca2(), threshold=0.1, type="ca2")
+    ca2_curve: Optional[ActiveCurve] = ActiveCurve(constant_ca2(), threshold=0.1, type="ca2")
     """Ca2+ curve for mechanical problem."""
 
     @model_validator(mode="after")

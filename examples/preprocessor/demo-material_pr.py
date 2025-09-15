@@ -35,7 +35,10 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from ansys.health.heart.settings.material._pyd_material import (
+from ansys.health.heart.settings.material.cell_models import Tentusscher
+from ansys.health.heart.settings.material.curve import kumaraswamy_active
+from ansys.health.heart.settings.material.ep_material import EPMaterial
+from ansys.health.heart.settings.material.material_pyd import (
     ACTIVE,
     ANISO,
     ISO,
@@ -47,9 +50,6 @@ from ansys.health.heart.settings.material._pyd_material import (
     NeoHookean,
     constant_ca2,
 )
-from ansys.health.heart.settings.material.cell_models import Tentusscher
-from ansys.health.heart.settings.material.curve import kumaraswamy_active
-from ansys.health.heart.settings.material.ep_material import EPMaterial
 
 ###############################################################################
 # .. note::

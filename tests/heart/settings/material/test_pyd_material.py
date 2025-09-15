@@ -25,7 +25,8 @@
 from pydantic import ValidationError
 import pytest
 
-from ansys.health.heart.settings.material._pyd_material import (
+from ansys.health.heart.settings.material.curve import ActiveCurve, constant_ca2
+from ansys.health.heart.settings.material.material_pyd import (
     ACTIVE,
     ANISO,
     ISO,
@@ -36,7 +37,6 @@ from ansys.health.heart.settings.material._pyd_material import (
     MechanicalMaterialModel,
     NeoHookean,
 )
-from ansys.health.heart.settings.material.curve import ActiveCurve, constant_ca2
 
 
 class TestISO:

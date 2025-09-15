@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Material module."""
+"""EP material module."""
 
 from typing import Literal, Optional
 
@@ -75,6 +75,7 @@ class Active(EPMaterialModel):
     # NOTE: complicated logic and conditional default values. Should split into different classes
     @model_validator(mode="after")
     def check_sigmas(self):
+        """Conditional validation of sigmas."""
         if self.solver_type == "Monodomain":
             if self.sigma_fiber is None:
                 self.sigma_fiber = ep_defaults.material["myocardium"]["sigma_fiber"].m

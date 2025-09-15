@@ -27,14 +27,14 @@ from unittest.mock import MagicMock, patch
 from pydantic import ValidationError
 import pytest
 
-from ansys.health.heart.settings.material._pyd_ep_material import (
+from ansys.health.heart.settings.material.cell_models import Tentusscher, TentusscherEndo
+from ansys.health.heart.settings.material.ep_material_pyd import (
     Active,
     ActiveBeam,
     EPMaterialModel,
     Insulator,
     Passive,
 )
-from ansys.health.heart.settings.material.cell_models import Tentusscher, TentusscherEndo
 
 
 class TestEPMaterialModel:

@@ -33,7 +33,6 @@ from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.pre.conduction_path import ConductionPathType
 import ansys.health.heart.settings.material.cell_models as cell_models
-from ansys.health.heart.settings.material.ep_material import EPMaterial
 import ansys.health.heart.settings.material.ep_material_pyd as ep_materials
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings, Stimulation
@@ -403,7 +402,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             sig3 = material_settings.myocardium["velocity_sheet_normal"].m
 
         for part in self.model.parts:
-            if isinstance(part.ep_material, EPMaterial.DummyMaterial) or part.ep_material is None:
+            if (
+                not isinstance(part.ep_material, ep_materials.EPMaterialModel)
+                or part.ep_material is None
+            ):
                 LOGGER.info(f"Material of {part.name} is assigned automatically.")
                 if part.active:
                     part.ep_material = ep_materials.Active(sigma_fiber=sig1)
@@ -805,7 +807,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         beam_pid = []
         registered_surfaces = [surf for part in self.model.parts for surf in part.surfaces]
         for beam in self.model.conduction_paths:
-            if isinstance(beam.ep_material, EPMaterial.DummyMaterial) or beam.ep_material is None:
+            if (
+                not isinstance(beam.ep_material, ep_materials.EPMaterialModel)
+                or beam.ep_material is None
+            ):
                 epmat = self._get_default_beam_ep_material()
             else:
                 epmat = beam.ep_material

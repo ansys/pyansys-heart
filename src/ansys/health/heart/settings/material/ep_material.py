@@ -215,6 +215,10 @@ class EPMaterialModel:
             self.sigma_sheet = self.sigma_sheet_normal
 
 
+@deprecated(
+    reason="""Use the Pydantic-based EPMaterial instead.
+    import ansys.health.heart.settings.material.ep_material_pyd as ep_material"""
+)
 @dataclass
 class EPMaterial(EPMaterialModel):
     """EP material module."""

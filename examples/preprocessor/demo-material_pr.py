@@ -88,7 +88,9 @@ aniso2 = ANISO(fibers=[fiber, sheet], k1fs=1, k2fs=1)
 # create active model 1
 ac_model1 = ActiveModel1()
 # create Ca2+ curve
-ac_curve1 = ActiveCurve(constant_ca2(tb=800, ca2ionm=ac_model1.ca2ionm), type="ca2", threshold=0.5)
+ac_curve1 = ActiveCurve(
+    func=constant_ca2(tb=800, ca2ionm=ac_model1.ca2ionm), type="ca2", threshold=0.5
+)
 # build active module
 active = ACTIVE(model=ac_model1, ca2_curve=ac_curve1)
 
@@ -106,7 +108,7 @@ plt.show()
 # create active model 3
 ac_model3 = ActiveModel3()
 # create a stress curve and show
-ac_curve3 = ActiveCurve(kumaraswamy_active(t_end=800), type="stress")
+ac_curve3 = ActiveCurve(func=kumaraswamy_active(t_end=800), type="stress")
 fig = ac_curve3.plot_time_vs_stress()
 plt.show()
 

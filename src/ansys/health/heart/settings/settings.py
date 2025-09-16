@@ -795,7 +795,7 @@ def _read_myocardium_property(mat: AttrDict, coupled=False) -> Mat295:
 
     if not coupled:
         ac_mdoel = ActiveModel1(taumax=max)  # use default field in Model1 except taumax
-        curve = ActiveCurve(constant_ca2(tb=bt), threshold=0.1, type="ca2")
+        curve = ActiveCurve(func=constant_ca2(tb=bt), threshold=0.1, type="ca2")
         active = ACTIVE(
             ss=ss,
             sn=sn,

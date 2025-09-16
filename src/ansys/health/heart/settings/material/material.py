@@ -212,12 +212,12 @@ class ACTIVE(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    acid: int = None  # empty for ep_coupled, or curve ID from writer
+    acid: Optional[int] = None  # empty for ep_coupled, or curve ID from writer
     """Do not define it, it will be assigned with an ID of Ca2+ curve
     for mechanical problem or empty for ep-coupled problem."""
     actype: Optional[int] = None  # defined in __post_init__
     """Type of active model, will be deduced the model validator."""
-    acthr: float = None
+    acthr: Optional[float] = None
     """Ca2+ threshold for active stress, need to be defined for ep-coupled,
     for mechanics it's defined in ActiveCurve."""
     acdir: int = 1  # always act in fiber direction
@@ -231,7 +231,7 @@ class ACTIVE(BaseModel):
     model: ActiveModel = ActiveModel1()
     """Active model."""
 
-    ca2_curve: Optional[ActiveCurve] = ActiveCurve(constant_ca2(), threshold=0.1, type="ca2")
+    ca2_curve: Optional[ActiveCurve] = ActiveCurve(func=constant_ca2(), threshold=0.1, type="ca2")
     """Ca2+ curve for mechanical problem."""
 
     @model_validator(mode="after")

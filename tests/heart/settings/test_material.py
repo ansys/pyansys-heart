@@ -24,7 +24,11 @@ import numpy as np
 from pydantic import ValidationError
 import pytest
 
-from ansys.health.heart.settings.material.curve import ActiveCurve, constant_ca2, strocchi_active
+from ansys.health.heart.settings.material.curve import (
+    ActiveCurve,
+    constant_ca2,
+    strocchi_active,
+)
 import ansys.health.heart.settings.material.material as material
 from ansys.health.heart.settings.material.material import (
     ACTIVE,
@@ -42,11 +46,11 @@ from ansys.health.heart.settings.material.material import (
 class TestCa2Curve:
     @pytest.fixture
     def ca2_curve(self):
-        return ActiveCurve(constant_ca2(), threshold=0.1, type="ca2")
+        return ActiveCurve(func=constant_ca2(), threshold=0.1, type="ca2")
 
     @pytest.fixture
     def stress_curve(self):
-        return ActiveCurve(strocchi_active(), threshold=0.1, type="stress")
+        return ActiveCurve(func=strocchi_active(), threshold=0.1, type="stress")
 
     def test_stress_to_ca2(self, stress_curve):
         t, v = stress_curve.dyna_input
@@ -66,12 +70,12 @@ class TestCa2Curve:
     def test_check_threshold(self):
         # threshold larger than max
         with pytest.raises(ValueError) as e:
-            ActiveCurve(constant_ca2(), threshold=4.36, type="ca2")
+            ActiveCurve(func=constant_ca2(), threshold=4.36, type="ca2")
             assert str(e.value) == "Threshold must cross ca2+ curve at least once"
 
         # threshold lower than min
         with pytest.raises(ValueError) as e:
-            ActiveCurve(constant_ca2(), threshold=-0.1, type="ca2")
+            ActiveCurve(func=constant_ca2(), threshold=-0.1, type="ca2")
             assert str(e.value) == "Threshold must cross ca2+ curve at least once"
 
 
@@ -335,12 +339,12 @@ class TestACTIVE:
 
     def test_active_threshold_from_curve(self):
         """Test threshold is taken from ca2_curve."""
-        curve = ActiveCurve(constant_ca2(), threshold=0.5, type="ca2")
+        curve = ActiveCurve(func=constant_ca2(), threshold=0.5, type="ca2")
         active = ACTIVE(ca2_curve=curve)
         assert active.acthr == 0.5
 
     def test_active_threshold_from_curve_strocchi(self):
-        active = ACTIVE(ca2_curve=ActiveCurve(strocchi_active(), type="ca2", threshold=0.1))
+        active = ACTIVE(ca2_curve=ActiveCurve(func=strocchi_active(), type="ca2", threshold=0.1))
         assert active.actype == 1
         assert active.acthr == 0.1
         assert active.model.l == 1.85
@@ -458,7 +462,7 @@ class TestIntegration:
 
         # Create ACTIVE module with Model3
         model3 = ActiveModel3(ca2ion50=1.5, sigmax=150.0)
-        curve = ActiveCurve(constant_ca2(), threshold=0.2, type="ca2")
+        curve = ActiveCurve(func=constant_ca2(), threshold=0.2, type="ca2")
         active = ACTIVE(model=model3, ca2_curve=curve)
 
         # Create complete Mat295
@@ -472,7 +476,7 @@ class TestIntegration:
         assert mat.active.actype == 3
         assert mat.active.acthr == 0.2
 
-    @pytest.mark.xfail(reason="Serialization of the ACTIVE model not fully functional.")
+    # @pytest.mark.xfail(reason="Serialization of the ACTIVE model not fully functional.")
     def test_serialization_roundtrip(self):
         """Test complete serialization and deserialization."""
         # Create complex material
@@ -500,6 +504,18 @@ class TestIntegration:
         mat = Mat295(rho=1000.0, iso=iso)
 
         # Test JSON serialization
+        json_str = mat.model_dump_json()
+        assert isinstance(json_str, str)
+        assert "rho" in json_str
+        assert "1000.0" in json_str
+
+        # Test JSON deserialization
+        mat_from_json = Mat295.model_validate_json(json_str)
+        assert mat_from_json.rho == mat.rho
+        assert mat_from_json.iso.k1 == mat.iso.k1
+
+        mat = Mat295(rho=1000.0, iso=iso, aniso=ANISO(), active=ACTIVE())
+
         json_str = mat.model_dump_json()
         assert isinstance(json_str, str)
         assert "rho" in json_str

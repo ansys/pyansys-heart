@@ -74,7 +74,7 @@ import pyvista as pv
 from ansys.health.heart.examples import get_input_leftventricle
 import ansys.health.heart.models as models
 from ansys.health.heart.post.dpf_utils import ICVoutReader
-from ansys.health.heart.settings.material.material_pyd import ACTIVE, ANISO, ISO, Mat295
+from ansys.health.heart.settings.material.material_pyd import ACTIVE, ANISO, ISO, HGOFiber, Mat295
 from ansys.health.heart.simulator import DynaSettings, MechanicsSimulator
 
 ###############################################################################
@@ -187,7 +187,7 @@ myocardium = Mat295(
     iso=ISO(itype=-3, beta=2, kappa=1.0, k1=0.20e-3, k2=6.55),
     aniso=ANISO(
         atype=-1,
-        fibers=[ANISO.HGOFiber(k1=0.00305, k2=29.05), ANISO.HGOFiber(k1=1.25e-3, k2=36.65)],
+        fibers=[HGOFiber(k1=0.00305, k2=29.05), HGOFiber(k1=1.25e-3, k2=36.65)],
         k1fs=0.15e-3,
         k2fs=6.28,
     ),

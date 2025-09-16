@@ -38,7 +38,7 @@ import matplotlib.pyplot as plt
 import ansys.health.heart.settings.material.cell_models as cell_models
 from ansys.health.heart.settings.material.curve import kumaraswamy_active
 import ansys.health.heart.settings.material.ep_material as ep_materials
-from ansys.health.heart.settings.material.material_pyd import (
+from ansys.health.heart.settings.material.material import (
     ACTIVE,
     ANISO,
     ISO,

@@ -37,7 +37,7 @@ import yaml
 from ansys.health.heart import LOG as LOGGER, __version__
 from ansys.health.heart.objects import Cap, CapType, Cavity, Mesh, Point, SurfaceMesh
 import ansys.health.heart.settings.material.ep_material as ep_materials
-from ansys.health.heart.settings.material.material_pyd import MechanicalMaterialModel
+from ansys.health.heart.settings.material.material import MechanicalMaterialModel
 
 
 class _PartType(Enum):

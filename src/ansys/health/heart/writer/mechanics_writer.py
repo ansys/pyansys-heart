@@ -34,7 +34,7 @@ from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.objects import Cap, CapType, SurfaceMesh
 import ansys.health.heart.parts as anatomy
-from ansys.health.heart.settings.material.material_pyd import (
+from ansys.health.heart.settings.material.material import (
     Mat295,
     MechanicalMaterialModel,
     NeoHookean,

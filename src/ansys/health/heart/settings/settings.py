@@ -51,7 +51,7 @@ from ansys.health.heart.settings.material.curve import (
     ActiveCurve,
     constant_ca2,
 )
-from ansys.health.heart.settings.material.material_pyd import (
+from ansys.health.heart.settings.material.material import (
     ACTIVE,
     ANISO,
     ISO,

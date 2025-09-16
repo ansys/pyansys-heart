@@ -36,7 +36,7 @@ import numpy as np
 import pandas as pd
 
 from ansys.dyna.core.keywords import keywords
-from ansys.health.heart.settings.material.material_pyd import Mat295
+from ansys.health.heart.settings.material.material import Mat295
 
 # import custom keywords in separate namespace
 from ansys.health.heart.writer import custom_keywords as custom_keywords

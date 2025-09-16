@@ -143,7 +143,7 @@ class ActiveCurve(BaseModel):
     threshold: float = 0.5e-6
     n_beat: int = 5
 
-    # derived (set in validator), exclude these from
+    # Derived values. exclude these from
     # json serialization.
     time: np.ndarray | None = Field(default=None, exclude=True)
     t_beat: float | None = Field(default=None, exclude=True)

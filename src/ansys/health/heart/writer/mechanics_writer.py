@@ -34,7 +34,7 @@ from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.objects import Cap, CapType, SurfaceMesh
 import ansys.health.heart.parts as anatomy
-from ansys.health.heart.settings.material.material import (
+from ansys.health.heart.settings.material.material_pyd import (
     Mat295,
     MechanicalMaterialModel,
     NeoHookean,
@@ -332,7 +332,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _update_material_db(self, add_active: bool = True, em_couple: bool = False) -> None:
         #
         for part in self.model.parts:
-            if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
+            if (
+                not isinstance(part.meca_material, MechanicalMaterialModel)
+                or part.meca_material is None
+            ):
                 # assign material for part if it's empty
                 LOGGER.info(f"Material of {part.name} is assigned automatically.")
                 if part.fiber:

@@ -215,7 +215,7 @@ class ACTIVE(BaseModel):
     acid: int = None  # empty for ep_coupled, or curve ID from writer
     """Do not define it, it will be assigned with an ID of Ca2+ curve
     for mechanical problem or empty for ep-coupled problem."""
-    _actype: int = None  # defined in __post_init__
+    actype: Optional[int] = None  # defined in __post_init__
     """Type of active model, will be deduced the model validator."""
     acthr: float = None
     """Ca2+ threshold for active stress, need to be defined for ep-coupled,
@@ -237,9 +237,9 @@ class ACTIVE(BaseModel):
     @model_validator(mode="after")
     def validate_material_parameters(self):  # noqa: D102
         if isinstance(self.model, ActiveModel1):
-            self._actype = 1
+            self.actype = 1
         elif isinstance(self.model, ActiveModel3):
-            self._actype = 3
+            self.actype = 3
         else:
             LOGGER.error("Unknown actype.")
         if self.ca2_curve is not None:

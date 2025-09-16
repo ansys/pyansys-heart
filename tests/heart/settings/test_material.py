@@ -90,7 +90,7 @@ def test_aniso():
 
 def test_active():
     a = material.ACTIVE(ca2_curve=ActiveCurve(strocchi_active(), type="ca2", threshold=0.1))
-    assert a._actype == 1
+    assert a.actype == 1
     assert a.acthr == 0.1
     assert a.model.l == 1.85
     assert a.ca2_curve.type == "ca2"

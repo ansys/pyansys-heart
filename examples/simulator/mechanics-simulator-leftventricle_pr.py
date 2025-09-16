@@ -74,7 +74,7 @@ import pyvista as pv
 from ansys.health.heart.examples import get_input_leftventricle
 import ansys.health.heart.models as models
 from ansys.health.heart.post.dpf_utils import ICVoutReader
-from ansys.health.heart.settings.material.material import ACTIVE, ANISO, ISO, Mat295
+from ansys.health.heart.settings.material.material_pyd import ACTIVE, ANISO, ISO, Mat295
 from ansys.health.heart.simulator import DynaSettings, MechanicsSimulator
 
 ###############################################################################

@@ -251,7 +251,7 @@ class TestACTIVE:
         """Test default values."""
         active = ACTIVE()
         assert active.acid is None
-        assert active._actype == 1  # Deduced from Model1
+        assert active.actype == 1  # Deduced from Model1
         assert active.acthr == 0.1  # From ca2_curve threshold
         assert active.acdir == 1
         assert active.sf == 1.0
@@ -264,7 +264,7 @@ class TestACTIVE:
         """Test ACTIVE with Model1."""
         model1 = ActiveModel1(t0=1.0)
         active = ACTIVE(model=model1)
-        assert active._actype == 1
+        assert active.actype == 1
         assert isinstance(active.model, ActiveModel1)
         assert active.model.t0 == 1.0
 
@@ -272,7 +272,7 @@ class TestACTIVE:
         """Test ACTIVE with Model3."""
         model3 = ActiveModel3(t0=2.0)
         active = ACTIVE(model=model3)
-        assert active._actype == 3
+        assert active.actype == 3
         assert isinstance(active.model, ActiveModel3)
         assert active.model.t0 == 2.0
 
@@ -404,7 +404,7 @@ class TestIntegration:
         assert mat.iso.k1 == 10.0
         assert mat.aniso._nf == 2
         assert mat.aniso._intype == 1
-        assert mat.active._actype == 3
+        assert mat.active.actype == 3
         assert mat.active.acthr == 0.2
 
     @pytest.mark.xfail(reason="Serialization of the ACTIVE model not fully functional.")
@@ -427,7 +427,7 @@ class TestIntegration:
         assert mat_restored.iso.k1 == mat.iso.k1
         assert mat_restored.iso.k2 == mat.iso.k2
         assert mat_restored.aniso._nf == mat.aniso._nf
-        assert mat_restored.active._actype == mat.active._actype
+        assert mat_restored.active.actype == mat.active.actype
 
     def test_json_serialization(self):
         """Test JSON serialization."""

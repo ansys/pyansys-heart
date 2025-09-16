@@ -51,7 +51,7 @@ from pint import Quantity
 from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models
 from ansys.health.heart.settings.material.ep_material import EPMaterial
-from ansys.health.heart.settings.material.material import ISO, Mat295
+from ansys.health.heart.settings.material.material_pyd import ISO, Mat295
 from ansys.health.heart.simulator import DynaSettings, EPMechanicsSimulator
 
 ###############################################################################

@@ -137,7 +137,7 @@ class Part:
         self.active: bool = False
         """Flag indicating if active stress is established."""
 
-        self.meca_material: MechanicalMaterialModel = MechanicalMaterialModel.DummyMaterial()
+        self.meca_material: MechanicalMaterialModel = None
         """Material model to assign in the simulator."""
 
         self.ep_material: ep_materials.EPMaterialModel = None

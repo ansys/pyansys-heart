@@ -55,7 +55,9 @@ from ansys.health.heart.settings.material.material import (
     ACTIVE,
     ANISO,
     ISO,
-    ActiveModel,
+    ActiveModel1,
+    ActiveModel3,
+    HGOFiber,
     Mat295,
 )
 
@@ -774,10 +776,10 @@ def _read_myocardium_property(mat: AttrDict, coupled=False) -> Mat295:
         beta=2,
     )
 
-    fibers = [ANISO.HGOFiber(k1=mat["anisotropic"]["k1f"].m, k2=mat["anisotropic"]["k2f"].m)]
+    fibers = [HGOFiber(k1=mat["anisotropic"]["k1f"].m, k2=mat["anisotropic"]["k2f"].m)]
 
     if "k1s" in mat["anisotropic"]:
-        sheet = ANISO.HGOFiber(k1=mat["anisotropic"]["k1s"].m, k2=mat["anisotropic"]["k2s"].m)
+        sheet = HGOFiber(k1=mat["anisotropic"]["k1s"].m, k2=mat["anisotropic"]["k2s"].m)
         fibers.append(sheet)
 
     if "k1fs" in mat["anisotropic"]:
@@ -792,8 +794,8 @@ def _read_myocardium_property(mat: AttrDict, coupled=False) -> Mat295:
     sn = mat["active"]["sn"]
 
     if not coupled:
-        ac_mdoel = ActiveModel.Model1(taumax=max)  # use default field in Model1 except taumax
-        curve = ActiveCurve(constant_ca2(tb=bt), threshold=0.1, type="ca2")
+        ac_mdoel = ActiveModel1(taumax=max)  # use default field in Model1 except taumax
+        curve = ActiveCurve(func=constant_ca2(tb=bt), threshold=0.1, type="ca2")
         active = ACTIVE(
             ss=ss,
             sn=sn,
@@ -801,7 +803,7 @@ def _read_myocardium_property(mat: AttrDict, coupled=False) -> Mat295:
             ca2_curve=curve,
         )
     else:
-        ac_mdoel = ActiveModel.Model3(
+        ac_mdoel = ActiveModel3(
             ca2ion50=0.001,
             n=2,
             f=0.0,

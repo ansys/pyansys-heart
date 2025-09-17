@@ -332,7 +332,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _update_material_db(self, add_active: bool = True, em_couple: bool = False) -> None:
         #
         for part in self.model.parts:
-            if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
+            if (
+                not isinstance(part.meca_material, MechanicalMaterialModel)
+                or part.meca_material is None
+            ):
                 # assign material for part if it's empty
                 LOGGER.info(f"Material of {part.name} is assigned automatically.")
                 if part.fiber:

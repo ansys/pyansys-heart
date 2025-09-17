@@ -19,8 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-"""Test module for _pyd_ep_material.py."""
+"""Test module EP materials."""
 
 from unittest.mock import MagicMock, patch
 
@@ -28,13 +27,23 @@ from pydantic import ValidationError
 import pytest
 
 from ansys.health.heart.settings.material.cell_models import Tentusscher, TentusscherEndo
-from ansys.health.heart.settings.material.ep_material_pyd import (
+import ansys.health.heart.settings.material.ep_material as ep_materials
+from ansys.health.heart.settings.material.ep_material import (
     Active,
     ActiveBeam,
     EPMaterialModel,
     Insulator,
     Passive,
 )
+
+
+def test_active():
+    active0 = ep_materials.Active(sigma_fiber=1)
+    assert active0.sigma_sheet is not None
+    active = ep_materials.Active(sigma_fiber=1, sigma_sheet=1, sigma_sheet_normal=1)
+    assert active.sigma_sheet_normal == 1
+    active_beam = ep_materials.ActiveBeam(sigma_fiber=1)
+    assert active_beam.pmjres is not None
 
 
 class TestEPMaterialModel:
@@ -269,7 +278,7 @@ class TestActiveBeam:
 
         # Should have beam-specific defaults
         assert beam.sigma_fiber is not None  # From ep_defaults.material["beam"]
-        assert isinstance(beam.cell_model, TentusscherEndo)  # Different from Active
+        assert isinstance(beam.cell_model, Tentusscher)
         assert beam.pmjres is not None  # Beam-specific field
 
     def test_active_beam_cell_model_factory(self):
@@ -279,8 +288,8 @@ class TestActiveBeam:
 
         # Should be separate TentusscherEndo instances
         assert beam1.cell_model is not beam2.cell_model
-        assert isinstance(beam1.cell_model, TentusscherEndo)
-        assert isinstance(beam2.cell_model, TentusscherEndo)
+        assert isinstance(beam1.cell_model, Tentusscher)
+        assert isinstance(beam2.cell_model, Tentusscher)
 
     def test_active_beam_custom_values(self):
         """Test ActiveBeam with custom values."""
@@ -503,7 +512,7 @@ class TestComplexSerialization:
         restored = ActiveBeam.model_validate_json(json_str)
 
         # All fields should be preserved
-        assert isinstance(restored.cell_model, TentusscherEndo)
+        assert isinstance(restored.cell_model, Tentusscher)
         assert restored.pmjres == beam.pmjres
         assert restored.sigma_fiber == beam.sigma_fiber
         assert restored.beta == beam.beta

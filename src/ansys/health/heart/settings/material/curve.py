@@ -194,6 +194,15 @@ class ActiveCurve(BaseModel):
         self._check_threshold()
         return self
 
+    # optional: serialize numpy arrays to lists for model_dump / JSON
+    @field_serializer("func")
+    def _serialize_func(self, func: tuple[np.ndarray, np.ndarray], info):
+        if isinstance(func[0], np.ndarray) and isinstance(func[1], np.ndarray):
+            return (func[0].tolist(), func[1].tolist())
+        else:
+            LOGGER.error("Failed to serialize func")
+            return None
+
     def _check_threshold(self):
         if np.max(self.ca2) < self.threshold or np.min(self.ca2) > self.threshold:
             raise ValueError("Threshold must cross ca2+ curve at least once")
@@ -219,11 +228,32 @@ class ActiveCurve(BaseModel):
         """Return LS-DYNA input arrays."""
         return self._repeat((self.time, self.ca2))
 
-    # optional: serialize numpy arrays to lists for model_dump / JSON
-    @field_serializer("func")
-    def _serialize_func(self, func: tuple[np.ndarray, np.ndarray], info):
-        if isinstance(func[0], np.ndarray) and isinstance(func[1], np.ndarray):
-            return (func[0].tolist(), func[1].tolist())
-        else:
-            LOGGER.error("Failed to serialize func")
-            return None
+    def plot_time_vs_ca2(self):
+        """Plot time vs ca2."""
+        import matplotlib.pyplot as plt
+
+        t, v = self.dyna_input
+        fig, ax = plt.subplots()
+        ax.plot(t, v, label="ca2")
+        ax.axhline(self.threshold, color="r", linestyle="--", label="threshold")
+        ax.set_xlabel("Time (ms)")
+        ax.set_ylabel("Ca2+")
+        ax.set_title("Active Ca2+ Curve")
+        ax.legend()
+        return fig
+
+    def plot_time_vs_stress(self):
+        """Plot time vs stress."""
+        if self.type != "stress":
+            raise ValueError("Curve type is not 'stress', cannot plot stress.")
+
+        import matplotlib.pyplot as plt
+
+        t, v = self._repeat((self.time, self.stress))
+        fig, ax = plt.subplots()
+        ax.plot(t, v, label="stress")
+        ax.set_xlabel("Time (ms)")
+        ax.set_ylabel("Stress (normalized)")
+        ax.set_title("Active Stress Curve")
+        ax.legend()
+        return fig

@@ -32,7 +32,10 @@ import pyvista as pv
 
 from ansys.dpf import core as dpf
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.exceptions import SupportedDPFServerNotFoundError
+from ansys.health.heart.exceptions import (
+    MissingEnvironmentVariableError,
+    SupportedDPFServerNotFoundError,
+)
 from ansys.health.heart.models import HeartModel
 
 _SUPPORTED_DPF_SERVERS = ["2025.2", "2025.2rc0", "2024.1", "2024.1rc1", "2024.2rc0"]
@@ -48,7 +51,7 @@ def _check_accept_dpf():
             """DPF requires you to accept the license agreement.
             Set the environment variable "ANSYS_DPF_ACCEPT_LA" to "Y"."""
         )
-        exit()
+        raise MissingEnvironmentVariableError("ANSYS_DPF_ACCEPT_LA not set to 'Y'.")
     return
 
 
@@ -286,7 +289,10 @@ class ICVoutReader:
             self._get_available_ids()
         except IndexError as error:
             LOGGER.error(f"{fn} does not contain icvout. {error}")
-            exit()
+            raise IndexError(
+                f"File {fn} does not contain control volume data. "
+                "Make sure the binout file contains ICVOUT results."
+            ) from error
 
     def _get_available_ids(self) -> np.ndarray:
         """Get available CV IDs and CVI IDs."""

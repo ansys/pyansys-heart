@@ -50,7 +50,7 @@ from pint import Quantity
 
 from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models
-from ansys.health.heart.settings.material.ep_material import EPMaterial
+import ansys.health.heart.settings.material.ep_material as ep_materials
 from ansys.health.heart.settings.material.material import ISO, Mat295
 from ansys.health.heart.simulator import DynaSettings, EPMechanicsSimulator
 
@@ -101,11 +101,18 @@ simulator.settings.load_defaults()
 ###############################################################################
 # Compute the fiber orientation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Compute the fiber orientation on the entire model.
+
+# Import the appendage landmarks.
+from ansys.health.heart.pre.database_utils import right_atrium_appendage_landmarks
+
+# Get the right atrium appendage landmark of the first case of Rodero2021.
+right_atrium_appendage_coordinates = right_atrium_appendage_landmarks.get("Rodero2021").get(1)
 
 # Compute fiber orientation in the ventricles and atria.
 simulator.compute_fibers()
 simulator.compute_left_atrial_fiber()
-simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
+simulator.compute_right_atrial_fiber(appendage=right_atrium_appendage_coordinates)
 
 # Switch the atria to active.
 simulator.model.left_atrium.fiber = True
@@ -126,7 +133,7 @@ stiff_iso = Mat295(rho=0.001, iso=ISO(itype=-1, beta=2, kappa=10, mu1=0.1, alpha
 ring.meca_material = stiff_iso
 
 # Assign the default EP material
-ring.ep_material = EPMaterial.Active()
+ring.ep_material = ep_materials.Active()
 
 # plot the mesh
 simulator.model.plot_mesh()

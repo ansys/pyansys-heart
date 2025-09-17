@@ -38,6 +38,7 @@ import yaml
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import InvalidHeartModelError
+from ansys.health.heart.landmarks import LandMarks
 from ansys.health.heart.objects import (
     Cap,
     CapType,
@@ -53,7 +54,7 @@ from ansys.health.heart.pre.conduction_path import (
 )
 from ansys.health.heart.pre.input import _InputModel
 import ansys.health.heart.pre.mesher as mesher
-from ansys.health.heart.settings.material.ep_material import EPMaterial
+import ansys.health.heart.settings.material.ep_material as ep_materials
 from ansys.health.heart.settings.material.material import (
     ISO,
     Mat295,
@@ -263,7 +264,10 @@ class HeartModel:
         """Set incremental part IDs."""
 
         self.electrodes: list[Point] = []
-        """Electrodes positions for ECG computing."""
+        """Electrode positions for computing ECGs."""
+
+        self._landmarks: LandMarks = None
+        """Landmarks of the heart model."""
 
         self._conduction_paths: list[ConductionPath] = []
         """Conduction paths list."""
@@ -440,7 +444,7 @@ class HeartModel:
         )
         if self._input is None:
             LOGGER.error("Failed to initialize input model. Check the input arguments.")
-            exit()
+            raise ValueError("Failed to initialize input model.")
         return
 
     # TODO: add working example in docstring, e.g. by using an existing model.
@@ -1685,7 +1689,7 @@ class HeartModel:
         part.active = False
         part.meca_material = stiff_material
         # assign default EP material as for ventricles
-        part.ep_material = EPMaterial.Active()
+        part.ep_material = ep_materials.Active()
 
         return part
 
@@ -1826,7 +1830,7 @@ class FourChamber(HeartModel):
         # Assign a new part ID to the isolation part
         isolation.fiber = True
         isolation.active = False
-        isolation.ep_material = EPMaterial.Insulator()
+        isolation.ep_material = ep_materials.Insulator()
 
         return isolation
 
@@ -1887,7 +1891,7 @@ class FourChamber(HeartModel):
         ring.fiber = False
         ring.active = False
         # assign default EP material
-        ring.ep_material = EPMaterial.Active()
+        ring.ep_material = ep_materials.Active()
 
         return ring
 
@@ -1928,7 +1932,7 @@ class FullHeart(FourChamber):
         self.pulmonary_artery.fiber = False
         self.pulmonary_artery.active = False
 
-        self.aorta.ep_material = EPMaterial.Insulator()
-        self.pulmonary_artery.ep_material = EPMaterial.Insulator()
+        self.aorta.ep_material = ep_materials.Insulator()
+        self.pulmonary_artery.ep_material = ep_materials.Insulator()
 
         super().__init__(working_directory=working_directory)

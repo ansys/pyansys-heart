@@ -40,7 +40,9 @@ import glob
 import os
 import pathlib
 import shutil
-import subprocess
+
+# subprocess is used to run LS-DYNA commands, excluding bandit warning
+import subprocess  # nosec: B404
 from typing import Literal
 
 import natsort
@@ -51,7 +53,7 @@ import pyvista as pv
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import LSDYNANotFoundError, LSDYNATerminationError
 import ansys.health.heart.models as models
-from ansys.health.heart.models_utils import HeartModelUtils
+import ansys.health.heart.models_utils as heart_model_utils
 from ansys.health.heart.objects import SurfaceMesh
 from ansys.health.heart.post.auto_process import mech_post, zerop_post
 from ansys.health.heart.post.laplace_post import (
@@ -144,7 +146,10 @@ class BaseSimulator:
             for name in ["alpha", "beta", "beta_septum"]:
                 if name not in rotation_angles.keys():
                     LOGGER.error(f"Must provide key {name} for D-RBM method.")
-                    exit()
+                    raise KeyError(
+                        f"Must provide key {name} for D-RBM method. "
+                        "Please check the settings or provide the rotation angles."
+                    )
 
             self._compute_fibers_lsdyna(rotation_angles)
 
@@ -156,12 +161,18 @@ class BaseSimulator:
             for a, b in zip(["alpha", "beta"], ["_left", "_right", "_ot"]):
                 if a + b not in rotation_angles.keys():
                     LOGGER.error(f"Must provide key {name} for D-RBM method.")
-                    exit()
+                    raise KeyError(
+                        f"Must provide key {name} for D-RBM method. "
+                        "Please check the settings or provide the rotation angles."
+                    )
             self._compute_fibers_drbm(rotation_angles)
 
         else:
             LOGGER.error(f"Method {method} is not recognized.")
-            exit()
+            raise ValueError(
+                f"Method {method} is not recognized. "
+                "Please use 'LSDYNA' or 'D-RBM' as the method for computing fibers."
+            )
 
         return
 
@@ -505,13 +516,14 @@ class EPSimulator(BaseSimulator):
 
     def compute_conduction_system(self):
         """Compute the conduction system."""
-        if isinstance(self.model, models.FourChamber):
+        if isinstance(self.model, (models.FourChamber, models.BiVentricle)):
             # TODO: refinement is not correctly used
             # beam_length = self.settings.purkinje.edgelen.m
 
-            beam_list = HeartModelUtils.define_full_conduction_system(
+            beam_list, self.model._landmarks = heart_model_utils.define_full_conduction_system(
                 self.model, os.path.join(self.root_directory, "purkinjegeneration")
             )
+
             self.model.assign_conduction_paths(beam_list)
         else:
             LOGGER.info("Computation is only implemented for other than FourChamber models.")
@@ -842,7 +854,8 @@ def run_lsdyna(
     LOGGER.info(f"Starting LS-DYNA with {commands}...")
 
     mess = []
-    with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:
+    # Excluding bandit warning for subprocess usage
+    with subprocess.Popen(commands, stdout=subprocess.PIPE, text=True) as p:  # nosec: B603
         for line in p.stdout:
             LOGGER.debug(line.rstrip())
             mess.append(line)

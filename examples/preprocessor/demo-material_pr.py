@@ -35,19 +35,20 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from ansys.health.heart.settings.material.curve import (
-    ActiveCurve,
-    constant_ca2,
-    kumaraswamy_active,
-)
-from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
+import ansys.health.heart.settings.material.cell_models as cell_models
+from ansys.health.heart.settings.material.curve import kumaraswamy_active
+import ansys.health.heart.settings.material.ep_material as ep_materials
 from ansys.health.heart.settings.material.material import (
     ACTIVE,
     ANISO,
     ISO,
-    ActiveModel,
+    ActiveCurve,
+    ActiveModel1,
+    ActiveModel3,
+    HGOFiber,
     Mat295,
     NeoHookean,
+    constant_ca2,
 )
 
 ###############################################################################
@@ -74,20 +75,22 @@ neo2 = Mat295(rho=0.001, iso=ISO(itype=1, beta=2, kappa=1, mu1=0.05, alpha1=2))
 iso = ISO(k1=1, k2=1, kappa=100)
 
 # step 2: create an anisotropic module
-fiber = ANISO.HGOFiber(k1=1, k2=1)
+fiber = HGOFiber(k1=1, k2=1)
 aniso1 = ANISO(fibers=[fiber])
 
 # Create fiber with sheet, and their interactions
-sheet = ANISO.HGOFiber(k1=1, k2=1)
+sheet = HGOFiber(k1=1, k2=1)
 aniso2 = ANISO(fibers=[fiber, sheet], k1fs=1, k2fs=1)
 
 # step3: create the active module
 
 # example 1:
 # create active model 1
-ac_model1 = ActiveModel.Model1()
+ac_model1 = ActiveModel1()
 # create Ca2+ curve
-ac_curve1 = ActiveCurve(constant_ca2(tb=800, ca2ionm=ac_model1.ca2ionm), type="ca2", threshold=0.5)
+ac_curve1 = ActiveCurve(
+    func=constant_ca2(tb=800, ca2ionm=ac_model1.ca2ionm), type="ca2", threshold=0.5
+)
 # build active module
 active = ACTIVE(model=ac_model1, ca2_curve=ac_curve1)
 
@@ -103,9 +106,9 @@ plt.show()
 
 # example 2
 # create active model 3
-ac_model3 = ActiveModel.Model3()
+ac_model3 = ActiveModel3()
 # create a stress curve and show
-ac_curve3 = ActiveCurve(kumaraswamy_active(t_end=800), type="stress")
+ac_curve3 = ActiveCurve(func=kumaraswamy_active(t_end=800), type="stress")
 fig = ac_curve3.plot_time_vs_stress()
 plt.show()
 
@@ -132,10 +135,10 @@ active_mat = Mat295(rho=1, iso=iso, aniso=aniso1, active=active)
 ###############################################################################
 # Create EP materials
 # ~~~~~~~~~~~~~~~~~~~
-ep_mat_active = EPMaterial.Active(
-    sigma_fiber=1, sigma_sheet=0.5, beta=140, cm=0.01, cell_model=CellModel.Tentusscher()
+ep_mat_active = ep_materials.Active(
+    sigma_fiber=1, sigma_sheet=0.5, beta=140, cm=0.01, cell_model=cell_models.Tentusscher()
 )
-epinsulator = EPMaterial.Insulator()
+epinsulator = ep_materials.Insulator()
 
 # import pyvista as pv
 
@@ -185,7 +188,7 @@ heartmodel.left_ventricle.meca_material = active_mat
 heartmodel.left_ventricle.ep_material = ep_mat_active
 
 # Print it. You should see the following:
-# MAT295(rho=1, iso=ISO(itype=-3, beta=0.0, nu=0.499, k1=1, k2=1), aopt=2.0, aniso=ANISO(atype=-1, fibers=[ANISO.HGOFiber(k1=1, k2=1, a=0.0, b=1.0, _theta=0.0, _ftype=1, _fcid=0)], k1fs=None, k2fs=None, vec_a=(1.0, 0.0, 0.0), vec_d=(0.0, 1.0, 0.0), nf=1, intype=0), active=ActiveModel.Model1(t0=None, ca2ion=None, ca2ionm=4.35, n=2, taumax=0.125, stf=0.0, b=4.75, l0=1.58, l=1.85, dtmax=150, mr=1048.9, tr=-1629.0))  # noqa
+# MAT295(rho=1, iso=ISO(itype=-3, beta=0.0, nu=0.499, k1=1, k2=1), aopt=2.0, aniso=ANISO(atype=-1, fibers=[HGOFiber(k1=1, k2=1, a=0.0, b=1.0, _theta=0.0, _ftype=1, _fcid=0)], k1fs=None, k2fs=None, vec_a=(1.0, 0.0, 0.0), vec_d=(0.0, 1.0, 0.0), nf=1, intype=0), active=ActiveModel.Model1(t0=None, ca2ion=None, ca2ionm=4.35, n=2, taumax=0.125, stf=0.0, b=4.75, l0=1.58, l=1.85, dtmax=150, mr=1048.9, tr=-1629.0))  # noqa
 print(heartmodel.left_ventricle.meca_material)
 print(heartmodel.left_ventricle.ep_material)
 ###############################################################################

@@ -36,6 +36,7 @@ from ansys.health.heart.settings.settings import (
     SimulationSettings,
     Stimulation,
     _get_consistent_units_str,
+    _windows_to_wsl_path,
 )
 from tests.heart.conftest import compare_string_with_file
 
@@ -319,3 +320,16 @@ def test_purkinje_settings(default_allsettings: SimulationSettings):
     default_allsettings.purkinje.node_id_origin_right = 2
     node_origin_right = default_allsettings.purkinje.node_id_origin_right
     assert node_origin_right == 2
+
+
+@pytest.mark.xfail(condition=os.name == "posix", reason="Windows-specific test")
+def test_windows_path_to_wsl_path():
+    """Test conversion of Windows path to WSL path."""
+    assert _windows_to_wsl_path("C:\\Program Files\\LS-DYNA") == "/mnt/c/Program Files/LS-DYNA"
+    assert _windows_to_wsl_path("D:\\") == "/mnt/d/"
+    assert _windows_to_wsl_path("D:\\dev") == "/mnt/d/dev"
+
+    assert (
+        _windows_to_wsl_path("\\\\wsl.localhost\\Ubuntu\\home\\user\\project")
+        == "/home/user/project"
+    )

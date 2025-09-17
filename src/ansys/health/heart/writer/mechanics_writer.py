@@ -332,7 +332,10 @@ class MechanicsDynaWriter(BaseDynaWriter):
     def _update_material_db(self, add_active: bool = True, em_couple: bool = False) -> None:
         #
         for part in self.model.parts:
-            if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
+            if (
+                not isinstance(part.meca_material, MechanicalMaterialModel)
+                or part.meca_material is None
+            ):
                 # assign material for part if it's empty
                 LOGGER.info(f"Material of {part.name} is assigned automatically.")
                 if part.fiber:
@@ -823,13 +826,13 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 LOGGER.debug("Already created material for {}. Skipping.".format(cap.name))
                 continue
 
-            cap.pid = self.get_unique_part_id()
+            cap._pid = self.get_unique_part_id()
 
             part_kw = keywords.Part()
             part_kw.parts = pd.DataFrame(
                 {
                     "heading": [cap.name],
-                    "pid": [cap.pid],
+                    "pid": [cap._pid],
                     "secid": [section_id],
                     "mid": [mat_null_id],
                 }
@@ -840,7 +843,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
             if cap.centroid is not None:
                 if cap._node_set_id is None:
                     LOGGER.error("Cap nodeset ID is not yet assigned.")
-                    exit()
+                    raise ValueError("Cap nodeset ID is not yet assigned.")
 
                 constraint = keywords.ConstrainedInterpolation(
                     icid=len(cap_names_used) + 1,
@@ -868,7 +871,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
 
                 shell_kw = create_element_shell_keyword(
                     shells=cap_mesh.triangles_global + 1,
-                    part_id=cap.pid,
+                    part_id=cap._pid,
                     id_offset=shell_id_offset,
                 )
 
@@ -1036,8 +1039,8 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
             save_part_ids.append(part.pid)
 
         for cap in self.model.all_caps:
-            if cap.pid is not None:  # MV,TV for atrial parts get None
-                save_part_ids.append(cap.pid)
+            if cap._pid is not None:  # MV,TV for atrial parts get None
+                save_part_ids.append(cap._pid)
 
         partset_id = self.get_unique_partset_id()
         kw = keywords.SetPartList(sid=partset_id)

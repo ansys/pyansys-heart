@@ -312,7 +312,7 @@ class LaplaceWriter(BaseDynaWriter):
         raa_ids = np.array(tree.query_ball_point(self.landmarks["raa"], self._LANDMARK_RADIUS))
         if len(raa_ids) == 0:
             LOGGER.error("No node is identified as right atrium appendage apex.")
-            exit()
+            raise ValueError("No node is identified as right atrium appendage apex.")
 
         kw = create_node_set_keyword(raa_ids + 1, node_set_id=11, title="raa")
         self.kw_database.node_sets.append(kw)
@@ -590,7 +590,7 @@ class LaplaceWriter(BaseDynaWriter):
 
             # add case kewyords
             cases = [
-                (1, "trans", [lv_endo_nodeset_id, epi_nodeset_id], [1, 0]),
+                (1, "trans", [lv_endo_nodeset_id, epi_nodeset_id], [0, 1]),
                 (2, "ab_l", [mv_nodeset_id, la_nodeset_id], [1, 0]),
                 (3, "ot_l", [av_nodeset_id, la_nodeset_id], [1, 0]),
                 # If combined MV and AV, mv_nodeset=av_nodeset=combined, solve ab_l = ot_l
@@ -611,8 +611,9 @@ class LaplaceWriter(BaseDynaWriter):
             ra_nodeset_id = self._add_nodeset(ra_node, "right apex")
 
             # add case kewyords
+            # Use values given by Doste et al.
             cases = [
-                (1, "trans", [lv_endo_nodeset_id, rv_endo_nodeset_id, epi_nodeset_id], [2, -1, 0]),
+                (1, "trans", [lv_endo_nodeset_id, rv_endo_nodeset_id, epi_nodeset_id], [-2, 1, 0]),
                 (2, "ab_l", [mv_nodeset_id, la_nodeset_id], [1, 0]),
                 (3, "ab_r", [tv_nodeset_id, ra_nodeset_id], [1, 0]),
                 (4, "ot_l", [av_nodeset_id, la_nodeset_id], [1, 0]),
@@ -623,7 +624,6 @@ class LaplaceWriter(BaseDynaWriter):
                 if combined_av_mv
                 else (6, "w_l", [mv_nodeset_id, la_nodeset_id, av_nodeset_id], [1, 1, 0]),
                 (7, "w_r", [tv_nodeset_id, ra_nodeset_id, pv_nodeset_id], [1, 1, 0]),
-                (8, "lr", [lv_endo_nodeset_id, rv_endo_nodeset_id], [1, -1]),
             ]
 
         for case_id, job_name, set_ids, bc_values in cases:

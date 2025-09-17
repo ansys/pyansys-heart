@@ -3,7 +3,9 @@
 from datetime import datetime
 import os
 from pathlib import Path
-import subprocess
+
+# subprocess is used to run tox commands, ignoring bandit warning
+import subprocess  # nosec: B404
 
 from ansys_sphinx_theme import ansys_favicon, get_version_match
 import pyvista

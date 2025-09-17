@@ -23,7 +23,6 @@
 import hashlib
 import os
 import pathlib
-import tarfile
 import tempfile
 import unittest.mock as mock
 
@@ -85,8 +84,15 @@ def test_infer_extraction_path_from_tar(tar_subpaths):
     # two configurations:
     # Strocchi2020 --> 01.tar.gz > 01/01.case
     # Rodero2021 --> 01.tar.gz > > 01.vtk
-    with mock.patch("tarfile.open", return_value=mock.MagicMock(tarfile.TarFile)) as mock_taropen:
-        mock_taropen.return_value.getnames.return_value = tar_subpaths
+
+    # Mock tarfile.open to support context manager and return a mock tarball
+    mock_tarball = mock.MagicMock()
+    mock_tarball.getnames.return_value = tar_subpaths
+    mock_tarfile_open = mock.MagicMock(return_value=mock_tarball)
+    mock_tarball.__enter__.return_value = mock_tarball
+    mock_tarball.__exit__.return_value = None
+
+    with mock.patch("tarfile.open", mock_tarfile_open):
         with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
             path = _infer_extraction_path_from_tar(os.path.join(tempdir, "mytar.tar.gz"))
 

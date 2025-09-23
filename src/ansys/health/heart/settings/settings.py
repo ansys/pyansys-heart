@@ -47,19 +47,6 @@ from ansys.health.heart.settings.defaults import (
     purkinje as purkinje_defaults,
     zeropressure as zero_pressure_defaults,
 )
-from ansys.health.heart.settings.material.curve import (
-    ActiveCurve,
-    constant_ca2,
-)
-from ansys.health.heart.settings.material.material import (
-    ACTIVE,
-    ANISO,
-    ISO,
-    ActiveModel1,
-    ActiveModel3,
-    HGOFiber,
-    Mat295,
-)
 
 
 class AttrDict(dict):
@@ -672,32 +659,6 @@ class SimulationSettings:
                 attr.to_consistent_unit_system()
         return
 
-    def get_mechanical_material(
-        self, required_type: Literal["isotropic", "anisotropic"], ep_coupled=False
-    ) -> Mat295:
-        """Load mechanical materials from settings.
-
-        Parameters
-        ----------
-        required_type : Literal[&#39;isotropic&#39;,&#39;anisotropic&#39;]
-            Type of required maerial
-        ep_coupled : bool, optional
-            If MAT295 is coupled with EP simulation, by default False
-
-        Returns
-        -------
-        MAT295
-            material with parameters in settings
-        """
-        if required_type == "anisotropic":
-            material = _read_myocardium_property(
-                self.mechanics.material.myocardium, coupled=ep_coupled
-            )
-        elif required_type == "isotropic":
-            material = _read_passive_property(self.mechanics.material.passive)
-
-        return material
-
     def get_ventricle_fiber_rotation(self, method: Literal["LSDYNA", "D-RBM"]) -> dict:
         """Get rotation angles from settings.
 
@@ -748,79 +709,6 @@ class SimulationSettings:
                 "beta_ot": None,
             }
         return rotation
-
-
-def _read_passive_property(passive: AttrDict) -> Mat295:
-    """Read passive property from settings."""
-    passive = Mat295(
-        rho=passive["rho"].m,
-        iso=ISO(
-            itype=passive["itype"],
-            beta=2,
-            kappa=passive["kappa"].m,
-            mu1=passive["mu1"].m,
-            alpha1=passive["alpha1"],
-        ),
-    )
-    return passive
-
-
-def _read_myocardium_property(mat: AttrDict, coupled=False) -> Mat295:
-    """Read myocardium property from settings."""
-    rho = mat["isotropic"]["rho"].m
-
-    iso = ISO(
-        kappa=mat["isotropic"]["kappa"].m,
-        k1=mat["isotropic"]["k1"].m,
-        k2=mat["isotropic"]["k2"].m,
-        beta=2,
-    )
-
-    fibers = [HGOFiber(k1=mat["anisotropic"]["k1f"].m, k2=mat["anisotropic"]["k2f"].m)]
-
-    if "k1s" in mat["anisotropic"]:
-        sheet = HGOFiber(k1=mat["anisotropic"]["k1s"].m, k2=mat["anisotropic"]["k2s"].m)
-        fibers.append(sheet)
-
-    if "k1fs" in mat["anisotropic"]:
-        k1fs, k2fs = mat["anisotropic"]["k1fs"].m, mat["anisotropic"]["k2fs"].m
-    else:
-        k1fs, k2fs = None, None
-    aniso = ANISO(fibers=fibers, k1fs=k1fs, k2fs=k2fs)
-
-    max = mat["active"]["taumax"].m
-    bt = mat["active"]["beat_time"].m
-    ss = mat["active"]["ss"]
-    sn = mat["active"]["sn"]
-
-    if not coupled:
-        ac_mdoel = ActiveModel1(taumax=max)  # use default field in Model1 except taumax
-        curve = ActiveCurve(func=constant_ca2(tb=bt), threshold=0.1, type="ca2")
-        active = ACTIVE(
-            ss=ss,
-            sn=sn,
-            model=ac_mdoel,
-            ca2_curve=curve,
-        )
-    else:
-        ac_mdoel = ActiveModel3(
-            ca2ion50=0.001,
-            n=2,
-            f=0.0,
-            l=1.9,
-            eta=1.45,
-            sigmax=max,  # MPa
-        )
-
-        active = ACTIVE(
-            ss=ss,
-            sn=sn,
-            acthr=0.0002,
-            model=ac_mdoel,
-            ca2_curve=None,
-        )
-
-    return Mat295(rho=rho, iso=iso, aniso=aniso, active=active)
 
 
 def _remove_units_from_dictionary(d: dict):

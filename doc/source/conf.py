@@ -232,6 +232,7 @@ user_repo = f"{html_context['github_user']}/{html_context['github_repo']}"
 linkcheck_ignore = [
     # Ansys pages
     "https://www.ansys.com/*",
+    "https://download.ansys.com/*",
     "https://lsdyna.ansys.com/*",
     # Third party pages
     "https://royalsocietypublishing.org/*",

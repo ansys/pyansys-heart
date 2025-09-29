@@ -78,7 +78,7 @@ jobs:
     name: Documentation Style Check
     runs-on: ubuntu-latest
     steps:
-      - uses: ansys/actions/doc-style@ed773aba3478d311decff2d4313e0cd19a945dd8 # v10.1.0
+      - uses: ansys/actions/doc-style@9de5aa715cf3c98a237b08e1a308c08599223c42 # v10.1.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -142,7 +142,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: doc-build
     steps:
-      - uses: ansys/actions/doc-deploy-dev@ed773aba3478d311decff2d4313e0cd19a945dd8 # v10.1.0
+      - uses: ansys/actions/doc-deploy-dev@9de5aa715cf3c98a237b08e1a308c08599223c42 # v10.1.2
         with:
           doc-artifact-name: "documentation-html"
           cname: ${{ env.DOCUMENTATION_CNAME }}

@@ -34,6 +34,20 @@ from ansys.health.heart.settings.material.material import (
 )
 
 
+def _default_myocardium_material() -> Mat295:
+    """Get default Mat295 myocardium material."""
+    from ansys.health.heart.settings.defaults.mechanics import material
+
+    return _get_myocardium_material(material["myocardium"])
+
+
+def _default_passive_material() -> Mat295:
+    """Get default Mat295 passive material."""
+    from ansys.health.heart.settings.defaults.mechanics import material
+
+    return _get_passive_material(material["passive"])
+
+
 def _get_myocardium_material(settings: dict, ep_coupled: bool = False) -> Mat295:
     """Get Mat295 myocardium material from settings."""
     if "isotropic" not in settings or "anisotropic" not in settings or "active" not in settings:

@@ -115,7 +115,8 @@ convention = "numpy"
 [tool.ruff.lint.isort]
 combine-as-imports = true
 force-sort-within-sections = true
-known-first-party = ["ansys.health.heart"]
+# Ensures all `ansys` imports are considered first party
+known-first-party = ["ansys.health.heart", "ansys"]
 
 [tool.coverage.run]
 source = ["ansys.health.heart"]

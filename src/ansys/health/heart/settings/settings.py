@@ -609,6 +609,7 @@ class SimulationSettings:
             if isinstance(getattr(self, attr), Electrophysiology):
                 analysis = EPAnalysis()
                 analysis.set_values(ep_defaults.analysis)
+                # TODO: Deprecate this way of handling default materials
                 material = EpMaterial()
                 material.set_values(ep_defaults.material)
 

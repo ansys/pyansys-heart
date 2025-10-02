@@ -22,12 +22,21 @@
 
 """EP material module."""
 
+from enum import Enum
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, model_validator
 
 from ansys.health.heart.settings.defaults import electrophysiology as ep_defaults
 from ansys.health.heart.settings.material.cell_models import Tentusscher
+
+
+class EPSolverType(Enum):
+    """Enumeration of EP solver types."""
+
+    MONODOMAIN = "Monodomain"
+    EIKONAL = "Eikonal"
+    REACTION_EIKONAL = "Reaction-Eikonal"
 
 
 class EPMaterialModel(BaseModel):
@@ -62,9 +71,7 @@ class Insulator(BaseModel):
 class Active(EPMaterialModel):
     """Hold data for EP material."""
 
-    solver_type: Literal["Monodomain", "Eikonal", "Reaction-Eikonal"] = ep_defaults.analysis[
-        "solvertype"
-    ]
+    solver_type: EPSolverType | Literal["Monodomain", "Eikonal", "Reaction-Eikonal"] = "Monodomain"
 
     sigma_fiber: Optional[float] = None
     sigma_sheet: Optional[float] = None

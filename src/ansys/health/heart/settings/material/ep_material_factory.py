@@ -22,18 +22,11 @@
 
 """Factory for creating EP material models."""
 
-from enum import Enum
 from typing import Literal
 
-from ansys.health.heart.settings.material.ep_material import Active, ActiveBeam
+from pint import Quantity
 
-
-class EPSolverType(Enum):
-    """Enumeration of EP solver types."""
-
-    MONODOMAIN = "Monodomain"
-    EIKONAL = "Eikonal"
-    REACTION_EIKONAL = "Reaction-Eikonal"
+from ansys.health.heart.settings.material.ep_material import Active, ActiveBeam, EPSolverType
 
 
 def get_default_myocardium_material(
@@ -63,6 +56,9 @@ def get_default_myocardium_material(
         from ansys.health.heart.settings.defaults.electrophysiology import (
             default_myocardium_material_monodomain as defaults,
         )
+
+    # Remove units from default Quantity values.
+    defaults = {k: (v.m if isinstance(v, Quantity) else v) for k, v in defaults.items()}
 
     return Active(solver_type=ep_solver_type, **defaults)
 
@@ -94,5 +90,8 @@ def get_default_conduction_system_material(
         from ansys.health.heart.settings.defaults.electrophysiology import (
             default_beam_material_monodomain as defaults,
         )
+
+    # Remove units from default Quantity values.
+    defaults = {k: (v.m if isinstance(v, Quantity) else v) for k, v in defaults.items()}
 
     return ActiveBeam(solver_type=ep_solver_type, **defaults)

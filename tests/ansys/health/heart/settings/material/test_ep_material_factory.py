@@ -24,6 +24,7 @@ import importlib.util as importlib_util
 import sys
 
 from ansys.health.heart.settings.material import ep_material_factory as factory
+from ansys.health.heart.settings.material.ep_material import EPSolverType
 
 
 def _make_dummy_defaults():
@@ -67,21 +68,21 @@ def test_get_default_myocardium_material_selects_correct_defaults(monkeypatch):
     monkeypatch.setattr(factory, "Active", MockActive)
 
     # Eikonal via enum
-    res = factory.get_default_myocardium_material(factory.EPSolverType.EIKONAL)
+    res = factory.get_default_myocardium_material(EPSolverType.EIKONAL)
     assert isinstance(res, MockActive)
-    assert res.solver_type == factory.EPSolverType.EIKONAL
+    assert res.solver_type == EPSolverType.EIKONAL
     assert res.kwargs == dummy.default_myocardium_material_eikonal
 
     # Reaction-Eikonal should behave like Eikonal
-    res = factory.get_default_myocardium_material(factory.EPSolverType.REACTION_EIKONAL)
+    res = factory.get_default_myocardium_material(EPSolverType.REACTION_EIKONAL)
     assert isinstance(res, MockActive)
-    assert res.solver_type == factory.EPSolverType.REACTION_EIKONAL
+    assert res.solver_type == EPSolverType.REACTION_EIKONAL
     assert res.kwargs == dummy.default_myocardium_material_eikonal
 
     # Monodomain via string input
     res = factory.get_default_myocardium_material("Monodomain")
     assert isinstance(res, MockActive)
-    assert res.solver_type == factory.EPSolverType.MONODOMAIN
+    assert res.solver_type == EPSolverType.MONODOMAIN
     assert res.kwargs == dummy.default_myocardium_material_monodomain
 
 
@@ -92,13 +93,13 @@ def test_get_default_conduction_system_material_selects_correct_defaults(monkeyp
     monkeypatch.setattr(factory, "ActiveBeam", MockActiveBeam)
 
     # Eikonal via enum
-    res = factory.get_default_conduction_system_material(factory.EPSolverType.EIKONAL)
+    res = factory.get_default_conduction_system_material(EPSolverType.EIKONAL)
     assert isinstance(res, MockActiveBeam)
-    assert res.solver_type == factory.EPSolverType.EIKONAL
+    assert res.solver_type == EPSolverType.EIKONAL
     assert res.kwargs == dummy.default_beam_material_eikonal
 
     # Monodomain via string
     res = factory.get_default_conduction_system_material("Monodomain")
     assert isinstance(res, MockActiveBeam)
-    assert res.solver_type == factory.EPSolverType.MONODOMAIN
+    assert res.solver_type == EPSolverType.MONODOMAIN
     assert res.kwargs == dummy.default_beam_material_monodomain

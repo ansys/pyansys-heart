@@ -392,6 +392,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         """Add electrophysiology material for each defined part."""
         material_settings = self.settings.electrophysiology.material
         solvertype = self.settings.electrophysiology.analysis.solvertype
+        # TODO: This assigns default values of sig1 etc to parts that do not have a material
+        # TODO: assigned however material assignment and validation should happen in the simulator
+        # TODO: class.
         if solvertype == "Monodomain":
             sig1 = material_settings.myocardium["sigma_fiber"].m
             sig2 = material_settings.myocardium["sigma_sheet"].m

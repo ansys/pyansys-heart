@@ -99,9 +99,10 @@ def get_passive_material(
     # Remove units from default Quantity values.
     defaults = {k: (v.m if isinstance(v, Quantity) else v) for k, v in defaults.items()}
 
-    defaults = {k: v for k, v in defaults.items() if k.startswith("sigma_")}
+    del defaults["sigma_sheet"]
+    del defaults["sigma_sheet_normal"]
 
-    return Passive(sigma_fiber=defaults.get("sigma_fiber"))
+    return Passive(**defaults)
 
 
 def get_default_conduction_system_material(

@@ -26,7 +26,12 @@ from typing import Literal
 
 from pint import Quantity
 
-from ansys.health.heart.settings.material.ep_material import Active, ActiveBeam, EPSolverType
+from ansys.health.heart.settings.material.ep_material import (
+    Active,
+    ActiveBeam,
+    EPSolverType,
+    Passive,
+)
 
 
 def get_default_myocardium_material(
@@ -61,6 +66,42 @@ def get_default_myocardium_material(
     defaults = {k: (v.m if isinstance(v, Quantity) else v) for k, v in defaults.items()}
 
     return Active(solver_type=ep_solver_type, **defaults)
+
+
+def get_passive_material(
+    ep_solver_type: EPSolverType | Literal["Monodomain", "Eikonal", "Reaction-Eikonal"],
+) -> Passive:
+    """Get the default passive material for a solver type.
+
+    Parameters
+    ----------
+    ep_solver_type : EPSolverType | str
+        The type of EP solver to select appropriate defaults for.
+
+    Returns
+    -------
+    Passive
+        The default passive EP material model.
+    """
+    if isinstance(ep_solver_type, str):
+        ep_solver_type = EPSolverType(ep_solver_type)
+
+    # import defaults depending on solver type.
+    if ep_solver_type in (EPSolverType.REACTION_EIKONAL, EPSolverType.EIKONAL):
+        from ansys.health.heart.settings.defaults.electrophysiology import (
+            default_myocardium_material_eikonal as defaults,
+        )
+    if ep_solver_type == EPSolverType.MONODOMAIN:
+        from ansys.health.heart.settings.defaults.electrophysiology import (
+            default_myocardium_material_monodomain as defaults,
+        )
+
+    # Remove units from default Quantity values.
+    defaults = {k: (v.m if isinstance(v, Quantity) else v) for k, v in defaults.items()}
+
+    defaults = {k: v for k, v in defaults.items() if k.startswith("sigma_")}
+
+    return Passive(sigma_fiber=defaults.get("sigma_fiber"))
 
 
 def get_default_conduction_system_material(

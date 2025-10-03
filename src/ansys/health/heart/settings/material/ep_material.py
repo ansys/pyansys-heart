@@ -35,7 +35,7 @@ class EPSolverType(Enum):
 
     MONODOMAIN = "Monodomain"
     EIKONAL = "Eikonal"
-    REACTION_EIKONAL = "Reaction-Eikonal"
+    REACTION_EIKONAL = "ReactionEikonal"
 
 
 class EPMaterialModel(BaseModel):
@@ -70,7 +70,7 @@ class Insulator(BaseModel):
 class Active(EPMaterialModel):
     """Hold data for EP material."""
 
-    solver_type: EPSolverType | Literal["Monodomain", "Eikonal", "Reaction-Eikonal"] = "Monodomain"
+    solver_type: EPSolverType | Literal["Monodomain", "Eikonal", "ReactionEikonal"] = "Monodomain"
 
     sigma_fiber: Optional[float] = None
     sigma_sheet: Optional[float] = None

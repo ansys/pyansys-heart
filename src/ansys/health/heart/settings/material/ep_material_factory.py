@@ -35,7 +35,7 @@ from ansys.health.heart.settings.material.ep_material import (
 
 
 def get_default_myocardium_material(
-    ep_solver_type: EPSolverType | Literal["Monodomain", "Eikonal", "Reaction-Eikonal"],
+    ep_solver_type: EPSolverType | Literal["Monodomain", "Eikonal", "ReactionEikonal"],
 ) -> Active:
     """Get the default myocardium material for a solver type.
 
@@ -69,7 +69,7 @@ def get_default_myocardium_material(
 
 
 def get_passive_material(
-    ep_solver_type: EPSolverType | Literal["Monodomain", "Eikonal", "Reaction-Eikonal"],
+    ep_solver_type: EPSolverType | Literal["Monodomain", "Eikonal", "ReactionEikonal"],
 ) -> Passive:
     """Get the default passive material for a solver type.
 
@@ -106,7 +106,7 @@ def get_passive_material(
 
 
 def get_default_conduction_system_material(
-    ep_solver_type: EPSolverType | Literal["Monodomain", "Eikonal", "Reaction-Eikonal"],
+    ep_solver_type: EPSolverType | Literal["Monodomain", "Eikonal", "ReactionEikonal"],
 ) -> ActiveBeam:
     """Get the default conduction-system (beam) material for a solver type.
 

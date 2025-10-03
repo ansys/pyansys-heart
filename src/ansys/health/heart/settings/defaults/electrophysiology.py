@@ -91,6 +91,8 @@ default_beam_material_monodomain = default_beam_material_eikonal.copy()
 default_beam_material_monodomain["sigma"] = Quantity(1, "mS/mm")  # mS/mm
 default_myocardium_material_monodomain = default_myocardium_material_eikonal.copy()
 default_myocardium_material_monodomain["sigma_fiber"] = Quantity(0.5, "mS/mm")  # mS/mm
+default_myocardium_material_monodomain["sigma_sheet"] = Quantity(0.1, "mS/mm")  # mS/mm
+default_myocardium_material_monodomain["sigma_sheet_normal"] = Quantity(0.1, "mS/mm")  # mS/mm
 
 """Stimulation settings."""
 stimulation = {

@@ -34,6 +34,7 @@ from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, Heart
 from ansys.health.heart.pre.conduction_path import ConductionPathType
 import ansys.health.heart.settings.material.cell_models as cell_models
 import ansys.health.heart.settings.material.ep_material as ep_materials
+import ansys.health.heart.settings.material.ep_material_factory as ep_material_factory
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings, Stimulation
 from ansys.health.heart.writer import custom_keywords as custom_keywords
@@ -390,20 +391,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_ep_material_db(self) -> None:
         """Add electrophysiology material for each defined part."""
-        material_settings = self.settings.electrophysiology.material
         solvertype = self.settings.electrophysiology.analysis.solvertype
         # TODO: This assigns default values of sig1 etc to parts that do not have a material
         # TODO: assigned however material assignment and validation should happen in the simulator
         # TODO: class.
-        if solvertype == "Monodomain":
-            sig1 = material_settings.myocardium["sigma_fiber"].m
-            sig2 = material_settings.myocardium["sigma_sheet"].m
-            sig3 = material_settings.myocardium["sigma_sheet_normal"].m
-        elif solvertype == "Eikonal" or solvertype == "ReactionEikonal":
-            sig1 = material_settings.myocardium["velocity_fiber"].m
-            sig2 = material_settings.myocardium["velocity_sheet"].m
-            sig3 = material_settings.myocardium["velocity_sheet_normal"].m
-
         for part in self.model.parts:
             if (
                 not isinstance(
@@ -413,12 +404,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             ):
                 LOGGER.info(f"Material of {part.name} is assigned automatically.")
                 if part.active:
-                    part.ep_material = ep_materials.Active(sigma_fiber=sig1)
+                    part.ep_material = ep_material_factory.get_default_myocardium_material(
+                        solvertype
+                    )
                 else:
-                    part.ep_material = ep_materials.Passive(sigma_fiber=sig1)
-                if part.fiber:
-                    part.ep_material.sigma_sheet = sig2
-                    part.ep_material.sigma_sheet_normal = sig3
+                    part.ep_material = ep_material_factory.get_passive_material(solvertype)
 
             self.kw_database.material.append(f"$$ {part.name} $$")
             ep_mid = part.pid

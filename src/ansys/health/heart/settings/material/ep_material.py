@@ -88,9 +88,10 @@ class ActiveBeam(Active):
     pmjres: float = 0.001
 
 
+# A Passive material model is actually the same as the EPMaterialModel
 class Passive(EPMaterialModel):
     """Hold data for EP passive material."""
 
-    sigma_fiber: float = None
-    sigma_sheet: Optional[float] = None
-    sigma_sheet_normal: Optional[float] = None
+    # sigma_fiber: Optional[float] = None
+    # sigma_sheet: Optional[float] = None
+    # sigma_sheet_normal: Optional[float] = None

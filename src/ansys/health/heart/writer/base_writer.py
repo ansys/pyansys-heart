@@ -810,6 +810,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
+                        # TODO: check whether these values are really needed.
                         sigma11=material_settings.myocardium["sigma_fiber"].m,
                         sigma22=material_settings.myocardium["sigma_sheet"].m,
                         sigma33=material_settings.myocardium["sigma_sheet_normal"].m,

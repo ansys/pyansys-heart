@@ -225,6 +225,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                     iedgeid=edge_id_start_left,  # TODO: check if beam elements exist in mesh
                     pmjtype=self.settings.purkinje.pmjtype.m,
                     pmjradius=self.settings.purkinje.pmjradius.m,
+                    # TODO: should these be part of purkinje settings?
                     pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
                     pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
                 )

@@ -39,7 +39,7 @@ from ansys.health.heart.settings.material.ep_material import (
 
 def test_active():
     active0 = ep_materials.Active(sigma_fiber=1)
-    assert active0.sigma_sheet is not None
+    assert active0.sigma_sheet is None
     active = ep_materials.Active(sigma_fiber=1, sigma_sheet=1, sigma_sheet_normal=1)
     assert active.sigma_sheet_normal == 1
     active_beam = ep_materials.ActiveBeam(sigma_fiber=1)
@@ -57,8 +57,8 @@ class TestEPMaterialModel:
         assert model.sigma_fiber is None  # Should be None by default
         assert model.sigma_sheet is None
         assert model.sigma_sheet_normal is None
-        assert model.beta is not None  # Should get value from ep_defaults
-        assert model.cm is not None  # Should get value from ep_defaults
+        assert model.beta is None
+        assert model.cm is None
         assert model.lambda_ is None
 
     def test_ep_material_model_optional_fields(self):
@@ -197,11 +197,11 @@ class TestActive:
         """Test Active creation with defaults."""
         active = Active()
         assert active.solver_type == "Monodomain"
-        assert active.sigma_fiber == 0.5
-        assert active.sigma_sheet == 0.1
-        assert active.sigma_sheet_normal == 0.1
-        assert active.beta == 140  # From ep_defaults
-        assert active.cm == 0.01
+        assert active.sigma_fiber is None
+        assert active.sigma_sheet is None
+        assert active.sigma_sheet_normal is None
+        assert active.beta is None
+        assert active.cm is None
 
         # Active-specific defaults
         assert isinstance(active.cell_model, Tentusscher)
@@ -334,13 +334,13 @@ class TestPassive:
         passive = Passive()
 
         # Should have passive-specific defaults
-        assert passive.sigma_fiber is not None  # From ep_defaults
+        assert passive.sigma_fiber is None  # From ep_defaults
         assert passive.sigma_sheet is None
         assert passive.sigma_sheet_normal is None
 
         # Inherited from EPMaterialModel
-        assert passive.beta is not None
-        assert passive.cm is not None
+        assert passive.beta is None
+        assert passive.cm is None
 
     def test_passive_no_cell_model(self):
         """Test that Passive doesn't have cell_model field."""

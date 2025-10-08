@@ -49,14 +49,12 @@ def _make_dummy_defaults():
 
 # Mocks ActiveBeam and Active EP Material classes.
 class MockActive:
-    def __init__(self, solver_type, **kwargs):
-        self.solver_type = solver_type
+    def __init__(self, **kwargs):
         self.kwargs = kwargs
 
 
 class MockActiveBeam:
-    def __init__(self, solver_type, **kwargs):
-        self.solver_type = solver_type
+    def __init__(self, **kwargs):
         self.kwargs = kwargs
 
 

@@ -23,7 +23,7 @@
 """EP material module."""
 
 from enum import Enum
-from typing import Literal, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -38,7 +38,7 @@ class EPSolverType(Enum):
     REACTION_EIKONAL = "ReactionEikonal"
 
 
-class EPMaterialModel(BaseModel):
+class EPMaterialModel(BaseModel):  # EM MAT 003
     """Base class for all EP material models."""
 
     sigma_fiber: Optional[float] = None
@@ -59,7 +59,7 @@ class EPMaterialModel(BaseModel):
         return self
 
 
-class Insulator(BaseModel):
+class Insulator(BaseModel):  # EM MAT 001
     """Insulator material."""
 
     sigma_fiber: float = 0.0
@@ -67,10 +67,9 @@ class Insulator(BaseModel):
     beta: float = 0.0
 
 
+# solver type should be managed from global settings and not in material settings.
 class Active(EPMaterialModel):
     """Hold data for EP material."""
-
-    solver_type: EPSolverType | Literal["Monodomain", "Eikonal", "ReactionEikonal"] = "Monodomain"
 
     sigma_fiber: Optional[float] = None
     sigma_sheet: Optional[float] = None

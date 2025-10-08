@@ -29,6 +29,7 @@ from pint import Quantity
 from ansys.health.heart.settings.material.ep_material import (
     Active,
     ActiveBeam,
+    EPMaterialModel,
     EPSolverType,
     Passive,
 )
@@ -65,7 +66,7 @@ def get_default_myocardium_material(
     # Remove units from default Quantity values.
     defaults = {k: (v.m if isinstance(v, Quantity) else v) for k, v in defaults.items()}
 
-    return Active(solver_type=ep_solver_type, **defaults)
+    return Active(**defaults)
 
 
 def get_passive_material(
@@ -102,7 +103,7 @@ def get_passive_material(
     del defaults["sigma_sheet"]
     del defaults["sigma_sheet_normal"]
 
-    return Passive(**defaults)
+    return EPMaterialModel(**defaults)
 
 
 def get_default_conduction_system_material(
@@ -136,4 +137,4 @@ def get_default_conduction_system_material(
     # Remove units from default Quantity values.
     defaults = {k: (v.m if isinstance(v, Quantity) else v) for k, v in defaults.items()}
 
-    return ActiveBeam(solver_type=ep_solver_type, **defaults)
+    return ActiveBeam(**defaults)

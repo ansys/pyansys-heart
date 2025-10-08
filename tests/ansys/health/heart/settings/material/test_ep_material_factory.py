@@ -70,19 +70,16 @@ def test_get_default_myocardium_material_selects_correct_defaults(monkeypatch):
     # Eikonal via enum
     res = factory.get_default_myocardium_material(EPSolverType.EIKONAL)
     assert isinstance(res, MockActive)
-    assert res.solver_type == EPSolverType.EIKONAL
     assert res.kwargs == dummy.default_myocardium_material_eikonal
 
     # Reaction-Eikonal should behave like Eikonal
     res = factory.get_default_myocardium_material(EPSolverType.REACTION_EIKONAL)
     assert isinstance(res, MockActive)
-    assert res.solver_type == EPSolverType.REACTION_EIKONAL
     assert res.kwargs == dummy.default_myocardium_material_eikonal
 
     # Monodomain via string input
     res = factory.get_default_myocardium_material("Monodomain")
     assert isinstance(res, MockActive)
-    assert res.solver_type == EPSolverType.MONODOMAIN
     assert res.kwargs == dummy.default_myocardium_material_monodomain
 
 
@@ -95,11 +92,9 @@ def test_get_default_conduction_system_material_selects_correct_defaults(monkeyp
     # Eikonal via enum
     res = factory.get_default_conduction_system_material(EPSolverType.EIKONAL)
     assert isinstance(res, MockActiveBeam)
-    assert res.solver_type == EPSolverType.EIKONAL
     assert res.kwargs == dummy.default_beam_material_eikonal
 
     # Monodomain via string
     res = factory.get_default_conduction_system_material("Monodomain")
     assert isinstance(res, MockActiveBeam)
-    assert res.solver_type == EPSolverType.MONODOMAIN
     assert res.kwargs == dummy.default_beam_material_monodomain

@@ -29,7 +29,6 @@ from pint import Quantity
 from ansys.health.heart.settings.material.ep_material import (
     Active,
     ActiveBeam,
-    EPMaterialModel,
     EPSolverType,
     Passive,
 )
@@ -103,7 +102,7 @@ def get_passive_material(
     del defaults["sigma_sheet"]
     del defaults["sigma_sheet_normal"]
 
-    return EPMaterialModel(**defaults)
+    return Passive(**defaults)
 
 
 def get_default_conduction_system_material(

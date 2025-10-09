@@ -60,7 +60,7 @@ doc = [
     "sphinx-jinja==2.0.2",
     "sphinx_design",
     "sphinxcontrib-video==0.4.1",
-    "trame-vtk==2.9.1"
+    "trame-vtk==2.10.0"
 ]
 tests = [
     "pytest==8.4.2",

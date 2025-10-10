@@ -34,4 +34,6 @@ build = {
     "nsplit": Quantity(4, "dimensionless"),
     "pmjtype": Quantity(2, "dimensionless"),
     "pmjradius": Quantity(1.5, "dimensionless"),
+    "pmjrestype": Quantity(1, "dimensionless"),
+    "pmjres": Quantity(0.001, "1/mS"),  # 1/mS
 }

@@ -226,8 +226,8 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                     pmjtype=self.settings.purkinje.pmjtype.m,
                     pmjradius=self.settings.purkinje.pmjradius.m,
                     # TODO: should these be part of purkinje settings?
-                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
-                    pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
+                    pmjrestype=self.settings.purkinje.pmjrestype.m,
+                    pmjres=self.settings.purkinje.pmjres.m,
                 )
             )
 
@@ -306,8 +306,8 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                     iedgeid=edge_id_start_right,
                     pmjtype=self.settings.purkinje.pmjtype.m,
                     pmjradius=self.settings.purkinje.pmjradius.m,
-                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
-                    pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
+                    pmjrestype=self.settings.purkinje.pmjrestype.m,
+                    pmjres=self.settings.purkinje.pmjres.m,
                 )
             )
 
@@ -849,8 +849,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     nsplit=self.settings.purkinje.nsplit.m,
                     pmjtype=self.settings.purkinje.pmjtype.m,
                     pmjradius=self.settings.purkinje.pmjradius.m,
-                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
-                    pmjres=epmat.pmjres,
+                    pmjrestype=self.settings.purkinje.pmjrestype.m,
+                    pmjres=self.settings.purkinje.pmjres.m,
                 )
             )
 

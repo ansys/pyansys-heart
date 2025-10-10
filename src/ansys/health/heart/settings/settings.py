@@ -365,6 +365,10 @@ class Purkinje(Settings):
     """Purkinje muscle junction type."""
     pmjradius: Quantity = 0
     """Purkinje muscle junction radius."""
+    pmjrestype: Quantity = Quantity(1)
+    """Purkinje muscle junction resistance type."""
+    pmjres: Quantity = Quantity(0.001, "1/mS")  # 1/mS
+    """Purkinje muscle junction resistance."""
 
 
 class SimulationSettings:

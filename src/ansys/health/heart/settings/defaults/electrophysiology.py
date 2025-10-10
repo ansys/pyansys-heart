@@ -61,10 +61,7 @@ material = {
         "sigma": Quantity(1, "mS/mm"),  # mS/mm
         "beta": Quantity(140, "1/mm"),
         "cm": Quantity(0.001, "uF/mm^2"),  # uF/mm^2
-        # These are not really material properties?
         "lambda": Quantity(0.2, "dimensionless"),
-        "pmjrestype": Quantity(1),
-        "pmjres": Quantity(0.001, "1/mS"),  # 1/mS
     },
 }
 
@@ -84,8 +81,6 @@ default_beam_material_eikonal = {
     "beta": Quantity(140, "1/mm"),
     "cm": Quantity(0.001, "uF/mm^2"),  # uF/mm^2
     "lambda": Quantity(0.2, "dimensionless"),
-    "pmjrestype": Quantity(1),
-    "pmjres": Quantity(0.001, "1/mS"),  # 1/mS
 }
 
 # Create monodomain defaults by copying eikonal and changing relevant fields

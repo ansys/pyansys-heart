@@ -48,12 +48,13 @@ material = {
         "sigma_fiber": Quantity(0.5, "mS/mm"),  # mS/mm
         "sigma_sheet": Quantity(0.1, "mS/mm"),  # mS/mm
         "sigma_sheet_normal": Quantity(0.1, "mS/mm"),  # mS/mm
-        "sigma_passive": Quantity(1.0, "mS/mm"),  # mS/mm
+        "sigma_passive": Quantity(1.0, "mS/mm"),  # mS/mm: use for passive conduction (e.g. blood)
         "beta": Quantity(140, "1/mm"),
         "cm": Quantity(0.01, "uF/mm^2"),  # uF/mm^2
-        "lambda": Quantity(0.2, "dimensionless"),
-        "percent_endo": Quantity(0.17, "dimensionless"),
-        "percent_mid": Quantity(0.41, "dimensionless"),
+        # These are not really material properties?
+        "lambda": Quantity(0.2, "dimensionless"),  # activate extracellular potential solve
+        "percent_endo": Quantity(0.17, "dimensionless"),  # thickness of endocardial layer
+        "percent_mid": Quantity(0.41, "dimensionless"),  # thickness of midmyocardial layer
     },
     "beam": {
         "velocity": Quantity(1, "mm/ms"),  # mm/ms in case of eikonal model
@@ -61,10 +62,34 @@ material = {
         "beta": Quantity(140, "1/mm"),
         "cm": Quantity(0.001, "uF/mm^2"),  # uF/mm^2
         "lambda": Quantity(0.2, "dimensionless"),
-        "pmjrestype": Quantity(1),
-        "pmjres": Quantity(0.001, "1/mS"),  # 1/mS
     },
 }
+
+"""Material settings."""
+default_myocardium_material_eikonal = {
+    "sigma_fiber": Quantity(0.7, "mm/ms"),  # mm/ms in case of eikonal model
+    "sigma_sheet": Quantity(0.2, "mm/ms"),  # mm/ms in case of eikonal model
+    "sigma_sheet_normal": Quantity(0.2, "mm/ms"),  # mm/ms in case of eikonal model
+    "beta": Quantity(140, "1/mm"),
+    "cm": Quantity(0.01, "uF/mm^2"),  # uF/mm^2
+    "lambda": Quantity(0.2, "dimensionless"),
+    "percent_endo": Quantity(0.17, "dimensionless"),
+    "percent_mid": Quantity(0.41, "dimensionless"),
+}
+default_beam_material_eikonal = {
+    "sigma": Quantity(1, "mm/ms"),  # mm/ms in case of eikonal model
+    "beta": Quantity(140, "1/mm"),
+    "cm": Quantity(0.001, "uF/mm^2"),  # uF/mm^2
+    "lambda": Quantity(0.2, "dimensionless"),
+}
+
+# Create monodomain defaults by copying eikonal and changing relevant fields
+default_beam_material_monodomain = default_beam_material_eikonal.copy()
+default_beam_material_monodomain["sigma"] = Quantity(1, "mS/mm")  # mS/mm
+default_myocardium_material_monodomain = default_myocardium_material_eikonal.copy()
+default_myocardium_material_monodomain["sigma_fiber"] = Quantity(0.5, "mS/mm")  # mS/mm
+default_myocardium_material_monodomain["sigma_sheet"] = Quantity(0.1, "mS/mm")  # mS/mm
+default_myocardium_material_monodomain["sigma_sheet_normal"] = Quantity(0.1, "mS/mm")  # mS/mm
 
 """Stimulation settings."""
 stimulation = {

@@ -284,23 +284,6 @@ def test_load_defaults(default_settings):
     )
 
 
-def test_get_meca_material(default_settings):
-    default_settings.mechanics.material.myocardium["isotropic"]["rho"] = Quantity(8000, "kg/m^3")
-    default_settings.to_consistent_unit_system()
-
-    # test default value
-    m1 = default_settings.get_mechanical_material("anisotropic")
-    assert m1.active.actype == 1
-
-    m1 = default_settings.get_mechanical_material("anisotropic", ep_coupled=True)
-    assert m1.active.actype == 3
-
-    m2 = default_settings.get_mechanical_material("isotropic")
-    assert m2.iso.mu1 == pytest.approx(0.1, 1e-9)
-    # test modified value
-    assert m1.rho == pytest.approx(0.008, 1e-9)
-
-
 def test_purkinje_settings(default_allsettings: SimulationSettings):
     # check default default values
     assert default_allsettings.purkinje.node_id_origin_left is None

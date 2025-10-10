@@ -564,6 +564,48 @@ class EPSimulator(BaseSimulator):
         return
 
 
+def _validate_materials(
+    model: models.HeartModel,
+    requires_ep_material: bool = True,
+    requires_mechanical_material: bool = True,
+):
+    from ansys.health.heart.exceptions import MissingMaterialError
+    from ansys.health.heart.settings.material.ep_material import EPMaterialModel
+    from ansys.health.heart.settings.material.material import MechanicalMaterialModel
+
+    """Validate that the materials are appropriately defined."""
+    # Validate all solid parts have EP materials assigned
+    if requires_ep_material:
+        for part in model.parts:
+            if part.ep_material is None or not isinstance(part.ep_material, EPMaterialModel):
+                error_message = f"Part {part.name} does not have an EP material assigned."
+                LOGGER.error(error_message)
+                raise ValueError(error_message)
+
+        # Validate all conduction paths have EP materials assigned
+        for conduction_path in model.conduction_paths:
+            if conduction_path.ep_material is None or not isinstance(
+                conduction_path.ep_material, EPMaterialModel
+            ):
+                error_message = (
+                    f"Conduction path {conduction_path.name} does not have an EP material assigned."
+                )
+                LOGGER.error(error_message)
+                raise MissingMaterialError(part.name, material_type="EP")
+
+    # Validate all solid parts have mechanical materials assigned
+    if requires_mechanical_material:
+        for part in model.parts:
+            if part.meca_material is None or not isinstance(
+                part.meca_material, MechanicalMaterialModel
+            ):
+                error_message = f"Part {part.name} does not have a mechanical material assigned."
+                LOGGER.error(error_message)
+                raise MissingMaterialError(part.name, material_type="Mechanical")
+
+    return
+
+
 class MechanicsSimulator(BaseSimulator):
     """Mechanics simulator with imposed active stress."""
 

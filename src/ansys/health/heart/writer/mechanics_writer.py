@@ -39,6 +39,10 @@ from ansys.health.heart.settings.material.material import (
     MechanicalMaterialModel,
     NeoHookean,
 )
+from ansys.health.heart.settings.material.material_factory import (
+    _get_myocardium_material,
+    _get_passive_material,
+)
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings
 from ansys.health.heart.utils.vtk_utils import compute_surface_nodal_area_pyvista
@@ -339,17 +343,18 @@ class MechanicsDynaWriter(BaseDynaWriter):
                 # assign material for part if it's empty
                 LOGGER.info(f"Material of {part.name} is assigned automatically.")
                 if part.fiber:
-                    part.meca_material = self.settings.get_mechanical_material(
-                        required_type="anisotropic", ep_coupled=em_couple
+                    part.meca_material = _get_myocardium_material(
+                        self.settings.mechanics.material.myocardium, ep_coupled=em_couple
                     )
                     # disable active module
                     if not part.active:
                         part.meca_material.active = None
 
                 else:
-                    part.meca_material = self.settings.get_mechanical_material(
-                        required_type="isotropic"
+                    part.meca_material = _get_passive_material(
+                        self.settings.mechanics.material.passive
                     )
+
         # write
         for part in self.model.parts:
             material = part.meca_material

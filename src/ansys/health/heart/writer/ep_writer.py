@@ -34,6 +34,7 @@ from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, Heart
 from ansys.health.heart.pre.conduction_path import ConductionPathType
 import ansys.health.heart.settings.material.cell_models as cell_models
 import ansys.health.heart.settings.material.ep_material as ep_materials
+import ansys.health.heart.settings.material.ep_material_factory as ep_material_factory
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings, Stimulation
 from ansys.health.heart.writer import custom_keywords as custom_keywords
@@ -96,7 +97,7 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
 
     def _update_material_db(self) -> None:
         """Add simple linear elastic material for each defined part."""
-        material_settings = self.settings.electrophysiology.material
+        ep_material = ep_material_factory.get_default_myocardium_material("Monodomain")
         for part in self.model.parts:
             em_mat_id = part.pid
             self.kw_database.material.extend(
@@ -105,11 +106,11 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=material_settings.myocardium["sigma_fiber"].m,
-                        sigma22=material_settings.myocardium["sigma_sheet"].m,
-                        sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
-                        beta=material_settings.myocardium["beta"].m,
-                        cm=material_settings.myocardium["cm"].m,
+                        sigma11=ep_material.sigma_fiber,
+                        sigma22=ep_material.sigma_sheet,
+                        sigma33=ep_material.sigma_sheet_normal,
+                        beta=ep_material.beta,
+                        cm=ep_material.cm,
                         aopt=2.0,
                         a1=0,
                         a2=0,
@@ -224,8 +225,9 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                     iedgeid=edge_id_start_left,  # TODO: check if beam elements exist in mesh
                     pmjtype=self.settings.purkinje.pmjtype.m,
                     pmjradius=self.settings.purkinje.pmjradius.m,
-                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
-                    pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
+                    # TODO: should these be part of purkinje settings?
+                    pmjrestype=self.settings.purkinje.pmjrestype.m,
+                    pmjres=self.settings.purkinje.pmjres.m,
                 )
             )
 
@@ -304,8 +306,8 @@ class PurkinjeGenerationDynaWriter(BaseDynaWriter):
                     iedgeid=edge_id_start_right,
                     pmjtype=self.settings.purkinje.pmjtype.m,
                     pmjradius=self.settings.purkinje.pmjradius.m,
-                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
-                    pmjres=self.settings.electrophysiology.material.beam["pmjres"].m,
+                    pmjrestype=self.settings.purkinje.pmjrestype.m,
+                    pmjres=self.settings.purkinje.pmjres.m,
                 )
             )
 
@@ -390,17 +392,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_ep_material_db(self) -> None:
         """Add electrophysiology material for each defined part."""
-        material_settings = self.settings.electrophysiology.material
         solvertype = self.settings.electrophysiology.analysis.solvertype
-        if solvertype == "Monodomain":
-            sig1 = material_settings.myocardium["sigma_fiber"].m
-            sig2 = material_settings.myocardium["sigma_sheet"].m
-            sig3 = material_settings.myocardium["sigma_sheet_normal"].m
-        elif solvertype == "Eikonal" or solvertype == "ReactionEikonal":
-            sig1 = material_settings.myocardium["velocity_fiber"].m
-            sig2 = material_settings.myocardium["velocity_sheet"].m
-            sig3 = material_settings.myocardium["velocity_sheet_normal"].m
-
+        # TODO: This assigns default values of sig1 etc to parts that do not have a material
+        # TODO: assigned however material assignment and validation should happen in the simulator
+        # TODO: class.
         for part in self.model.parts:
             if (
                 not isinstance(
@@ -410,12 +405,11 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             ):
                 LOGGER.info(f"Material of {part.name} is assigned automatically.")
                 if part.active:
-                    part.ep_material = ep_materials.Active(sigma_fiber=sig1)
+                    part.ep_material = ep_material_factory.get_default_myocardium_material(
+                        solvertype
+                    )
                 else:
-                    part.ep_material = ep_materials.Passive(sigma_fiber=sig1)
-                if part.fiber:
-                    part.ep_material.sigma_sheet = sig2
-                    part.ep_material.sigma_sheet_normal = sig3
+                    part.ep_material = ep_material_factory.get_passive_material(solvertype)
 
             self.kw_database.material.append(f"$$ {part.name} $$")
             ep_mid = part.pid
@@ -808,6 +802,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # loop for each beam
         beam_pid = []
         registered_surfaces = [surf for part in self.model.parts for surf in part.surfaces]
+        solvertype = self.settings.electrophysiology.analysis.solvertype
         for beam in self.model.conduction_paths:
             if (
                 not isinstance(
@@ -815,7 +810,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 )
                 or beam.ep_material is None
             ):
-                epmat = self._get_default_beam_ep_material()
+                epmat = ep_material_factory.get_default_conduction_system_material(solvertype)
             else:
                 epmat = beam.ep_material
 
@@ -854,8 +849,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     nsplit=self.settings.purkinje.nsplit.m,
                     pmjtype=self.settings.purkinje.pmjtype.m,
                     pmjradius=self.settings.purkinje.pmjradius.m,
-                    pmjrestype=self.settings.electrophysiology.material.beam["pmjrestype"].m,
-                    pmjres=epmat.pmjres,
+                    pmjrestype=self.settings.purkinje.pmjrestype.m,
+                    pmjres=self.settings.purkinje.pmjres.m,
                 )
             )
 
@@ -902,22 +897,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         self.id_offset["element"]["discrete"] = beam_elem_id_offset
 
         return beam_pid
-
-    def _get_default_beam_ep_material(self) -> ep_materials.ActiveBeam:
-        """Get default EP material for conduction beams."""
-        material_settings = self.settings.electrophysiology.material
-        solvertype = self.settings.electrophysiology.analysis.solvertype
-        default_epmat = ep_materials.ActiveBeam()
-        if solvertype == "Monodomain":
-            sig1 = material_settings.beam["sigma"].m
-        else:
-            sig1 = material_settings.beam["velocity"].m
-        default_epmat.sigma_fiber = sig1
-        default_epmat.beta = material_settings.beam["beta"].m
-        default_epmat.cm = material_settings.beam["cm"].m
-        default_epmat.pmjres = material_settings.beam["pmjres"].m
-
-        return default_epmat
 
     def _add_segment_from_surface(self, surface: pv.PolyData, name: str) -> int:
         """Add a segment into keywords and return its segment ID.

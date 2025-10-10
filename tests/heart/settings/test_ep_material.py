@@ -21,8 +21,6 @@
 # SOFTWARE.
 """Test module EP materials."""
 
-from unittest.mock import MagicMock, patch
-
 from pydantic import ValidationError
 import pytest
 
@@ -39,7 +37,7 @@ from ansys.health.heart.settings.material.ep_material import (
 
 def test_active():
     active0 = ep_materials.Active(sigma_fiber=1)
-    assert active0.sigma_sheet is not None
+    assert active0.sigma_sheet is None
     active = ep_materials.Active(sigma_fiber=1, sigma_sheet=1, sigma_sheet_normal=1)
     assert active.sigma_sheet_normal == 1
     active_beam = ep_materials.ActiveBeam(sigma_fiber=1)
@@ -57,8 +55,8 @@ class TestEPMaterialModel:
         assert model.sigma_fiber is None  # Should be None by default
         assert model.sigma_sheet is None
         assert model.sigma_sheet_normal is None
-        assert model.beta is not None  # Should get value from ep_defaults
-        assert model.cm is not None  # Should get value from ep_defaults
+        assert model.beta is None
+        assert model.cm is None
         assert model.lambda_ is None
 
     def test_ep_material_model_optional_fields(self):
@@ -196,12 +194,11 @@ class TestActive:
     def test_active_default_creation(self):
         """Test Active creation with defaults."""
         active = Active()
-        assert active.solver_type == "Monodomain"
-        assert active.sigma_fiber == 0.5
-        assert active.sigma_sheet == 0.1
-        assert active.sigma_sheet_normal == 0.1
-        assert active.beta == 140  # From ep_defaults
-        assert active.cm == 0.01
+        assert active.sigma_fiber is None
+        assert active.sigma_sheet is None
+        assert active.sigma_sheet_normal is None
+        assert active.beta is None
+        assert active.cm is None
 
         # Active-specific defaults
         assert isinstance(active.cell_model, Tentusscher)
@@ -224,11 +221,6 @@ class TestActive:
         assert active.cell_model is custom_cell
         assert isinstance(active.cell_model, TentusscherEndo)
         assert active.cell_model.gto == 0.1
-
-    def test_active_solver_type_override(self):
-        """Test Active with custom solver type."""
-        active = Active(solver_type="Eikonal")
-        assert active.solver_type == "Eikonal"
 
     def test_active_optional_sigma_fields(self):
         """Test Active with optional sigma fields."""
@@ -334,13 +326,13 @@ class TestPassive:
         passive = Passive()
 
         # Should have passive-specific defaults
-        assert passive.sigma_fiber is not None  # From ep_defaults
+        assert passive.sigma_fiber is None  # From ep_defaults
         assert passive.sigma_sheet is None
         assert passive.sigma_sheet_normal is None
 
         # Inherited from EPMaterialModel
-        assert passive.beta is not None
-        assert passive.cm is not None
+        assert passive.beta is None
+        assert passive.cm is None
 
     def test_passive_no_cell_model(self):
         """Test that Passive doesn't have cell_model field."""
@@ -431,49 +423,16 @@ class TestFieldInteractions:
 class TestDefaultsIntegration:
     """Test integration with ep_defaults module."""
 
-    @pytest.mark.xfail(reason="ep_defaults not properly mocked.1")
-    @patch("ansys.health.heart.settings.material._pyd_ep_material.ep_defaults")
-    def test_defaults_integration(self, mock_defaults):
-        """Test proper integration with ep_defaults."""
-        # Set up mock defaults
-        mock_defaults.analysis = {"solvertype": "TestSolver"}
-        mock_defaults.material = {
-            "myocardium": {
-                "sigma_fiber": MagicMock(m=1.5),
-                "beta": MagicMock(m=1500.0),
-                "cm": MagicMock(m=0.15),
-            },
-            "beam": {"sigma": MagicMock(m=2.0), "pmjres": MagicMock(m=50.0)},
-        }
-
-        # Test various models use defaults correctly
-        ep_model = EPMaterialModel()
-        assert ep_model.beta == 1500.0
-        assert ep_model.cm == 0.15
-
-        active = Active()
-        assert active.solver_type == "TestSolver"
-        assert active.beta == 1500.0
-
-        beam = ActiveBeam()
-        assert beam.sigma_fiber == 2.0
-        assert beam.pmjres == 50.0
-
-        passive = Passive()
-        assert passive.sigma_fiber == 1.5
-
     def test_field_override_defaults(self):
         """Test that explicit values override defaults."""
         # Create models with explicit values that should override defaults
         ep_model = EPMaterialModel(beta=3000.0, cm=0.3)
-        active = Active(solver_type="Eikonal")
         beam = ActiveBeam(pmjres=100.0)
         passive = Passive(sigma_fiber=5.0)
 
         # Explicit values should be used instead of defaults
         assert ep_model.beta == 3000.0
         assert ep_model.cm == 0.3
-        assert active.solver_type == "Eikonal"
         assert beam.pmjres == 100.0
         assert passive.sigma_fiber == 5.0
 

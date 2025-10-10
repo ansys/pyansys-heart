@@ -377,3 +377,49 @@ def test_find_dynain_file(dynain_files, expected, expected_error, mechanics_simu
             assert mechanics_simulator._find_dynain_file(zerop_folder) == expected
 
         mock_glob.assert_called_once()
+
+
+def test_validate_ep_materials():
+    """Validate _validate_materials behavior for EP and mechanical materials."""
+    from ansys.health.heart.exceptions import MissingMaterialError
+    from ansys.health.heart.settings.material.ep_material import EPMaterialModel
+    from ansys.health.heart.settings.material.material import MechanicalMaterialModel
+
+    model = mock.MagicMock()
+    model.workdir = os.getcwd()
+
+    # Case 1: part missing ep_material -> ValueError
+    part1 = mock.MagicMock()
+    part1.name = "part1"
+    part1.ep_material = None
+    model.parts = [part1]
+    model.conduction_paths = []
+
+    with pytest.raises(ValueError, match=r"Part part1 does not have an EP material"):
+        simulators._validate_materials(model, requires_mechanical_material=False)
+
+    # Case 2: part has ep_material, conduction path missing -> MissingMaterialError
+    part1.ep_material = EPMaterialModel()
+    cp = mock.MagicMock()
+    cp.name = "cp1"
+    cp.ep_material = None
+    model.conduction_paths = [cp]
+
+    with pytest.raises(MissingMaterialError):
+        simulators._validate_materials(model, requires_mechanical_material=False)
+
+    # Case 3: all have ep_material -> no exception
+    cp.ep_material = EPMaterialModel()
+    model.conduction_paths = [cp]
+    # should not raise
+    simulators._validate_materials(model, requires_mechanical_material=False)
+
+    # Mechanical material checks
+    # Case 4: missing mechanical material -> MissingMaterialError
+    part1.meca_material = None
+    with pytest.raises(MissingMaterialError):
+        simulators._validate_materials(model, requires_ep_material=False)
+
+    # Case 5: mechanical material present -> no exception
+    part1.meca_material = MechanicalMaterialModel()
+    simulators._validate_materials(model)

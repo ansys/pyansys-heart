@@ -30,6 +30,7 @@ import scipy.spatial as spatial
 
 from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.exceptions import MissingMaterialError
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.pre.conduction_path import ConductionPathType
 import ansys.health.heart.settings.material.cell_models as cell_models
@@ -784,15 +785,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # loop for each beam
         beam_pid = []
         registered_surfaces = [surf for part in self.model.parts for surf in part.surfaces]
-        solvertype = self.settings.electrophysiology.analysis.solvertype
         for beam in self.model.conduction_paths:
-            if (
-                not isinstance(
-                    beam.ep_material, (ep_materials.EPMaterialModel, ep_materials.Insulator)
-                )
-                or beam.ep_material is None
-            ):
-                epmat = ep_material_factory.get_default_conduction_system_material(solvertype)
+            if not isinstance(beam.ep_material, ep_materials.EPMaterialModel):
+                raise MissingMaterialError(beam.name, "EP")
             else:
                 epmat = beam.ep_material
 

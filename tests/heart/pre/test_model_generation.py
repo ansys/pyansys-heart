@@ -40,6 +40,7 @@ import yaml
 import ansys.health.heart.models as models
 from ansys.health.heart.models_utils import define_full_conduction_system
 from ansys.health.heart.pre.database_utils import get_compatible_input
+from ansys.health.heart.settings.material.ep_material_factory import assign_default_ep_materials
 from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
 import ansys.health.heart.writer as writers
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
@@ -289,6 +290,9 @@ def test_writers(extract_model, writer_class):
     writer = writer_class(copy.deepcopy(model))
     add_conduction_beams(writer)
 
+    # Assign default EP materials.
+    assign_default_ep_materials(writer.model, "Monodomain")
+
     if isinstance(model, models.BiVentricle):
         ref_folder = os.path.join(
             get_assets_folder(),
@@ -395,6 +399,9 @@ def test_writers_after_load_model(extract_model, writer_class):
 
         writer = writer_class(copy.deepcopy(model1))
         add_conduction_beams(writer)
+
+        # Assign default EP materials.
+        assign_default_ep_materials(writer.model, "Monodomain")
 
         to_test_folder = os.path.join(workdir, writer_class.__name__)
         writer.update()

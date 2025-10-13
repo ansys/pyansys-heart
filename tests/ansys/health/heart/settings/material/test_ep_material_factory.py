@@ -41,8 +41,8 @@ def _make_dummy_defaults():
         "sigma_fiber": 0.5,
         "sigma_sheet": 0.1,
     }
-    dummy.default_beam_material_eikonal = {"sigma": 1.0}
-    dummy.default_beam_material_monodomain = {"sigma": 1.0}
+    dummy.default_beam_material_eikonal = {"sigma_fiber": 1.0}
+    dummy.default_beam_material_monodomain = {"sigma_fiber": 1.0}
 
     return module_name, dummy
 

@@ -77,7 +77,7 @@ default_myocardium_material_eikonal = {
     "percent_mid": Quantity(0.41, "dimensionless"),
 }
 default_beam_material_eikonal = {
-    "sigma": Quantity(1, "mm/ms"),  # mm/ms in case of eikonal model
+    "sigma_fiber": Quantity(1, "mm/ms"),  # mm/ms in case of eikonal model
     "beta": Quantity(140, "1/mm"),
     "cm": Quantity(0.001, "uF/mm^2"),  # uF/mm^2
     "lambda": Quantity(0.2, "dimensionless"),
@@ -85,7 +85,7 @@ default_beam_material_eikonal = {
 
 # Create monodomain defaults by copying eikonal and changing relevant fields
 default_beam_material_monodomain = default_beam_material_eikonal.copy()
-default_beam_material_monodomain["sigma"] = Quantity(1, "mS/mm")  # mS/mm
+default_beam_material_monodomain["sigma_fiber"] = Quantity(1, "mS/mm")  # mS/mm
 default_myocardium_material_monodomain = default_myocardium_material_eikonal.copy()
 default_myocardium_material_monodomain["sigma_fiber"] = Quantity(0.5, "mS/mm")  # mS/mm
 default_myocardium_material_monodomain["sigma_sheet"] = Quantity(0.1, "mS/mm")  # mS/mm

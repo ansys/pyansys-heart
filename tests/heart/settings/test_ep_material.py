@@ -40,8 +40,6 @@ def test_active():
     assert active0.sigma_sheet is None
     active = ep_materials.Active(sigma_fiber=1, sigma_sheet=1, sigma_sheet_normal=1)
     assert active.sigma_sheet_normal == 1
-    active_beam = ep_materials.ActiveBeam(sigma_fiber=1)
-    assert active_beam.pmjres is not None
 
 
 class TestEPMaterialModel:
@@ -271,7 +269,6 @@ class TestActiveBeam:
         # Should have beam-specific defaults
         assert beam.sigma_fiber is not None  # From ep_defaults.material["beam"]
         assert isinstance(beam.cell_model, Tentusscher)
-        assert beam.pmjres is not None  # Beam-specific field
 
     def test_active_beam_cell_model_factory(self):
         """Test that ActiveBeam uses TentusscherEndo by default."""
@@ -286,28 +283,16 @@ class TestActiveBeam:
     def test_active_beam_custom_values(self):
         """Test ActiveBeam with custom values."""
         custom_cell = TentusscherEndo(gas_constant=8100.0)
-        beam = ActiveBeam(sigma_fiber=2.0, cell_model=custom_cell, pmjres=50.0)
+        beam = ActiveBeam(sigma_fiber=2.0, cell_model=custom_cell)
 
         assert beam.sigma_fiber == 2.0
         assert beam.cell_model is custom_cell
-        assert beam.pmjres == 50.0
-
-    def test_active_beam_pmjres_field(self):
-        """Test pmjres field specific to ActiveBeam."""
-        beam = ActiveBeam(pmjres=100.0)
-        assert beam.pmjres == 100.0
-
-        # Regular Active shouldn't have this field
-        active = Active()
-        assert not hasattr(active, "pmjres")
 
     def test_active_beam_serialization(self):
         """Test ActiveBeam serialization includes all fields."""
-        beam = ActiveBeam(pmjres=80.0)
+        beam = ActiveBeam()
 
         data = beam.model_dump()
-        assert "pmjres" in data
-        assert data["pmjres"] == 80.0
         assert "cell_model" in data
         assert isinstance(data["cell_model"], dict)
 
@@ -414,9 +399,6 @@ class TestFieldInteractions:
             Active(sigma_fiber="invalid")
 
         with pytest.raises(ValidationError):
-            ActiveBeam(pmjres="invalid")
-
-        with pytest.raises(ValidationError):
             Passive(sigma_sheet="invalid")
 
 
@@ -427,13 +409,11 @@ class TestDefaultsIntegration:
         """Test that explicit values override defaults."""
         # Create models with explicit values that should override defaults
         ep_model = EPMaterialModel(beta=3000.0, cm=0.3)
-        beam = ActiveBeam(pmjres=100.0)
         passive = Passive(sigma_fiber=5.0)
 
         # Explicit values should be used instead of defaults
         assert ep_model.beta == 3000.0
         assert ep_model.cm == 0.3
-        assert beam.pmjres == 100.0
         assert passive.sigma_fiber == 5.0
 
 
@@ -472,6 +452,5 @@ class TestComplexSerialization:
 
         # All fields should be preserved
         assert isinstance(restored.cell_model, Tentusscher)
-        assert restored.pmjres == beam.pmjres
         assert restored.sigma_fiber == beam.sigma_fiber
         assert restored.beta == beam.beta

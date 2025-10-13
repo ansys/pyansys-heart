@@ -38,7 +38,7 @@ class EPSolverType(Enum):
     REACTION_EIKONAL = "ReactionEikonal"
 
 
-class EPMaterialModel(BaseModel):  # EM MAT 003
+class EPMaterialModel(BaseModel):
     """Base class for all EP material models."""
 
     sigma_fiber: Optional[float] = None
@@ -59,21 +59,24 @@ class EPMaterialModel(BaseModel):  # EM MAT 003
         return self
 
 
-class Insulator(BaseModel):  # EM MAT 001
+class Insulator(EPMaterialModel):
     """Insulator material."""
 
     sigma_fiber: float = 0.0
+    sigma_sheet_normal: float = 0.0
+    sigma_sheet: float = 0.0
     cm: float = 0.0
     beta: float = 0.0
 
 
-# solver type should be managed from global settings and not in material settings.
-class Active(EPMaterialModel):
-    """Hold data for EP material."""
+class Passive(EPMaterialModel):
+    """Hold data for a passive EP material."""
 
-    sigma_fiber: Optional[float] = None
-    sigma_sheet: Optional[float] = None
-    sigma_sheet_normal: Optional[float] = None
+
+class Active(EPMaterialModel):
+    """Hold data for an active EP material."""
+
+    # NOTE: an active EP material has a cell model associated with it.
 
     cell_model: Tentusscher = Field(default_factory=lambda: Tentusscher())
 
@@ -81,16 +84,14 @@ class Active(EPMaterialModel):
 class ActiveBeam(Active):
     """Hold data for beam active EP material."""
 
-    sigma_fiber: float = 1.0
     # TODO: replace by TentusscherEndo
     cell_model: Tentusscher = Tentusscher()
-    pmjres: float = 0.001
 
+    @model_validator(mode="after")
+    def check_inputs(self):
+        """Post init method."""
+        # ActiveBeam is by definition isotropic, so remove sheet conductivities if set
+        self.sigma_sheet is None
+        self.sigma_sheet_normal is None
 
-# A Passive material model is actually the same as the EPMaterialModel
-class Passive(EPMaterialModel):
-    """Hold data for EP passive material."""
-
-    # sigma_fiber: Optional[float] = None
-    # sigma_sheet: Optional[float] = None
-    # sigma_sheet_normal: Optional[float] = None
+        return self

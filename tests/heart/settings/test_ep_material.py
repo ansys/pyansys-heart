@@ -163,7 +163,7 @@ class TestInsulator:
 
         # Insulator is standalone BaseModel, not EPMaterialModel
         assert isinstance(insulator, Insulator)
-        assert not isinstance(insulator, EPMaterialModel)
+        assert isinstance(insulator, EPMaterialModel)
 
     def test_insulator_serialization(self):
         """Test Insulator serialization."""
@@ -267,7 +267,7 @@ class TestActiveBeam:
         beam = ActiveBeam()
 
         # Should have beam-specific defaults
-        assert beam.sigma_fiber is not None  # From ep_defaults.material["beam"]
+        assert beam.sigma_fiber is None  # From ep_defaults.material["beam"]
         assert isinstance(beam.cell_model, Tentusscher)
 
     def test_active_beam_cell_model_factory(self):

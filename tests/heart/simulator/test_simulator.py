@@ -396,7 +396,7 @@ def test_validate_ep_materials():
     model.conduction_paths = []
 
     with pytest.raises(ValueError, match=r"Part part1 does not have an EP material"):
-        simulators._validate_materials(model, requires_mechanical_material=False)
+        simulators._validate_materials_of_model(model, requires_mechanical_material=False)
 
     # Case 2: part has ep_material, conduction path missing -> MissingMaterialError
     part1.ep_material = EPMaterialModel()
@@ -406,20 +406,20 @@ def test_validate_ep_materials():
     model.conduction_paths = [cp]
 
     with pytest.raises(MissingMaterialError):
-        simulators._validate_materials(model, requires_mechanical_material=False)
+        simulators._validate_materials_of_model(model, requires_mechanical_material=False)
 
     # Case 3: all have ep_material -> no exception
     cp.ep_material = EPMaterialModel()
     model.conduction_paths = [cp]
     # should not raise
-    simulators._validate_materials(model, requires_mechanical_material=False)
+    simulators._validate_materials_of_model(model, requires_mechanical_material=False)
 
     # Mechanical material checks
     # Case 4: missing mechanical material -> MissingMaterialError
     part1.meca_material = None
     with pytest.raises(MissingMaterialError):
-        simulators._validate_materials(model, requires_ep_material=False)
+        simulators._validate_materials_of_model(model, requires_ep_material=False)
 
     # Case 5: mechanical material present -> no exception
     part1.meca_material = MechanicalMaterialModel()
-    simulators._validate_materials(model)
+    simulators._validate_materials_of_model(model)

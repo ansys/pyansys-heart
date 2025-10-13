@@ -392,25 +392,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_ep_material_db(self) -> None:
         """Add electrophysiology material for each defined part."""
-        solvertype = self.settings.electrophysiology.analysis.solvertype
-        # TODO: This assigns default values of sig1 etc to parts that do not have a material
-        # TODO: assigned however material assignment and validation should happen in the simulator
-        # TODO: class.
         for part in self.model.parts:
-            if (
-                not isinstance(
-                    part.ep_material, (ep_materials.EPMaterialModel, ep_materials.Insulator)
-                )
-                or part.ep_material is None
-            ):
-                LOGGER.info(f"Material of {part.name} is assigned automatically.")
-                if part.active:
-                    part.ep_material = ep_material_factory.get_default_myocardium_material(
-                        solvertype
-                    )
-                else:
-                    part.ep_material = ep_material_factory.get_passive_material(solvertype)
-
             self.kw_database.material.append(f"$$ {part.name} $$")
             ep_mid = part.pid
             kw = self._get_ep_material_kw(ep_mid, part.ep_material)

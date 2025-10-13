@@ -63,6 +63,7 @@ from ansys.health.heart.post.laplace_post import (
     read_laplace_solution,
 )
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
+from ansys.health.heart.settings.material.ep_material_factory import assign_default_ep_materials
 from ansys.health.heart.settings.settings import DynaSettings, SimulationSettings
 from ansys.health.heart.utils.misc import _read_orth_element_kfile
 import ansys.health.heart.writer as writers
@@ -443,6 +444,12 @@ class EPSimulator(BaseSimulator):
         extra_k_files : list[str], default: None
             User-defined k files.
         """
+        assign_default_ep_materials(self.model)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=True, requires_mechanical_material=False
+        )
+
         directory = os.path.join(self.root_directory, folder_name)
         self._write_main_simulation_files(folder_name, extra_k_files=extra_k_files)
 
@@ -564,7 +571,7 @@ class EPSimulator(BaseSimulator):
         return
 
 
-def _validate_materials(
+def _validate_materials_of_model(
     model: models.HeartModel,
     requires_ep_material: bool = True,
     requires_mechanical_material: bool = True,

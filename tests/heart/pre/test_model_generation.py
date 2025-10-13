@@ -290,9 +290,6 @@ def test_writers(extract_model, writer_class):
     writer = writer_class(copy.deepcopy(model))
     add_conduction_beams(writer)
 
-    # Assign default EP materials.
-    assign_default_ep_materials(writer.model, "Monodomain")
-
     if isinstance(model, models.BiVentricle):
         ref_folder = os.path.join(
             get_assets_folder(),
@@ -313,6 +310,14 @@ def test_writers(extract_model, writer_class):
             "k_files1",
             writer_class.__name__,
         )
+        if isinstance(writer, writers.ElectroMechanicsDynaWriter):
+            writer.model.left_atrium.active = True
+            writer.model.left_atrium.fiber = True
+            writer.model.right_atrium.active = True
+            writer.model.right_atrium.fiber = True
+
+    # Assign default EP materials.
+    assign_default_ep_materials(writer.model, "Monodomain")
 
     # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
@@ -399,6 +404,14 @@ def test_writers_after_load_model(extract_model, writer_class):
 
         writer = writer_class(copy.deepcopy(model1))
         add_conduction_beams(writer)
+
+        if isinstance(writer, writers.ElectroMechanicsDynaWriter) and isinstance(
+            writer.model, models.FullHeart
+        ):
+            writer.model.left_atrium.active = True
+            writer.model.left_atrium.fiber = True
+            writer.model.right_atrium.active = True
+            writer.model.right_atrium.fiber = True
 
         # Assign default EP materials.
         assign_default_ep_materials(writer.model, "Monodomain")

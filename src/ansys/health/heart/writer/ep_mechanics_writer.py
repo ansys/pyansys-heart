@@ -67,12 +67,6 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         -----
         You do not need to write mesh files if a Dynain file is given.
         """
-        if isinstance(self.model, FourChamber):
-            self.model.left_atrium.fiber = True
-            self.model.left_atrium.active = True
-            self.model.right_atrium.fiber = True
-            self.model.right_atrium.active = True
-
         MechanicsDynaWriter.update(self, dynain_name=dynain_name, robin_bcs=robin_bcs)
 
         if self.model.conduction_mesh.number_of_cells != 0:

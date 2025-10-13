@@ -149,6 +149,9 @@ simulator.model.create_stiff_ventricle_base(stiff_material=stiff_iso)
 # Compute the stress-free configuration.
 simulator.compute_stress_free_configuration(overwrite=True)
 
+simulator.settings.mechanics.boundary_conditions.robin.ventricle["stiffness"] = (
+    Quantity(0.05, "MPa/mm"),
+)
 ###############################################################################
 # .. note::
 #    Computing the stress-free configuration is required since the geometry is imaged

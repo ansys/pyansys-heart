@@ -816,7 +816,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         """
         # Assign default materials if not assigned
         assign_default_mechanics_materials(self.model)
-        assign_default_ep_materials(self.model)
+        assign_default_ep_materials(self.model, self.settings.electrophysiology.analysis.solvertype)
 
         _validate_materials_of_model(
             self.model, requires_ep_material=True, requires_mechanical_material=True

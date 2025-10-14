@@ -64,6 +64,7 @@ from ansys.health.heart.post.laplace_post import (
 )
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.material.ep_material_factory import assign_default_ep_materials
+from ansys.health.heart.settings.material.material_factory import assign_default_mechanics_materials
 from ansys.health.heart.settings.settings import DynaSettings, SimulationSettings
 from ansys.health.heart.utils.misc import _read_orth_element_kfile
 import ansys.health.heart.writer as writers
@@ -432,6 +433,13 @@ class EPSimulator(BaseSimulator):
         """Initialize the EP simulator."""
         super().__init__(model, dyna_settings, simulation_directory)
 
+        # Assign default EP materials if not assigned
+        assign_default_ep_materials(self.model)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=True, requires_mechanical_material=False
+        )
+
         return
 
     def simulate(self, folder_name="main-ep", extra_k_files: list[str] | None = None):
@@ -444,12 +452,6 @@ class EPSimulator(BaseSimulator):
         extra_k_files : list[str], default: None
             User-defined k files.
         """
-        assign_default_ep_materials(self.model)
-
-        _validate_materials_of_model(
-            self.model, requires_ep_material=True, requires_mechanical_material=False
-        )
-
         directory = os.path.join(self.root_directory, folder_name)
         self._write_main_simulation_files(folder_name, extra_k_files=extra_k_files)
 
@@ -629,6 +631,13 @@ class MechanicsSimulator(BaseSimulator):
         """If stress-free computation is taken into consideration."""
         self._dynain_name = None
         """LS-DYNA initial state file name from zeropressure."""
+
+        # Assign default mechanical materials if not assigned
+        assign_default_mechanics_materials(self.model)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=False, requires_mechanical_material=True
+        )
         return
 
     def simulate(
@@ -808,6 +817,14 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         simulation_directory: pathlib = "",
     ) -> None:
         MechanicsSimulator.__init__(self, model, dyna_settings, simulation_directory)
+
+        # Assign default materials if not assigned
+        assign_default_mechanics_materials(self.model)
+        assign_default_ep_materials(self.model)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=True, requires_mechanical_material=True
+        )
 
         return
 

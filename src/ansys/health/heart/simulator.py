@@ -435,6 +435,15 @@ class EPSimulator(BaseSimulator):
 
         return
 
+    def _assign_default_materials(self):
+        """Assign default materials if not assigned."""
+        assign_default_ep_materials(self.model, self.settings.electrophysiology.analysis.solvertype)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=True, requires_mechanical_material=False
+        )
+        return
+
     def simulate(self, folder_name="main-ep", extra_k_files: list[str] | None = None):
         """Launch the EP simulation.
 
@@ -446,11 +455,7 @@ class EPSimulator(BaseSimulator):
             User-defined k files.
         """
         # Assign default EP materials if not assigned
-        assign_default_ep_materials(self.model, self.settings.electrophysiology.analysis.solvertype)
-
-        _validate_materials_of_model(
-            self.model, requires_ep_material=True, requires_mechanical_material=False
-        )
+        self._assign_default_materials()
 
         directory = os.path.join(self.root_directory, folder_name)
         self._write_main_simulation_files(folder_name, extra_k_files=extra_k_files)
@@ -466,12 +471,7 @@ class EPSimulator(BaseSimulator):
 
     def _simulate_conduction(self, folder_name="main-ep-onlybeams"):
         """Launch the main EP simulation."""
-        # Assign default EP materials if not assigned
-        assign_default_ep_materials(self.model, self.settings.electrophysiology.analysis.solvertype)
-
-        _validate_materials_of_model(
-            self.model, requires_ep_material=True, requires_mechanical_material=False
-        )
+        self._assign_default_materials()
 
         directory = os.path.join(self.root_directory, folder_name)
         self._write_main_conduction_simulation_files(folder_name)
@@ -599,6 +599,15 @@ class MechanicsSimulator(BaseSimulator):
 
         return
 
+    def _assign_default_materials(self):
+        """Assign default materials if not assigned."""
+        assign_default_mechanics_materials(self.model, ep_coupled=False)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=False, requires_mechanical_material=True
+        )
+        return
+
     def simulate(
         self,
         folder_name: str = "main-mechanics",
@@ -621,11 +630,7 @@ class MechanicsSimulator(BaseSimulator):
             User-defined k files.
         """
         # Assign default mechanical materials if not assigned
-        assign_default_mechanics_materials(self.model)
-
-        _validate_materials_of_model(
-            self.model, requires_ep_material=False, requires_mechanical_material=True
-        )
+        self._assign_default_materials()
 
         if "apico-basal" not in self.model.mesh.point_data.keys():
             LOGGER.warning(
@@ -709,11 +714,7 @@ class MechanicsSimulator(BaseSimulator):
             (re)computed end-of-diastole configuration.
         """
         # Assign default mechanical materials if not assigned
-        assign_default_mechanics_materials(self.model)
-
-        _validate_materials_of_model(
-            self.model, requires_ep_material=False, requires_mechanical_material=True
-        )
+        self._assign_default_materials()
 
         directory = os.path.join(self.root_directory, folder_name)
 
@@ -793,6 +794,16 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
 
         return
 
+    def _assign_default_materials(self):
+        """Assign default materials if not assigned."""
+        assign_default_mechanics_materials(self.model, ep_coupled=True)
+        assign_default_ep_materials(self.model, self.settings.electrophysiology.analysis.solvertype)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=True, requires_mechanical_material=True
+        )
+        return
+
     def simulate(
         self,
         folder_name: str = "ep_meca",
@@ -814,13 +825,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         extra_k_files : list[str], default: None
             User-defined k files.
         """
-        # Assign default materials if not assigned
-        assign_default_mechanics_materials(self.model, ep_coupled=True)
-        assign_default_ep_materials(self.model, self.settings.electrophysiology.analysis.solvertype)
-
-        _validate_materials_of_model(
-            self.model, requires_ep_material=True, requires_mechanical_material=True
-        )
+        self._assign_default_materials()
 
         # MechanicalSimulator handle dynain file from zerop
         MechanicsSimulator.simulate(

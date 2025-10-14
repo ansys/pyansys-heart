@@ -21,6 +21,8 @@
 # SOFTWARE.
 """Factory for creating material models."""
 
+from ansys.health.heart import LOG as LOGGER
+import ansys.health.heart.models as models
 from ansys.health.heart.settings.material.curve import constant_ca2
 from ansys.health.heart.settings.material.material import (
     ACTIVE,
@@ -31,14 +33,15 @@ from ansys.health.heart.settings.material.material import (
     ActiveModel3,
     HGOFiber,
     Mat295,
+    MechanicalMaterialModel,
 )
 
 
-def _default_myocardium_material() -> Mat295:
+def _default_myocardium_material(ep_coupled: bool = False) -> Mat295:
     """Get default Mat295 myocardium material."""
     from ansys.health.heart.settings.defaults.mechanics import material
 
-    return _get_myocardium_material(material["myocardium"])
+    return _get_myocardium_material(material["myocardium"], ep_coupled=ep_coupled)
 
 
 def _default_passive_material() -> Mat295:
@@ -122,3 +125,42 @@ def _get_passive_material(passive_settings: dict) -> Mat295:
         ),
     )
     return passive
+
+
+def assign_default_mechanics_materials(
+    model: models.HeartModel
+    | models.FullHeart
+    | models.BiVentricle
+    | models.LeftVentricle
+    | models.FourChamber,
+    ep_coupled: bool = False,
+):
+    """Assign default mechanics materials to heart model parts.
+
+    Parameters
+    ----------
+    model : models.HeartModel | models.FullHeart | models.BiVentricle |
+            models.LeftVentricle | models.FourChamber
+        The heart model to assign materials to.
+    ep_coupled : bool, default: False
+        Whether to use electro-mechanical coupling.
+    """
+    for part in model.parts:
+        if (
+            not isinstance(part.meca_material, MechanicalMaterialModel)
+            or part.meca_material is None
+        ):
+            # Assign materials to empty parts.
+            LOGGER.info(
+                f"Part {part.name} does not have a mechanical material assigned. "
+                "Assigning default active EP material."
+            )
+            if part.fiber:
+                part.meca_material = _default_myocardium_material(ep_coupled=ep_coupled)
+                # Disable the active module.
+                if not part.active:
+                    part.meca_material.active = None
+
+            else:
+                part.meca_material = _default_passive_material()
+    return

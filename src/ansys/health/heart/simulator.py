@@ -433,13 +433,6 @@ class EPSimulator(BaseSimulator):
         """Initialize the EP simulator."""
         super().__init__(model, dyna_settings, simulation_directory)
 
-        # Assign default EP materials if not assigned
-        assign_default_ep_materials(self.model, self.settings.electrophysiology.analysis.solvertype)
-
-        _validate_materials_of_model(
-            self.model, requires_ep_material=True, requires_mechanical_material=False
-        )
-
         return
 
     def simulate(self, folder_name="main-ep", extra_k_files: list[str] | None = None):
@@ -452,6 +445,13 @@ class EPSimulator(BaseSimulator):
         extra_k_files : list[str], default: None
             User-defined k files.
         """
+        # Assign default EP materials if not assigned
+        assign_default_ep_materials(self.model, self.settings.electrophysiology.analysis.solvertype)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=True, requires_mechanical_material=False
+        )
+
         directory = os.path.join(self.root_directory, folder_name)
         self._write_main_simulation_files(folder_name, extra_k_files=extra_k_files)
 
@@ -466,6 +466,13 @@ class EPSimulator(BaseSimulator):
 
     def _simulate_conduction(self, folder_name="main-ep-onlybeams"):
         """Launch the main EP simulation."""
+        # Assign default EP materials if not assigned
+        assign_default_ep_materials(self.model, self.settings.electrophysiology.analysis.solvertype)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=True, requires_mechanical_material=False
+        )
+
         directory = os.path.join(self.root_directory, folder_name)
         self._write_main_conduction_simulation_files(folder_name)
 
@@ -573,48 +580,6 @@ class EPSimulator(BaseSimulator):
         return
 
 
-def _validate_materials_of_model(
-    model: models.HeartModel,
-    requires_ep_material: bool = True,
-    requires_mechanical_material: bool = True,
-):
-    from ansys.health.heart.exceptions import MissingMaterialError
-    from ansys.health.heart.settings.material.ep_material import EPMaterialModel
-    from ansys.health.heart.settings.material.material import MechanicalMaterialModel
-
-    """Validate that the materials are appropriately defined."""
-    # Validate all solid parts have EP materials assigned
-    if requires_ep_material:
-        for part in model.parts:
-            if part.ep_material is None or not isinstance(part.ep_material, EPMaterialModel):
-                error_message = f"Part {part.name} does not have an EP material assigned."
-                LOGGER.error(error_message)
-                raise ValueError(error_message)
-
-        # Validate all conduction paths have EP materials assigned
-        for conduction_path in model.conduction_paths:
-            if conduction_path.ep_material is None or not isinstance(
-                conduction_path.ep_material, EPMaterialModel
-            ):
-                error_message = (
-                    f"Conduction path {conduction_path.name} does not have an EP material assigned."
-                )
-                LOGGER.error(error_message)
-                raise MissingMaterialError(part.name, material_type="EP")
-
-    # Validate all solid parts have mechanical materials assigned
-    if requires_mechanical_material:
-        for part in model.parts:
-            if part.meca_material is None or not isinstance(
-                part.meca_material, MechanicalMaterialModel
-            ):
-                error_message = f"Part {part.name} does not have a mechanical material assigned."
-                LOGGER.error(error_message)
-                raise MissingMaterialError(part.name, material_type="Mechanical")
-
-    return
-
-
 class MechanicsSimulator(BaseSimulator):
     """Mechanics simulator with imposed active stress."""
 
@@ -632,12 +597,6 @@ class MechanicsSimulator(BaseSimulator):
         self._dynain_name = None
         """LS-DYNA initial state file name from zeropressure."""
 
-        # Assign default mechanical materials if not assigned
-        assign_default_mechanics_materials(self.model)
-
-        _validate_materials_of_model(
-            self.model, requires_ep_material=False, requires_mechanical_material=True
-        )
         return
 
     def simulate(
@@ -661,6 +620,13 @@ class MechanicsSimulator(BaseSimulator):
         extra_k_files : list[str], default: None
             User-defined k files.
         """
+        # Assign default mechanical materials if not assigned
+        assign_default_mechanics_materials(self.model)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=False, requires_mechanical_material=True
+        )
+
         if "apico-basal" not in self.model.mesh.point_data.keys():
             LOGGER.warning(
                 "Array named ``apico-basal`` cannot be found. Computing"
@@ -742,6 +708,13 @@ class MechanicsSimulator(BaseSimulator):
             stress free configuration, and
             (re)computed end-of-diastole configuration.
         """
+        # Assign default mechanical materials if not assigned
+        assign_default_mechanics_materials(self.model)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=False, requires_mechanical_material=True
+        )
+
         directory = os.path.join(self.root_directory, folder_name)
 
         if not os.path.isdir(directory) or overwrite or len(os.listdir(directory)) == 0:
@@ -818,14 +791,6 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
     ) -> None:
         MechanicsSimulator.__init__(self, model, dyna_settings, simulation_directory)
 
-        # Assign default materials if not assigned
-        assign_default_mechanics_materials(self.model)
-        assign_default_ep_materials(self.model)
-
-        _validate_materials_of_model(
-            self.model, requires_ep_material=True, requires_mechanical_material=True
-        )
-
         return
 
     def simulate(
@@ -849,6 +814,14 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         extra_k_files : list[str], default: None
             User-defined k files.
         """
+        # Assign default materials if not assigned
+        assign_default_mechanics_materials(self.model)
+        assign_default_ep_materials(self.model)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=True, requires_mechanical_material=True
+        )
+
         # MechanicalSimulator handle dynain file from zerop
         MechanicsSimulator.simulate(
             self,
@@ -873,6 +846,48 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         dyna_writer.export(export_directory, user_k=extra_k_files)
 
         return
+
+
+def _validate_materials_of_model(
+    model: models.HeartModel,
+    requires_ep_material: bool = True,
+    requires_mechanical_material: bool = True,
+):
+    from ansys.health.heart.exceptions import MissingMaterialError
+    from ansys.health.heart.settings.material.ep_material import EPMaterialModel
+    from ansys.health.heart.settings.material.material import MechanicalMaterialModel
+
+    """Validate that the materials are appropriately defined."""
+    # Validate all solid parts have EP materials assigned
+    if requires_ep_material:
+        for part in model.parts:
+            if part.ep_material is None or not isinstance(part.ep_material, EPMaterialModel):
+                error_message = f"Part {part.name} does not have an EP material assigned."
+                LOGGER.error(error_message)
+                raise ValueError(error_message)
+
+        # Validate all conduction paths have EP materials assigned
+        for conduction_path in model.conduction_paths:
+            if conduction_path.ep_material is None or not isinstance(
+                conduction_path.ep_material, EPMaterialModel
+            ):
+                error_message = (
+                    f"Conduction path {conduction_path.name} does not have an EP material assigned."
+                )
+                LOGGER.error(error_message)
+                raise MissingMaterialError(part.name, material_type="EP")
+
+    # Validate all solid parts have mechanical materials assigned
+    if requires_mechanical_material:
+        for part in model.parts:
+            if part.meca_material is None or not isinstance(
+                part.meca_material, MechanicalMaterialModel
+            ):
+                error_message = f"Part {part.name} does not have a mechanical material assigned."
+                LOGGER.error(error_message)
+                raise MissingMaterialError(part.name, material_type="Mechanical")
+
+    return
 
 
 def _kill_all_ansyscl():

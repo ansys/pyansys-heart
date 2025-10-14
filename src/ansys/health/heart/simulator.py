@@ -815,7 +815,7 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
             User-defined k files.
         """
         # Assign default materials if not assigned
-        assign_default_mechanics_materials(self.model)
+        assign_default_mechanics_materials(self.model, ep_coupled=True)
         assign_default_ep_materials(self.model, self.settings.electrophysiology.analysis.solvertype)
 
         _validate_materials_of_model(

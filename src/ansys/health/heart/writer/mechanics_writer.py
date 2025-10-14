@@ -38,9 +38,6 @@ from ansys.health.heart.settings.material.material import (
     Mat295,
     NeoHookean,
 )
-from ansys.health.heart.settings.material.material_factory import (
-    assign_default_mechanics_materials,
-)
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings
 from ansys.health.heart.utils.vtk_utils import compute_surface_nodal_area_pyvista
@@ -332,8 +329,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_material_db(self, add_active: bool = True, em_couple: bool = False) -> None:
-        assign_default_mechanics_materials(self.model, ep_coupled=em_couple)
-
         # write
         for part in self.model.parts:
             material = part.meca_material

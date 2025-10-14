@@ -153,7 +153,7 @@ def assign_default_mechanics_materials(
             # Assign materials to empty parts.
             LOGGER.info(
                 f"Part {part.name} does not have a mechanical material assigned. "
-                "Assigning default active EP material."
+                "Assigning the default mechanical material."
             )
             if part.fiber:
                 part.meca_material = _default_myocardium_material(ep_coupled=ep_coupled)

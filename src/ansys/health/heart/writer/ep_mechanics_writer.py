@@ -40,9 +40,6 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         model: HeartModel,
         settings: Optional[SimulationSettings] = None,
     ) -> None:
-        if isinstance(model, FourChamber):
-            model._create_atrioventricular_isolation()
-
         BaseDynaWriter.__init__(self, model=model, settings=settings)
 
         self.kw_database = ElectroMechanicsDecks()

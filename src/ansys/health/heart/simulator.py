@@ -769,10 +769,12 @@ class MechanicsSimulator(BaseSimulator):
         """Write LS-DYNA files to compute the stress-free configuration."""
         export_directory = os.path.join(self.root_directory, folder_name)
 
-        model = copy.deepcopy(self.model)
         # Isolation part need to be created in Zerop because main will use its dynain.lsda
-        if isinstance(model, models.FourChamber) and isinstance(self, EPMechanicsSimulator):
-            model._create_atrioventricular_isolation()
+        if isinstance(self.model, models.FourChamber) and isinstance(self, EPMechanicsSimulator):
+            self.model._create_atrioventricular_isolation()
+            assign_default_mechanics_materials(self.model, ep_coupled=True)
+
+        model = copy.deepcopy(self.model)
 
         dyna_writer = writers.ZeroPressureMechanicsDynaWriter(model, self.settings)
         dyna_writer.update()

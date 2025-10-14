@@ -134,33 +134,82 @@ def assign_default_mechanics_materials(
     | models.LeftVentricle
     | models.FourChamber,
     ep_coupled: bool = False,
-):
-    """Assign default mechanics materials to heart model parts.
+) -> None:
+    """Assign default mechanics materials to heart model parts in-place.
+
+    This function modifies the input model by assigning appropriate mechanical
+    materials to parts that do not have materials assigned. Parts with fiber
+    orientation receive myocardium materials, while parts without fibers receive
+    passive materials.
 
     Parameters
     ----------
-    model : models.HeartModel | models.FullHeart | models.BiVentricle |
-            models.LeftVentricle | models.FourChamber
-        The heart model to assign materials to.
+    model : HeartModel or FullHeart or BiVentricle or LeftVentricle or FourChamber
+        The heart model to assign materials to. Modified in-place.
     ep_coupled : bool, default: False
-        Whether to use electro-mechanical coupling.
+        Whether to use electro-mechanical coupling in material assignment.
+
+    Raises
+    ------
+    ValueError
+        If material creation fails for any part.
+    RuntimeError
+        If material assignment fails due to part validation errors.
+
+    Examples
+    --------
+    >>> import ansys.health.heart.models as models
+    >>> from ansys.health.heart.settings.material.material_factory import (
+    ...     assign_default_mechanics_materials,
+    ... )
+    >>> model = models.BiVentricle()
+    >>> assign_default_mechanics_materials(model, ep_coupled=True)
+    >>> all_parts_have_materials = all(part.meca_material is not None for part in model.parts)
+    >>> print(all_parts_have_materials)
+    True
+
+    Notes
+    -----
+    This function follows the PyAnsys Heart material assignment hierarchy:
+
+    - Parts with fiber orientation receive myocardium materials with active components
+    - Parts without fiber orientation receive passive materials only
+    - Active parts retain active material properties, passive parts have active components disabled
+    - The function will skip parts that already have valid mechanical materials assigned
     """
+    assignments = 0
+
     for part in model.parts:
         if (
             not isinstance(part.meca_material, MechanicalMaterialModel)
             or part.meca_material is None
         ):
-            # Assign materials to empty parts.
-            LOGGER.info(
-                f"Part {part.name} does not have a mechanical material assigned. "
-                "Assigning the default mechanical material."
-            )
-            if part.fiber:
-                part.meca_material = _default_myocardium_material(ep_coupled=ep_coupled)
-                # Disable the active module.
-                if not part.active:
-                    part.meca_material.active = None
+            try:
+                if part.fiber:
+                    part.meca_material = _default_myocardium_material(ep_coupled=ep_coupled)
+                    LOGGER.info(
+                        f"Assigned myocardium mechanical material to part '{part.name}' "
+                        f"(EP coupled: {ep_coupled})."
+                    )
 
-            else:
-                part.meca_material = _default_passive_material()
+                    # Disable the active module for passive parts
+                    if not part.active:
+                        part.meca_material.active = None
+                        LOGGER.debug(f"Disabled active component for passive part '{part.name}'.")
+                else:
+                    part.meca_material = _default_passive_material()
+                    LOGGER.info(f"Assigned passive mechanical material to part '{part.name}'.")
+
+                assignments += 1
+
+            except Exception as e:
+                error_msg = f"Failed to assign mechanical material to part '{part.name}': {e}"
+                LOGGER.error(error_msg)
+                raise RuntimeError(error_msg) from e
+
+    LOGGER.info(
+        f"Successfully assigned default mechanical materials to "
+        f"{assignments}/{len(model.parts)} parts "
+    )
+
     return

@@ -275,6 +275,7 @@ def test_run_dyna(settings):
         ("main-mechanics1", "zero-pressure", False, True),
     ],
 )
+@mock.patch("ansys.health.heart.simulator.MechanicsSimulator._assign_default_materials")
 @mock.patch("ansys.health.heart.simulator.MechanicsSimulator._run_dyna")
 @mock.patch("ansys.health.heart.simulator.mech_post")
 @mock.patch("ansys.health.heart.simulator.MechanicsSimulator._write_main_simulation_files")
@@ -282,6 +283,7 @@ def test_mechanics_simulator_simulate(
     mock_write_main,
     mock_mech_post,
     mock_run_dyna,
+    mock_assign_materials,
     folder_name,
     zerop_folder,
     auto_post,
@@ -317,6 +319,7 @@ def test_mechanics_simulator_simulate(
 
         mock_run_dyna.assert_called_once()
         mock_write_main.assert_called_once()
+        mock_assign_materials.assert_called_once()
         if auto_post:
             mock_mech_post.assert_called_once()
         else:
@@ -325,6 +328,7 @@ def test_mechanics_simulator_simulate(
         mock_mech_post.reset_mock()
         mock_run_dyna.reset_mock()
         mock_write_main.reset_mock()
+        mock_assign_materials.reset_mock()
 
         if initial_stress:
             # TODO: assert if correct file is copied by confirming hash. Will need
@@ -336,7 +340,12 @@ def test_mechanics_simulator_simulate(
 @mock.patch("ansys.health.heart.simulator.MechanicsSimulator._run_dyna")
 @mock.patch("ansys.health.heart.simulator.mech_post")
 @mock.patch("ansys.health.heart.simulator.MechanicsSimulator._write_main_simulation_files")
-def test_call_with_user_k(mock_write_main, mock_mech_post, mock_run_dyna, mechanics_simulator):
+def test_call_with_user_k(
+    mock_write_main,
+    mock_mech_post,
+    mock_run_dyna,
+    mechanics_simulator: simulators.MechanicsSimulator,
+):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         user_file = os.path.join(tempdir, "user.k")
         with open(user_file, "w") as tmpfile:
@@ -344,7 +353,11 @@ def test_call_with_user_k(mock_write_main, mock_mech_post, mock_run_dyna, mechan
 
         mechanics_simulator.root_directory = tempdir
         mechanics_simulator.initial_stress = False
-        mechanics_simulator.simulate(extra_k_files=[user_file])
+
+        with mock.patch(
+            "ansys.health.heart.simulator.MechanicsSimulator._assign_default_materials"
+        ):
+            mechanics_simulator.simulate(extra_k_files=[user_file])
 
         mock_write_main.assert_called_once_with(
             folder_name="main-mechanics", extra_k_files=[user_file]

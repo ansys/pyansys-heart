@@ -322,6 +322,9 @@ def test_writers(extract_model, writer_class):
     else:
         ep_coupled = False
 
+    if isinstance(writer.model, models.FourChamber):
+        writer.model._create_atrioventricular_isolation()
+
     # Assign default materials.
     assign_default_ep_materials(writer.model, "Monodomain")
     assign_default_mechanics_materials(writer.model, ep_coupled=ep_coupled)
@@ -424,6 +427,9 @@ def test_writers_after_load_model(extract_model, writer_class):
             ep_coupled = True
         else:
             ep_coupled = False
+
+        if isinstance(writer.model, models.FourChamber):
+            writer.model._create_atrioventricular_isolation()
 
         # Assign default materials.
         assign_default_mechanics_materials(writer.model, ep_coupled=ep_coupled)

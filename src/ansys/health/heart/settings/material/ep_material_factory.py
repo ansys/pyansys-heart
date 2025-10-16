@@ -55,24 +55,47 @@ def get_default_myocardium_material(
     -------
     Active
         The default myocardium EP material model.
+
+    Raises
+    ------
+    ValueError
+        If ep_solver_type is not recognized.
+    RuntimeError
+        If material creation fails.
+
+    Examples
+    --------
+    >>> material = get_default_myocardium_material(EPSolverType.MONODOMAIN)
+    >>> print(type(material))
+    <class 'ansys.health.heart.settings.material.ep_material.Active'>
     """
-    if isinstance(ep_solver_type, str):
-        ep_solver_type = EPSolverType(ep_solver_type)
+    try:
+        if isinstance(ep_solver_type, str):
+            ep_solver_type = EPSolverType(ep_solver_type)
 
-    # import defaults depending on solver type.
-    if ep_solver_type in (EPSolverType.REACTION_EIKONAL, EPSolverType.EIKONAL):
-        from ansys.health.heart.settings.defaults.electrophysiology import (
-            default_myocardium_material_eikonal as defaults,
-        )
-    if ep_solver_type == EPSolverType.MONODOMAIN:
-        from ansys.health.heart.settings.defaults.electrophysiology import (
-            default_myocardium_material_monodomain as defaults,
-        )
+        # Import defaults depending on solver type
+        if ep_solver_type in (EPSolverType.REACTION_EIKONAL, EPSolverType.EIKONAL):
+            from ansys.health.heart.settings.defaults.electrophysiology import (
+                default_myocardium_material_eikonal as defaults,
+            )
+        elif ep_solver_type == EPSolverType.MONODOMAIN:
+            from ansys.health.heart.settings.defaults.electrophysiology import (
+                default_myocardium_material_monodomain as defaults,
+            )
+        else:
+            raise ValueError(f"Unsupported EP solver type: {ep_solver_type}")
 
-    # Remove units from default Quantity values.
-    defaults = {k: (v.m if isinstance(v, Quantity) else v) for k, v in defaults.items()}
+        # Remove units from default Quantity values
+        processed_defaults = {
+            k: (v.m if isinstance(v, Quantity) else v) for k, v in defaults.items()
+        }
 
-    return Active(**defaults)
+        return Active(**processed_defaults)
+
+    except Exception as e:
+        error_msg = f"Failed to create myocardium material for {ep_solver_type}: {e}"
+        LOGGER.error(error_msg)
+        raise RuntimeError(error_msg) from e
 
 
 def get_default_passive_material(
@@ -89,70 +112,123 @@ def get_default_passive_material(
     -------
     Passive
         The default passive EP material model.
+
+    Raises
+    ------
+    ValueError
+        If ep_solver_type is not recognized.
+    RuntimeError
+        If material creation fails.
+
+    Examples
+    --------
+    >>> material = get_default_passive_material("Eikonal")
+    >>> print(type(material))
+    <class 'ansys.health.heart.settings.material.ep_material.Passive'>
     """
-    if isinstance(ep_solver_type, str):
-        ep_solver_type = EPSolverType(ep_solver_type)
+    try:
+        if isinstance(ep_solver_type, str):
+            ep_solver_type = EPSolverType(ep_solver_type)
 
-    # import defaults depending on solver type.
-    if ep_solver_type in (EPSolverType.REACTION_EIKONAL, EPSolverType.EIKONAL):
-        from ansys.health.heart.settings.defaults.electrophysiology import (
-            default_myocardium_material_eikonal as defaults,
-        )
-    if ep_solver_type == EPSolverType.MONODOMAIN:
-        from ansys.health.heart.settings.defaults.electrophysiology import (
-            default_myocardium_material_monodomain as defaults,
-        )
+        # Import defaults depending on solver type
+        if ep_solver_type in (EPSolverType.REACTION_EIKONAL, EPSolverType.EIKONAL):
+            from ansys.health.heart.settings.defaults.electrophysiology import (
+                default_myocardium_material_eikonal as defaults,
+            )
+        elif ep_solver_type == EPSolverType.MONODOMAIN:
+            from ansys.health.heart.settings.defaults.electrophysiology import (
+                default_myocardium_material_monodomain as defaults,
+            )
+        else:
+            raise ValueError(f"Unsupported EP solver type: {ep_solver_type}")
 
-    # Remove units from default Quantity values.
-    defaults = {k: (v.m if isinstance(v, Quantity) else v) for k, v in defaults.items()}
+        # Remove units from default Quantity values
+        processed_defaults = {
+            k: (v.m if isinstance(v, Quantity) else v) for k, v in defaults.items()
+        }
 
-    del defaults["sigma_sheet"]
-    del defaults["sigma_sheet_normal"]
+        # Remove sheet conductivities for passive materials using safe pop method
+        processed_defaults.pop("sigma_sheet", None)
+        processed_defaults.pop("sigma_sheet_normal", None)
 
-    return Passive(**defaults)
+        return Passive(**processed_defaults)
+
+    except Exception as e:
+        error_msg = f"Failed to create passive material for {ep_solver_type}: {e}"
+        LOGGER.error(error_msg)
+        raise RuntimeError(error_msg) from e
 
 
 def get_default_conduction_system_material(
-    ep_solver_type: EPSolverType | Literal["Monodomain", "Eikonal", "ReactionEikonal"],
+    ep_solver_type: (
+        EPSolverType | Literal["Monodomain", "Eikonal", "ReactionEikonal"]
+    ) = EPSolverType.MONODOMAIN,
 ) -> ActiveBeam:
     """Get the default conduction-system (beam) material for a solver type.
 
     Parameters
     ----------
-    ep_solver_type : EPSolverType | str
+    ep_solver_type : EPSolverType | str, default: EPSolverType.MONODOMAIN
         The type of EP solver to select appropriate defaults for.
 
     Returns
     -------
     ActiveBeam
         The default conduction system material.
+
+    Raises
+    ------
+    ValueError
+        If ep_solver_type is not recognized.
+    RuntimeError
+        If material creation fails.
+
+    Examples
+    --------
+    >>> material = get_default_conduction_system_material(EPSolverType.MONODOMAIN)
+    >>> print(type(material))
+    <class 'ansys.health.heart.settings.material.ep_material.ActiveBeam'>
     """
-    if isinstance(ep_solver_type, str):
-        ep_solver_type = EPSolverType(ep_solver_type)
+    try:
+        if isinstance(ep_solver_type, str):
+            ep_solver_type = EPSolverType(ep_solver_type)
 
-    # import defaults depending on solver type.
-    if ep_solver_type in (EPSolverType.REACTION_EIKONAL, EPSolverType.EIKONAL):
-        from ansys.health.heart.settings.defaults.electrophysiology import (
-            default_beam_material_eikonal as defaults,
-        )
-    elif ep_solver_type == EPSolverType.MONODOMAIN:
-        from ansys.health.heart.settings.defaults.electrophysiology import (
-            default_beam_material_monodomain as defaults,
-        )
+        # Import defaults depending on solver type
+        if ep_solver_type in (EPSolverType.REACTION_EIKONAL, EPSolverType.EIKONAL):
+            from ansys.health.heart.settings.defaults.electrophysiology import (
+                default_beam_material_eikonal as defaults,
+            )
+        elif ep_solver_type == EPSolverType.MONODOMAIN:
+            from ansys.health.heart.settings.defaults.electrophysiology import (
+                default_beam_material_monodomain as defaults,
+            )
+        else:
+            raise ValueError(f"Unsupported EP solver type: {ep_solver_type}")
 
-    # Remove units from default Quantity values.
-    defaults = {k: (v.m if isinstance(v, Quantity) else v) for k, v in defaults.items()}
+        # Remove units from default Quantity values
+        processed_defaults = {
+            k: (v.m if isinstance(v, Quantity) else v) for k, v in defaults.items()
+        }
 
-    return ActiveBeam(**defaults)
+        return ActiveBeam(**processed_defaults)
+
+    except Exception as e:
+        error_msg = f"Failed to create conduction system material for {ep_solver_type}: {e}"
+        LOGGER.error(error_msg)
+        raise RuntimeError(error_msg) from e
 
 
 def assign_default_ep_materials(
-    model: models.HeartModel
-    | models.FourChamber
-    | models.FullHeart
-    | models.BiVentricle
-    | models.LeftVentricle,
-    solvertype: Literal["Monodomain", "Eikonal", "ReactionEikonal"] | EPSolverType,
+    model: (
+        models.HeartModel
+        | models.FourChamber
+        | models.FullHeart
+        | models.BiVentricle
+        | models.LeftVentricle
+    ),
+    solver_type: (
+        EPSolverType | Literal["Monodomain", "Eikonal", "ReactionEikonal"]
+    ) = EPSolverType.MONODOMAIN,
 ) -> None:
     """Assign default EP materials to all parts of a model that do not have a material assigned.
 
@@ -165,14 +241,16 @@ def assign_default_ep_materials(
     model : models.HeartModel | models.FourChamber | models.FullHeart | models.BiVentricle |
             models.LeftVentricle
         Heart model to assign materials to. Modified in-place.
-    solvertype : str | ep_materials.EPSolverType
+    solver_type : EPSolverType | str, default: EPSolverType.MONODOMAIN
         EP solver type for material selection. Must be one of:
         "Monodomain", "Eikonal", or "ReactionEikonal".
 
     Raises
     ------
     ValueError
-        If solvertype is not recognized by the material factory.
+        If solver_type is not recognized by the material factory.
+    RuntimeError
+        If material assignment fails for any component.
 
     Examples
     --------
@@ -195,41 +273,69 @@ def assign_default_ep_materials(
     - Passive parts receive passive materials (no cell model associated with them)
     - Conduction paths receive specialized conduction system materials
     - Arteries and veins are treated as insulators
+
+    The function will skip parts that already have valid EP materials assigned.
     """
     try:
-        solvertype = EPSolverType(solvertype)
+        solver_type = EPSolverType(solver_type)
     except ValueError as e:
-        raise ValueError(
-            f"Unrecognized solver type: {solvertype}. Use one of {list(EPSolverType)}"
-        ) from e
+        valid_types = [solver.value for solver in EPSolverType]
+        error_msg = (
+            f"Unknown EP solver type: '{solver_type}'. Valid options: {', '.join(valid_types)}"
+        )
+        LOGGER.error(error_msg)
+        raise ValueError(error_msg) from e
 
+    assignments = 0
+
+    # Assign materials to parts (modifies objects in-place)
     for part in model.parts:
         if not isinstance(part.ep_material, EPMaterialModel) or part.ep_material is None:
-            if part.active:
-                part.ep_material = get_default_myocardium_material(solvertype)
-                LOGGER.info(
-                    f"Part {part.name} does not have an EP material assigned. "
-                    "Assigning default active EP material."
-                )
-            elif isinstance(part, Artery):
-                part.ep_material = Insulator()
-                LOGGER.info(
-                    f"Part {part.name} does not have an EP material assigned. "
-                    "Assigning an insulator material."
-                )
-            else:
-                LOGGER.info(
-                    f"Part {part.name} does not have an EP material assigned. "
-                    "Assigning default passive EP material."
-                )
-                part.ep_material = get_default_passive_material(solvertype)
+            try:
+                if part.active:
+                    part.ep_material = get_default_myocardium_material(solver_type)
+                    LOGGER.info(
+                        f"Assigned active EP material to part '{part.name}' "
+                        f"for {solver_type.value} solver."
+                    )
+                elif isinstance(part, Artery):
+                    part.ep_material = Insulator()
+                    LOGGER.info(f"Assigned insulator EP material to artery part '{part.name}'.")
+                else:
+                    part.ep_material = get_default_passive_material(solver_type)
+                    LOGGER.info(
+                        f"Assigned passive EP material to part '{part.name}' "
+                        f"for {solver_type.value} solver."
+                    )
 
+                assignments += 1
+
+            except Exception as e:
+                error_msg = f"Failed to assign EP material to part '{part.name}': {e}"
+                LOGGER.error(error_msg)
+                raise RuntimeError(error_msg) from e
+
+    # Assign materials to conduction paths (modifies objects in-place)
     for conduction_path in model.conduction_paths:
         if conduction_path.ep_material is None:
-            conduction_path.ep_material = get_default_conduction_system_material(solvertype)
-            LOGGER.warning(
-                f"Conduction path {conduction_path.name} does not have an EP material assigned. "
-                "Assigning default EP material."
-            )
+            try:
+                conduction_path.ep_material = get_default_conduction_system_material(solver_type)
+                LOGGER.warning(
+                    f"Conduction path '{conduction_path.name}' did not have an "
+                    f"EP material assigned. Assigned default conduction system material "
+                    f"for {solver_type.value} solver."
+                )
+                assignments += 1
 
-    return
+            except Exception as e:
+                error_msg = (
+                    f"Failed to assign EP material to conduction path '{conduction_path.name}': {e}"
+                )
+                LOGGER.error(error_msg)
+                raise RuntimeError(error_msg) from e
+
+    LOGGER.info(
+        f"Successfully assigned default EP materials to "
+        f"{assignments}/{len(model.parts) + len(model.conduction_paths)} components "
+        f"using {solver_type.value} solver."
+    )

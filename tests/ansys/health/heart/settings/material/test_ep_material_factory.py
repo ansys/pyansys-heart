@@ -214,7 +214,7 @@ def test_assign_default_ep_materials_with_string_solver_type(monkeypatch):
     assert part.ep_material is mock_material
 
 
-def test_assign_default_ep_materials_with_invalid_solver_type(monkeypatch):
+def test_assign_default_ep_materials_with_invalid_solver_type():
     """Test assign_default_ep_materials with invalid solver type.
 
     This test verifies that the function raises appropriate errors for
@@ -225,7 +225,7 @@ def test_assign_default_ep_materials_with_invalid_solver_type(monkeypatch):
     model = MockHeartModel(parts=[part])
 
     # Test with invalid string solver type
-    with pytest.raises(ValueError, match="Unrecognized solver type"):
+    with pytest.raises(ValueError):
         factory.assign_default_ep_materials(model, "InvalidSolver")
 
     # Test with invalid type

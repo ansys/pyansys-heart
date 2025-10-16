@@ -38,93 +38,218 @@ from ansys.health.heart.settings.material.material import (
 
 
 def _default_myocardium_material(ep_coupled: bool = False) -> Mat295:
-    """Get default Mat295 myocardium material."""
-    from ansys.health.heart.settings.defaults.mechanics import material
+    """Get default Mat295 myocardium material.
 
-    return _get_myocardium_material(material["myocardium"], ep_coupled=ep_coupled)
+    Parameters
+    ----------
+    ep_coupled : bool, default: False
+        Whether to use electro-mechanical coupling in material configuration.
+
+    Returns
+    -------
+    Mat295
+        The default myocardium mechanical material model.
+
+    Raises
+    ------
+    ValueError
+        If material settings are incomplete or invalid.
+    RuntimeError
+        If material creation fails.
+
+    Examples
+    --------
+    >>> material = _default_myocardium_material(ep_coupled=True)
+    >>> print(type(material))
+    <class 'ansys.health.heart.settings.material.material.Mat295'>
+    """
+    try:
+        from ansys.health.heart.settings.defaults.mechanics import material
+
+        return _get_myocardium_material(material["myocardium"], ep_coupled=ep_coupled)
+
+    except Exception as e:
+        error_msg = f"Failed to create default myocardium material (EP coupled: {ep_coupled}): {e}"
+        LOGGER.error(error_msg)
+        raise RuntimeError(error_msg) from e
 
 
 def _default_passive_material() -> Mat295:
-    """Get default Mat295 passive material."""
-    from ansys.health.heart.settings.defaults.mechanics import material
+    """Get default Mat295 passive material.
 
-    return _get_passive_material(material["passive"])
+    Returns
+    -------
+    Mat295
+        The default passive mechanical material model.
+
+    Raises
+    ------
+    ValueError
+        If material settings are incomplete or invalid.
+    RuntimeError
+        If material creation fails.
+
+    Examples
+    --------
+    >>> material = _default_passive_material()
+    >>> print(type(material))
+    <class 'ansys.health.heart.settings.material.material.Mat295'>
+    """
+    try:
+        from ansys.health.heart.settings.defaults.mechanics import material
+
+        return _get_passive_material(material["passive"])
+
+    except Exception as e:
+        error_msg = f"Failed to create default passive material: {e}"
+        LOGGER.error(error_msg)
+        raise RuntimeError(error_msg) from e
 
 
 def _get_myocardium_material(settings: dict, ep_coupled: bool = False) -> Mat295:
-    """Get Mat295 myocardium material from settings."""
-    if "isotropic" not in settings or "anisotropic" not in settings or "active" not in settings:
-        raise ValueError("Incomplete myocardium material settings.")
+    """Get Mat295 myocardium material from settings.
 
-    rho = settings["isotropic"]["rho"].m
+    Parameters
+    ----------
+    settings : dict
+        Material settings dictionary containing isotropic, anisotropic, and active properties.
+    ep_coupled : bool, default: False
+        Whether to use electro-mechanical coupling in active model configuration.
 
-    iso = ISO(
-        kappa=settings["isotropic"]["kappa"].m,
-        k1=settings["isotropic"]["k1"].m,
-        k2=settings["isotropic"]["k2"].m,
-        beta=2,
-    )
+    Returns
+    -------
+    Mat295
+        Configured myocardium material with isotropic, anisotropic, and active components.
 
-    fibers = [HGOFiber(k1=settings["anisotropic"]["k1f"].m, k2=settings["anisotropic"]["k2f"].m)]
+    Raises
+    ------
+    ValueError
+        If required settings are missing or incomplete.
 
-    if "k1s" in settings["anisotropic"]:
-        sheet = HGOFiber(k1=settings["anisotropic"]["k1s"].m, k2=settings["anisotropic"]["k2s"].m)
-        fibers.append(sheet)
-
-    if "k1fs" in settings["anisotropic"]:
-        k1fs, k2fs = settings["anisotropic"]["k1fs"].m, settings["anisotropic"]["k2fs"].m
-    else:
-        k1fs, k2fs = None, None
-    aniso = ANISO(fibers=fibers, k1fs=k1fs, k2fs=k2fs)
-
-    max = settings["active"]["taumax"].m
-    bt = settings["active"]["beat_time"].m
-    ss = settings["active"]["ss"]
-    sn = settings["active"]["sn"]
-
-    if not ep_coupled:
-        ac_mdoel = ActiveModel1(taumax=max)  # use default field in Model1 except taumax
-        curve = ActiveCurve(func=constant_ca2(tb=bt), threshold=0.1, type="ca2")
-        active = ACTIVE(
-            ss=ss,
-            sn=sn,
-            model=ac_mdoel,
-            ca2_curve=curve,
-        )
-    else:
-        ac_mdoel = ActiveModel3(
-            ca2ion50=0.001,
-            n=2,
-            f=0.0,
-            l=1.9,
-            eta=1.45,
-            sigmax=max,  # MPa
+    Examples
+    --------
+    >>> settings = {"isotropic": {...}, "anisotropic": {...}, "active": {...}}
+    >>> material = _get_myocardium_material(settings, ep_coupled=True)
+    >>> print(material.active is not None)
+    True
+    """
+    # Validate required settings
+    required_sections = ["isotropic", "anisotropic", "active"]
+    missing_sections = [section for section in required_sections if section not in settings]
+    if missing_sections:
+        raise ValueError(
+            f"Incomplete myocardium material settings. "
+            f"Missing sections: {', '.join(missing_sections)}"
         )
 
-        active = ACTIVE(
-            ss=ss,
-            sn=sn,
-            acthr=0.0002,
-            model=ac_mdoel,
-            ca2_curve=None,
+    try:
+        rho = settings["isotropic"]["rho"].m
+
+        iso = ISO(
+            kappa=settings["isotropic"]["kappa"].m,
+            k1=settings["isotropic"]["k1"].m,
+            k2=settings["isotropic"]["k2"].m,
+            beta=2,
         )
 
-    return Mat295(rho=rho, iso=iso, aniso=aniso, active=active)
+        fibers = [
+            HGOFiber(k1=settings["anisotropic"]["k1f"].m, k2=settings["anisotropic"]["k2f"].m)
+        ]
+
+        if "k1s" in settings["anisotropic"]:
+            sheet = HGOFiber(
+                k1=settings["anisotropic"]["k1s"].m, k2=settings["anisotropic"]["k2s"].m
+            )
+            fibers.append(sheet)
+
+        if "k1fs" in settings["anisotropic"]:
+            k1fs, k2fs = settings["anisotropic"]["k1fs"].m, settings["anisotropic"]["k2fs"].m
+        else:
+            k1fs, k2fs = None, None
+        aniso = ANISO(fibers=fibers, k1fs=k1fs, k2fs=k2fs)
+
+        max = settings["active"]["taumax"].m
+        bt = settings["active"]["beat_time"].m
+        ss = settings["active"]["ss"]
+        sn = settings["active"]["sn"]
+
+        if not ep_coupled:
+            ac_mdoel = ActiveModel1(taumax=max)  # use default field in Model1 except taumax
+            curve = ActiveCurve(func=constant_ca2(tb=bt), threshold=0.1, type="ca2")
+            active = ACTIVE(
+                ss=ss,
+                sn=sn,
+                model=ac_mdoel,
+                ca2_curve=curve,
+            )
+        else:
+            ac_mdoel = ActiveModel3(
+                ca2ion50=0.001,
+                n=2,
+                f=0.0,
+                l=1.9,
+                eta=1.45,
+                sigmax=max,  # MPa
+            )
+
+            active = ACTIVE(
+                ss=ss,
+                sn=sn,
+                acthr=0.0002,
+                model=ac_mdoel,
+                ca2_curve=None,
+            )
+
+        return Mat295(rho=rho, iso=iso, aniso=aniso, active=active)
+
+    except KeyError as e:
+        raise ValueError(f"Missing required material property: {e}") from e
+    except Exception as e:
+        raise ValueError(f"Failed to construct myocardium material: {e}") from e
 
 
 def _get_passive_material(passive_settings: dict) -> Mat295:
-    """Get passive Mat295 from settings."""
-    passive = Mat295(
-        rho=passive_settings["rho"].m,
-        iso=ISO(
-            itype=passive_settings["itype"],
-            beta=2,
-            kappa=passive_settings["kappa"].m,
-            mu1=passive_settings["mu1"].m,
-            alpha1=passive_settings["alpha1"],
-        ),
-    )
-    return passive
+    """Get passive Mat295 from settings.
+
+    Parameters
+    ----------
+    passive_settings : dict
+        Passive material settings dictionary containing density and isotropic properties.
+
+    Returns
+    -------
+    Mat295
+        Configured passive material with isotropic properties only.
+
+    Raises
+    ------
+    ValueError
+        If required settings are missing or construction fails.
+
+    Examples
+    --------
+    >>> settings = {"rho": 1.0, "itype": 1, "kappa": 1000.0, "mu1": 10.0, "alpha1": 18.5}
+    >>> material = _get_passive_material(settings)
+    >>> print(material.active is None)
+    True
+    """
+    try:
+        passive = Mat295(
+            rho=passive_settings["rho"].m,
+            iso=ISO(
+                itype=passive_settings["itype"],
+                beta=2,
+                kappa=passive_settings["kappa"].m,
+                mu1=passive_settings["mu1"].m,
+                alpha1=passive_settings["alpha1"],
+            ),
+        )
+        return passive
+
+    except KeyError as e:
+        raise KeyError(f"Missing required passive material property: {e}") from e
+    except Exception as e:
+        raise ValueError(f"Failed to construct passive material: {e}") from e
 
 
 def assign_default_mechanics_materials(

@@ -454,6 +454,9 @@ class EPSimulator(BaseSimulator):
         extra_k_files : list[str], default: None
             User-defined k files.
         """
+        if isinstance(self.model, models.FourChamber) and isinstance(self, EPMechanicsSimulator):
+            self.model._create_atrioventricular_isolation()
+
         # Assign default EP materials if not assigned
         self._assign_default_materials()
 
@@ -772,7 +775,8 @@ class MechanicsSimulator(BaseSimulator):
         # Isolation part need to be created in Zerop because main will use its dynain.lsda
         if isinstance(self.model, models.FourChamber) and isinstance(self, EPMechanicsSimulator):
             self.model._create_atrioventricular_isolation()
-            assign_default_mechanics_materials(self.model, ep_coupled=True)
+
+        assign_default_mechanics_materials(self.model, ep_coupled=True)
 
         model = copy.deepcopy(self.model)
 

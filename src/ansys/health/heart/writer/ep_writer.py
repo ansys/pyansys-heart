@@ -324,8 +324,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         model: Union[HeartModel, FullHeart, FourChamber, BiVentricle, LeftVentricle],
         settings: SimulationSettings = None,
     ) -> None:
-        if isinstance(model, FourChamber):
-            model._create_atrioventricular_isolation()
         if model._add_blood_pool:
             model._create_blood_part()
 

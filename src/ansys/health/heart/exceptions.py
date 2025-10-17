@@ -85,3 +85,7 @@ class MissingMaterialError(ValueError):
 
     def __init__(self, part_name: str, material_type: Literal["EP", "Mechanical"]):
         super().__init__(f"Part {part_name} has no {material_type} material assigned.")
+
+
+class PartAlreadyExistsError(ValueError):
+    """Exception raised when a part already exists."""

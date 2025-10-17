@@ -322,7 +322,9 @@ def test_writers(extract_model, writer_class):
     else:
         ep_coupled = False
 
-    if isinstance(writer.model, models.FourChamber):
+    if isinstance(writer.model, models.FourChamber) and isinstance(
+        writer, (writers.ElectroMechanicsDynaWriter, writers.ElectrophysiologyDynaWriter)
+    ):
         writer.model._create_atrioventricular_isolation()
 
     # Assign default materials.
@@ -428,7 +430,9 @@ def test_writers_after_load_model(extract_model, writer_class):
         else:
             ep_coupled = False
 
-        if isinstance(writer.model, models.FourChamber):
+        if isinstance(writer.model, models.FourChamber) and isinstance(
+            writer, (writers.ElectroMechanicsDynaWriter, writers.ElectrophysiologyDynaWriter)
+        ):
             writer.model._create_atrioventricular_isolation()
 
         # Assign default materials.

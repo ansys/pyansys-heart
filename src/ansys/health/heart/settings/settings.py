@@ -304,6 +304,17 @@ class Electrophysiology(Settings):
     stimulation: AttrDict[str, Stimulation] = None
     """Stimulation settings."""
 
+    _layers: dict = field(
+        default_factory=lambda: {
+            "percent_endo": Quantity(0.17, "dimensionless"),  # thickness of endocardial layer
+            "percent_mid": Quantity(0.41, "dimensionless"),  # thickness of midmyocardial layer
+        }
+    )
+    """Layers for material assignment of the myocardium."""
+
+    _lambda: Quantity = Quantity(0.2, "dimensionless")  # activate extracellular potential solve
+    """Intra to extracellular conductivity ratio."""
+
 
 @dataclass(repr=False)
 class Fibers(Settings):
@@ -614,11 +625,7 @@ class SimulationSettings:
                 analysis = EPAnalysis()
                 analysis.set_values(ep_defaults.analysis)
                 # TODO: Deprecate this way of handling default materials
-                material = EpMaterial()
-                material.set_values(ep_defaults.material)
-
                 self.electrophysiology.analysis = analysis
-                self.electrophysiology.material = material
                 self.electrophysiology.stimulation: AttrDict[str, Stimulation] = AttrDict()
                 for key in ep_defaults.stimulation.keys():
                     system_model = Stimulation()

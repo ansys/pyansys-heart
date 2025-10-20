@@ -89,6 +89,10 @@ REF_STRING_SETTINGS_YML_EP = (
     "        period: 800 millisecond\n"
     "        duration: 20 millisecond\n"
     "        amplitude: 50 microfarad / millimeter ** 3\n"
+    "    _layers:\n"
+    "      percent_endo: 0.17 dimensionless\n"
+    "      percent_mid: 0.41 dimensionless\n"
+    "    _lambda: 0.2 dimensionless\n"
 )
 
 

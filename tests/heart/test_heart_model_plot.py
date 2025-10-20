@@ -27,7 +27,8 @@ import pytest
 import pyvista as pv
 
 import ansys.health.heart.models as models
-from ansys.health.heart.objects import Mesh, Part, SurfaceMesh
+from ansys.health.heart.objects import Mesh, SurfaceMesh
+from ansys.health.heart.parts import Part
 from tests.heart.writer.test_dynawriter import _get_mock_conduction_system
 
 
@@ -55,7 +56,7 @@ def _mock_input():
     mock_biventricle.mesh.add_surface(pv.Disc(), id=1, name="valve")
 
     # add mock purkinje data.
-    mock_biventricle.conduction_system = _get_mock_conduction_system()
+    mock_biventricle._conduction_mesh = _get_mock_conduction_system()
 
     with mock.patch("pyvista.Plotter.show") as mock_show:
         yield mock_biventricle, mock_show
@@ -72,8 +73,8 @@ def test_heart_model_plot_mesh(_mock_input):
 def test_heart_model_plot_part(_mock_input):
     """Test plotting a part."""
     mock_biventricle, mock_show = _mock_input
-    mock_part = mock.Mock(Part)
-    mock_part.element_ids = np.array([0, 1, 2, 3, 4])
+    mock_part = Part("mock_part")
+    mock_part.pid = 1
     mock_biventricle.plot_part(mock_part)
     mock_show.assert_called_once()
 
@@ -111,6 +112,6 @@ def test_heart_model_plot_purkinje(_mock_input):
     mock_show.reset_mock()
 
     # remove beam network.
-    mock_biventricle.conduction_system = None
+    mock_biventricle._conduction_mesh = None
     mock_biventricle.plot_purkinje()
     mock_show.assert_not_called()

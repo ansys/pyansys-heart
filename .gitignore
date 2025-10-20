@@ -174,10 +174,4 @@ cython_debug/
 .idea/
 
 # End of https://www.toptal.com/developers/gitignore/api/python
-examples/heart/preprocessor/example_preprocessor_writer_refactor_martijn.py
-examples/heart/preprocessor/compare_formatting.py
-/dynalib/
-/examples/wye/
-test_case
-examples/heart/simulator/local_examples.py
 doc/source/sg_execution_times.rst

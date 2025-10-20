@@ -25,8 +25,8 @@
 from ansys.dyna.core.keywords import keywords
 
 
-def _function_alpha(alpha_endo: float = -60, alpha_epi: float = 60):
-    """Define the alpha angle for fiber definition."""
+def _function_alpha(alpha_endo: float = -60, alpha_epi: float = 60) -> str:
+    """Define the alpha angle for the fiber definition."""
     return "\n".join(
         [
             "float alpha(",
@@ -47,8 +47,8 @@ def _function_alpha(alpha_endo: float = -60, alpha_epi: float = 60):
     )
 
 
-def _function_beta(beta_endo: float = 25, beta_epi: float = -65):
-    """Define the beta angle for fiber definition in ventricles."""
+def _function_beta(beta_endo: float = 25, beta_epi: float = -65) -> str:
+    """Define the beta angle for the fiber definition in ventricles."""
     return "\n".join(
         [
             "    float beta(",
@@ -69,8 +69,8 @@ def _function_beta(beta_endo: float = 25, beta_epi: float = -65):
     )
 
 
-def _function_beta_septum(beta_endo: float = -65, beta_epi: float = 25):
-    """Define the beta angle for fiber definition in the septum."""
+def _function_beta_septum(beta_endo: float = -65, beta_epi: float = 25) -> str:
+    """Define the beta angle for the fiber definition in the septum."""
     return "\n".join(
         [
             "    float betaW(",
@@ -91,13 +91,13 @@ def _function_beta_septum(beta_endo: float = -65, beta_epi: float = 25):
     )
 
 
-def _constant_flow_template():
+def _constant_flow_template() -> str:
     """Constant flow template."""
     template = "float {0}(float t, float dp, float area) \n{{\nreturn {1};\n}}"
     return template
 
 
-def _valve_template():
+def _valve_template() -> str:
     """Diode valve model template."""
     template = (
         "float {0}(float t, float dp)\n"
@@ -117,7 +117,7 @@ def _valve_template():
     return template
 
 
-def _afterload_windkessel_template():
+def _afterload_windkessel_template() -> str:
     """Use the same model as in :func:`windkessel_template` but without preload."""
     template = (
         "float {0}(float t, float dp)\n"
@@ -130,10 +130,10 @@ def _afterload_windkessel_template():
         "$   physical constants\n"
         "    float Rp, Ca;\n"
         "    float Ra, Rv;\n"
-        "    Rp = {2};\n"  # "    Rp = 1.2e-4;\n"
-        "    Ca = {3};\n"  # "    Ca = 2.5e4;\n"
-        "    Ra = {4};\n"  # "    Ra = 1.0e-5;\n"
-        "    Rv = {5};\n"  # "    not used !"
+        "    Rp = {2:.12e};\n"  # "    Rp = 1.2e-4;\n"
+        "    Ca = {3:.12e};\n"  # "    Ca = 2.5e4;\n"
+        "    Ra = {4:.12e};\n"  # "    Ra = 1.0e-5;\n"
+        "    Rv = {5:.12e};\n"  # "    not used !"
         "\n"
         "$   physical variables\n"
         "    float chi_av, chi_mv;\n"
@@ -147,7 +147,7 @@ def _afterload_windkessel_template():
         "    float vart2;\n"
         "\n"
         "$   constant pre load:\n"
-        "    pven = {6};\n"
+        "    pven = {6:.12e};\n"
         "\n"
         "$   time related variables\n"
         "    int icall=0, is_new_dt=0;\n"
@@ -158,7 +158,7 @@ def _afterload_windkessel_template():
         "\n"
         "$   initialisation at t=0\n"
         "    if (icall == 0) {{\n"
-        "          part = {7};\n"
+        "          part = {7:.12e};\n"
         "$   initial arterial volume\n"
         "          vart = Ca * part;\n"
         "          qp = part / Rp;\n"
@@ -264,7 +264,7 @@ def _afterload_windkessel_template():
     return template
 
 
-def _ed_load_template():
+def _ed_load_template() -> str:
     """
     Define function template to apply ED pressure.
 
@@ -281,9 +281,9 @@ def _ed_load_template():
         "float {1}(float t, float dp, float area) \n"
         "{{\n"
         "float flow1;\n"
-        "if (dp <= {2})\n"
+        "if (dp <= {2:.12e})\n"
         "{{\n"
-        "flow1= {3};\n"
+        "flow1= {3:.12e};\n"
         "}} else\n"
         "{{\n"
         "flow1= 0.0;\n"
@@ -294,7 +294,7 @@ def _ed_load_template():
     return template
 
 
-def _windkessel_template():
+def _windkessel_template() -> str:
     """Windkessel template.
 
     Notes
@@ -315,17 +315,17 @@ def _windkessel_template():
         "float {0}(float t, float dp)\n"
         "{{\n"
         "$   numerical constant\n"
-        "    int Implicit={1};\n"
+        "    int Implicit={1:d};\n"
         "$   Only used for Euler Implicit\n"
         "    float gamma = 0.6;\n"
         "\n"
         "$   physical constants\n"
         "    float Rp, Ca;\n"
         "    float Ra, Rv;\n"
-        "    Rp = {2};\n"  # "    Rp = 1.2e-4;\n"
-        "    Ca = {3};\n"  # "    Ca = 2.5e4;\n"
-        "    Ra = {4};\n"  # "    Ra = 1.0e-5;\n"
-        "    Rv = {5};\n"  # "    Rv = 5.0e-6;\n"
+        "    Rp = {2:.12e};\n"  # "    Rp = 1.2e-4;\n"
+        "    Ca = {3:.12e};\n"  # "    Ca = 2.5e4;\n"
+        "    Ra = {4:.12e};\n"  # "    Ra = 1.0e-5;\n"
+        "    Rv = {5:.12e};\n"  # "    Rv = 5.0e-6;\n"
         "\n"
         "$   physical variables\n"
         "    float chi_av, chi_mv;\n"
@@ -339,7 +339,7 @@ def _windkessel_template():
         "    float vart2;\n"
         "\n"
         "$   constant pre load:\n"
-        "    pven = {6};\n"
+        "    pven = {6:.12e};\n"
         "\n"
         "$   time related variables\n"
         "    int icall=0, is_new_dt=0;\n"
@@ -350,7 +350,7 @@ def _windkessel_template():
         "\n"
         "$   initialisation at t=0\n"
         "    if (icall == 0) {{\n"
-        "          part = {7};\n"
+        "          part = {7:.12e};\n"
         "$   initial arterial volume\n"
         "          vart = Ca * part;\n"
         "          qp = part / Rp;\n"
@@ -481,22 +481,22 @@ def _windkessel_template():
 def _define_function_0d_system(
     function_id: int,
     function_name: str,
-    parameters: dict,
-):
+    parameters: dict[str, dict[str, float]],
+) -> keywords.DefineFunction:
     """Generate a define function.
 
     Parameters
     ----------
     function_id : int
-        Function ID that defines the interaction between control volumes
+        Function ID that defines the interaction between control volumes.
     function_name : str
-        Name of the function
-    parameters : dict
-        Parameters of the system model
+        Function name.
+    parameters : dict[str, dict[str, float]]
+        Parameters of the system model.
 
     Returns
     -------
-    str
+    keywords.DefineFunction
         Formatted keyword for the define function.
     """
     if "constant_preload_windkessel_afterload" in function_name:

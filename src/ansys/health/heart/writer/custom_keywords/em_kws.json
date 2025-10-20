@@ -8,7 +8,7 @@
           "default": null,
           "position": 0,
           "width": 10,
-          "help": "Part set on which the system is solved"
+          "help": "Part set that the system is solved on."
         },
         {
           "name": "numSplitI",
@@ -16,7 +16,7 @@
           "default": null,
           "position": 10,
           "width": 10,
-          "help": "ID of the Laplace system that is solved in the transmural direction"
+          "help": "ID of the Laplace system that is solved in the transmural direction."
         },
         {
           "name": "actuSigma",
@@ -38,7 +38,7 @@
           "default": null,
           "position": 0,
           "width": 10,
-          "help": "Part set on which the system is solved"
+          "help": "Part set that the system is solved on."
         },
         {
           "name": "solvid1",
@@ -46,7 +46,7 @@
           "default": null,
           "position": 10,
           "width": 10,
-          "help": "ID of the Laplace system that is solved in the transmural direction"
+          "help": "ID of the Laplace system that is solved in the transmural direction."
         },
         {
           "name": "solvid2",
@@ -62,7 +62,7 @@
           "default": null,
           "position": 30,
           "width": 10,
-          "help": "helical angle with respect to the counterclockwise circumferential direction in the heart when looking from the base towards the apex. If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 1- for available parameters"
+          "help": "Helical angle with respect to the counterclockwise circumferential direction in the heart when looking from the base towards the apex. If a negative value is entered, a *DEFINE_FUNCTION is expected. See remark 1- for available parameters."
         },
         {
           "name": "beta",
@@ -70,7 +70,7 @@
           "default": null,
           "position": 40,
           "width": 10,
-          "help": "angle with respect to the outward transmural axis of the heart. If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 1- for available parameters"
+          "help": "Angle with respect to the outward transmural axis of the heart. If a negative value is entered, a *DEFINE_FUNCTION is expected. See remark 1- for available parameters."
         },
         {
           "name": "wfile",
@@ -78,7 +78,7 @@
           "default": null,
           "position": 50,
           "width": 10,
-          "help": "Selects whether result files (ELEMENT_SOLID_ORTHO.k and vtk files) are exported. Eq 0: not exported. Eq 1: exported"
+          "help": "Selects whether result files (ELEMENT_SOLID_ORTHO.k and VTK files) are exported. Eq 0: not exported. Eq 1: exported"
         },
         {
           "name": "prerun",
@@ -86,7 +86,7 @@
           "default": null,
           "position": 60,
           "width": 10,
-          "help": "Selects whether the run is stopped after creating fibers: Eq. 0: do not stop after fiber creation. Eq 1: stop after fiber creation"
+          "help": "Selects whether the run is stopped after creating fibers: Eq. 0: do not stop after fiber creation. Eq 1: stop after fiber creation."
         }
       ]
     }
@@ -101,7 +101,7 @@
           "position": 0,
           "width": 10,
           "link": 14,
-          "help": "Material ID: refers to MID in the *PART card."
+          "help": "Material ID:, which refers to MID in the *PART card."
         },
         {
           "name": "MTYPE",
@@ -123,7 +123,7 @@
           "default": null,
           "position": 20,
           "width": 10,
-          "help": "The 1,1 term in the 3 x 3 electromagnetic conductivity tensor matrix. Note that 1 corresponds to the a material direction.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters."
+          "help": "The 1,1 term in the 3 x 3 electromagnetic conductivity tensor matrix. Note that 1 corresponds to the a material direction. If a negative value is entered, a *DEFINE_FUNCTION is expected. See remark 3- for available parameters."
         },
         {
           "name": "SIGMA22",
@@ -131,7 +131,7 @@
           "default": null,
           "position": 30,
           "width": 10,
-          "help": "The 2,2 term in the 3 x 3 electromagnetic conductivity tensor matrix.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters."
+          "help": "The 2,2 term in the 3 x 3 electromagnetic conductivity tensor matrix. If a negative value is entered, a *DEFINE_FUNCTION is expected. See remark 3- for available parameters."
         },
         {
           "name": "SIGMA33",
@@ -139,7 +139,7 @@
           "default": null,
           "position": 40,
           "width": 10,
-          "help": "The 2,2 term in the 3 x 3 electromagnetic conductivity tensor matrix.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters. "
+          "help": "The 2,2 term in the 3 x 3 electromagnetic conductivity tensor matrix. If a negative value is entered, a *DEFINE_FUNCTION is expected. See remark 3- for available parameters. "
         },
         {
           "name": "BETA",
@@ -155,7 +155,7 @@
           "default": 1.0,
           "position": 60,
           "width": 10,
-          "help": "Membrane capacitance"
+          "help": "Membrane capacitance."
         }
       ]
     },
@@ -167,7 +167,7 @@
           "default": null,
           "position": 0,
           "width": 10,
-          "help": "The 1,2 term in the 3 x 3 electromagnetic conductivity tensor matrix.Note that 2 corresponds to the b material direction.. If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters."
+          "help": "The 1,2 term in the 3 x 3 electromagnetic conductivity tensor matrix. Note that 2 corresponds to the b material direction. If a negative value is entered, a *DEFINE_FUNCTION is expected. See remark 3- for available parameters."
         },
         {
           "name": "SIGMA13",
@@ -175,7 +175,7 @@
           "default": null,
           "position": 10,
           "width": 10,
-          "help": "The 1,3 term in the 3 x 3 electromagnetic conductivity tensor matrix.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters."
+          "help": "The 1,3 term in the 3 x 3 electromagnetic conductivity tensor matrix. If a negative value is entered, a *DEFINE_FUNCTION is expected. See remark 3- for available parameters."
         },
         {
           "name": "SIGMA21",
@@ -183,7 +183,7 @@
           "default": null,
           "position": 20,
           "width": 10,
-          "help": "The 2,1 term in the 3 x 3 electromagnetic conductivity tensor matrix. Note that 1 corresponds to the a material direction.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters."
+          "help": "The 2,1 term in the 3 x 3 electromagnetic conductivity tensor matrix. Note that 1 corresponds to the a material direction. If a negative value is entered, a *DEFINE_FUNCTION is expected. See remark 3- for available parameters."
         },
         {
           "name": "SIGMA23",
@@ -191,7 +191,7 @@
           "default": null,
           "position": 30,
           "width": 10,
-          "help": "The 2,3 term in the 3 x 3 electromagnetic conductivity tensor matrix.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters."
+          "help": "The 2,3 term in the 3 x 3 electromagnetic conductivity tensor matrix. If a negative value is entered, a *DEFINE_FUNCTION is expected. See remark 3- for available parameters."
         },
         {
           "name": "SIGMA31",
@@ -199,7 +199,7 @@
           "default": null,
           "position": 40,
           "width": 10,
-          "help": "The 3,1 term in the 3 x 3 electromagnetic conductivity tensor matrix.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters."
+          "help": "The 3,1 term in the 3 x 3 electromagnetic conductivity tensor matrix. If a negative value is entered, a *DEFINE_FUNCTION is expected. See remark 3- for available parameters."
         },
         {
           "name": "SIGMA32",
@@ -207,7 +207,7 @@
           "default": null,
           "position": 50,
           "width": 10,
-          "help": "The 3,2 term in the 3 x 3 electromagnetic conductivity tensor matrix.If a negative value is entered, a *DEFINE_FUNCTION will be expected. See remark 3- for available parameters."
+          "help": "The 3,2 term in the 3 x 3 electromagnetic conductivity tensor matrix. If a negative value is entered, a *DEFINE_FUNCTION is expected. See remark 3- for available parameters."
         },
         {
           "name": "AOPT",
@@ -223,7 +223,7 @@
           "default": "0",
           "position": 60,
           "width": 10,
-          "help": "Material axes option:\n EQ.0.0: locally orthotropic with material axes determined by element nodes\n EQ.1.0:locally orthotropic with material axes determined by a point in space and the global location of the element center this is the a-direction.\n EQ.2.0:globally orthotropic with material axes determined by vectors defined below, as with *DEFINE_COORDINATE_VECTOR. \n EQ.3.0:locally orthotropic material axes determined by rotating the material axes about the element normal by an angle,BETA, from a line in the plane of the element defined by the cross product of the vector v with the element normal. The plane of a solid element is the midsurface between the inner surface and outer surface defined by the first four nodes and the last four nodes of the connectivity of the element, respectively.\n EQ.4.0:locally orthotropic in cylindrical coordinate system with the material axes determined by a vector v, and an originating point, P, which define the centerline axis. This option is for solid elements only. \n EQ.5.0:globally defined reference frame with (a,b,c)=(X0,Y0,Z0)."
+          "help": "Material axes option:\n EQ.0.0: locally orthotropic with material axes determined by element nodes\n EQ.1.0:locally orthotropic with material axes determined by a point in space and the global location of the element center. This is the a-direction.\n EQ.2.0:globally orthotropic with material axes determined by vectors defined below, as with *DEFINE_COORDINATE_VECTOR. \n EQ.3.0:locally orthotropic material axes determined by rotating the material axes about the element normal by an angle,BETA, from a line in the plane of the element defined by the cross product of the vector v with the element normal. The plane of a solid element is the midsurface between the inner surface and outer surface defined by the first four nodes and the last four nodes of the connectivity of the element, respectively.\n EQ.4.0:locally orthotropic in cylindrical coordinate system with the material axes determined by a vector v, and an originating point, P, which define the centerline axis. This option is for solid elements only. \n EQ.5.0:globally defined reference frame with (a,b,c)=(X0,Y0,Z0)."
         },
         {
           "name": "LAMBDA",
@@ -231,7 +231,7 @@
           "default": null,
           "position": 70,
           "width": 10,
-          "help": "Intra- to extracellular conductivity ratio. When non-empty, the elliptic equation is solved to compute extracellular potentials"
+          "help": "Intra- to extracellular conductivity ratio. When non-empty, the elliptic equation is solved to compute extracellular potentials."
         }
       ]
     },
@@ -357,7 +357,7 @@
           "default": 1,
           "position": 0,
           "width": 10,
-          "help": "Material ID"
+          "help": "Material ID."
         },
         {
           "name": "PHIENDMID",
@@ -365,7 +365,7 @@
           "default": 0.17,
           "position": 10,
           "width": 10,
-          "help": "Phi endocardium > mid"
+          "help": "Phi endocardium > mid."
         },
         {
           "name": "PHIMIDEPI",
@@ -373,7 +373,7 @@
           "default": 0.58,
           "position": 20,
           "width": 10,
-          "help": "Phi mid > epicardium"
+          "help": "Phi mid > epicardium."
         }
       ]
     }
@@ -387,7 +387,7 @@
           "default": 1,
           "position": 0,
           "width": 10,
-          "help": "Material ID. A unique number must be specified (see *PART)."
+          "help": "Material ID. A unique number must be specified. (See *PART."
         }
       ]
     }
@@ -401,7 +401,7 @@
           "default": null,
           "position": 0,
           "width": 10,
-          "help": "ID of the ECG computation"
+          "help": "ID of the ECG computation."
         },
         {
           "name": "PSID",
@@ -409,7 +409,7 @@
           "default": null,
           "position": 10,
           "width": 10,
-          "help": "Point set ID containing the list of virtual points on which the pseudo-ECGs are computed"
+          "help": "Point set ID containing the list of virtual points that the pseudo-ECGs are computed on"
         }
       ]
     }
@@ -423,7 +423,7 @@
           "default": null,
           "position": 0,
           "width": 10,
-          "help": "ID of the Laplace system to solve (define new id with each new line)"
+          "help": "ID of the Laplace system to solve. (Define a new ID with each new line.)"
         },
         {
           "name": "Part ID",
@@ -431,7 +431,7 @@
           "default": null,
           "position": 10,
           "width": 10,
-          "help": "Part id on which the system is solved"
+          "help": "Part ID that the system is solved on"
         },
         {
           "name": "sType",
@@ -439,7 +439,7 @@
           "default": null,
           "position": 20,
           "width": 10,
-          "help": "Segment type: EQ.1: node set, EQ.2: segment set"
+          "help": "Segment type: EQ.1: nodeset, EQ.2: segment set."
         },
         {
           "name": "Ssid1",
@@ -447,7 +447,7 @@
           "default": null,
           "position": 30,
           "width": 10,
-          "help": "Set on which a potential of value 1 is prescribed"
+          "help": "Set a potential of value 1 is prescribed on."
         },
         {
           "name": "Ssid0",
@@ -455,7 +455,7 @@
           "default": null,
           "position": 40,
           "width": 10,
-          "help": "Set on which a potential of value 0 is prescribed"
+          "help": "Set a potential of value 0 is prescribed on"
         }
       ]
     }
@@ -469,7 +469,7 @@
           "default": null,
           "position": 0,
           "width": 10,
-          "help": "ID for the Purkinje network"
+          "help": "ID for the Purkinje network."
         },
         {
           "name": "BUILDNET",
@@ -485,7 +485,7 @@
           "default": null,
           "position": 20,
           "width": 10,
-          "help": "Segment set on which the Purkinje network is lying"
+          "help": "Segment set that the Purkinje network is lying on"
         },
         {
           "name": "MID",
@@ -493,7 +493,7 @@
           "default": null,
           "position": 30,
           "width": 10,
-          "help": "Material ID defined in the *MAT section"
+          "help": "Material ID defined in the *MAT section."
         },
         {
           "name": "POINTSTX",
@@ -501,7 +501,7 @@
           "default": null,
           "position": 40,
           "width": 10,
-          "help": "X coordinate of the tree origin"
+          "help": "X coordinate of the tree origin."
         },
         {
           "name": "POINTSTY",
@@ -509,7 +509,7 @@
           "default": null,
           "position": 50,
           "width": 10,
-          "help": "Y coordinate of the tree origin"
+          "help": "Y coordinate of the tree origin."
         },
         {
           "name": "POINTSTZ",
@@ -517,7 +517,7 @@
           "default": null,
           "position": 60,
           "width": 10,
-          "help": "Z coordinate of the tree origin"
+          "help": "Z coordinate of the tree origin."
         },
         {
           "name": "EDGELEN",
@@ -525,7 +525,7 @@
           "default": "3",
           "position": 70,
           "width": 10,
-          "help": "Edge length"
+          "help": "Edge length."
         }
       ]
     },
@@ -537,7 +537,7 @@
           "default": "30",
           "position": 0,
           "width": 10,
-          "help": "Number of generations of branches"
+          "help": "Number of generations of branches."
         },
         {
           "name": "NBRINIT",
@@ -545,7 +545,7 @@
           "default": "8",
           "position": 10,
           "width": 10,
-          "help": "Number of branches attached to the tree origin"
+          "help": "Number of branches attached to the tree origin."
         },
         {
           "name": "NSPLIT",
@@ -553,7 +553,7 @@
           "default": "2",
           "position": 20,
           "width": 10,
-          "help": "Number of child branches at each node of the tree"
+          "help": "Number of child branches at each node of the tree."
         },
         {
           "name": "INODEID",
@@ -561,7 +561,7 @@
           "default": null,
           "position": 30,
           "width": 10,
-          "help": "Initial node ID"
+          "help": "Initial node ID."
         },
         {
           "name": "IEDGEID",
@@ -569,7 +569,7 @@
           "default": null,
           "position": 40,
           "width": 10,
-          "help": "Initial edge ID"
+          "help": "Initial edge ID."
         }
       ]
     }
@@ -583,7 +583,7 @@
           "default": null,
           "position": 0,
           "width": 10,
-          "help": "ID of the stimulation"
+          "help": "ID of the stimulation."
         },
         {
           "name": "SETTYPE",
@@ -591,7 +591,7 @@
           "default": null,
           "position": 10,
           "width": 10,
-          "help": "Set type: EQ.1: Segment set, EQ.2: Node set"
+          "help": "Set type: EQ.1: Segment set, EQ.2: nodeset."
         },
         {
           "name": "SETID",
@@ -599,7 +599,7 @@
           "default": null,
           "position": 20,
           "width": 10,
-          "help": "Node set or segment set ID to be stimulated"
+          "help": "nodeset or segment set ID to stimulate."
         }
       ]
     },
@@ -611,7 +611,7 @@
           "default": null,
           "position": 0,
           "width": 10,
-          "help": "Starting time of the stimulation"
+          "help": "Starting time of the stimulation."
         },
         {
           "name": "STIMT",
@@ -619,7 +619,7 @@
           "default": "1000",
           "position": 10,
           "width": 10,
-          "help": "Stimulation period"
+          "help": "Stimulation period."
         },
         {
           "name": "STIMDUR",
@@ -627,7 +627,7 @@
           "default": "2",
           "position": 20,
           "width": 10,
-          "help": "Stimulation duration"
+          "help": "Stimulation duration."
         },
         {
           "name": "STIMAMP",
@@ -635,7 +635,7 @@
           "default": "50",
           "position": 30,
           "width": 10,
-          "help": "Stimulation amplitude"
+          "help": "Stimulation amplitude."
         }
       ]
     }
@@ -649,7 +649,7 @@
           "default": null,
           "position": 0,
           "width": 10,
-          "help": "ID of the stimulation"
+          "help": "ID of the stimulation."
         },
         {
           "name": "SETTYPE",
@@ -657,7 +657,7 @@
           "default": null,
           "position": 10,
           "width": 10,
-          "help": "Set type: EQ.1: Segment set, EQ.2: Node set"
+          "help": "Set type: EQ.1: Segment set, EQ.2: nodeset."
         },
         {
           "name": "SETID",
@@ -665,7 +665,7 @@
           "default": null,
           "position": 20,
           "width": 10,
-          "help": "Node set or segment set ID to be stimulated"
+          "help": "nodeset or segment set ID to stimulate"
         },
         {
           "name": "LCID",
@@ -673,7 +673,7 @@
           "default": null,
           "position": 30,
           "width": 10,
-          "help": "load curve to use for stimulation, where the first coordinate represents time and the second represents the stim. amplitude"
+          "help": "Load curve to use for stimulation, where the first coordinate represents time and the second represents the stimulation amplitude."
         }
       ]
     }

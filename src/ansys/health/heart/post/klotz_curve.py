@@ -40,12 +40,12 @@ class EDPVR:
     Bn = 2.76  # mmHg
 
     def __init__(self, vm: float, pm: float):
-        """Init Klotz curve with End diastolic volume and pressure.
+        """Initialize Klotz curve with end diastolic volume and pressure.
 
         Parameters
         ----------
         vm : float
-            Volume in mL
+            Volume in mL.
         pm : float
             Pressure in mmHg
         """
@@ -73,12 +73,12 @@ class EDPVR:
         Parameters
         ----------
         volume : float | np.ndarray
-            volume in mL
+            Volume in mL.
 
         Returns
         -------
         float| np.ndarray
-            pressure in mmHg
+            Pressure in mmHg.
         """
         return self.Alpha * volume**self.Beta
 
@@ -88,15 +88,15 @@ class EDPVR:
         Parameters
         ----------
         pressure : np.ndarray
-            pressure in mmHg
+            Pressure in mmHg.
 
         Returns
         -------
         np.ndarray
-            volume in mmL
+            Volume in mL.
         """
         if not isinstance(pressure, np.ndarray):
-            raise TypeError("Input must be 1-dimensioanl np.array.")
+            raise TypeError("Input must be one-dimensional np.array.")
         volume = np.zeros(pressure.shape)
         for i, p in enumerate(pressure):
             volume[i] = (p / self.Alpha) ** (1 / self.Beta)
@@ -106,17 +106,17 @@ class EDPVR:
         return volume
 
     def plot_EDPVR(self, simulation_data: list = None) -> matplotlib.figure.Figure:  # noqa: N802
-        """Plot klotz curve,  with simulation data if exists.
+        """Plot Llotz curve  with simulation data if it exists.
 
         Parameters
         ----------
-        simulation_data : list, optional
-            [volume, pressure] from simulation, by default None
+        simulation_data : list, default: None
+            ``[volume, pressure]`` from simulation.
 
         Returns
         -------
         matplotlib.figure.Figure
-            figure
+            Figure.
         """
         vv = np.linspace(0, 1.1 * self.vm, num=101)
         pp = self.get_pressure(vv)

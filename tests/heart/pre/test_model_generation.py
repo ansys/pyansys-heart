@@ -34,13 +34,13 @@ from typing import Union
 
 import numpy as np
 import pytest
+import scipy
 import yaml
 
 import ansys.health.heart.models as models
 from ansys.health.heart.pre.database_utils import get_compatible_input
 from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
-from ansys.health.heart.utils.misc import rodrigues_rot
-import ansys.health.heart.writer.dynawriter as writers
+import ansys.health.heart.writer as writers
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
 from tests.heart.conftest import get_assets_folder
 from tests.heart.end2end.compare_k import read_file
@@ -150,12 +150,10 @@ def extract_model(request):
     # global workdir
     workdir = tempfile.TemporaryDirectory(prefix=".pyansys-heart").name
 
-    # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
-
     model: models.HeartModel = model_type(working_directory=workdir)
 
     if not isinstance(model, (models.BiVentricle, models.FullHeart)):
-        exit()
+        raise ValueError("Model type must be BiVentricle or FullHeart.")
 
     model.load_input(input_vtp, part_definitions, "boundary-id")
     # model.mesh_volume(wrapper=True) # could use this: but requires fluent
@@ -164,16 +162,24 @@ def extract_model(request):
     else:
         model.mesh.load_mesh(mesh_file)
 
-    model._update_parts()
+    model.update()
 
     # Dummy apico-basal data to match pericardium output in asset
     lv_apex = model.left_ventricle.apex_points[1].xyz
-    mv_centroid = [c.centroid for p in model.parts for c in p.caps if "mitral" in c.name][0]
+    mv_centroid = [c.centroid for c in model.all_caps if "mitral" in c.name][0]
     longitudinal_axis = lv_apex - mv_centroid
 
-    points_rotation = rodrigues_rot(model.mesh.points - lv_apex, longitudinal_axis, [0, 0, -1])
+    # rotate model to align with z-axis
+    rotation = scipy.spatial.transform.Rotation
+    rotation = rotation.align_vectors(
+        [0, 0, -1], longitudinal_axis / np.linalg.norm(longitudinal_axis)
+    )[0]
+    points_rotation = rotation.apply(
+        model.mesh.points - lv_apex,
+    )
     points_rotation[:, 2] = points_rotation[:, 2] - np.min(points_rotation, axis=0)[2]
     scaling = points_rotation[:, 2] / np.max(points_rotation[:, 2])
+
     model.mesh.point_data["apico-basal"] = scaling
 
     yield model, ref_stats
@@ -280,6 +286,7 @@ def test_writers(extract_model, writer_class):
     """
     model, _ = extract_model
     writer = writer_class(copy.deepcopy(model))
+    add_conduction_beams(writer)
 
     if isinstance(model, models.BiVentricle):
         ref_folder = os.path.join(
@@ -319,6 +326,22 @@ def test_writers(extract_model, writer_class):
         pass
 
     return
+
+
+def add_conduction_beams(writer):
+    if (
+        isinstance(writer.model, models.FullHeart)
+        and type(writer) is writers.ElectrophysiologyDynaWriter
+    ):
+        folder = os.path.join(
+            get_assets_folder(), "reference_models", "strocchi2020", "01", "conduction"
+        )
+        from ansys.health.heart.models_utils import HeartModelUtils
+
+        beam_list = HeartModelUtils.define_full_conduction_system(
+            writer.model, purkinje_folder=folder
+        )
+        writer.model.assign_conduction_paths(beam_list)
 
 
 @pytest.mark.parametrize(
@@ -369,10 +392,10 @@ def test_writers_after_load_model(extract_model, writer_class):
 
         model.save_model(model_path)
 
-        model1 = type(model)(working_directory=workdir)
-        model1.load_model_from_mesh(model_path, partinfo)
+        model1 = models.HeartModel.load_model(model_path, partinfo, working_directory=workdir)
 
         writer = writer_class(copy.deepcopy(model1))
+        add_conduction_beams(writer)
 
         to_test_folder = os.path.join(workdir, writer_class.__name__)
         writer.update()

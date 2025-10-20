@@ -1,0 +1,108 @@
+{
+    "Left ventricle": {
+        "part-id": 1,
+        "part-type": "ventricle",
+        "fiber": true,
+        "active": true,
+        "_version": "0.15.dev0",
+        "surfaces": {
+            "Left ventricle endocardium": 489698,
+            "Left ventricle epicardium": 489697
+        },
+        "caps": {
+            "mitral-valve": 1001,
+            "aortic-valve": 1002
+        },
+        "cavity": {
+            "Left ventricle cavity": 1
+        }
+    },
+    "Right ventricle": {
+        "part-id": 2,
+        "part-type": "ventricle",
+        "fiber": true,
+        "active": true,
+        "_version": "0.15.dev0",
+        "surfaces": {
+            "Right ventricle endocardium": 489689,
+            "Right ventricle epicardium": 489688,
+            "Right ventricle septum": 489696
+        },
+        "caps": {
+            "tricuspid-valve": 1003,
+            "pulmonary-valve": 1004
+        },
+        "cavity": {
+            "Right ventricle cavity": 2
+        }
+    },
+    "Septum": {
+        "part-id": 7,
+        "part-type": "septum",
+        "fiber": true,
+        "active": true,
+        "_version": "0.15.dev0",
+        "surfaces": {}
+    },
+    "Left atrium": {
+        "part-id": 3,
+        "part-type": "atrium",
+        "fiber": false,
+        "active": false,
+        "_version": "0.15.dev0",
+        "surfaces": {
+            "Left atrium endocardium": 489673,
+            "Left atrium epicardium": 489672
+        },
+        "caps": {
+            "mitral-valve-atrium": 1005,
+            "right-superior-pulmonary-vein": 1006,
+            "right-inferior-pulmonary-vein": 1007,
+            "left-superior-pulmonary-vein": 1008,
+            "left-atrium-appendage": 1009,
+            "left-inferior-pulmonary-vein": 1010
+        },
+        "cavity": {
+            "Left atrium cavity": 3
+        }
+    },
+    "Right atrium": {
+        "part-id": 4,
+        "part-type": "atrium",
+        "fiber": false,
+        "active": false,
+        "_version": "0.15.dev0",
+        "surfaces": {
+            "Right atrium endocardium": 489656,
+            "Right atrium epicardium": 489655
+        },
+        "caps": {
+            "tricuspid-valve-atrium": 1011,
+            "superior-vena-cava": 1012,
+            "inferior-vena-cava": 1013
+        },
+        "cavity": {
+            "Right atrium cavity": 4
+        }
+    },
+    "Aorta": {
+        "part-id": 5,
+        "part-type": "artery",
+        "fiber": false,
+        "active": false,
+        "_version": "0.15.dev0",
+        "surfaces": {
+            "Aorta wall": 489649
+        }
+    },
+    "Pulmonary artery": {
+        "part-id": 6,
+        "part-type": "artery",
+        "fiber": false,
+        "active": false,
+        "_version": "0.15.dev0",
+        "surfaces": {
+            "Pulmonary artery wall": 489646
+        }
+    }
+}

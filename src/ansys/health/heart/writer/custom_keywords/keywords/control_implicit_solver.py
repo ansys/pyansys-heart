@@ -28,7 +28,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class ControlImplicitSolver(KeywordBase):
-    """DYNA CONTROL_IMPLICIT_SOLVER keyword"""
+    """LS-DYNA CONTROL_IMPLICIT_SOLVER keyword"""
 
     keyword = "CONTROL"
     subkeyword = "IMPLICIT_SOLVER"

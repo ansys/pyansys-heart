@@ -40,9 +40,10 @@ def test_launch_fluent():
             processor_count=1,
             start_transcript=False,
             ui_mode="no_gui",
+            dimension=3,
             product_version=_get_supported_fluent_version(),
         )
-        assert session._fluent_connection.health_check.status() == "SERVING"
+        assert session.is_server_healthy()
         # try to initialize workflow
         assert session.workflow.InitializeWorkflow(WorkflowType="Watertight Geometry"), (
             "Failed workflow"

@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""PyAnsys Heart is a Python framework for heart modeling using ANSYS tools."""
+"""PyAnsys Heart is a Python framework for heart modeling using Ansys tools."""
 
 import os
 
@@ -44,4 +44,4 @@ except KeyError:
     pass
 
 __version__ = importlib_metadata.version("ansys-health-heart")
-"""The version of pyansys-heart."""
+"""Version of PyAnsys Heart."""

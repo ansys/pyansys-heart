@@ -56,9 +56,11 @@ class ISO:
     def __post_init__(self):
         """Test inputs."""
         if self.k1 is not None and self.k2 is not None:
-            assert abs(self.itype) == 3  # must be HGO model
+            if abs(self.itype) != 3:  # must be HGO model
+                raise ValueError(f"ITYPE {self.itype} not compatible with k1 and k2.")
         elif self.mu1 is not None and self.alpha1 is not None:
-            assert abs(self.itype) == 1  # must be Odgen model
+            if abs(self.itype) != 1:  # must be Odgen model
+                raise ValueError(f"ITYPE {self.itype} not compatible with mu1 and alpha1.")
         else:
             raise ValueError("ISO input is invalid.")
 
@@ -117,7 +119,7 @@ class ANISO:
         # check if legal
         if len(self.fibers) != 1 and len(self.fibers) != 2:
             LOGGER.error("No. of fiber must be 1 or 2.")
-            exit()
+            raise ValueError("No. of fibers must be 1 or 2.")
 
         # deduce input
         self.nf = len(self.fibers)
@@ -126,8 +128,8 @@ class ANISO:
             if len(self.fibers) == 2:
                 self.intype = 1
             else:
-                LOGGER.error("One fiber cannot have interaction.")
-                exit()
+                LOGGER.error("One fiber cannot have an interaction term.")
+                raise ValueError("One fiber cannot have an interaction term.")
         else:
             self.intype = 0
 

@@ -6,6 +6,8 @@ from pathlib import Path
 import subprocess
 
 from ansys_sphinx_theme import ansys_favicon, get_version_match
+import pyvista
+from pyvista.plotting.utilities.sphinx_gallery import DynamicScraper
 
 from ansys.health.heart import __version__
 
@@ -34,7 +36,7 @@ html_theme_options = {
     "show_prev_next": False,
     "show_breadcrumbs": True,
     "additional_breadcrumbs": [
-        ("PyAnsys", "https://docs.pyansys.com/"),
+        ("PyAnsys Health", "https://health.docs.pyansys.com/"),
     ],
     "switcher": {
         "json_url": f"https://{cname}/versions.json",
@@ -45,17 +47,18 @@ html_theme_options = {
     "ansys_sphinx_theme_autoapi": {
         "project": project,
         "ignore": [
-            "*writer*",
+            # ignore all files under the ``writer`` subpackage.
+            "*heart/writer/**/*",
             "*misc*",
-            "*custom_dynalib_keywords*",
-            "*system_models.py",
-            "*define_function_strings.py",
-            "*heart_decks.py",
-            "*keyword_module.py",
-            "*material_keywords.py",
         ],
     },
 }
+
+# Define copyright symbol
+rst_prolog = """
+.. |copy| unicode:: U+000A9
+   :ltrim:
+"""
 
 # Sphinx extensions
 extensions = [
@@ -69,6 +72,11 @@ extensions = [
     "sphinx_jinja",
     "sphinx.ext.autodoc",
     "ansys_sphinx_theme.extension.autoapi",
+    # the following are required for pyvista interactive figures.
+    # https://docs.pyvista.org/extras/plot_directive.html
+    "pyvista.ext.plot_directive",
+    "pyvista.ext.viewer_directive",
+    "sphinx_design",
 ]
 
 # static path
@@ -122,9 +130,50 @@ numpydoc_validation_checks = {
 
 # Configuration for Sphinx gallery
 # -----------------------------------------------------------------------------
+pyvista.BUILDING_GALLERY = True
+
+# use this environment variable to build nightly docs
+nightly_docs = bool(int(os.getenv("NIGHTLY_DOC_BUILD", False)))
+print(f"Run long examples: {nightly_docs}")
+
+if nightly_docs:
+    # executes all examples, including the time-intensive ones.
+    gallery_filename_pattern = r".*(\.py)(?<!_ignore\.py)"
+    warn_on_example_fail = True
+else:
+    # only executes examples with suffix _pr.py
+    gallery_filename_pattern = r".*(_pr\.py)"
+    warn_on_example_fail = False
+
 sphinx_gallery_conf = {
+    # convert rst to md for ipynb
+    "pypandoc": True,
+    # path to your examples scripts
     "examples_dirs": "../../examples",
+    # order the subsections in the gallery
+    "subsection_order": [
+        "../../examples/preprocessor",
+        "../../examples/simulator",
+        "../../examples/postprocessor",
+    ],
+    # path where to save gallery generated examples
     "gallery_dirs": "examples",
+    # Pattern to search for example files to execute.
+    # The following will try to execute files prefixed with "inc-pr_"
+    "filename_pattern": gallery_filename_pattern,
+    # Remove the "Download all examples" button from the top level gallery
+    "download_all_examples": False,
+    # Sort gallery example by filename instead of number of lines (default)
+    "within_subsection_order": "FileNameSortKey",
+    # directory where function granular galleries are stored
+    "backreferences_dir": "api/_gallery_backreferences",
+    # Modules for which function level galleries are created.
+    "image_scrapers": (DynamicScraper(), "matplotlib"),
+    "ignore_pattern": r"__init__\.py",
+    "thumbnail_size": (320, 240),
+    "remove_config_comments": True,
+    # Do not fail doc build on example errors
+    "only_warn_on_example_error": warn_on_example_fail,
 }
 
 # Configuration for Sphinx autoapi

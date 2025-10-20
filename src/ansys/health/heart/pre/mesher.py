@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module contains methods for interaction with Fluent meshing."""
+"""Module containing methods for interaction with Fluent meshing."""
 
 import glob
 import os
@@ -31,7 +31,9 @@ import numpy as np
 import pyvista as pv
 
 import ansys.fluent.core as pyfluent
+from ansys.fluent.core.launcher.launch_options import LaunchMode
 from ansys.fluent.core.session_meshing import Meshing as MeshingSession
+import ansys.fluent.core.utils.file_transfer_service as file_transfer_service
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import SupportedFluentVersionNotFoundError
 from ansys.health.heart.objects import Mesh, SurfaceMesh
@@ -41,22 +43,33 @@ from ansys.health.heart.utils.vtk_utils import (
     add_solid_name_to_stl,
     cell_ids_inside_enclosed_surface,
 )
+import ansys.platform.instancemanagement as pypim
 
-_supported_fluent_versions = ["25.1", "24.2", "24.1"]
+_supported_fluent_versions = ["25.2", "25.1", "24.2", "24.1"]
+"""List of supported Fluent versions."""
+_supported_fluent_versions_container = ["25.2", "24.2", "24.1"]
+
 _num_cpus: bool = 2
+"""Number of CPUs to use for meshing."""
+_extra_launch_kwargs = {}
+"""Extra keyword arguments passed to ``pyfluent.launch_fluent()``."""
+_fluent_version = None
+"""Global variable to explicitly override the Fluent version used."""
 
-# check whether containerized version of Fluent is used
-_uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
-if _uses_container:
-    _supported_fluent_versions = ["24.2", "24.1"]
+_launch_mode: LaunchMode = None
+"""Fluent Launch mode."""
+
+_uses_container: bool = False
+"""Global variable to switch to Fluent container mode."""
 
 _fluent_ui_mode = pyfluent.UIMode(os.getenv("PYFLUENT_UI_MODE", pyfluent.UIMode.HIDDEN_GUI))
+
 
 LOGGER.debug(f"Fluent user interface mode: {_fluent_ui_mode.value}")
 
 
 def _get_supported_fluent_version() -> str:
-    """Use pyfluent to get a supported Fluent version."""
+    """Use PyFluent to get a supported Fluent version."""
     if os.getenv("PYANSYS_HEART_FLUENT_VERSION", None):
         version = os.getenv("PYANSYS_HEART_FLUENT_VERSION")
         if version not in _supported_fluent_versions:
@@ -76,19 +89,13 @@ def _get_supported_fluent_version() -> str:
         except Exception:
             pass
     raise SupportedFluentVersionNotFoundError(
-        f"""Did not find a supported Fluent version,
-        please install one of {_supported_fluent_versions}"""
+        f"""Did not find a supported Fluent version.
+        Install one of these versions: {_supported_fluent_versions}"""
     )
 
 
-try:
-    _fluent_version = _get_supported_fluent_version()
-except Exception:
-    _fluent_version = None
-
-
 def _get_face_zones_with_filter(pyfluent_session, prefixes: list) -> list[str]:
-    """Get list of available boundaries in Fluent session that use any of the prefixes."""
+    """Get a list of available boundaries in a Fluent session that uses any of the prefixes."""
     face_zones = []
     # get unique prefixes
     prefixes = list(set(prefixes))
@@ -128,7 +135,7 @@ def _organize_connected_regions(
         if num_regions == 1:
             continue
 
-        LOGGER.debug(f"Found {num_regions - 1} unnconnected regions, find connected candidate.")
+        LOGGER.debug(f"Found {num_regions - 1} unnconnected regions. Find connected candidate.")
         # for each region, find to what "main" region it is connected.
         for region in np.unique(conn.cell_data["RegionId"])[1:]:
             orphan_cell_ids = conn.cell_data["orig-cell-ids"][conn.cell_data["RegionId"] == region]
@@ -142,7 +149,7 @@ def _organize_connected_regions(
                 grid.cell_data["part-id"][connected_cell_ids], return_counts=True
             )
             if unique_ids.shape[0] > 1:
-                LOGGER.debug("More than 1 candidate.")
+                LOGGER.debug("More than one candidate.")
 
             grid.cell_data["part-id"][orphan_cell_ids] = unique_ids[np.argmax(counts)]
 
@@ -152,15 +159,15 @@ def _organize_connected_regions(
 def _assign_part_id_to_orphan_cells(
     grid: pv.UnstructuredGrid, scalar="part-id"
 ) -> pv.UnstructuredGrid:
-    """Use closest point interpolation to assign part id to orphan cells."""
+    """Use closest point interpolation to assign part ID to orphan cells."""
     grid.cell_data["_original-cell-ids"] = np.arange(0, grid.n_cells)
     orphans = grid.extract_cells(grid.cell_data[scalar] == 0)
 
     if orphans.n_cells == 0:
-        LOGGER.debug("No orphan cells detected.")
+        LOGGER.debug("No orphan cells are detected.")
         return grid
 
-    LOGGER.debug(f"Assigning part ids to {orphans.n_cells} orphan cells.")
+    LOGGER.debug(f"Assigning part IDs to {orphans.n_cells} orphan cells...")
 
     grid_centers = grid.cell_centers()
     grid_centers = grid_centers.extract_points(grid_centers.cell_data["part-id"] != 0)
@@ -229,52 +236,76 @@ def _get_cells_inside_wrapped_parts(model: _InputModel, mesh: _FluentMesh) -> pv
     grid2 = _assign_part_id_to_orphan_cells(grid1)
 
     if np.any(grid2.cell_data["part-id"] == 0):
-        LOGGER.warning("Not all cells have a part id assigned.")
+        LOGGER.warning("Not all cells have a part ID assigned.")
 
     return grid2
 
 
 def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession:
     """Get a Fluent Meshing session."""
-    # NOTE: when using containerized version - we need to copy all the files
-    # to and from the mounted volume given by pyfluent.EXAMPLES_PATH (default)
+    # NOTE: There are three launch modes Fluent can be launched in:
+    # 1. LaunchMode.PIM: Fluent is launched using the Product Instance Management (PIM) service.
+    # 2. LaunchMode.CONTAINER: Fluent is launched in a container. (containerized mode)
+    # 3. LaunchMode.STANDALONE: Fluent is launched as a standalone application. (fallback mode)
+    # File transfer strategies are different for each mode.
+
+    # check whether containerized version of Fluent is used
+    global _uses_container
+    global _launch_mode
+    global _supported_fluent_versions
+
+    _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
+    if _uses_container:
+        _supported_fluent_versions = _supported_fluent_versions_container
+
+    num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus))
 
     if _fluent_version is None:
         product_version = _get_supported_fluent_version()
     else:
         product_version = _fluent_version
 
-    LOGGER.info(f"Launching meshing session with {product_version}")
+    # determine launch mode
+    if pypim.is_configured():
+        _launch_mode = LaunchMode.PIM
+        transfer_strategy = None
 
-    if _uses_container:
-        num_cpus = 1
-        custom_config = {
-            "mount_source": f"{working_directory}",
-            "mount_target": "/mnt/pyfluent/meshing",
-        }
-
-        session = pyfluent.launch_fluent(
-            mode="meshing",
-            precision="double",
-            processor_count=num_cpus,
-            start_transcript=False,
-            ui_mode=_fluent_ui_mode,
-            product_version=product_version,
-            start_container=_uses_container,
-            container_dict=custom_config,
-        )
-
+    elif _uses_container:
+        _launch_mode = LaunchMode.CONTAINER
+        transfer_strategy = None
     else:
-        num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus))
-        session = pyfluent.launch_fluent(
-            mode="meshing",
-            precision="double",
-            processor_count=num_cpus,
-            start_transcript=False,
-            ui_mode=_fluent_ui_mode,
-            product_version=product_version,
-            start_container=_uses_container,
-        )
+        _launch_mode = LaunchMode.STANDALONE
+        transfer_strategy = file_transfer_service.StandaloneFileTransferStrategy()
+
+    LOGGER.info(f"Launching meshing session with {product_version}...")
+
+    launch_config = {
+        "precision": pyfluent.Precision.DOUBLE,
+        "processor_count": num_cpus,
+        "start_transcript": False,
+        "product_version": product_version,
+        "ui_mode": _fluent_ui_mode,
+        "file_transfer_service": transfer_strategy,
+    }
+
+    match _launch_mode:
+        case LaunchMode.PIM:
+            launch_config["ui_mode"] = None
+            LOGGER.info(f"Launching Fluent in PIM-mode with config: {launch_config}")
+            session = pyfluent.PureMeshing.from_pim(**launch_config, **_extra_launch_kwargs)
+
+        case LaunchMode.CONTAINER:
+            LOGGER.info(f"Launching Fluent in Container mode with config: {launch_config}")
+            launch_config["container_dict"] = {
+                "mount_source": f"{working_directory}",
+                "mount_target": "/mnt/pyfluent/meshing",
+            }
+            launch_config["ui_mode"] = pyfluent.UIMode.NO_GUI_OR_GRAPHICS
+            session = pyfluent.PureMeshing.from_container(**launch_config, **_extra_launch_kwargs)
+
+        case LaunchMode.STANDALONE:
+            LOGGER.info(f"Launching Fluent in Standalone mode with config: {launch_config}")
+            session = pyfluent.PureMeshing.from_install(**launch_config, **_extra_launch_kwargs)
 
     return session
 
@@ -314,7 +345,7 @@ def _wrap_part(session: MeshingSession, boundary_names: list, wrapped_part_name:
 
 
 def _to_fluent_convention(string_to_convert: str) -> str:
-    """Convert string to Fluent-supported convention."""
+    """Convert string to the Fluent-supported convention."""
     return string_to_convert.lower().replace(" ", "_")
 
 
@@ -330,11 +361,11 @@ def _update_size_per_part(
     global_size : float
         Global size to use for parts that are not referenced.
     part_names : list[str]
-        Part names involved in the model/
-    size_per_part : dict, optional
-        Size per part used to override global size, by default None
+        Part names involved in the model.
+    size_per_part : dict, default: None
+        Size per part used to override global size.
     """
-    # convert both to Fluent naming convention. Note: so remove cases and spaces
+    # convert both to Fluent-naming convention. Note: remove cases and spaces
     part_names = [_to_fluent_convention(part) for part in part_names]
     if size_per_part is not None:
         size_per_part = {_to_fluent_convention(part): size for part, size in size_per_part.items()}
@@ -357,11 +388,11 @@ def _update_input_model_with_wrapped_surfaces(
     Parameters
     ----------
     model : _InputModel
-        Input model to be updated.
+        Input model to bupdate.
     mesh : FluentMesh
         Fluent mesh containing all wrapped face zones.
     face_zone_ids_per_part : dict
-        Face zone ids for each part.
+        Face zone IDs for each part.
 
     Returns
     -------
@@ -374,7 +405,7 @@ def _update_input_model_with_wrapped_surfaces(
             fz for fz in mesh.face_zones if fz.id in face_zone_ids_per_part[part.name]
         ]
         if len(face_zones_wrapped) == 0:
-            LOGGER.error(f"Did not find any wrapped face zones for {part.name}")
+            LOGGER.error(f"Did not find any wrapped face zones for {part.name}.")
 
         # replace with remeshed face zones, note that we may have more face zones now.
         remeshed_boundaries = []
@@ -484,14 +515,14 @@ def _mesh_fluid_cavities(
     caps : List[SurfaceMesh]
         List of caps that close each of the cavities.
     workdir : str
-        Working directory
-    remesh_caps : bool, optional
-        Flag indicating whether to remesh the caps, by default True
+        Working directory.
+    remesh_caps : bool, default: True
+        whether to remesh the caps.
 
     Returns
     -------
     Path
-        Path to the .msh.h5 volume mesh.
+        Path to the ``.msh.h5`` volume mesh.
     """
     if _uses_container:
         mounted_volume = pyfluent.EXAMPLES_PATH
@@ -519,12 +550,20 @@ def _mesh_fluid_cavities(
 
     session = _get_fluent_meshing_session(work_dir_meshing)
 
-    # import all stls
-    if _uses_container:
+    if _launch_mode == LaunchMode.PIM:
+        # Upload files to session if in PIM or Container modes.
+        LOGGER.info(f"Uploading files to session with working directory {work_dir_meshing}...")
+        files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+        for file in files:
+            session.upload(file)
+        # In PIM mode files are uploaded to the Fluents working directory.
+        work_dir_meshing = "."
+
+    elif _launch_mode == LaunchMode.CONTAINER:
         # NOTE: when using a Fluent container visible files
-        # will be in /mnt/pyfluent. So need to use relative paths
-        # or replace dirname by /mnt/pyfluent as prefix
+        # will be in /mnt/pyfluent. (equal to mount target)
         work_dir_meshing = "/mnt/pyfluent/meshing"
+
     session.tui.file.import_.cad(f"no {work_dir_meshing} *.stl")
 
     # merge objects
@@ -571,7 +610,7 @@ def mesh_from_manifold_input_model(
     mesh_size: float = 2.0,
     overwrite_existing_mesh: bool = True,
 ) -> Mesh:
-    """Create mesh from good-quality manifold input model.
+    """Create mesh from a good-quality manifold input model.
 
     Parameters
     ----------
@@ -581,13 +620,13 @@ def mesh_from_manifold_input_model(
         Working directory.
     path_to_output : Union[str, Path]
         Path to the resulting Fluent mesh file.
-    mesh_size : float, optional
-        Uniform mesh size to use for both wrapping and filling the volume, by default 2.0
+    mesh_size : float, default: 2.0
+        Uniform mesh size to use for both wrapping and filling the volume.
 
     Returns
     -------
     Mesh
-        The VTK mesh with both cell and face zones.
+        VTK mesh with both cell and face zones.
     """
     smooth_boundaries = False
     fix_intersections = False
@@ -640,11 +679,18 @@ def mesh_from_manifold_input_model(
             os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
         )
 
-        # import files
-        if _uses_container:
+        if _launch_mode == LaunchMode.PIM:
+            # Upload files to session if in PIM or Container modes.
+            LOGGER.info(f"Uploading files to session with working directory {work_dir_meshing}...")
+            files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+            for file in files:
+                session.upload(file)
+            # In PIM mode files are uploaded to the Fluents working directory.
+            work_dir_meshing = "."
+
+        elif _launch_mode == LaunchMode.CONTAINER:
             # NOTE: when using a Fluent container visible files
-            # will be in /mnt/pyfluent. So need to use relative paths
-            # or replace dirname by /mnt/pyfluent as prefix
+            # will be in /mnt/pyfluent. (equal to mount target)
             work_dir_meshing = "/mnt/pyfluent/meshing"
 
         session.tui.file.import_.cad('no "' + work_dir_meshing + '" "*.stl" yes 40 yes mm')
@@ -704,16 +750,27 @@ def mesh_from_manifold_input_model(
 
         session.tui.mesh.prepare_for_solve("yes")
 
-        # write to file
+        LOGGER.info(f"Writing mesh to {path_to_output}...")
 
-        if _uses_container:
+        if _launch_mode in [LaunchMode.CONTAINER, LaunchMode.PIM]:
             session.tui.file.write_mesh(os.path.basename(path_to_output))
         else:
             session.tui.file.write_mesh('"' + path_to_output + '"')
-        session.exit()
 
-        if path_to_output != path_to_output_old:
+        LOGGER.info(f"Copying {path_to_output} to {path_to_output_old}...")
+
+        if _launch_mode == LaunchMode.PIM:
+            session.download(os.path.basename(path_to_output), path_to_output_old)
+        else:
             shutil.copy(path_to_output, path_to_output_old)
+
+        if not os.path.isfile(path_to_output_old):
+            raise FileNotFoundError(
+                f"Failed to copy {os.path.basename(path_to_output)} to {path_to_output_old}. "
+                "Please check the Fluent meshing log for errors."
+            )
+
+        session.exit()
 
         path_to_output = path_to_output_old
     else:
@@ -729,7 +786,7 @@ def mesh_from_manifold_input_model(
 
         if not surface.is_manifold:
             LOGGER.warning(
-                "Part {0} not manifold - disabled surface check.".format(input_part.name)
+                "Part {0} is not manifold. Disabled surface check.".format(input_part.name)
             )
         for cz in mesh.cell_zones:
             # use centroid of first cell to find which input part it belongs to.
@@ -769,39 +826,39 @@ def mesh_from_non_manifold_input_model(
         Working directory.
     path_to_output : Union[str, Path]
         Path to the resulting Fluent mesh file.
-    global_mesh_size : float, optional
-        Uniform mesh size to use for all volumes and surfaces, by default 2.0
-    _global_wrap_size : float, optional
-        Global size used by the wrapper to reconstruct the geometry, by default 1.5
-    overwrite_existing_mesh : bool, optional
-        Flag indicating whether to overwrite an existing mesh, by default True
-    mesh_size_per_part : dict, optional
-        Dictionary specifying the mesh size that should be used for each part, by default None
-    _wrap_size_per_part : dict, optional
-        Dictionary specifying the mesh size that should be used to wrap each part, by default None
+    global_mesh_size : float, default: 2.0
+        Uniform mesh size to use for all volumes and surfaces.
+    _global_wrap_size : float, default: 1.5
+        Global size used by the wrapper to reconstruct the geometry.
+    overwrite_existing_mesh : bool, default: True
+        Whether to overwrite an existing mesh.
+    mesh_size_per_part : dict, default: None
+        Dictionary specifying the mesh size that should be used for each part.
+    _wrap_size_per_part : dict, default: None
+        Dictionary specifying the wrap size that should be used to wrap each part.
 
     Notes
     -----
-    Uses Fluent wrapping technology to wrap the individual parts first to create manifold
-    parts. Consequently wrap the entire model and use the manifold parts to split the
-    wrapped model into the different cell zones.
+    This method uses Fluent wrapping technology to wrap the individual parts. First it
+    creates manifold parts. Then, it consequently wraps the entire model and uses the manifold
+    parts to split the wrapped model into the different cell zones.
 
-    When specifying a mesh size per part, you can do that by either specifying that for all
-    parts, or for specific parts. The default mesh size will be used for any part not listed
-    in the dictionary. This also applies to the wrapping step. The user can control the wrap size
-    per part, or on a global level. By default a size of 1.5 mm is used: but is not guaranteed to
-    give good results.
+    When specifying a mesh size per part, you can do that by either specifying the size for all
+    parts or for specific parts. The default mesh size is used for any part not listed
+    in the dictionary. This also applies to the wrapping step. You can control the wrap size
+    per part or on a global level. By default, a size of 1.5 mm is used, but this value is not
+    guaranteed to give good results.
 
     Note that a post-wrap remesh is triggered if the wrap size is not equal to the target mesh size.
-    Remeshing may fail if the target mesh size deviates too much from the wrap size.
+    Remeshing might fail if the target mesh size deviates too much from the wrap size.
 
     Returns
     -------
     Mesh
-        The VTK mesh with both cell and face zones.
+        VTK mesh with both cell and face zones.
     """
     if not isinstance(model, _InputModel):
-        raise ValueError(f"Expecting input to be of type {str(_InputModel)}")
+        raise ValueError(f"Expecting input to be of type {str(_InputModel)}.")
 
     mesh_size_per_part = _update_size_per_part(
         model.part_names, global_mesh_size, mesh_size_per_part
@@ -865,15 +922,24 @@ def mesh_from_non_manifold_input_model(
         # launch pyfluent
         session = _get_fluent_meshing_session(work_dir_meshing)
 
+        LOGGER.info(f"Starting Fluent Meshing in mode: {_launch_mode}")
+
         session.transcript.start(
             os.path.join(work_dir_meshing, "fluent_meshing.log"), write_to_stdout=False
         )
 
-        # # import stls
-        if _uses_container:
+        if _launch_mode == LaunchMode.PIM:
+            # Upload files to session if in PIM or Container modes.
+            LOGGER.info(f"Uploading files to session with working directory {work_dir_meshing}...")
+            files = glob.glob(os.path.join(work_dir_meshing, "*.stl"))
+            for file in files:
+                session.upload(file)
+            # In PIM mode files are uploaded to the Fluents working directory.
+            work_dir_meshing = "."
+
+        elif _launch_mode == LaunchMode.CONTAINER:
             # NOTE: when using a Fluent container visible files
-            # will be in /mnt/pyfluent. So need to use relative paths
-            # or replace dirname by /mnt/pyfluent as prefix
+            # will be in /mnt/pyfluent. (equal to mount target)
             work_dir_meshing = "/mnt/pyfluent/meshing"
 
         session.tui.file.import_.cad("no", work_dir_meshing, "*.stl", "yes", 40, "yes", "mm")
@@ -915,7 +981,7 @@ def mesh_from_non_manifold_input_model(
                 f"(get-face-zones-of-objects '({part.name}) )"
             )
 
-        # NOTE: wrap entire model in one pass so that we can create a single volume mesh.
+        # NOTE: wrap entire model in one pass so that a single volume mesh can be created.
         # Use list of all input boundaries as input. Uses external material point for meshing.
         # This assumes that all the individually wrapped parts form a single
         # connected structure.
@@ -967,13 +1033,26 @@ def mesh_from_non_manifold_input_model(
             os.remove(path_to_output)
 
         LOGGER.info(f"Writing mesh to {path_to_output}...")
-        if _uses_container:
+
+        if _launch_mode in [LaunchMode.CONTAINER, LaunchMode.PIM]:
             session.tui.file.write_mesh(os.path.basename(path_to_output))
         else:
             session.tui.file.write_mesh('"' + path_to_output + '"')
-        session.exit()
 
-        shutil.copy(path_to_output, path_to_output_old)
+        LOGGER.info(f"Copying {path_to_output} to {path_to_output_old}...")
+
+        if _launch_mode == LaunchMode.PIM:
+            session.download(os.path.basename(path_to_output), path_to_output_old)
+        else:
+            shutil.copy(path_to_output, path_to_output_old)
+
+        if not os.path.isfile(path_to_output_old):
+            raise FileNotFoundError(
+                f"Failed to copy {os.path.basename(path_to_output)} to {path_to_output_old}. "
+                "Please check the Fluent meshing log for errors."
+            )
+
+        session.exit()
 
         path_to_output = path_to_output_old
     else:
@@ -982,18 +1061,18 @@ def mesh_from_non_manifold_input_model(
             part.name = _to_fluent_convention(part.name)
 
     LOGGER.info("Post Fluent-Meshing cleanup...")
-    # Update the cell zones such that for each part we have a separate cell zone.
+    # update cell zones such that each part has a separate cell zone
     mesh = _FluentMesh()
     mesh.load_mesh(path_to_output)
     mesh._fix_negative_cells()
 
-    # update the input model with the wrapped surfaces.
+    # update input model with wrapped surfaces
     model = _update_input_model_with_wrapped_surfaces(model, mesh, part_face_zone_ids_post_wrap)
 
     # get cells inside each of the wrapped parts.
     grid = _get_cells_inside_wrapped_parts(model, mesh)
 
-    # Ensure that parts are continuous and well connected.
+    # ensure parts are continuous and well connected.
     grid = _organize_connected_regions(grid, scalar="part-id")
 
     if np.any(grid.cell_data["part-id"] == 0):
@@ -1022,7 +1101,7 @@ def mesh_from_non_manifold_input_model(
         cell_zone.get_cells(new_mesh.cells)
         new_mesh.cell_zones.append(cell_zone)
 
-    # keep just the face zones of the entire wrapped model and the corresponding
+    # keep only the face zones of the entire wrapped model and the corresponding
     # interior face zone
     new_mesh.face_zones = [
         fz
@@ -1030,7 +1109,7 @@ def mesh_from_non_manifold_input_model(
         if "model:" in fz.name.lower() or "interior-" in fz.name.lower()
     ]
 
-    # rename face zones - rename to original input names.
+    # rename face zones to original input names
     for fz in new_mesh.face_zones:
         if "interior" in fz.name:
             continue
@@ -1038,7 +1117,7 @@ def mesh_from_non_manifold_input_model(
         if ":" in fz.name:
             fz.name = fz.name.split(":")[0]
 
-    # Use only cell zones that are inside the parts defined in the input.
+    # Use only cell zones that are inside the parts defined in the input
     new_mesh.cell_zones = [cz for cz in new_mesh.cell_zones if cz.id in model.part_ids]
 
     vtk_mesh = _post_meshing_cleanup(new_mesh)

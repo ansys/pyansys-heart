@@ -27,7 +27,7 @@ import pyvista as pv
 
 import ansys.health.heart.models as models
 from ansys.health.heart.objects import Mesh, SurfaceMesh
-import ansys.health.heart.writer.dynawriter as writers
+import ansys.health.heart.writer.base_writer as writers
 
 
 def get_test_model():
@@ -49,7 +49,9 @@ def get_test_model():
     celltypes = [pv.CellType.TETRA] * 2
 
     model.mesh = Mesh(cells, celltypes, points)
-    model.left_ventricle.element_ids = np.array([0, 1], dtype=int)
+    model.mesh.cell_data["_volume-id"] = 1
+    model.mesh._volume_id_to_name["_volume-id"] = "left-ventricle"
+    model.left_ventricle.pid = 1
 
     model.left_ventricle.endocardium.triangles = np.array([[1, 2, 3]], dtype=int)
     model.left_ventricle.endocardium.points = model.mesh.points

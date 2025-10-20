@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module containing functions to read/write fluent meshes in HDF5 format."""
+"""Module containing functions to read and write Fluent meshes in HDF5 format."""
 
 import h5py
 import numpy as np
@@ -30,7 +30,7 @@ from ansys.health.heart import LOG as LOGGER
 try:
     import pyvista as pv
 except ImportError:
-    print("Failed to import pyvista. Try installing pyvista with `pip install pyvista`.")
+    print("Failed to import PyVista. Try installing with 'pip install pyvista'.")
 
 
 class _FluentCellZone:
@@ -40,24 +40,24 @@ class _FluentCellZone:
         self, min_id: int = None, max_id: int = None, name: str = None, cid: int = None
     ) -> None:
         self.min_id: int = min_id
-        """Min cell id of the cell zone: indexing starts at 0."""
+        """Minimum cell ID of the cell zone. Indexing starts at 0."""
         self.max_id: int = max_id
-        """Max cell id of the cell zone: indexing starts at 0."""
+        """Maximum cell ID of the cell zone. Indexing starts at 0."""
         self.name: str = name
         """Name of the cell zone."""
         self.id: int = cid
-        """Id of the cell zone."""
+        """ID of the cell zone."""
         self.cells: np.ndarray = None
         """Array of cells for this cell zone."""
 
         return
 
     def get_cells(self, all_cells: np.ndarray) -> None:
-        """Select the cells between min and max id.
+        """Select the cells between the minimum and maximum ID.
 
         Notes
         -----
-        Requires list of all cells.
+        A list of all cells is required.
 
         """
         self.cells = all_cells[self.min_id : self.max_id + 1, :]
@@ -79,21 +79,21 @@ class _FluentFaceZone:
         c0c1: np.ndarray = None,
     ) -> None:
         self.min_id: int = min_id
-        """Min face id of the face zone: indexing starts at 0."""
+        """Minimum face ID of the face zone. Indexing starts at 0."""
         self.max_id: int = max_id
-        """Max face id of the face zone: indexing starts at 0."""
+        """Maximum face ID of the face zone. Indexing starts at 0."""
         self.name: str = name
         """Name of the face zone."""
         self.id: int = zone_id
-        """Id of the face zone."""
+        """ID of the face zone."""
         self.zone_type: str = zone_type
-        """Type of face zone."""
+        """Type of the face zone."""
         self.faces: np.ndarray = faces
-        """Array of faces for this face zone."""
+        """Array of faces for the face zone."""
         self.c0c1: np.ndarray = c0c1
-        """Array that stores connected cell-ids."""
+        """Array that stores connected cell IDs."""
         self.hdf5_id = hdf5_id
-        """Id of face zone in hdf5 file."""
+        """ID of the face zone in the HDF5 file."""
 
         return
 
@@ -113,19 +113,19 @@ class _FluentMesh:
 
     @property
     def cell_zone_id_to_name(self):
-        """Cell-zone id to name mapping."""
+        """Cell zone ID to name mapping."""
         return {cz.id: cz.name for cz in self.cell_zones if cz is not None}
 
     @property
     def face_zone_id_to_name(self):
-        """Face-zone id to name mapping."""
+        """Face zone ID to name mapping."""
         return {fz.id: fz.name for fz in self.face_zones if fz is not None}
 
     def __init__(self, filename: str = None) -> None:
         self.filename: str = filename
         """Path to file."""
         self.fid: h5py.File = None
-        """File id to h5py file."""
+        """File iID to H5PY file."""
         self.nodes: np.ndarray = None
         """All nodes of the mesh."""
         self.faces: np.ndarray = None
@@ -133,20 +133,20 @@ class _FluentMesh:
         self.cells: np.ndarray = None
         """All cells."""
         self.cell_ids: np.ndarray = None
-        """Array of cell ids use to define the cell zones."""
+        """Array of cell IDs used to define the cell zones."""
         self.cell_zones: list[_FluentCellZone] = []
         """List of cell zones."""
         self.face_zones: list[_FluentFaceZone] = []
         """List of face zones."""
         self._unique_map: np.ndarray = None
-        """Map to go from full node list to node-list without duplicates."""
+        """Map to go from the full node list to the node list without duplicates."""
 
         pass
 
     def load_mesh(self, filename: str = None, reconstruct_tetrahedrons: bool = True) -> None:
-        """Load the mesh from the hdf5 file."""
+        """Load the mesh from the HDF5 file."""
         if not filename and not self.filename:
-            raise FileNotFoundError("Please specify a file to read")
+            raise FileNotFoundError("Specify a file to read.")
 
         if self.filename:
             filename = self.filename
@@ -193,7 +193,7 @@ class _FluentMesh:
         return
 
     def _remove_duplicate_nodes(self) -> None:
-        """Remove duplicate nodes and remaps the face zone definitions."""
+        """Remove duplicate nodes and remap the face zone definitions."""
         self._unique_nodes, _, self._unique_map = np.unique(
             self.nodes,
             axis=0,
@@ -217,10 +217,10 @@ class _FluentMesh:
     def _open_file(self, filename: str = None) -> h5py.File:
         """Open the file for reading."""
         if not filename:
-            raise ValueError("Please specify input file")
+            raise ValueError("Specify the input file.")
 
         if filename[-7:] != ".msh.h5":
-            raise FileNotFoundError("File does not have extension '.msh.h5'")
+            raise FileNotFoundError("File does not have extension '.msh.h5'.")
 
         self.fid = h5py.File(filename, "r")
         return self.fid
@@ -231,7 +231,7 @@ class _FluentMesh:
         return
 
     def _read_nodes(self) -> None:
-        """Read the node field(s)."""
+        """Read the node fields."""
         self.nodes = np.zeros((0, 3), dtype=float)
         for ii in np.array(self.fid["meshes/1/nodes/coords"]):
             self.nodes = np.vstack([self.nodes, np.array(self.fid["meshes/1/nodes/coords/" + ii])])
@@ -290,7 +290,7 @@ class _FluentMesh:
             subdir2 = "meshes/1/faces/nodes/" + str(face_zone.hdf5_id) + "/nnodes"
             nnodes = np.array(self.fid[subdir2], dtype=int)
             if not np.all(nnodes == 3):
-                raise ValueError("Only triangular meshes supported")
+                raise ValueError("Only triangular meshes are supported.")
 
             node_ids = np.array(self.fid[subdir], dtype=int)
             num_triangles = int(len(node_ids) / 3)
@@ -299,7 +299,7 @@ class _FluentMesh:
         return self.face_zones
 
     def _read_c0c1_of_face_zones(self) -> list[_FluentFaceZone]:
-        """Read the cell connectivity of the face zone. Only do for interior cells."""
+        """Read the cell connectivity of the face zone. Only do this for interior cells."""
         for face_zone in self.face_zones:
             subdir0 = "meshes/1/faces/c0/" + str(face_zone.hdf5_id)
             subdir1 = "meshes/1/faces/c1/" + str(face_zone.hdf5_id)
@@ -309,14 +309,14 @@ class _FluentMesh:
         return self.face_zones
 
     def _convert_interior_faces_to_tetrahedrons(self) -> tuple[np.ndarray, np.ndarray]:
-        """Use c0c1 matrix to get tetrahedrons.
+        """Use the c0c1 matrix to get tetrahedrons.
 
         Notes
         -----
         f1: n1 n2 n3 c0 c1
         f2: n3 n1 n4 c0 c1
 
-        If f1 and f2 are connected to same face - extract node not occurring in
+        If f1 and f2 are connected to the same face, extract the node not occurring in
         f1. The resulting four nodes will make up the tetrahedron
 
         Do this for all faces.
@@ -353,7 +353,7 @@ class _FluentMesh:
         mask = np.invert(mask)
 
         if not np.all(np.sum(mask, axis=1) == 1):
-            raise ValueError("The two faces do not seem to be connected with two nodes")
+            raise ValueError("The two faces do not seem to be connected with the two nodes.")
 
         tetrahedrons = np.hstack([f1, f2[mask][:, None]])
 
@@ -364,21 +364,21 @@ class _FluentMesh:
 
         return tetrahedrons, cell_ids
 
-    # NOTE: no typehint due to lazy import of pyvista
+    # NOTE: no typehint due to lazy import of PpyVista
     def _to_vtk(self, add_cells: bool = True, add_faces: bool = False) -> pv.UnstructuredGrid:
-        """Convert mesh to vtk unstructured grid or polydata.
+        """Convert the mesh to VTK unstructured grid or polydata.
 
         Parameters
         ----------
-        add_cells : bool, optional
-            Whether to add cells to the vtk object, by default True
-        add_faces : bool, optional
-            Whether to add faces to the vtk object, by default False
+        add_cells : bool, default: True
+            Whether to add cells to the VTK object.
+        add_faces : bool, default: False
+            Whether to add faces to the VTK object.
 
         Returns
         -------
         pv.UnstructuredGrid
-            Unstructured grid representation of the fluent mesh.
+            Unstructured grid representation of the Fluent mesh.
         """
         if add_cells and add_faces:
             add_both = True
@@ -431,12 +431,12 @@ class _FluentMesh:
             return grid
 
     def _fix_negative_cells(self) -> None:
-        """Rorder base face in cells that have a negative cell volume.
+        """Rorder the base face in cells that have a negative cell volume.
 
         Notes
         -----
-        For a positive volume the base face (n1, n2, n3) needs to point in direction
-        of n4. Hence, swapping the order to (n3, n2, n1) fixes negative cell volumes.
+        For a positive volume, the base face ``(n1, n2, n3)`` must point in the direction
+        of ``n4``. Hence, swapping the order to ``(n3, n2, n1)`` fixes negative cell volumes.
         """
         grid = self._to_vtk(add_cells=True, add_faces=False)
         grid = grid.compute_cell_sizes(length=False, area=False, volume=True)
@@ -453,7 +453,7 @@ class _FluentMesh:
         return
 
     def _remove_empty_cell_zones(self) -> None:
-        """Remove empty cell zones from cell zone list."""
+        """Remove empty cell zones from the cell zone list."""
         self.cell_zones = [cz for cz in self.cell_zones if cz.cells.shape[0] > 0]
         return
 
@@ -462,8 +462,8 @@ class _FluentMesh:
 
         Notes
         -----
-        This method is useful when mesh is split into multiple unconnected face zones with
-        the same name. Fluent uses a colon as an identifier when separating these face-zones.
+        This method is useful when the mesh is split into multiple unconnected face zones with
+        the same name. Fluent uses a colon as an identifier when separating these face zones.
         """
         idx_to_remove = []
         for ii, fz in enumerate(self.face_zones):

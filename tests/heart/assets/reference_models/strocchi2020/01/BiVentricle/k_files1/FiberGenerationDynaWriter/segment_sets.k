@@ -37957,7 +37957,7 @@ $#      n1        n2        n3        n4        a1        a2        a3        a4
      26690     26998      5589      5589       0.0       0.0       0.0       0.0
 *SET_SEGMENT_TITLE
 $#                                                                         title
-Right ventricle endocardium septum                                              
+Right ventricle septum                                                          
 $#     sid       da1       da2       da3       da4    solver       its    unused
          5       0.0       0.0       0.0       0.0MECH                          
 $#      n1        n2        n3        n4        a1        a2        a3        a4

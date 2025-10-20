@@ -25,7 +25,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmEpCellmodelTomek(KeywordBase):
-    """DYNA EM_EP_CELLMODEL_TOMEK keyword"""
+    """LS-DYNA EM_EP_CELLMODEL_TOMEK keyword"""
 
     keyword = "EM"
     subkeyword = "EP_CELLMODEL_TOMEK"

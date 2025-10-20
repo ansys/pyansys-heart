@@ -28,7 +28,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmEpFiberinitial(KeywordBase):
-    """DYNA EM_EP_FIBERINITIAL keyword"""
+    """LS-DYNA EM_EP_FIBERINITIAL keyword"""
 
     keyword = "EM"
     subkeyword = "EP_FIBERINITIAL"

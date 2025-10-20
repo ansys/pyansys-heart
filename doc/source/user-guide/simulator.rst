@@ -1,51 +1,75 @@
-
 .. _ref_simulator:
 
-*********
 Simulator
-*********
+=========
 
-:attr:`Simulator <ansys.heart.simulator.simulator>` is used to link up different simulation steps for cardiac modeling. For example, for electrophysiology simulations, fiber orientation :attr:`BaseSimulator.compute_fibers` and Purkinje network :attr:`EPSimulator.compute_purkinje` are computed before launching the physical simulation. In mechanical analysis, it is necessary to compute the stress free configuration :attr:`MechanicsSimulator.compute_stress_free_configuration` before running the simulation.
+The :attr:`simulator <ansys.health.heart.simulator>` module links different simulation steps for cardiac modeling.
+For example, in electrophysiology simulations, you compute fiber orientation and the Purkinje network using the :attr:`BaseSimulator.compute_fibers` and :attr:`EPSimulator.compute_purkinje` methods before running the physical simulation.
+In mechanical simulations, you compute the stress-free configuration using the :attr:`MechanicsSimulator.compute_stress_free_configuration` method before running the simulation.
 
+You create different simulators based on the application and physics of interest:
 
-Based on different applications, different simulators need to be created.
+- :attr:`BaseSimulator <ansys.health.heart.simulator.BaseSimulator>`: This parent class provides general methods, such as fiber generation.
+- :attr:`EPSimulator <ansys.health.heart.simulator.EPSimulator>`: This class derives from :attr:`BaseSimulator <ansys.health.heart.simulator.BaseSimulator>` and includes specific methods for cardiac electrophysiology simulations.
+- :attr:`MechanicsSimulator <ansys.health.heart.simulator.MechanicsSimulator>`: This class derives from :attr:`BaseSimulator <ansys.health.heart.simulator.BaseSimulator>` and includes specific methods for mechanical cardiac simulations.
+- :attr:`EPMechanicsSimulator <ansys.health.heart.simulator.EPMechanicsSimulator>`: This class derives from :attr:`BaseSimulator <ansys.health.heart.simulator.BaseSimulator>` and includes specific methods for electrical-mechanical coupled cardiac simulations.
 
-    - :attr:`BaseSimulator`, parent class for all other Simulators, it holds general methods, like fiber generation.
-    - :attr:`EPSimulator`, used for running electrophysiology cardiac simulation
-    - :attr:`MechanicsSimulator`, used for running mechanical cardiac simulation
-    - :attr:`EPMechanicsSimulator`, used for running electrical-mechanical coupled cardiac simulation
+Here is a simple code example:
 
-A simple usage example is given in the following:
+Load a heart model.
 
->>> # Get a heart model
->>> import ansys.health.heart.models as models
->>> model = models.HeartModel.load_model("path_to_model")
+.. code-block:: python
 
->>> # Set up a LS-DYNA executable
->>> from ansys.heart.simulator.simulator import DynaSettings, MechanicsSimulator
->>> dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path,
-    dynatype="intelmpi",
-    num_cpus=8)
+    import ansys.health.heart.models as models
+    model = models.HeartModel.load_model("path_to_model.vtu", "path_to_info.partinfo.json")
 
->>> # instantiate simulator
->>> simulator = EPSimulator(
-    model=model,
-    dyna_settings=dyna_settings,
-    simulation_directory="output-path")
+Set up the LS-DYNA settings.
 
-Default modeling parameters are saved :attr:`here <ansys.heart.simulator.settings.defaults>`, you can load them to the simulator:
+.. code-block:: python
 
-.. code:: pycon
+    from ansys.health.heart.simulator.simulator import DynaSettings, MechanicsSimulator
+    dyna_settings = DynaSettings(
+        lsdyna_path="path-to-lsdyna-exe.exe",
+        dynatype="intelmpi",
+        platform="windows",
+        num_cpus=8
+    )
 
-   >>> simulator.settings.load_defaults()
-   >>> # we can print settings
-   >>> print(simulator.settings.mechanics.analysis.end_time)
-   800 millisecond
-   >>> # let's change it to 1600 ms
-   >>> simulator.settings.mechanics.analysis.end_time = Quantity(1600, "ms")
+Instantiate the simulator.
 
-Alternatively, settings can be load from a yaml file as follow
+.. code-block:: python
 
->>> simulator.settings.load("a-yaml-file")
+    simulator = EPSimulator(
+        model=model,
+        dyna_settings=dyna_settings,
+        simulation_directory="output-path"
+    )
 
+The :attr:`settings <ansys.health.heart.settings.defaults>` module saves default modeling parameters. You can load these parameters into the simulator:
+
+.. code-block:: python
+
+    simulator.settings.load_defaults()
+    # Print settings
+    print(simulator.settings.mechanics.analysis.end_time)
+    # Output: 800 millisecond
+    # Change it to 1600 ms
+    simulator.settings.mechanics.analysis.end_time = Quantity(1600, "ms")
+    # Save to a YAML file
+    simulator.settings.save("a-yaml-file.yml")
+
+Alternatively, you can load settings from a YAML file:
+
+.. code-block:: python
+
+    simulator.settings.load("a-yaml-file.yml")
+
+Finally, run the relevant steps before running the final simulation of the physics of interest:
+
+.. code-block:: python
+
+    simulator.compute_fibers()
+    simulator.compute_purkinje()
+    simulator.simulate()
+
+For comprehensive examples, see :ref:`examples_simulator`.

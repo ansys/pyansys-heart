@@ -21,14 +21,11 @@
 # SOFTWARE.
 
 """
-Use dynalib to create some commonly used material cards and their default values.
+Use PyDYNA keywords module to create commonly used material cards and their default values.
 
 Notes
 -----
-E.g.:
-Mat295
-Mat077
-MatNull
+Examples of material cards include Mat295, Mat077, MatNull.
 
 """
 
@@ -53,10 +50,10 @@ class MaterialCap(keywords.MatNull):
     Parameters
     ----------
     keywords : keywords.MatNull
-        Inherits from Null type material
+        Inherits from the Null type material.
     """
 
-    def __init__(self, mid: int = 1):
+    def __init__(self, mid: int = 1) -> None:
         super().__init__(mid=mid, ro=1.04e-6)
 
 
@@ -65,8 +62,16 @@ class MaterialNeoHook(custom_keywords.Mat077H):
 
     Parameters
     ----------
-    Mat077H : Parent class
-        Parent class from which this material is derived
+    mid : int
+        Material ID.
+    rho : float
+        Density of the material.
+    c10 : float
+        First coefficient of the material.
+    nu : float
+        Poisson's ratio.
+    kappa : float
+        Bulk modulus.
     """
 
     def __init__(
@@ -76,26 +81,26 @@ class MaterialNeoHook(custom_keywords.Mat077H):
         c10: float,
         nu: float,
         kappa: float,
-    ):
+    ) -> None:
         super().__init__(mid=mid, ro=rho, pr=nu, n=0, c10=c10)
         setattr(self, "user_comment", f"nu deduced from kappa={kappa}")
         return
 
 
 class MaterialHGOMyocardium(keywords.Mat295):
-    """HGO Material model - derived from Mat295."""
+    """HGO material model, which is derived from Mat295."""
 
-    def __init__(self, id: int, mat: Mat295, ignore_active: bool = False):
+    def __init__(self, id: int, mat: Mat295, ignore_active: bool = False) -> None:
         """Init a keyword of *mat295.
 
         Parameters
         ----------
         id : int
-            material ID
-        mat : MAT295
-            material data
-        ignore_active : bool, optional
-            IF igonre active module (e.g. for stress-free), by default False
+            Material ID.
+        mat : Mat295
+            Material data.
+        ignore_active : bool, default: False
+            Whether to ignore the active module. For example, for stress-free.
         """
         # 1st line
         super().__init__(mid=id)
@@ -158,13 +163,13 @@ class MaterialHGOMyocardium(keywords.Mat295):
 def active_curve(
     curve_type: str = "Strocchi2020",
     endtime: float = 15,
-):
+) -> tuple[np.ndarray, np.ndarray]:
     """Compute various (normalized) curves used for the active module.
 
     Parameters
     ----------
     curve_name : str
-        Type of curve to compute
+        Type of curve to compute.
     """
     # time array
     # T = np.arange( 0, endtime, timestep )
@@ -218,7 +223,7 @@ def active_curve(
         calcium_array = np.append(calcium_array, 0.0)
 
     elif curve_type == "TrueCalcium":
-        file_path = resource_path("ansys.heart.writer", "calcium_from_EP.txt").__enter__()
+        file_path = resource_path("ansys.health.heart.writer", "calcium_from_EP.txt").__enter__()
         a = np.loadtxt(file_path)
         time_array = a[:, 0] / 1000
         calcium_array = a[:, 1]
@@ -228,7 +233,3 @@ def active_curve(
     # plt.show()
 
     return time_array, calcium_array
-
-
-if __name__ == "__main__":
-    pass

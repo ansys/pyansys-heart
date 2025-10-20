@@ -27,7 +27,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmBoundaryPrescribed(KeywordBase):
-    """DYNA EM_BOUNDARY_PRESCRIBED keyword"""
+    """LS-DYNA EM_BOUNDARY_PRESCRIBED keyword"""
 
     keyword = "EM"
     subkeyword = "BOUNDARY_PRESCRIBED"
@@ -85,7 +85,7 @@ class EmBoundaryPrescribed(KeywordBase):
     def settype(self) -> int:
         """Get or set the Set type:
         EQ.1:Segment Set.
-        EQ.2: Node Set.
+        EQ.2: nodeset.
         EQ.3: Fluid part. See *ICFD_PART.
         """  # nopep8
         return self._cards[0].get_value("settype")

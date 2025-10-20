@@ -31,7 +31,6 @@ import pyvista as pv
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.utils.connectivity import face_tetra_connectivity
-import ansys.health.heart.utils.misc as geodisc
 
 
 def _read_input_mesh(mesh_path: str, database: str) -> pv.UnstructuredGrid:
@@ -42,17 +41,17 @@ def _read_input_mesh(mesh_path: str, database: str) -> pv.UnstructuredGrid:
     mesh_path : str
         Path to the mesh file.
     database : str
-        Database name
+        Database name.
 
     Returns
     -------
     pv.UnstructuredGrid
-        Unstructured grid
+        Unstructured grid.
 
     Raises
     ------
     TypeError
-        If the mesh fails to be imported as an UnstructuredGrid
+        If the mesh fails to be imported as an UnstructuredGrid.
     """
     mesh: pv.UnstructuredGrid = pv.read(mesh_path)
     if isinstance(mesh, pv.MultiBlock):
@@ -71,17 +70,17 @@ def _read_input_mesh(mesh_path: str, database: str) -> pv.UnstructuredGrid:
 
 
 def _get_original_labels(database: str, case_num: int = None) -> dict:
-    """Import the original labels based on database name.
+    """Import the original labels based on a database name.
 
     Parameters
     ----------
     database : str
-        Name of the database.
+        Database name.
 
     Returns
     -------
     dict
-        Dictionary representing the label to id map.
+        Dictionary representing the label to ID map.
     """
     match database:
         case "Strocchi2020":
@@ -108,9 +107,9 @@ def _get_interface_surfaces(
     Parameters
     ----------
     mesh : pv.UnstructuredGrid
-        Volume mesh
+        Volume mesh.
     labels : dict
-        Label dict to which to add the interface labels
+        Label dictionary to add the interface labels to.
     """
     tetras = np.reshape(mesh.cells, (mesh.n_cells, 5))[:, 1:]
     faces, c0, c1 = face_tetra_connectivity(tetras)
@@ -160,9 +159,9 @@ def _find_endo_epicardial_regions(
     Parameters
     ----------
     geom_all : pv.PolyData
-        Entire heart model
+        Entire heart model.
     tag_to_label : dict
-        Dictionary that maps the tags to the corresponding labels
+        Dictionary that maps the tags to the corresponding labels.
     """
     geom_all.cell_data["orig_ids"] = np.arange(0, geom_all.n_cells)
 
@@ -228,15 +227,15 @@ def _get_part_definitions(original_labels: dict, boundary_label_to_boundary_id: 
     Parameters
     ----------
     original_labels : dict
-        Dictionary with the original labels
+        Dictionary with the original labels.
     boundary_label_to_boundary_id : dict
-        Dictionary of the boundary label to boundary id map
+        Dictionary of the boundary label to boundary ID map.
 
     Returns
     -------
     dict
-        Dictionary with the part definitions. That is part id and corresponding
-    boundaries that enclose that part.
+        Dictionary with the part definitions, which is the part ID and corresponding
+        boundaries that enclose that part.
     """
     part_definitions = {}
     for original_label, original_tag in original_labels.items():
@@ -337,24 +336,27 @@ def _smooth_boundary_edges(
     id_to_label_map,
     sub_label_to_smooth: str = "endocardium",
     window_size: int = 5,
+    project_edge_loop: bool = True,
 ) -> tuple[pv.PolyData, list]:
     """Smooth edges of surfaces that match the label string.
 
     Parameters
     ----------
     surface_mesh : pv.PolyData
-        Input surface mesh
+        Input surface mesh.
     id_to_label_map : dict
-        ID to label map
-    sub_label_to_smooth : str, optional
-        Sub label to smooth, by default "endocardium"
-    window_size : int, optional
-        Window size of the smoothing method, by default 5
+        ID to label map.
+    sub_label_to_smooth : str, default: ``'endocardium'``
+        Select labels where this sub string is present.
+    window_size : int, default: 5
+        Window size of the smoothing method.
+    project_edge_loop : bool, default: True
+        Whether to project the edge loop to a repesentative plane before smoothing.
 
     Returns
     -------
     Tuple[pv.PolyData, dict]
-        Preprocessor compatible polydata object and dictionary with part definitions
+        Preprocessor-compatible polydata object and dictionary with part definitions.
     """
     surfaces_to_smooth = [
         id for id, label in id_to_label_map.items() if sub_label_to_smooth in label
@@ -392,9 +394,18 @@ def _smooth_boundary_edges(
                     continue
 
                 # project points
-                edges.points
-                new_points = geodisc.project_3d_points(edges.points)[0]
-                edges.points = new_points
+                if project_edge_loop:
+                    # fit points through plane.
+                    _, plane_center, plane_normal = pv.fit_plane_to_points(
+                        edges.points, return_meta=True
+                    )
+                    # project points to the plane.
+                    new_points = (
+                        pv.PolyData(edges.points)
+                        .project_points_to_plane(plane_center, plane_normal)
+                        .points
+                    )
+                    edges.points = new_points
 
                 sorted_points = edges.points[sorted_edges_array[:, 0], :]
 
@@ -432,21 +443,22 @@ def get_compatible_input(
     model_type: Literal["FullHeart", "FourChamber", "BiVentricle", "LeftVentricle"] = "FullHeart",
     database: str = "Rodero2021",
 ) -> tuple[pv.PolyData, dict]:
-    """Extract a preprocessor compatible input surface.
+    """Extract a preprocessor-compatible input surface.
 
     Parameters
     ----------
     mesh_path : str
-        Path to the input mesh (UnstructuredGrid or MultiBlock)
-    model_type : str, optional
-        Type of model to extract, by default "FullHeart"
-    database : str, optional
-        Database name, by default "Rodero2021"
+        Path to the input mesh (UnstructuredGrid or MultiBlock).
+    model_type : str, default: ``'FullHeart'``
+        Type of model to extract. Options are ``'FullHeart'``, ``'FourChamber'``,
+        ``'BiVentricle'``, and ``'LeftVentricle'``.
+    database : str, default: ``'Rodero2021'``
+        Database name. Options are ``'Rodero2021'`` and ``'Strocchi2020'``.
 
     Returns
     -------
     Tuple[pv.PolyData, dict]
-        Preprocessor compatible polydata object and dictionary with part definitions
+        Preprocessor-compatible polydata object and dictionary with part definitions.
     """
     case_num = os.path.basename(mesh_path)
     case_num = int(case_num.replace(".case", "").replace(".vtk", ""))

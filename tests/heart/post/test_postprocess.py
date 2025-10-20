@@ -25,8 +25,8 @@
 import os
 import shutil
 
-os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
-
+import matplotlib.pyplot as plt
+import numpy as np
 import pytest
 
 from ansys.health.heart.models import LeftVentricle
@@ -35,16 +35,15 @@ from ansys.health.heart.post.strain_calculator import AhaStrainCalculator
 from ansys.health.heart.post.system_model_post import SystemModelPost
 from tests.heart.conftest import get_assets_folder
 
-# Accept DPF LA
-os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
-
 
 @pytest.fixture(autouse=True, scope="module")
 def get_left_ventricle():
     test_dir = os.path.join(get_assets_folder(), "post")
     path_to_model = os.path.join(test_dir, "model", "heart_model.vtu")
-    model: LeftVentricle = LeftVentricle(working_directory=test_dir)
-    model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
+    path_to_partinfo = path_to_model.replace(".vtu", ".partinfo.json")
+    model: LeftVentricle = LeftVentricle.load_model(
+        path_to_model, path_to_partinfo, working_directory=test_dir
+    )
 
     return test_dir, model
 
@@ -89,8 +88,6 @@ def test_compute_aha_strain(get_left_ventricle):
 @pytest.mark.requires_dpf
 def test_plot_aha_bullseye():
     """Test plotting AHA bullseye plot."""
-    import matplotlib.pyplot as plt
-    import numpy as np
 
     # Create the fake data
     data = np.arange(17) + 1
@@ -98,9 +95,13 @@ def test_plot_aha_bullseye():
     fig = plt.figure(figsize=(10, 5), layout="constrained")
     fig.get_layout_engine().set(wspace=0.1, w_pad=0.2)
     axs = fig.subplots(1, 1, subplot_kw=dict(projection="polar"))
-    # NOTE: just for line coverage: no assertion done here to check validity
-    # NOTE: of result.
-    AhaStrainCalculator.bullseye_plot(axs, data)
+    # NOTE: just for line coverage: no assertion done here to check validity of the plot.
+    AhaStrainCalculator.bullseye_17_segments(axs, data)
+
+    # Method should fail with 16 data points.
+    data = np.arange(16)
+    with pytest.raises(ValueError):
+        AhaStrainCalculator.bullseye_17_segments(axs, data)
 
 
 @pytest.mark.requires_dpf
@@ -108,7 +109,11 @@ def test_zerop_post(get_left_ventricle):
     test_dir = get_left_ventricle[0]
     model = get_left_ventricle[1]
     dct = zerop_post(os.path.join(test_dir, "zerop"), model)
-    assert dct[0]["True left ventricle volume (mm3)"] == pytest.approx(118078.82768066938)
+    assert dct[0]["Cavity volumes"]["Left ventricle cavity"][
+        "true end diastolic volume (mm3)"
+    ] == pytest.approx(118078.82768066938)
+
+    assert os.path.isfile(os.path.join(test_dir, "zerop", "post", "Post_report.json"))
 
     # Cleanup
     folder = os.path.join(test_dir, "zerop", "post")

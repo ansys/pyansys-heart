@@ -24,8 +24,6 @@
 
 import pathlib
 
-import matplotlib as mpl
-from matplotlib import pyplot as plt
 import numpy as np
 import pyvista as pv
 
@@ -36,18 +34,18 @@ from ansys.health.heart.utils.vtk_utils import find_corresponding_points, genera
 
 
 class AhaStrainCalculator:
-    """Compute Longitudinal, Radial, Circumferential strain for left ventricle."""
+    """Compute longitudinal, radial, and circumferential strain for the left ventricle."""
 
     def __init__(self, model: HeartModel, d3plot_file):
         """
-        Initialize AHA strain calculator.
+        Initialize the AHA strain calculator.
 
         Parameters
         ----------
         model: HeartModel
             Heart model object.
         d3plot_file: Path.Path
-            d3plot header file path.
+            Path to the d3plot header file.
         """
         self.model = model
 
@@ -62,17 +60,17 @@ class AhaStrainCalculator:
         Parameters
         ----------
         time_array : np.ndarray | list, optional
-           time array to export, by default d3plot time
+           Time array to export. The d3plot time is exported by default.
 
         Returns
         -------
         list[pv.PolyData]
-            Polydata that has lines from nodes on the endocardium to nodes on the epicardium
+            Polydata that has lines from nodes on the endocardium to nodes on the epicardium.
 
         Notes
         -----
-        Endocardium surfaces are supposed to be smooth
-        Artifact may occur on base (close to valves) region
+        Endocardium surfaces are supposed to be smooth.
+        Artifact may occur on base (close to valves) region.
         """
         if time_array is None:
             time_array = self.d3plot.time
@@ -82,11 +80,7 @@ class AhaStrainCalculator:
         if isinstance(self.model, LeftVentricle):
             surface_epi = self.model.left_ventricle.epicardium.copy()
         elif isinstance(self.model, (BiVentricle, FourChamber, FullHeart)):
-            # need to patch septum_endocardium surface on epicardium
-            for surface in self.model.right_ventricle.surfaces:
-                if "endocardium" in surface.name and "septum" in surface.name:
-                    sept_endo = surface
-                    break
+            sept_endo = self.model.right_ventricle.septum
             surface_epi = sept_endo.copy() + self.model.left_ventricle.epicardium.copy()
 
         lines_list = self._compute_thickness(time_array, surface_endo, surface_epi)
@@ -121,17 +115,17 @@ class AhaStrainCalculator:
 
         Parameters
         ----------
-        time_array : _type_
-            time array to export
-        surface_endo : pv.PolyData]
-            endocardium surface
-        surface_epi : pv.PolyData]
-            epicardium surface
+        time_array : np.ndarray
+            Time array to export.
+        surface_endo : pv.PolyData
+            Endocardium surface.
+        surface_epi : pv.PolyData
+            Epicardium surface.
 
         Returns
         -------
         list[pv.PolyData]
-            thickness lines
+            Thickness lines.
         """
         res = []
         # assumes that corresponding points don't change in time
@@ -153,22 +147,22 @@ class AhaStrainCalculator:
     def compute_aha_strain(
         self, out_dir: str = None, write_vtk: bool = False, t_to_keep: float = 10e10
     ) -> np.ndarray:
-        """Compute AHA 17 segment strain values from deformation gradient.
+        """Compute AHA 17 segment strain values from the deformation gradient.
 
         Parameters
         ----------
-        out_dir : str, optional
-            output folder, by default None
-        write_vtk : bool, optional
-            write into vtk files, by default False
-        t_to_keep : float, optional
-            time to stop, by default 10e10
+        out_dir : str, default: None
+            Output folder.
+        write_vtk : bool, default: False
+            Whether to write to VTK files.
+        t_to_keep : float, default: 10e10
+            Time to stop.
 
         Returns
         -------
         np.ndarray
-            array of N_time * (1+17*3), columns represent time and
-            longitudinal, radial, and circumferential strain averaged of each segment
+            Array of N_time * (1+17*3). Columns represent time and
+            longitudinal, radial, and circumferential strain averaged of each segment.
         """
         save_time = self.d3plot.time[self.d3plot.time >= self.d3plot.time[-1] - t_to_keep]
         strain = np.zeros((len(save_time), 1 + 17 * 3))
@@ -203,19 +197,19 @@ class AhaStrainCalculator:
 
     def compute_aha_strain_at(self, frame: int = 0, out_dir: pathlib.Path = None) -> np.ndarray:
         """
-        Export AHA strain and/or save vtk file for a given frame.
+        Export AHA strain and/or save a VTK file for a given frame.
 
         Parameters
         ----------
-        frame: int
-            at this frame, by default 0.
-        out_dir: pathlib.Path
-            folder where vtk files are saved, by default not save.
+        frame: int, default: 0
+            Frame number to compute strain.
+        out_dir: pathlib.Path, default: None
+            Directory to save VTK file to. No VTK file is saved by default.
 
         Returns
         -------
         np.ndarry
-            AHA LRC strain matrix (17 * 3)
+            AHA LRC strain matrix (17 * 3).
         """
         element_lrc, aha_lrc, element_lrc_averaged = self._compute_myocardial_strain(frame)
 
@@ -251,9 +245,9 @@ class AhaStrainCalculator:
 
         Returns
         -------
-        return1: [nelem * 3] elemental LRC strain
-        return2: [17 * 3] AHA17 LRC strain
-        return3: [nelem * 3] elemental LRC strain averaged from AHA17
+        return1: [nelem * 3] elemental LRC strain.
+        return2: [17 * 3] AHA17 LRC strain.
+        return3: [nelem * 3] elemental LRC strain averaged from AHA17.
         """
         if reference is not None:
             raise NotImplementedError
@@ -302,28 +296,24 @@ class AhaStrainCalculator:
         return strain, aha_strain, averaged_strain
 
     @staticmethod
-    def bullseye_plot(ax, data, seg_bold=None, cmap=None, norm=None) -> None:
-        """Bullseye representation for the left ventricle.
+    def bullseye_17_segments(ax, data) -> None:
+        """Bullseye representation of the 17 segments of the left ventricle.
 
         Parameters
         ----------
         ax : axes
         data : list of int and float
-            The intensity values for each of the 17 segments
-        seg_bold : list of int, optional
-            A list with the segments to highlight
-        cmap : ColorMap or None, optional
-            Optional argument to set the desired colormap
-        norm : Normalize or None, optional
-            Optional argument to normalize data into the [0.0, 1.0] range
+            Intensity values for each of the 17 segments.
 
         Notes
         -----
-        This function creates the 17 segment model for the left ventricle according
-        to the American Heart Association (AHA) [1]_
+        This function creates the 17-segment model for the left ventricle according
+        to the American Heart Association (AHA) [1]_.
 
-        Based on:
-        https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html
+        This method is modified from the ``Matplotlibs`` `bullseye <https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html>`_
+        example. Copyright |copy| 2012- Matplotlib Development Team; All Rights Reserved.
+        Modifications consisted of removing colors and including the values for each segment.
+
 
         References
         ----------
@@ -333,105 +323,71 @@ class AhaStrainCalculator:
             nomenclature for tomographic imaging of the heart",
             Circulation, vol. 105, no. 4, pp. 539-542, 2002.
         """
-        if seg_bold is None:
-            seg_bold = []
-
         linewidth = 2
+
         data = np.ravel(data)
 
-        if cmap is None:
-            cmap = plt.cm.viridis
-
-        if norm is None:
-            norm = mpl.colors.Normalize(vmin=data.min(), vmax=data.max())
+        if data.size != 17:
+            raise ValueError(
+                f"Data must be a 1D array of length 17. Received data of length {data.size}."
+            )
 
         theta = np.linspace(0, 2 * np.pi, 768)
-        r = np.linspace(0.2, 1, 4)
+        radii = np.linspace(0.2, 1, 4)
 
         # Remove grid
         ax.grid(False)
 
-        # Create the bound for the segment 17
-        for i in range(r.shape[0]):
-            ax.plot(theta, np.repeat(r[i], theta.shape), "-k", lw=linewidth)
+        # Create the bounds for segment 17
+        for ii in range(radii.shape[0]):
+            ax.plot(theta, np.repeat(radii[ii], theta.shape), "-k", lw=linewidth)
 
-        # Create the bounds for the segments 1-12
-        for i in range(6):
-            theta_i = np.deg2rad(i * 60)
-            ax.plot([theta_i, theta_i], [r[1], 1], "-k", lw=linewidth)
+        # Create the bounds for segments 1-12
+        for ii in range(6):
+            theta_i = np.deg2rad(ii * 60)
+            ax.plot([theta_i, theta_i], [radii[1], 1], "-k", lw=linewidth)
 
-        # Create the bounds for the segments 13-16
-        for i in range(4):
-            theta_i = np.deg2rad(i * 90 - 45)
-            ax.plot([theta_i, theta_i], [r[0], r[1]], "-k", lw=linewidth)
+        # Create the bounds for segments 13-16
+        for ii in range(4):
+            theta_i = np.deg2rad(ii * 90 - 45)
+            ax.plot([theta_i, theta_i], [radii[0], radii[1]], "-k", lw=linewidth)
 
-        # Fill the segments 1-6
-        r0 = r[2:4]
+        # Fill segments 1-6
+        r0 = radii[2:4]
         r0 = np.repeat(r0[:, np.newaxis], 128, axis=1).T
-        for i in range(6):
-            # First segment start at 60 degrees
-            theta0 = theta[i * 128 : i * 128 + 128] + np.deg2rad(60)
+        for ii in range(6):
+            # First segment starts at 60 degrees
+            theta0 = theta[ii * 128 : ii * 128 + 128] + np.deg2rad(60)
             theta0 = np.repeat(theta0[:, np.newaxis], 2, axis=1)
-            # for color fill
-            # z = np.ones((128, 2)) * data[i]
-            # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
+            # Print value to segment.
+            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[ii]), fontsize=12)
 
-            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[i]), fontsize=12)
-
-            if i + 1 in seg_bold:
-                ax.plot(theta0, r0, "-k", lw=linewidth + 2)
-                ax.plot(theta0[0], [r[2], r[3]], "-k", lw=linewidth + 1)
-                ax.plot(theta0[-1], [r[2], r[3]], "-k", lw=linewidth + 1)
-
-        # Fill the segments 7-12
-        r0 = r[1:3]
+        # Fill segments 7-12
+        r0 = radii[1:3]
         r0 = np.repeat(r0[:, np.newaxis], 128, axis=1).T
-        for i in range(6):
-            # First segment start at 60 degrees
-            theta0 = theta[i * 128 : i * 128 + 128] + np.deg2rad(60)
+        for ii in range(6):
+            # First segment starts at 60 degrees
+            theta0 = theta[ii * 128 : ii * 128 + 128] + np.deg2rad(60)
             theta0 = np.repeat(theta0[:, np.newaxis], 2, axis=1)
-            # for color fill
-            # z = np.ones((128, 2)) * data[i + 6]
-            # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
+            # Print value to segment.
+            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[ii + 6]), fontsize=12)
 
-            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[i + 6]), fontsize=12)
-
-            if i + 7 in seg_bold:
-                ax.plot(theta0, r0, "-k", lw=linewidth + 2)
-                ax.plot(theta0[0], [r[1], r[2]], "-k", lw=linewidth + 1)
-                ax.plot(theta0[-1], [r[1], r[2]], "-k", lw=linewidth + 1)
-
-        # Fill the segments 13-16
-        r0 = r[0:2]
+        # Fill segments 13-16
+        r0 = radii[0:2]
         r0 = np.repeat(r0[:, np.newaxis], 192, axis=1).T
-        for i in range(4):
+        for ii in range(4):
             # First segment start at 45 degrees
-            theta0 = theta[i * 192 : i * 192 + 192] + np.deg2rad(45)
+            theta0 = theta[ii * 192 : ii * 192 + 192] + np.deg2rad(45)
             theta0 = np.repeat(theta0[:, np.newaxis], 2, axis=1)
-            # for color fill
-            # z = np.ones((192, 2)) * data[i + 12]
-            # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
+            # Print value to segment.
+            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[ii + 12]), fontsize=12)
 
-            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[i + 12]), fontsize=12)
-
-            if i + 13 in seg_bold:
-                ax.plot(theta0, r0, "-k", lw=linewidth + 2)
-                ax.plot(theta0[0], [r[0], r[1]], "-k", lw=linewidth + 1)
-                ax.plot(theta0[-1], [r[0], r[1]], "-k", lw=linewidth + 1)
-
-        # Fill the segments 17
-        if data.size == 17:
-            r0 = np.array([0, r[0]])
-            r0 = np.repeat(r0[:, np.newaxis], theta.size, axis=1).T
-            theta0 = np.repeat(theta[:, np.newaxis], 2, axis=1)
-            # for color fill
-            # z = np.ones((theta.size, 2)) * data[16]
-            # ax.pcolormesh(theta0, r0, z, cmap=cmap, norm=norm, shading="auto")
-
-            ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[16]), fontsize=12)
-
-            if 17 in seg_bold:
-                ax.plot(theta0, r0, "-k", lw=linewidth + 2)
+        # Fill segment 17
+        r0 = np.array([0, radii[0]])
+        r0 = np.repeat(r0[:, np.newaxis], theta.size, axis=1).T
+        theta0 = np.repeat(theta[:, np.newaxis], 2, axis=1)
+        # Print value to segment.
+        ax.text(theta0.mean(), r0.mean(), "{0:.2f}".format(data[16]), fontsize=12)
 
         ax.set_ylim([0, 1])
         ax.set_yticklabels([])

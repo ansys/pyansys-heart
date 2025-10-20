@@ -124,26 +124,26 @@ def download_case_from_zenodo(
     Parameters
     ----------
     database : str
-        name of the database. Either Strocchi2020 or Rodero2021.
+        name of the database. Options are ``'Strocchi2020'`` or ``'Rodero2021'``.
     case_number : int
-        case number to download.
+        Case number to download.
     download_folder : Path
-        path to the folder in which to download the case.
+        Path to the folder to download the case to.
 
     Returns
     -------
     Path
-        Path to the tar ball that contains the vtk/case files.
+        Path to the tarball that contains the VTK/CASE files.
 
     Examples
     --------
-    Download case 1 from the public repository (Strocchi2020) of pathological hearts.
+    Download case 1 from the public repository (``'Strocchi2020'``) of pathological hearts.
 
     >>> path_to_tar_file = download_case_from_zenodo(
         database="Strocchi2020", case_number=1, download_folder="my/download/folder"
         )
 
-    Download case 1 from the public repository (Rodero2021) of 'healthy' hearts.
+    Download case 1 from the public repository (``'Rodero2021'``) of healthy hearts.
 
     >>> path_to_tar_file = download_case_from_zenodo(
         database="Rodero2021", case_number=1, download_folder="my/download/folder"
@@ -169,7 +169,7 @@ def download_case_from_zenodo(
     try:
         download_url = _ALL_DOWNLOAD_URLS[database][case_number]
     except KeyError as e:
-        LOGGER.error(f"Case {case_number} not found in database {database}. {e}")
+        LOGGER.error(f"Case {case_number} is not found in database {database}. {e}")
         return None
 
     # validate URL
@@ -209,7 +209,7 @@ def download_case_from_zenodo(
         LOGGER.warning("Not validating hash. Proceed at own risk")
         is_valid_file = True
     if not is_valid_file:
-        LOGGER.error("File data integrity can not be validated.")
+        LOGGER.error("File data integrity cannot be validated.")
         os.remove(save_path)
 
     return save_path
@@ -232,25 +232,30 @@ def _validate_hash_sha256(file_path: Path, database: str, casenumber: int) -> bo
 
 
 def _infer_extraction_path_from_tar(tar_path: str | Path) -> str:
-    """Infer the path to the relevant .case or .vtk file from the tar_path."""
+    """Infer the path to the relevant CASE or VTK file from the tarball path."""
     tar_path = Path(tar_path)
-    tarball = tarfile.open(tar_path)
-    names = tarball.getnames()
+    with tarfile.open(tar_path, "r:gz") as tarball:
+        names = tarball.getnames()
+
     # Order matters: check if .case file exists before .vtk file
     sub_path = next((name for name in names if name.endswith(".case")), None)
     if not sub_path:
         sub_path = next((name for name in names if name.endswith(".vtk")), None)
+
+    if sub_path is None:
+        LOGGER.error(f"No relevant files are found in {tar_path}.")
+        return str(tar_path)
 
     path = (tar_path.parent / sub_path).resolve()
     return str(path)
 
 
 def _get_members_to_unpack(tar_ball: tarfile.TarFile) -> list:
-    """Get the members to unpack from the tar ball.
+    """Get the members to unpack from the tarball.
 
     Notes
     -----
-    This ignores the large .vtk for the Strocchi2020 archives.
+    This ignores the large VTK files for the Strocchi 2020 archives.
     """
     if len(tar_ball.getnames()) > 1:
         members_to_unpack = [
@@ -261,15 +266,23 @@ def _get_members_to_unpack(tar_ball: tarfile.TarFile) -> list:
     return members_to_unpack
 
 
+def _is_safe_tar_member(member: tarfile.TarInfo, target_dir: str):
+    """Get safe members, prevent absolute paths and path traversal."""
+    member_path = os.path.join(target_dir, member.name)
+    abs_target_dir = os.path.abspath(target_dir)
+    abs_member_path = os.path.abspath(member_path)
+    return abs_member_path.startswith(abs_target_dir)
+
+
 def unpack_case(tar_path: Path, reduce_size: bool = True) -> str | bool:
-    r"""Unpack the downloaded tar file.
+    r"""Unpack the downloaded tarball file.
 
     Parameters
     ----------
     tar_path : Path
-        Path to tar.gz file.
+        Path to TAR.GZ file.
     reduce_size : bool, default: True
-        If True, reduce the size of the unpacked files by removing the .vtk file for the
+        Whether to reduce the size of the unpacked files by removing the VTK file for the
         Strocchi database.
 
     Examples
@@ -280,20 +293,29 @@ def unpack_case(tar_path: Path, reduce_size: bool = True) -> str | bool:
     Returns
     -------
     str
-        Path to the .case or .vtk file
+        Path to the CASE or VTK file.
     """
     try:
-        tar_ball = tarfile.open(tar_path)
-        tar_dir = os.path.dirname(tar_path)
-        if reduce_size:
-            tar_ball.extractall(path=tar_dir, members=_get_members_to_unpack(tar_ball))
-        else:
-            tar_ball.extractall(path=tar_dir)
-        path = _infer_extraction_path_from_tar(tar_path)
-        return path
+        with tarfile.open(tar_path, "r:gz") as tar_ball:
+            tar_dir = os.path.dirname(tar_path)
+            if reduce_size:
+                members = _get_members_to_unpack(tar_ball)
+            else:
+                members = tar_ball.getmembers()
+
+            # Validate members
+            unsafe_members = [m for m in members if not _is_safe_tar_member(m, tar_dir)]
+            if unsafe_members:
+                names = [m.name for m in unsafe_members]
+                raise ValueError(f"Unsafe tar members detected in '{tar_path}': {names}")
+
+            tar_ball.extractall(path=tar_dir, members=members)
+
+            path = _infer_extraction_path_from_tar(tar_path)
+            return path
 
     except Exception as exception:
-        LOGGER.error(f"Unpacking failed... {exception}")
+        LOGGER.error(f"Unpacking failed. {exception}")
         return False
 
 
@@ -303,20 +325,21 @@ def download_all_cases(download_dir: str = None) -> list[str]:
     Parameters
     ----------
     download_dir : str
-        Base directory where to download the cases to.
+        Base directory to download cases to.
 
     Examples
     --------
     >>> from ansys.health.heart.utils.download import download_all_cases
-    >>> tar_files = download_call_cases("my-downloads")
+    >>> tar_files = download_all_cases("my-downloads")
 
-    To unpack all cases you can use the unpack_cases method:
+    To unpack all cases, you can use the ``unpack_cases()`` method:
+
     >>> from ansys.health.heart.utils.download import unpack_cases
     >>> unpack_cases(tar_files)
 
     Notes
     -----
-    Note that downloading all cases may - depending on bandwidth - take substantial
+    Note that depending on bandwidth, downloading all cases might take a lot of
     time.
 
     """
@@ -338,12 +361,12 @@ def download_all_cases(download_dir: str = None) -> list[str]:
 
 
 def unpack_cases(list_of_tar_files: typing.List) -> None:
-    """Unpack a list of tar files.
+    """Unpack a list of TAR files.
 
     Parameters
     ----------
     list_of_tar_files : typing.List
-        List of tar files to unpack.
+        List of TAR files to unpack.
 
     Examples
     --------

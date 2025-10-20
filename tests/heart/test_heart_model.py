@@ -33,10 +33,11 @@ import pyvista as pv
 from pyvista import examples
 
 import ansys.health.heart.models as models
-from ansys.health.heart.objects import Mesh, PartType
+from ansys.health.heart.objects import Mesh
+from ansys.health.heart.parts import _PartType
 
 
-def test_set_workdir():
+def test_set_workdir(monkeypatch):
     """Test setting the working directory."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         workdir = models._set_workdir(os.path.join(tempdir, "test"))
@@ -49,20 +50,27 @@ def test_set_workdir():
             workdir = models._set_workdir()
             assert workdir == os.path.join(tempdir, "test1")
 
-        os.environ["PYANSYS_HEART_WORKDIR"] = os.path.join(tempdir, "test2")
+        monkeypatch.setenv("PYANSYS_HEART_WORKDIR", os.path.join(tempdir, "test2"))
         workdir = models._set_workdir()
         assert workdir == os.path.join(tempdir, "test2")
 
 
-def test_dump_model_001():
+def test_save_model():
     """Test dumping of model to disk."""
 
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         model = models.BiVentricle(working_directory=workdir)
 
-        expected_path = os.path.join(os.path.join(workdir, "test.vtu"))
-        model.save_model(os.path.join(workdir, "test.vtu"))
-        assert os.path.isfile(expected_path)
+        expected_mesh_path = os.path.join(os.path.join(workdir, "test.vtu"))
+        expected_info_path = os.path.join(os.path.join(workdir, "test.partinfo.json"))
+
+        mesh_path, info_path = model.save_model(os.path.join(workdir, "test.vtu"))
+
+        assert mesh_path == expected_mesh_path
+        assert info_path == expected_info_path
+
+        assert os.path.isfile(expected_mesh_path)
+        assert os.path.isfile(expected_info_path)
 
 
 @pytest.mark.parametrize(
@@ -101,9 +109,7 @@ def test_model_part_names(model_type, expected_part_names):
     assert model.part_names == expected_part_names
 
 
-def test_load_from_mesh():
-    """Test loading mesh from mesh file and id map."""
-    # generate a dummy mesh.
+def _get_test_model():
     #! Note, can modify to create something more meaningful,
     #! e.g. a sphere with inner/outer surface and caps.
     mesh = Mesh()
@@ -127,35 +133,123 @@ def test_load_from_mesh():
     mesh._surface_id_to_name[4] = "aortic-valve"
     mesh._surface_id_to_name[5] = "Left ventricle cavity"
 
+    part_info = {
+        "Left ventricle": {
+            "part-id": 10,
+            "part-type": _PartType.VENTRICLE.value,
+            "surfaces": {"Left ventricle endocardium": 1},
+            "caps": {"mitral-valve": 3, "aortic-valve": 4},
+            "cavity": {"Left ventricle endocardium": 1},
+        },
+        "Right ventricle": {
+            "part-id": 11,
+            "part-type": _PartType.VENTRICLE.value,
+            "surfaces": {"Right ventricle epicardium": 2},
+            "caps": {},
+            "cavity": {},
+        },
+        "Septum": {
+            "part-id": 12,
+            "part-type": _PartType.SEPTUM.value,
+            "surfaces": {},
+            "caps": {},
+            "cavity": {},
+        },
+    }
+
+    return mesh, part_info
+
+
+def test_load_model_arbitrary_part():
+    """Test loading model with an arbitrary part."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
         mesh_path = os.path.join(tmpdir, "mesh.vtu")
 
-        mesh.save(mesh_path)
-        model = models.BiVentricle(working_directory=tmpdir)
+        mesh, part_info = _get_test_model()
 
-        part_info = {
-            "Left ventricle": {
-                "part-id": 10,
-                "part-type": PartType.VENTRICLE.value,
-                "surfaces": {"Left ventricle endocardium": 1},
-                "caps": {"mitral-valve": 3, "aortic-valve": 4},
-                "cavity": {"Left ventricle endocardium": 1},
-            },
-            "Right ventricle": {
-                "part-id": 11,
-                "part-type": PartType.VENTRICLE.value,
-                "surfaces": {"Right ventricle epicardium": 1},
-                "caps": {},
-                "cavity": {},
-            },
-            "Septum": {
-                "part-id": 12,
-                "part-type": PartType.SEPTUM.value,
-                "surfaces": {},
-                "caps": {},
-                "cavity": {},
-            },
-        }
+        mesh.save(mesh_path)
+
+        part_info_path = os.path.join(tmpdir, "partinfo.json")
+
+        # Add an arbitrary part to the part info.
+        part_info["ArbitraryPart"] = part_info["Septum"]
+        part_info["ArbitraryPart"]["part-id"] = 14
+        part_info["ArbitraryPart"]["part-type"] = "undefined"
+
+        with open(part_info_path, "w") as f:
+            json.dump(part_info, f, indent=4)
+
+        model = models.HeartModel.load_model(mesh_path, part_info_path, tmpdir)
+
+        assert isinstance(model, models.BiVentricle)
+        assert "ArbitraryPart" in model.part_names
+        assert "arbitrarypart" in model.__dict__.keys()
+
+
+def test_load_model():
+    """Test loading model from a mesh file and part information file."""
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
+        mesh_path = os.path.join(tmpdir, "mesh.vtu")
+
+        mesh, part_info = _get_test_model()
+
+        mesh.save(mesh_path)
+
+        part_info_path = os.path.join(tmpdir, "partinfo.json")
+        with open(part_info_path, "w") as f:
+            json.dump(part_info, f, indent=4)
+
+        with mock.patch("ansys.health.heart.models.HeartModel._extract_apex") as mock_extract_apex:
+            with mock.patch(
+                "ansys.health.heart.models.HeartModel._define_anatomy_axis"
+            ) as mock_define_axis:
+                model = models.HeartModel.load_model(mesh_path, part_info_path, tmpdir)
+
+                assert isinstance(model, models.BiVentricle)
+                assert model.mesh.n_cells == mesh.n_cells
+                assert model.mesh.n_points == mesh.n_points
+
+                assert model._part_info == part_info
+                mock_extract_apex.assert_called_once()
+                mock_define_axis.assert_called_once()
+
+        assert model.part_names == list(part_info.keys())
+
+        assert (
+            model.left_ventricle.get_element_ids(model.mesh).shape[0]
+            == examples.load_tetbeam().n_cells
+        )
+        assert (
+            model.right_ventricle.get_element_ids(model.mesh).shape[0]
+            == examples.load_tetbeam().n_cells
+        )
+        assert model.septum.get_element_ids(model.mesh).shape[0] == examples.load_tetbeam().n_cells
+
+        assert model.left_ventricle.endocardium.n_cells == pv.Sphere().n_cells
+        assert model.left_ventricle.endocardium.n_points == pv.Sphere().n_points
+
+        assert model.right_ventricle.epicardium.n_cells == pv.Box().n_cells
+        assert model.right_ventricle.epicardium.n_points == pv.Box().n_points
+
+        assert model.left_ventricle.caps[0]._mesh.n_cells == pv.Disc().n_cells
+        assert model.left_ventricle.caps[1]._mesh.n_cells == pv.Disc().n_cells
+
+        assert model.left_ventricle.cavity.surface.n_cells == pv.Sphere().n_cells
+        assert model.left_ventricle.cavity.surface.n_points == pv.Sphere().n_points
+
+    return
+
+
+def test_load_model_from_mesh():
+    """Test loading mesh from mesh file and ID map."""
+    # generate a dummy mesh.
+
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tmpdir:
+        mesh_path = os.path.join(tmpdir, "mesh.vtu")
+
+        mesh, part_info = _get_test_model()
+
+        mesh.save(mesh_path)
 
         part_info_path = os.path.join(tmpdir, "partinfo.json")
         with open(part_info_path, "w") as f:
@@ -165,15 +259,21 @@ def test_load_from_mesh():
             with mock.patch(
                 "ansys.health.heart.models.BiVentricle._define_anatomy_axis"
             ) as mock_define_axis:
-                model.load_model_from_mesh(mesh_path, part_info_path)
+                model = models.BiVentricle.load_model(mesh_path, part_info_path, tmpdir)
                 mock_extract_apex.assert_called_once()
                 mock_define_axis.assert_called_once()
 
         assert model.part_names == list(part_info.keys())
 
-        assert model.left_ventricle.element_ids.shape[0] == examples.load_tetbeam().n_cells
-        assert model.right_ventricle.element_ids.shape[0] == examples.load_tetbeam().n_cells
-        assert model.septum.element_ids.shape[0] == examples.load_tetbeam().n_cells
+        assert (
+            model.left_ventricle.get_element_ids(model.mesh).shape[0]
+            == examples.load_tetbeam().n_cells
+        )
+        assert (
+            model.right_ventricle.get_element_ids(model.mesh).shape[0]
+            == examples.load_tetbeam().n_cells
+        )
+        assert model.septum.get_element_ids(model.mesh).shape[0] == examples.load_tetbeam().n_cells
 
         assert model.left_ventricle.endocardium.n_cells == pv.Sphere().n_cells
         assert model.left_ventricle.endocardium.n_points == pv.Sphere().n_points
@@ -210,38 +310,6 @@ def test_model_get_set_axes():
     assert len(set(model.short_axis) - set(test_axis)) == 0
 
 
-def test_heart_model_add_purkinje_from_file():
-    """Test adding a purkinje network from a file."""
-    lines = """*KEYWORD
-*NODE +
-              123932  0.117289119795E+03  0.244318845738E+02  0.883234881118E+01
-              123933  0.116478727414E+03  0.250487507439E+02  0.795046863408E+01
-              123934  0.116515199453E+03  0.236812534885E+02  0.963833959240E+01
-*ELEMENT_BEAM
-  560893       8  123932  123933
-  560894       8  123932  123934
-*END"""
-    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
-        model = models.HeartModel(tempdir)
-        temp_path = os.path.join(tempdir, "purkinje1.k")
-        with open(temp_path, "w") as f:
-            f.writelines(lines)
-        model.add_purkinje_from_kfile(temp_path, "purkinje1")
-
-        assert len(model.conduction_system.line_ids) == 1
-        assert np.all(model.conduction_system.get_lines(1).lines == np.array([2, 0, 1, 2, 0, 2]))
-        assert np.allclose(
-            model.conduction_system.get_lines(1).points,
-            np.array(
-                [
-                    [0.117289119795e03, 0.244318845738e02, 0.883234881118e01],
-                    [0.116478727414e03, 0.250487507439e02, 0.795046863408e01],
-                    [0.116515199453e03, 0.236812534885e02, 0.963833959240e01],
-                ]
-            ),
-        )
-
-
 def test_create_stiff_ventricle_base():
     """Test creating a stiff ventricle base."""
     model = models.BiVentricle()
@@ -249,12 +317,17 @@ def test_create_stiff_ventricle_base():
     mesh = examples.load_tetbeam()
     mesh.cell_data["_volume-id"] = 1
     mesh.point_data["apico-basal"] = mesh.points[:, 2] / 5
+    total_num_cells = mesh.n_cells
 
     mesh1 = Mesh()
     mesh1.add_volume(mesh, id=1, name="Left ventricle")
     model.mesh = mesh1
-    model.left_ventricle.element_ids = np.arange(0, model.mesh.n_cells)
+    model.left_ventricle.pid = 1
 
     part = model.create_stiff_ventricle_base()
-    assert len(part.element_ids) == 20
-    assert np.all(part.element_ids == np.arange(180, 200))
+
+    part_element_ids = part.get_element_ids(model.mesh)
+    assert len(part_element_ids) == 20
+    assert np.all(part_element_ids == np.arange(180, 200))
+    # Check whether the left ventricle part has the correct number of cells
+    assert len(model.left_ventricle.get_element_ids(model.mesh)) == total_num_cells - 20

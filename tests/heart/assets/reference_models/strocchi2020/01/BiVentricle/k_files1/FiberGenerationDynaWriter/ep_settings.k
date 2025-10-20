@@ -2,6 +2,9 @@
 *EM_CONTROL
 $#   emsol     numls   macrodt   dimtype    nperio    unused   ncylfem   ncylbem
         11         4       1.0                                    5000          
+*EM_CONTROL_TIMESTEP
+$#  tstype    dtcons      lcid    factor     tsmin     tsmas     rlcsf    mecats
+         1       1.0                 1.0                            25         0
 *EM_CONTROL_EP
 $#olvetype  numsplit   actusig  ionsolvr
          4         1 100000000          

@@ -22,12 +22,10 @@
 
 """
 
-Run a full-heart electrophysiology simulation
+Run a full-heart ventricular tachycardia simulation
 ---------------------------------------------
-This example shows how to consume a full-heart model and set it up for the
-main electrophysiology simulation. It loads a pre-computed heart model
-and computes the fiber orientation, Purkinje network, and conduction system. It
-then simulates the electrophysiology.
+This example shows how to consume a full-heart model and set it up for
+an electrophysiology simulation of ischemic ventricular tachycardia.
 """
 
 ###############################################################################
@@ -47,7 +45,7 @@ then simulates the electrophysiology.
 # Import the required modules and set relevant paths, including that of the working
 # directory, heart model, and LS-DYNA executable file.
 
-import os
+import os, re
 import numpy as np
 import pyvista as pv
 from pathlib import Path
@@ -60,15 +58,98 @@ from ansys.health.heart.settings.settings import Stimulation
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
 from ansys.health.heart.examples import get_preprocessed_fullheart
 
-# Set the working directory and path to the model. This example assumes that there is a
+###############################################################################
+# Define utility functions
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
-path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart(resolution="1.5mm")
+# Define auxiliary function to find a point in the model based on its UVC coordinates.
+def get_point_from_uvc(
+    model: models.HeartModel, apicobasal: float, transmural: float, rotational: float
+):
+    point_coords = np.array([apicobasal, transmural, rotational])
+    diffs = (
+        np.transpose(
+            np.vstack(
+                (
+                    model.mesh.point_data["apico-basal"],
+                    model.mesh.point_data["transmural"],
+                    model.mesh.point_data["rotational"],
+                )
+            )
+        )
+        - point_coords
+    )
+
+    norms = np.linalg.norm(diffs, axis=1)
+    norms[np.isnan(norms)] = 1000
+    point_id = np.argmin(norms)
+    return point_id
+
+def manually_add_multistim_kwds(
+    simulation_folder_path: str
+):
+    
+    target_file = os.path.join(simulation_folder_path, "ep_settings.k")
+    
+    regex = r"\*EM_EP_EIKONAL.*eikStimNS[ \w]*\n[ \t\d]{10}[ \t\d]{10}([ \t\d]{10}).*?\*"
+    
+    with open(target_file, mode='r') as f:
+        text = f.read()
+    
+    re_match = re.search(regex, text, flags = re.DOTALL)
+    stim_set_id = re_match.group(1)
+
+    input_string = (
+        "*EM_EP_EIKONAL\n"
+        "$--------1---------2---------3---------4---------5---------6---------7---------8\n"
+        "$    eikId  eikPaSet eikStimNS eikStimDF   nMaxAct\n"
+        "         1         2                            30\n"
+        "$--------1---------2---------3---------4---------5---------6---------7---------8\n"
+        "$ footType     footT     footA  footTauf   footVth\n"
+        "         1         5        50        1.\n"
+        "$solverTyp\n"
+        "         1\n"
+        "*EM_EP_TENTUSSCHER_STIMULUS2\n"
+        "$#  StimID   TetType     SetID      LCID\n"
+        f"         1         2{stim_set_id}         1\n"
+        "*DEFINE_CURVE\n"
+        "1\n"
+        "0.,50\n"
+        "4.9,50\n"
+        "5.,0\n"
+        "239.9,0\n"
+        "240,50\n"
+        "244.9,50\n"
+        "245,0\n"
+    )
+    
+    text = text[:re_match.start()] + input_string + text[re_match.end()-1:]
+    
+    with open(target_file, mode = 'w') as f:
+        f.write(text)
+
+def multistim_simulation(
+    simulator: EPSimulator, 
+):
+    simulation_folder_name = "main-ep-ReactionEikonal"
+
+    simulation_folder_path = os.path.join(simulator.root_directory, simulation_folder_name)
+    simulator._write_main_simulation_files(simulation_folder_path)
+
+    manually_add_multistim_kwds(simulation_folder_path)
+    
+    input_file = os.path.join(simulation_folder_path, "main.k")
+    simulator._run_dyna(input_file)
+    
+    print("done.")
 
 ###############################################################################
 # Load the full-heart model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Load the full-heart model.
+workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
+path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart(resolution="1.5mm")
+
 model: models.FullHeart = models.HeartModel.load_model(
     path_to_model, path_to_partinfo, working_directory=workdir
 )
@@ -92,7 +173,7 @@ lsdyna_path = r"ls-dyna_msmpi.exe"
 
 # Instantiate LS-DYNA settings.
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path, dynatype="msmpi", num_cpus=4, platform="windows"
+    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=4, platform="windows"
 )
 
 # Instantiate the simulator, modifying options as necessary.
@@ -129,28 +210,6 @@ simulator.model.plot_fibers(n_seed_points=2000)
 ###############################################################################
 # Build scar and slow conduction channel geometry
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
-# Define auxiliary function to find a point in the model based on its UVC coordinates.
-def get_point_from_uvc(
-    model: models.HeartModel, apicobasal: float, transmural: float, rotational: float
-):
-    point_coords = np.array([apicobasal, transmural, rotational])
-    diffs = (
-        np.transpose(
-            np.vstack(
-                (
-                    model.mesh.point_data["apico-basal"],
-                    model.mesh.point_data["transmural"],
-                    model.mesh.point_data["rotational"],
-                )
-            )
-        )
-        - point_coords
-    )
-
-    norms = np.linalg.norm(diffs, axis=1)
-    norms[np.isnan(norms)] = 1000
-    point_id = np.argmin(norms)
-    return point_id
 
 # Compute universal heart coodinates.
 simulator.compute_uhc()
@@ -168,7 +227,7 @@ plane = pv.Plane(center=uvc_stimpoint, direction=simulator.model.l4cv_axis['norm
 pl = pv.Plotter()
 pl.add_mesh(sphere, color ='red', opacity = 0.3)
 pl.add_mesh(plane, color = 'blue', opacity = 0.3)
-pl.add_mesh(mesh, opacity = 0.3)
+pl.add_mesh(mesh, opacity = 0.3, color = 'grey')
 pl.show()
 
 labels = np.array([0]*mesh.n_cells)
@@ -236,16 +295,20 @@ stim_point_ids = mesh.cells.reshape((-1,5))[stim_tet_id][1:]
 
 # TODO @Karim multistim
 
-stim_uvc = Stimulation(
-        node_ids=list(stim_point_ids), t_start=0, period=230, duration=5, amplitude=50
-)
+stim_uvc = Stimulation(node_ids=list(stim_point_ids))
 simulator.settings.electrophysiology.stimulation = {'stim' : stim_uvc}
 
 ###############################################################################
 # Change simulation settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# avoid transmural ep heterogeneity
+simulator.model.mesh.point_data.remove("transmural") 
+
+# Set export frequency
 simulator.settings.electrophysiology.analysis.dt_d3plot = Quantity(50)
+
+# Increase simulation duration
 simulator.settings.electrophysiology.analysis.end_time = Quantity(1500)
 
 ###############################################################################
@@ -256,4 +319,5 @@ simulator.settings.electrophysiology.analysis.end_time = Quantity(1500)
 
 # # switch to ReactionEikonal
 simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
-simulator.simulate(folder_name="main-ep-ReactionEikonal")
+
+multistim_simulation(simulator)

@@ -22,24 +22,30 @@
 
 """
 
-Full-heart EP-simulator example
--------------------------------
-This example shows you how to consume a full-heart model and
-set it up for the main electropysiology simulation. This examples demonstrates how
-you can load a pre-computed heart model, compute the fiber direction, compute the
-purkinje network and conduction system and finally simulate the electrophysiology.
+Run a full-heart electrophysiology simulation
+---------------------------------------------
+This example shows how to consume a full-heart model and set it up for the
+main electrophysiology simulation. It loads a pre-computed heart model
+and computes the fiber orientation, Purkinje network, and conduction system. It
+then simulates the electrophysiology.
 """
 
 ###############################################################################
-# Example setup
-# -------------
-# before computing the fiber orientation, purkinje network we need to load
-# the required modules, load a heart model and set up the simulator.
+# .. warning::
+#    When using a standalone version of the DPF Server, you must accept the `license terms
+#    <https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html>`_. To
+#    accept these terms, you can set this environment variable:
 #
+#    .. code-block:: python
+#
+#        import os
+#        os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+
+###############################################################################
 # Perform the required imports
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules and set relevant paths, including that of the working
-# directory, model, and ls-dyna executable.
+# directory, heart model, and LS-DYNA executable file.
 
 import os
 import numpy as np
@@ -52,38 +58,44 @@ from ansys.health.heart.objects import Point
 from ansys.health.heart.settings.material.ep_material import CellModel, EPMaterial
 from ansys.health.heart.settings.settings import Stimulation
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
+from ansys.health.heart.examples import get_preprocessed_fullheart
 
-# accept dpf license agreement
-# https://dpf.docs.pyansys.com/version/stable/getting_started/licensing.html#ref-licensing
-os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
+# Set the working directory and path to the model. This example assumes that there is a
 
-# set working directory and path to model. Note that we assume here that that there is a
-# preprocessed model called "heart_model.vtu" available in the working directory.
 workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021" / "01" / "FullHeart"
-path_to_model = str(workdir / "heart_model.vtu")
+path_to_model, path_to_partinfo, _ = get_preprocessed_fullheart(resolution="1.5mm")
 
-# load four chamber heart model.
-model: models.FullHeart = models.FullHeart(working_directory=workdir)
-model.load_model_from_mesh(path_to_model, path_to_model.replace(".vtu", ".partinfo.json"))
+###############################################################################
+# Load the full-heart model
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# Load the full-heart model.
+model: models.FullHeart = models.HeartModel.load_model(
+    path_to_model, path_to_partinfo, working_directory=workdir
+)
 
-
-# save model.
+# Save the model.
 model.mesh.save(os.path.join(model.workdir, "simulation_model.vtu"))
 
 ###############################################################################
-# Instantiate the simulator object
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# instantiate the simulator and settings appropriately.
+# Instantiate the simulator
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# Instantiate the simulator and define settings.
 
-# specify LS-DYNA path (last tested working versions is intelmpi-linux-DEV-106117)
+###############################################################################
+# .. note::
+#    The ``DynaSettings`` object supports several LS-DYNA versions and platforms,
+#    including ``smp``, ``intempi``, ``msmpi``, ``windows``, ``linux``, and ``wsl``.
+#    Choose the one that works for your setup.
+
+# Specify the LS-DYNA path. (The last tested working version is ``intelmpi-linux-DEV-106117``.)
 lsdyna_path = r"ls-dyna_msmpi.exe"
 
-# instantaiate dyna settings of choice
+# Instantiate LS-DYNA settings.
 dyna_settings = DynaSettings(
-    lsdyna_path=lsdyna_path, dynatype="intelmpi", num_cpus=6, platform="wsl"
+    lsdyna_path=lsdyna_path, dynatype="msmpi", num_cpus=4, platform="windows"
 )
 
-# instantiate simulator. Change options where necessary.
+# Instantiate the simulator, modifying options as necessary.
 simulator = EPSimulator(
     model=model,
     dyna_settings=dyna_settings,
@@ -93,41 +105,31 @@ simulator = EPSimulator(
 ###############################################################################
 # Load simulation settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~
-# Here we load the default settings.
-
+# Load the default settings.
 simulator.settings.load_defaults()
 
 ###############################################################################
-# Compute the fiber orientation
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Compute fiber orientation and plot the computed fibers on the entire model.
+# Remove atria
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# Remove atria as they do not particiapte in ventricular tachycardia.
+simulator.model.right_atrium.active = False
+simulator.model.left_atrium.active = False
+simulator.model.right_atrium.fiber = False
+simulator.model.left_atrium.fiber = False
 
 ###############################################################################
-# .. warning::
-#    Atrial fiber orientation is approximated by apex-base direction in this model
+# Compute fiber orientation
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+# Compute fiber orientation and plot the fibers on the entire model.
 
-# compute ventricular fibers
-simulator.compute_fibers()
-
-# compute atrial fibers
-simulator.model.right_atrium.active = True
-simulator.model.left_atrium.active = True
-simulator.model.right_atrium.fiber = True
-simulator.model.left_atrium.fiber = True
-simulator.compute_left_atrial_fiber()
-simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
+# Compute ventricular fibers.
+simulator.compute_fibers(method="D-RBM")
 simulator.model.plot_fibers(n_seed_points=2000)
-
-###############################################################################
-# .. image:: /_static/images/fibers.png
-#   :width: 400pt
-#   :align: center
 
 ###############################################################################
 # Build scar and slow conduction channel geometry
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# Define auxiliary function to find a point in the model based on its UVC coordinates
+# Define auxiliary function to find a point in the model based on its UVC coordinates.
 def get_point_from_uvc(
     model: models.HeartModel, apicobasal: float, transmural: float, rotational: float
 ):
@@ -150,11 +152,12 @@ def get_point_from_uvc(
     point_id = np.argmin(norms)
     return point_id
 
+# Compute universal heart coodinates.
 simulator.compute_uhc()
 
 mesh = simulator.model.mesh.copy()
 
-# removing surface meshes
+# Remove surface meshes to facilitate volume mesh modification.
 mesh.remove_cells(mesh.celltypes != 10, inplace=True)
 
 uvc_point_id = get_point_from_uvc(model, apicobasal=0.5, transmural=0.5, rotational=np.pi)
@@ -188,8 +191,8 @@ bz_tet_ids = np.nonzero(
 
 labels[bz_tet_ids] = 1
 
-mesh['test'] = labels
-mesh.plot(scalars = 'test')
+mesh['arrhythmogenic_substrate'] = labels
+mesh.plot(scalars = 'arrhythmogenic_substrate')
 
 ###############################################################################
 # Build scar and slow conduction channel parts
@@ -243,7 +246,7 @@ simulator.settings.electrophysiology.stimulation = {'stim' : stim_uvc}
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 simulator.settings.electrophysiology.analysis.dt_d3plot = Quantity(50)
-simulator.settings.electrophysiology.analysis.end_time = Quantity(1000)
+simulator.settings.electrophysiology.analysis.end_time = Quantity(1500)
 
 ###############################################################################
 # Start main simulation

@@ -226,8 +226,6 @@ class Mechanics(Settings):
 
     analysis: Analysis = field(default_factory=lambda: Analysis())
     """Generic analysis settings."""
-    material: Material = field(default_factory=lambda: Material())
-    """Material settings/configuration."""
     boundary_conditions: BoundaryConditions = field(default_factory=lambda: BoundaryConditions())
     """Boundary condition specifications."""
     system: SystemModel = field(default_factory=lambda: SystemModel())
@@ -297,8 +295,6 @@ class Stimulation(Settings):
 class Electrophysiology(Settings):
     """Class for keeping track of EP settings."""
 
-    material: EpMaterial = field(default_factory=lambda: EpMaterial())
-    """Material settings/configuration."""
     analysis: EPAnalysis = field(default_factory=lambda: EPAnalysis())
     """Generic analysis settings."""
     stimulation: AttrDict[str, Stimulation] = None
@@ -555,14 +551,11 @@ class SimulationSettings:
             # assign values to each respective attribute
             analysis = Analysis()
             analysis.set_values(settings[attribute_name]["analysis"])
-            material = Material()
-            material.set_values(settings[attribute_name]["material"])
             boundary_conditions = BoundaryConditions()
             boundary_conditions.set_values(settings[attribute_name]["boundary_conditions"])
             system_model = SystemModel()
             system_model.set_values(settings[attribute_name]["system"])
             self.mechanics.analysis = analysis
-            self.mechanics.material = material
             self.mechanics.boundary_conditions = boundary_conditions
             self.mechanics.system = system_model
 
@@ -604,15 +597,12 @@ class SimulationSettings:
             if isinstance(getattr(self, attr), Mechanics):
                 analysis = Analysis()
                 analysis.set_values(mech_defaults.analysis)
-                material = Material()
-                material.set_values(mech_defaults.material)
                 boundary_conditions = BoundaryConditions()
                 boundary_conditions.set_values(mech_defaults.boundary_conditions)
                 system_model = SystemModel()
                 system_model.set_values(mech_defaults.system_model)
 
                 self.mechanics.analysis = analysis
-                self.mechanics.material = material
                 self.mechanics.boundary_conditions = boundary_conditions
                 self.mechanics.system = system_model
 
@@ -624,7 +614,6 @@ class SimulationSettings:
             if isinstance(getattr(self, attr), Electrophysiology):
                 analysis = EPAnalysis()
                 analysis.set_values(ep_defaults.analysis)
-                # TODO: Deprecate this way of handling default materials
                 self.electrophysiology.analysis = analysis
                 self.electrophysiology.stimulation: AttrDict[str, Stimulation] = AttrDict()
                 for key in ep_defaults.stimulation.keys():

@@ -38,7 +38,6 @@ from ansys.health.heart.settings.material.material import (
     Mat295,
     NeoHookean,
 )
-import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings
 from ansys.health.heart.utils.vtk_utils import compute_surface_nodal_area_pyvista
 from ansys.health.heart.writer import custom_keywords as custom_keywords
@@ -81,8 +80,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.set_flow_area: bool = True
         """Flag indicating if the flow area is set for control volume."""
 
-        if sett.Mechanics not in self._get_subsettings():
-            raise ValueError("Expecting mechanics settings.")
         return
 
     def update(self, dynain_name: Optional[str] = None, robin_bcs: list[Callable] = None) -> None:

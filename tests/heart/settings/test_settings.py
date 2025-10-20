@@ -51,10 +51,6 @@ REF_STRING_SETTINGS_YML_MECHANICS = (
     "      dt_icvout: 5 millisecond\n"
     "      global_damping: 0.33 / second\n"
     "      stiffness_damping: 0.1 second\n"
-    "    material:\n"
-    "      myocardium: null\n"
-    "      passive: null\n"
-    "      cap: null\n"
     "    boundary_conditions:\n"
     "      robin: null\n"
     "      valve: null\n"
@@ -68,11 +64,6 @@ REF_STRING_SETTINGS_YML_MECHANICS = (
 REF_STRING_SETTINGS_YML_EP = (
     "Simulation Settings:\n"
     "  electrophysiology:\n"
-    "    material:\n"
-    "      myocardium: null\n"
-    "      atrium: null\n"
-    "      cap: null\n"
-    "      beam: null\n"
     "    analysis:\n"
     "      end_time: 1 second\n"
     "      dtmin: 2 second\n"
@@ -283,9 +274,7 @@ def default_allsettings():
 def test_load_defaults(default_settings):
     default_settings.to_consistent_unit_system()
 
-    assert default_settings.mechanics.material.myocardium["isotropic"]["rho"].m == pytest.approx(
-        0.001, 1e-9
-    )
+    assert default_settings.mechanics.analysis.end_time.m == 800.0
 
 
 def test_purkinje_settings(default_allsettings: SimulationSettings):

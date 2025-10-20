@@ -37,7 +37,7 @@ import pyvista as pv
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.exceptions import InvalidHeartModelError
+from ansys.health.heart.exceptions import InvalidHeartModelError, PartAlreadyExistsError
 from ansys.health.heart.landmarks import LandMarks
 from ansys.health.heart.objects import (
     Cap,
@@ -409,7 +409,7 @@ class HeartModel:
 
         if name in [p.name for p in self.parts]:
             LOGGER.error(f"Failed to create {name}. Name already exists.")
-            return None
+            raise PartAlreadyExistsError(f"Part {name} already exists.")
 
         new_part_id = self.mesh._unused_volume_id
 

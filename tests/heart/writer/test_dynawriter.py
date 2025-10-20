@@ -35,6 +35,7 @@ from ansys.health.heart.objects import (
 )
 import ansys.health.heart.parts as anatomy
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
+from ansys.health.heart.settings.material.ep_material_factory import assign_default_ep_materials
 from ansys.health.heart.settings.settings import Mechanics, SimulationSettings, Stimulation
 import ansys.health.heart.writer as writers
 
@@ -203,6 +204,8 @@ def test_update_use_purkinje(_mock_model: FullHeart):
     settings.load_defaults()
 
     writer = writers.ElectroMechanicsDynaWriter(model, settings)
+
+    assign_default_ep_materials(writer.model, "Monodomain")
 
     writer._update_use_Purkinje()
 

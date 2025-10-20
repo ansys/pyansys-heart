@@ -30,6 +30,7 @@ import scipy.spatial as spatial
 
 from ansys.dyna.core.keywords import keywords
 from ansys.health.heart import LOG as LOGGER
+from ansys.health.heart.exceptions import MissingMaterialError
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.pre.conduction_path import ConductionPathType
 import ansys.health.heart.settings.material.cell_models as cell_models
@@ -323,8 +324,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         model: Union[HeartModel, FullHeart, FourChamber, BiVentricle, LeftVentricle],
         settings: SimulationSettings = None,
     ) -> None:
-        if isinstance(model, FourChamber):
-            model._create_atrioventricular_isolation()
         if model._add_blood_pool:
             model._create_blood_part()
 
@@ -392,25 +391,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _update_ep_material_db(self) -> None:
         """Add electrophysiology material for each defined part."""
-        solvertype = self.settings.electrophysiology.analysis.solvertype
-        # TODO: This assigns default values of sig1 etc to parts that do not have a material
-        # TODO: assigned however material assignment and validation should happen in the simulator
-        # TODO: class.
         for part in self.model.parts:
-            if (
-                not isinstance(
-                    part.ep_material, (ep_materials.EPMaterialModel, ep_materials.Insulator)
-                )
-                or part.ep_material is None
-            ):
-                LOGGER.info(f"Material of {part.name} is assigned automatically.")
-                if part.active:
-                    part.ep_material = ep_material_factory.get_default_myocardium_material(
-                        solvertype
-                    )
-                else:
-                    part.ep_material = ep_material_factory.get_passive_material(solvertype)
-
             self.kw_database.material.append(f"$$ {part.name} $$")
             ep_mid = part.pid
             kw = self._get_ep_material_kw(ep_mid, part.ep_material)
@@ -802,15 +783,9 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # loop for each beam
         beam_pid = []
         registered_surfaces = [surf for part in self.model.parts for surf in part.surfaces]
-        solvertype = self.settings.electrophysiology.analysis.solvertype
         for beam in self.model.conduction_paths:
-            if (
-                not isinstance(
-                    beam.ep_material, (ep_materials.EPMaterialModel, ep_materials.Insulator)
-                )
-                or beam.ep_material is None
-            ):
-                epmat = ep_material_factory.get_default_conduction_system_material(solvertype)
+            if not isinstance(beam.ep_material, ep_materials.EPMaterialModel):
+                raise MissingMaterialError(beam.name, "EP")
             else:
                 epmat = beam.ep_material
 

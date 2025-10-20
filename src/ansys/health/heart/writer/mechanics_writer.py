@@ -36,12 +36,7 @@ from ansys.health.heart.objects import Cap, CapType, SurfaceMesh
 import ansys.health.heart.parts as anatomy
 from ansys.health.heart.settings.material.material import (
     Mat295,
-    MechanicalMaterialModel,
     NeoHookean,
-)
-from ansys.health.heart.settings.material.material_factory import (
-    _get_myocardium_material,
-    _get_passive_material,
 )
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings
@@ -334,27 +329,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_material_db(self, add_active: bool = True, em_couple: bool = False) -> None:
-        #
-        for part in self.model.parts:
-            if (
-                not isinstance(part.meca_material, MechanicalMaterialModel)
-                or part.meca_material is None
-            ):
-                # assign material for part if it's empty
-                LOGGER.info(f"Material of {part.name} is assigned automatically.")
-                if part.fiber:
-                    part.meca_material = _get_myocardium_material(
-                        self.settings.mechanics.material.myocardium, ep_coupled=em_couple
-                    )
-                    # disable active module
-                    if not part.active:
-                        part.meca_material.active = None
-
-                else:
-                    part.meca_material = _get_passive_material(
-                        self.settings.mechanics.material.passive
-                    )
-
         # write
         for part in self.model.parts:
             material = part.meca_material

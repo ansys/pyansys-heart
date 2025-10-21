@@ -169,33 +169,6 @@ class EPAnalysis(Analysis):
 
 
 @dataclass(repr=False)
-class Material(Settings):
-    """Class for storing material settings."""
-
-    myocardium: AttrDict = None
-    """Myocardium material."""
-    passive: AttrDict = None
-    """Passive material. For example, the vessel wall."""
-    cap: AttrDict = None
-    """Cap material."""
-
-
-@dataclass(repr=False)
-class EpMaterial(Settings):
-    """Class for storing EP material settings."""
-
-    myocardium: AttrDict = None
-    """Myocardium material."""
-    atrium: AttrDict = None
-    """Atrial material."""
-    cap: AttrDict = None
-    """Cap material."""
-    beam: AttrDict = None
-    """Beam material."""
-    # TODO: consider 'other', e.g passive conductor, soft tissue...?
-
-
-@dataclass(repr=False)
 class BoundaryConditions(Settings):
     """Stores settings/parameters for boundary conditions."""
 
@@ -226,8 +199,6 @@ class Mechanics(Settings):
 
     analysis: Analysis = field(default_factory=lambda: Analysis())
     """Generic analysis settings."""
-    material: Material = field(default_factory=lambda: Material())
-    """Material settings/configuration."""
     boundary_conditions: BoundaryConditions = field(default_factory=lambda: BoundaryConditions())
     """Boundary condition specifications."""
     system: SystemModel = field(default_factory=lambda: SystemModel())
@@ -297,12 +268,21 @@ class Stimulation(Settings):
 class Electrophysiology(Settings):
     """Class for keeping track of EP settings."""
 
-    material: EpMaterial = field(default_factory=lambda: EpMaterial())
-    """Material settings/configuration."""
     analysis: EPAnalysis = field(default_factory=lambda: EPAnalysis())
     """Generic analysis settings."""
     stimulation: AttrDict[str, Stimulation] = None
     """Stimulation settings."""
+
+    _layers: dict = field(
+        default_factory=lambda: {
+            "percent_endo": Quantity(0.17, "dimensionless"),  # thickness of endocardial layer
+            "percent_mid": Quantity(0.41, "dimensionless"),  # thickness of midmyocardial layer
+        }
+    )
+    """Layers for material assignment of the myocardium."""
+
+    _lambda: Quantity = Quantity(0.2, "dimensionless")  # activate extracellular potential solve
+    """Intra to extracellular conductivity ratio."""
 
 
 @dataclass(repr=False)
@@ -544,14 +524,11 @@ class SimulationSettings:
             # assign values to each respective attribute
             analysis = Analysis()
             analysis.set_values(settings[attribute_name]["analysis"])
-            material = Material()
-            material.set_values(settings[attribute_name]["material"])
             boundary_conditions = BoundaryConditions()
             boundary_conditions.set_values(settings[attribute_name]["boundary_conditions"])
             system_model = SystemModel()
             system_model.set_values(settings[attribute_name]["system"])
             self.mechanics.analysis = analysis
-            self.mechanics.material = material
             self.mechanics.boundary_conditions = boundary_conditions
             self.mechanics.system = system_model
 
@@ -593,15 +570,12 @@ class SimulationSettings:
             if isinstance(getattr(self, attr), Mechanics):
                 analysis = Analysis()
                 analysis.set_values(mech_defaults.analysis)
-                material = Material()
-                material.set_values(mech_defaults.material)
                 boundary_conditions = BoundaryConditions()
                 boundary_conditions.set_values(mech_defaults.boundary_conditions)
                 system_model = SystemModel()
                 system_model.set_values(mech_defaults.system_model)
 
                 self.mechanics.analysis = analysis
-                self.mechanics.material = material
                 self.mechanics.boundary_conditions = boundary_conditions
                 self.mechanics.system = system_model
 
@@ -613,12 +587,7 @@ class SimulationSettings:
             if isinstance(getattr(self, attr), Electrophysiology):
                 analysis = EPAnalysis()
                 analysis.set_values(ep_defaults.analysis)
-                # TODO: Deprecate this way of handling default materials
-                material = EpMaterial()
-                material.set_values(ep_defaults.material)
-
                 self.electrophysiology.analysis = analysis
-                self.electrophysiology.material = material
                 self.electrophysiology.stimulation: AttrDict[str, Stimulation] = AttrDict()
                 for key in ep_defaults.stimulation.keys():
                     system_model = Stimulation()

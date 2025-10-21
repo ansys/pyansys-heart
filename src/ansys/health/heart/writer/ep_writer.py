@@ -425,8 +425,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _create_myocardial_nodeset_layers(self) -> tuple[int, int, int]:
         """Create myocardial node set layers."""
-        percent_endo = self.settings.electrophysiology.material.myocardium["percent_endo"]
-        percent_mid = self.settings.electrophysiology.material.myocardium["percent_mid"]
+        percent_endo = self.settings.electrophysiology._layers["percent_endo"].m
+        percent_mid = self.settings.electrophysiology._layers["percent_mid"].m
         values = self.model.mesh.point_data["transmural"]
         # Values from experimental data. See:
         # https://www.frontiersin.org/articles/10.3389/fphys.2019.00580/full
@@ -699,7 +699,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 for kw in deck.keywords:
                     # activate extracellular potential solve
                     if "EM_MAT" in kw.get_title():
-                        kw.lambda_ = self.settings.electrophysiology.material.myocardium["lambda"].m
+                        kw.lambda_ = self.settings.electrophysiology._lambda.m
 
     def _update_ECG_coordinates(self) -> None:  # noqa N802
         """Add ECG computation content."""

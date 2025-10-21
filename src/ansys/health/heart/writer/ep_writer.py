@@ -425,8 +425,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _create_myocardial_nodeset_layers(self) -> tuple[int, int, int]:
         """Create myocardial node set layers."""
-        percent_endo = self.settings.electrophysiology._layers["percent_endo"].m
-        percent_mid = self.settings.electrophysiology._layers["percent_mid"].m
+        percent_endo = self.settings.electrophysiology.layers["percent_endo"].m
+        percent_mid = self.settings.electrophysiology.layers["percent_mid"].m
         values = self.model.mesh.point_data["transmural"]
         # Values from experimental data. See:
         # https://www.frontiersin.org/articles/10.3389/fphys.2019.00580/full

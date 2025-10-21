@@ -127,14 +127,14 @@ class BaseDynaWriter:
 
         return
 
-    def _get_subsettings(self) -> list[sett.Settings]:
+    def _get_subsettings(self) -> list[sett.BaseSettings]:
         """Get subsettings from the settings object."""
         import ansys.health.heart.settings.settings as sett
 
         subsettings_classes = [
             getattr(self.settings, attr).__class__
             for attr in self.settings.__dict__
-            if isinstance(getattr(self.settings, attr), sett.Settings)
+            if isinstance(getattr(self.settings, attr), sett.BaseSettings)
         ]
 
         return subsettings_classes

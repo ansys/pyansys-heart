@@ -80,10 +80,10 @@ REF_STRING_SETTINGS_YML_EP = (
     "        period: 800 millisecond\n"
     "        duration: 20 millisecond\n"
     "        amplitude: 50 microfarad / millimeter ** 3\n"
-    "    _layers:\n"
+    "    layers:\n"
     "      percent_endo: 0.17 dimensionless\n"
     "      percent_mid: 0.41 dimensionless\n"
-    "    _lambda: 0.2 dimensionless\n"
+    "    lambda_ratio: 0.2 dimensionless\n"
 )
 
 
@@ -124,7 +124,12 @@ def test_settings_save_002():
         purkinje=False,
         stress_free=False,
     )
-    stim = Stimulation(t_start=0, period=800, duration=20, amplitude=50)
+    stim = Stimulation(
+        t_start=Quantity(0, "ms"),
+        period=Quantity(800, "ms"),
+        duration=Quantity(20, "ms"),
+        amplitude=Quantity(50, "uF/mm^3"),
+    )
 
     settings.electrophysiology.stimulation = {"stimdefaults": stim}
     # fill some dummy data
@@ -142,7 +147,13 @@ def test_settings_save_002():
 
         compare_string_with_file(REF_STRING_SETTINGS_YML_EP, file_path)
     settings.load_defaults()
-    stim2 = Stimulation(node_ids=[1, 2, 3], t_start=10, period=100, duration=30, amplitude=40)
+    stim2 = Stimulation(
+        node_ids=[1, 2, 3],
+        t_start=Quantity(10, "ms"),
+        period=Quantity(100, "ms"),
+        duration=Quantity(30, "ms"),
+        amplitude=Quantity(40, "uF/mm^3"),
+    )
     settings.electrophysiology.stimulation["stim2"] = stim2
     stim: Stimulation = settings.electrophysiology.stimulation["stim2"]
 
@@ -239,9 +250,10 @@ def test_convert_units_002():
 
 
 def test_settings_set_defaults():
-    """Check if defaults properly set."""
-    settings = Fibers()
-    settings.set_values(fibers_defaults.angles)
+    """Check if defaults properly set using Pydantic model initialization."""
+    # Create Fibers instance with defaults applied directly
+    fibers_data = fibers_defaults.angles
+    settings = Fibers(**fibers_data)
     assert settings.alpha_endo.m == -60
 
 

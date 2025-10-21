@@ -169,33 +169,6 @@ class EPAnalysis(Analysis):
 
 
 @dataclass(repr=False)
-class Material(Settings):
-    """Class for storing material settings."""
-
-    myocardium: AttrDict = None
-    """Myocardium material."""
-    passive: AttrDict = None
-    """Passive material. For example, the vessel wall."""
-    cap: AttrDict = None
-    """Cap material."""
-
-
-@dataclass(repr=False)
-class EpMaterial(Settings):
-    """Class for storing EP material settings."""
-
-    myocardium: AttrDict = None
-    """Myocardium material."""
-    atrium: AttrDict = None
-    """Atrial material."""
-    cap: AttrDict = None
-    """Cap material."""
-    beam: AttrDict = None
-    """Beam material."""
-    # TODO: consider 'other', e.g passive conductor, soft tissue...?
-
-
-@dataclass(repr=False)
 class BoundaryConditions(Settings):
     """Stores settings/parameters for boundary conditions."""
 

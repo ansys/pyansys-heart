@@ -309,7 +309,7 @@ simulator.model.mesh.point_data.remove("transmural")
 simulator.settings.electrophysiology.analysis.dt_d3plot = Quantity(50)
 
 # Increase simulation duration
-simulator.settings.electrophysiology.analysis.end_time = Quantity(1500)
+simulator.settings.electrophysiology.analysis.end_time = Quantity(2000)
 
 ###############################################################################
 # Start main simulation

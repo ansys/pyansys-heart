@@ -49,7 +49,13 @@ import shutil
 from typing import Any, Literal
 
 from pint import Quantity, UnitRegistry
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_serializer,
+    field_validator,
+)
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
@@ -65,6 +71,8 @@ from ansys.health.heart.settings.defaults import (
     purkinje as purkinje_defaults,
     zeropressure as zero_pressure_defaults,
 )
+
+ureg = UnitRegistry()
 
 
 class BaseSettings(BaseModel):
@@ -96,6 +104,37 @@ class BaseSettings(BaseModel):
         data = self.serialize()
         data = {self.__class__.__name__: data}
         return yaml.dump(json.loads(json.dumps(data)), sort_keys=False)
+
+    @field_serializer("*", when_used="json")
+    def serialize_quantities_for_json(self, value: Any) -> str | Any:
+        """Serialize Quantity objects to string representation for JSON output.
+
+        This serializer is only used when serializing to JSON format, ensuring
+        that Quantity objects become JSON-serializable strings.
+
+        Parameters
+        ----------
+        value : Any
+            The field value to serialize.
+
+        Returns
+        -------
+        str | Any
+            String representation if value is a Quantity, otherwise unchanged.
+        """
+        if isinstance(value, Quantity):
+            return str(value)
+        return value
+
+    @field_validator("*", mode="before")
+    def parse_quantity(cls, v):  # noqa D102
+        try:
+            if isinstance(v, Quantity):
+                return v
+            elif isinstance(v, str) and len(v.split(" ")) >= 2:
+                return ureg(v)
+        except Exception:
+            return v  # fallback for non-quantity strings
 
     def serialize(self, remove_units: bool = False) -> dict[str, Any]:
         """Serialize the settings with Quantity objects as strings.

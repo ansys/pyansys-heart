@@ -129,7 +129,7 @@ def test_add_stimulation_keyword(_mock_model, solvertype, expected_kw):
     settings.load_defaults()
     settings.electrophysiology.analysis.solvertype = solvertype
     # set up stimulation
-    stimulation = Stimulation([1, 2])
+    stimulation = Stimulation(node_ids=[1, 2])
 
     writer = writers.ElectroMechanicsDynaWriter(model, settings)
 

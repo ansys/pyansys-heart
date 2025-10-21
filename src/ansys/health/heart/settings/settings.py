@@ -158,37 +158,6 @@ class BaseSettings(BaseModel):
 
         _to_consistent_units(self)
 
-    def remove_units(self) -> list[str]:
-        """Remove all units from Quantity objects, returning list of removed units.
-
-        Returns
-        -------
-        list[str]
-            List of unit strings that were removed.
-        """
-
-        def _remove_units_recursive(obj: Any) -> list[str]:
-            units = []
-            if isinstance(obj, BaseSettings):
-                obj_dict = obj.__dict__
-            elif isinstance(obj, dict):
-                obj_dict = obj
-            else:
-                return units
-
-            for key, value in obj_dict.items():
-                if isinstance(value, (dict, BaseSettings)):
-                    units.extend(_remove_units_recursive(value))
-                elif isinstance(value, Quantity):
-                    units.append(str(value.units))
-                    if isinstance(obj, BaseSettings):
-                        setattr(obj, key, value.magnitude)
-                    else:
-                        obj[key] = value.magnitude
-            return units
-
-        return _remove_units_recursive(self)
-
 
 class Analysis(BaseSettings):
     """Class for analysis settings.

@@ -22,10 +22,36 @@
 """Module to system model."""
 
 from dataclasses import dataclass
+from typing import Any
 
 from ansys.health.heart.models import BiVentricle, FourChamber, HeartModel, LeftVentricle
 from ansys.health.heart.parts import Chamber
 from ansys.health.heart.writer.define_function_templates import _define_function_0d_system
+
+
+def _convert_quantities_to_magnitudes(obj: Any) -> Any:
+    """Recursively convert Quantity objects to their magnitudes in nested dictionaries.
+
+    Parameters
+    ----------
+    obj : Any
+        Object that may contain Quantity objects.
+
+    Returns
+    -------
+    Any
+        Object with Quantity values converted to magnitudes.
+    """
+    from pint import Quantity
+
+    if isinstance(obj, dict):
+        return {key: _convert_quantities_to_magnitudes(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [_convert_quantities_to_magnitudes(item) for item in obj]
+    elif isinstance(obj, Quantity):
+        return obj.magnitude
+    else:
+        return obj
 
 
 @dataclass
@@ -43,7 +69,9 @@ class CVInteraction:
         if self.flow_name == "closed-loop":
             return ""
         else:
-            return _define_function_0d_system(self.lcid, self.flow_name, self.parameters)
+            # Convert any Quantity objects to magnitudes before passing to template
+            parameters_magnitudes = _convert_quantities_to_magnitudes(self.parameters)
+            return _define_function_0d_system(self.lcid, self.flow_name, parameters_magnitudes)
 
 
 @dataclass

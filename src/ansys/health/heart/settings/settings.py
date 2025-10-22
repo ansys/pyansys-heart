@@ -127,17 +127,35 @@ class BaseSettings(BaseModel):
         return value
 
     @field_validator("*", mode="before")
-    def parse_quantity(cls, v):  # noqa D102
-        if isinstance(v, Quantity):
-            return v
-        elif isinstance(v, str) and len(v.split(" ")) >= 2:
-            try:
-                return ureg(v)
-            except Exception as e:
-                LOGGER.warning(f"Failed to parse quantity from string '{v}': {e}")
-                return v
-        else:
-            return v
+    def parse_quantity(cls, v, info):  # noqa D102
+        """Parse string values to Quantity objects for fields annotated as Quantity.
+
+        Only applies to fields that are annotated with Quantity type annotations.
+        Other fields are passed through unchanged to avoid interference with
+        their specific validation logic.
+        """
+        # Get field annotation if available
+        if hasattr(info, "field_name") and info.field_name:
+            field_name = info.field_name
+            if hasattr(cls, "__annotations__") and field_name in cls.__annotations__:
+                field_annotation = cls.__annotations__[field_name]
+                # Check if the field is annotated as Quantity
+                if field_annotation == Quantity or (
+                    hasattr(field_annotation, "__origin__")
+                    and field_annotation.__origin__ == Quantity
+                ):
+                    # Only parse as quantity for Quantity-annotated fields
+                    if isinstance(v, Quantity):
+                        return v
+                    elif isinstance(v, str):
+                        try:
+                            return ureg(v)
+                        except Exception as e:
+                            LOGGER.warning(f"Failed to parse quantity from string '{v}': {e}")
+                            return v
+
+        # For non-Quantity fields or when annotation cannot be determined, pass through unchanged
+        return v
 
     def serialize(self, remove_units: bool = False) -> dict[str, Any]:
         """Serialize the settings with Quantity objects as strings.

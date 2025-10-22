@@ -128,13 +128,16 @@ class BaseSettings(BaseModel):
 
     @field_validator("*", mode="before")
     def parse_quantity(cls, v):  # noqa D102
-        try:
-            if isinstance(v, Quantity):
-                return v
-            elif isinstance(v, str) and len(v.split(" ")) >= 2:
+        if isinstance(v, Quantity):
+            return v
+        elif isinstance(v, str) and len(v.split(" ")) >= 2:
+            try:
                 return ureg(v)
-        except Exception:
-            return v  # fallback for non-quantity strings
+            except Exception as e:
+                LOGGER.warning(f"Failed to parse quantity from string '{v}': {e}")
+                return v
+        else:
+            return v
 
     def serialize(self, remove_units: bool = False) -> dict[str, Any]:
         """Serialize the settings with Quantity objects as strings.
@@ -500,43 +503,43 @@ class Stimulation(BaseSettings):
                 raise ValueError("Failed to cast node_ids to list of integers") from e
         raise ValueError("node_ids must be a list of integers or None")
 
-    @field_validator("t_start", "period", "duration")
-    @classmethod
-    def validate_time_quantities(cls, v: Any) -> Quantity:
-        """Validate time-based quantities.
+    # @field_validator("t_start", "period", "duration")
+    # @classmethod
+    # def validate_time_quantities(cls, v: Any) -> Quantity:
+    #     """Validate time-based quantities.
 
-        Parameters
-        ----------
-        v : Any
-            Input value to validate.
+    #     Parameters
+    #     ----------
+    #     v : Any
+    #         Input value to validate.
 
-        Returns
-        -------
-        Quantity
-            Validated time quantity in milliseconds.
-        """
-        if isinstance(v, Quantity):
-            return v
-        return Quantity(v, "ms")
+    #     Returns
+    #     -------
+    #     Quantity
+    #         Validated time quantity in milliseconds.
+    #     """
+    #     if isinstance(v, Quantity):
+    #         return v
+    #     return Quantity(v, "ms")
 
-    @field_validator("amplitude")
-    @classmethod
-    def validate_amplitude(cls, v: Any) -> Quantity:
-        """Validate amplitude quantity.
+    # @field_validator("amplitude")
+    # @classmethod
+    # def validate_amplitude(cls, v: Any) -> Quantity:
+    #     """Validate amplitude quantity.
 
-        Parameters
-        ----------
-        v : Any
-            Input value to validate.
+    #     Parameters
+    #     ----------
+    #     v : Any
+    #         Input value to validate.
 
-        Returns
-        -------
-        Quantity
-            Validated amplitude quantity.
-        """
-        if isinstance(v, Quantity):
-            return v
-        return Quantity(v, "uF/mm^3")
+    #     Returns
+    #     -------
+    #     Quantity
+    #         Validated amplitude quantity.
+    #     """
+    #     if isinstance(v, Quantity):
+    #         return v
+    #     return Quantity(v, "uF/mm^3")
 
 
 class Electrophysiology(BaseSettings):

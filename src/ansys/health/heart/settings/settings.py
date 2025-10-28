@@ -736,7 +736,21 @@ class Purkinje(BaseSettings):
 
 
 class SimulationSettings:
-    """Class for keeping track of settings."""
+    """Class for keeping track of settings.
+
+    Attributes are conditionally created based on initialization parameters.
+    All parameters default to True, so all attributes exist by default.
+    """
+
+    # Type annotations for conditionally created attributes
+    # Note: These attributes will only exist if the corresponding boolean parameter is True
+    # All parameters default to True, so these attributes exist in the default case
+    mechanics: Mechanics  # Exists when mechanics=True (default)
+    electrophysiology: Electrophysiology  # Exists when electrophysiology=True (default)
+    fibers: Fibers  # Exists when fiber=True (default)
+    atrial_fibers: AtrialFiber  # Exists when fiber=True (default)
+    purkinje: Purkinje  # Exists when purkinje=True (default)
+    stress_free: ZeroPressure  # Exists when stress_free=True (default)
 
     def __init__(
         self,

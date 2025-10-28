@@ -510,44 +510,6 @@ class Stimulation(BaseSettings):
                 raise ValueError("Failed to cast node_ids to list of integers") from e
         raise ValueError("node_ids must be a list of integers or None")
 
-    # @field_validator("t_start", "period", "duration")
-    # @classmethod
-    # def validate_time_quantities(cls, v: Any) -> Quantity:
-    #     """Validate time-based quantities.
-
-    #     Parameters
-    #     ----------
-    #     v : Any
-    #         Input value to validate.
-
-    #     Returns
-    #     -------
-    #     Quantity
-    #         Validated time quantity in milliseconds.
-    #     """
-    #     if isinstance(v, Quantity):
-    #         return v
-    #     return Quantity(v, "ms")
-
-    # @field_validator("amplitude")
-    # @classmethod
-    # def validate_amplitude(cls, v: Any) -> Quantity:
-    #     """Validate amplitude quantity.
-
-    #     Parameters
-    #     ----------
-    #     v : Any
-    #         Input value to validate.
-
-    #     Returns
-    #     -------
-    #     Quantity
-    #         Validated amplitude quantity.
-    #     """
-    #     if isinstance(v, Quantity):
-    #         return v
-    #     return Quantity(v, "uF/mm^3")
-
 
 class Electrophysiology(BaseSettings):
     """Class for keeping track of EP settings.

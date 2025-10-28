@@ -148,9 +148,9 @@ class BaseSettings(BaseModel):
     def parse_quantity(cls, v, info):  # noqa D102
         """Parse string values to Quantity objects for fields annotated as Quantity.
 
-        Only applies to fields that are annotated with Quantity type annotations.
-        Other fields are passed through unchanged to avoid interference with
-        their specific validation logic.
+        This validator applies to all fields and attempts to parse string values
+        as Quantity objects when the field is annotated with Quantity type.
+        For nested models, it ensures proper Quantity parsing across all levels.
 
         Parameters
         ----------
@@ -164,27 +164,44 @@ class BaseSettings(BaseModel):
         Any
             Quantity object if conversion successful, otherwise the original value.
         """
-        # Get field annotation if available
-        if hasattr(info, "field_name") and info.field_name:
-            field_name = info.field_name
-            if hasattr(cls, "__annotations__") and field_name in cls.__annotations__:
-                field_annotation = cls.__annotations__[field_name]
-                # Check if the field is annotated as Quantity
-                if field_annotation == Quantity or (
-                    hasattr(field_annotation, "__origin__")
-                    and field_annotation.__origin__ == Quantity
-                ):
-                    # Only parse as quantity for Quantity-annotated fields
-                    if isinstance(v, Quantity):
-                        return v
-                    elif isinstance(v, str):
-                        try:
-                            return ureg(v)
-                        except Exception as e:
-                            LOGGER.warning(f"Failed to parse quantity from string '{v}': {e}")
-                            return v
+        # If it's already a Quantity, return as-is
+        if isinstance(v, Quantity):
+            return v
 
-        # For non-Quantity fields or when annotation cannot be determined, pass through unchanged
+        # Only attempt parsing for string values
+        if not isinstance(v, str):
+            return v
+
+        # Get field annotation if available
+        field_name = getattr(info, "field_name", None)
+        if not field_name:
+            return v
+
+        # Check if this field should be a Quantity based on annotation
+        if hasattr(cls, "__annotations__") and field_name in cls.__annotations__:
+            field_annotation = cls.__annotations__[field_name]
+
+            # Check if the field is annotated as Quantity
+            if field_annotation == Quantity:
+                try:
+                    return ureg(v)
+                except Exception as e:
+                    LOGGER.warning(
+                        f"Failed to parse quantity from string '{v}' for field '{field_name}': {e}"
+                    )
+                    return v
+
+            # Handle generic aliases (for Python 3.9+ compatibility)
+            if hasattr(field_annotation, "__origin__") and field_annotation.__origin__ == Quantity:
+                try:
+                    return ureg(v)
+                except Exception as e:
+                    LOGGER.warning(
+                        f"Failed to parse quantity from string '{v}' for field '{field_name}': {e}"
+                    )
+                    return v
+
+        # For non-Quantity fields, pass through unchanged
         return v
 
     def to_consistent_unit_system(self) -> None:
@@ -990,7 +1007,8 @@ class SimulationSettings:
         """Load a specific settings section using Pydantic v2 validation.
 
         This helper method streamlines the loading process by using Pydantic's
-        automatic validation and type conversion without manual preprocessing.
+        automatic validation and type conversion. It pre-processes nested data
+        to convert string quantities to Quantity objects before validation.
 
         Parameters
         ----------
@@ -1004,9 +1022,74 @@ class SimulationSettings:
         if section_name in settings_data and hasattr(self, section_name):
             section_data = settings_data[section_name].copy()
 
+            # Pre-process nested data to convert string quantities
+            section_data = self._convert_quantities_recursive(section_data)
+
             # Let Pydantic handle all validation and type conversion automatically
             validated_model = model_class.model_validate(section_data)
             setattr(self, section_name, validated_model)
+
+    def _convert_quantities_recursive(self, data: Any) -> Any:
+        """Recursively convert string quantities to Quantity objects in nested data.
+
+        This helper method processes nested dictionaries and lists to convert
+        string representations of quantities to actual Quantity objects before
+        Pydantic validation. This ensures proper handling of nested models.
+
+        Parameters
+        ----------
+        data : Any
+            Data structure to process (dict, list, or primitive value).
+
+        Returns
+        -------
+        Any
+            Processed data with string quantities converted to Quantity objects.
+        """
+        if isinstance(data, dict):
+            return {key: self._convert_quantities_recursive(value) for key, value in data.items()}
+        elif isinstance(data, list):
+            return [self._convert_quantities_recursive(item) for item in data]
+        elif isinstance(data, str):
+            # Try to parse as a quantity if it looks like one
+            if self._looks_like_quantity(data):
+                try:
+                    return ureg(data)
+                except Exception:
+                    # If parsing fails, return the original string
+                    return data
+            return data
+        else:
+            # Return primitive values unchanged
+            return data
+
+    def _looks_like_quantity(self, value: str) -> bool:
+        """Check if a string looks like a quantity that can be parsed.
+
+        Parameters
+        ----------
+        value : str
+            String value to check.
+
+        Returns
+        -------
+        bool
+            True if the string appears to be a quantity representation.
+        """
+        # Simple heuristic: contains a space and has numeric part
+        if " " not in value:
+            return False
+
+        parts = value.split()
+        if len(parts) < 2:
+            return False
+
+        # Check if first part is numeric
+        try:
+            float(parts[0])
+            return True
+        except ValueError:
+            return False
 
     def load_defaults(self):
         """Load default simulation settings using Pydantic model initialization.

@@ -237,7 +237,10 @@ class LaplaceWriter(BaseDynaWriter):
 
     def _update_atrial_caps_nodeset(self, atrium: pv.UnstructuredGrid) -> None:
         """Define nodesets for the caps."""
-        for cap in self.model.parts[0].caps:
+        # Only loop over caps that are mapped to nodeset IDs
+        caps = [cap for cap in self.model.parts[0].caps if cap.type in self._CAP_NODESET_MAP.keys()]
+
+        for cap in caps:
             # get node IDs for atrium mesh
             cap._mesh = self.model.mesh.get_surface(cap._mesh.id)
             ids_sub = np.where(np.isin(atrium["point_ids"], cap.global_node_ids_edge))[0]

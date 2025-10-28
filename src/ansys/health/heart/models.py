@@ -1444,13 +1444,21 @@ class HeartModel:
                                 break
 
                         cap_name = split.replace("-plane", "").replace("-inlet", "")
-                        cap.type = CapType(cap_name)
 
-                        if "atrium" in part.name and (
-                            cap.type in [CapType.TRICUSPID_VALVE, CapType.MITRAL_VALVE]
-                        ):
-                            cap_name = cap_name + "-atrium"
-                            cap.type = CapType(cap.type.value + "-atrium")
+                        try:
+                            cap.type = CapType(cap_name)
+
+                            if "atrium" in part.name and (
+                                cap.type in [CapType.TRICUSPID_VALVE, CapType.MITRAL_VALVE]
+                            ):
+                                cap_name = cap_name + "-atrium"
+                                cap.type = CapType(cap.type.value + "-atrium")
+                        except ValueError:
+                            LOGGER.warning(
+                                f"Could not map cap name {cap_name} to CapType enum - default "
+                                "to unknown cap type."
+                            )
+                            cap.type = CapType.UNKNOWN
 
                         cap.name = cap_name
 

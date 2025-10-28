@@ -270,7 +270,15 @@ class Part:
 
                 for cap_name, cap_id in part_data.get("caps", {}).items():
                     #! note that we assume cap name equals cap type here.
-                    cap = Cap(cap_name, cap_type=CapType(cap_name))
+                    try:
+                        cap_type = CapType(cap_name)
+                    except ValueError as e:
+                        LOGGER.warning(
+                            f"Invalid cap type: {cap_name}. {e}. Defaulting to UNKNOWN cap type."
+                        )
+                        cap_type = CapType.UNKNOWN
+
+                    cap = Cap(cap_name, cap_type=cap_type)
                     cap._mesh = mesh.get_surface(cap_id)
                     part.caps.append(cap)
 

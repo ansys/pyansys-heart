@@ -1133,29 +1133,6 @@ class SimulationSettings:
         return rotation
 
 
-def _remove_units_from_dictionary(d: dict):
-    """Replace Quantity with value in a nested dictionary (removes units)."""
-    for k, v in d.items():
-        if isinstance(v, dict):
-            _remove_units_from_dictionary(v)
-        if isinstance(v, Quantity):
-            d[k] = d[k].m
-    return d
-
-
-def _serialize_quantity(d: dict, remove_units: bool = False):
-    """Serialize Quantity such that Quantity objects are replaced by <value> <units> string."""
-    for k, v in d.items():
-        if isinstance(v, dict):
-            _serialize_quantity(v, remove_units=remove_units)
-        if isinstance(v, Quantity):
-            if remove_units:
-                d[k] = str(d[k].m)
-            else:
-                d[k] = str(d[k])
-    return d
-
-
 # desired consistent unit system is:
 # ["MPa", "mm", "N", "ms", "g"]
 # Time: ms

@@ -100,7 +100,13 @@ class BaseSettings(BaseModel):
     )
 
     def __repr__(self) -> str:
-        """Represent object in YAML-style format using Pydantic v2 serialization."""
+        """Represent object in YAML-style format using Pydantic v2 serialization.
+
+        Returns
+        -------
+        str
+            YAML-formatted string representation of the object.
+        """
         data = self.model_dump(mode="json", exclude_none=True)
         data = {self.__class__.__name__: data}
         return yaml.dump(json.loads(json.dumps(data)), sort_keys=False)
@@ -145,6 +151,18 @@ class BaseSettings(BaseModel):
         Only applies to fields that are annotated with Quantity type annotations.
         Other fields are passed through unchanged to avoid interference with
         their specific validation logic.
+
+        Parameters
+        ----------
+        v : Any
+            The value to validate and potentially convert to a Quantity.
+        info : ValidationInfo
+            Pydantic validation context containing field information.
+
+        Returns
+        -------
+        Any
+            Quantity object if conversion successful, otherwise the original value.
         """
         # Get field annotation if available
         if hasattr(info, "field_name") and info.field_name:
@@ -824,7 +842,26 @@ class SimulationSettings:
         pass
 
     def __repr__(self):
-        """Represent object as list of relevant attribute names."""
+        """Represent object as list of relevant attribute names.
+
+        Returns
+        -------
+        str
+            String representation showing the class name and active
+            settings attribute names.
+
+        Examples
+        --------
+        >>> settings = SimulationSettings()
+        >>> print(repr(settings))
+        SimulationSettings
+          mechanics
+          electrophysiology
+          fibers
+          atrial_fibers
+          purkinje
+          stress_free
+        """
         repr_str = "\n  ".join(
             [attr for attr in self.__dict__ if isinstance(getattr(self, attr), BaseSettings)]
         )
@@ -1082,17 +1119,34 @@ class SimulationSettings:
         return
 
     def get_ventricle_fiber_rotation(self, method: Literal["LSDYNA", "D-RBM"]) -> dict:
-        """Get rotation angles from settings.
+        """Get rotation angles from fiber settings.
+
+        Extracts fiber orientation angles from the configured fiber settings
+        and formats them according to the specified fiber generation method.
 
         Parameters
         ----------
-        method : Literal[&quot;LSDYNA&quot;, &quot;D
-            Fiber rule based methods
+        method : Literal["LSDYNA", "D-RBM"]
+            Fiber rule-based method for extracting rotation angles.
+            - "LSDYNA": LS-DYNA fiber generation format
+            - "D-RBM": Discrete Rule-Based Method format
 
         Returns
         -------
         dict
-            rotation angles alpha and beta
+            Dictionary containing rotation angles (alpha and beta) formatted
+            for the specified method. Keys and structure depend on the method:
+            - LSDYNA: "alpha", "beta", "beta_septum" keys
+            - D-RBM: "alpha_left", "alpha_right", "alpha_ot", "beta_left",
+              "beta_right", "beta_ot" keys
+
+        Examples
+        --------
+        >>> settings = SimulationSettings()
+        >>> settings.load_defaults()
+        >>> rotation = settings.get_ventricle_fiber_rotation("LSDYNA")
+        >>> print(rotation["alpha"])
+        [-60.0, 60.0]
         """
         if method == "LSDYNA":
             rotation = {
@@ -1165,7 +1219,21 @@ _derived = [
 
 
 def _get_consistent_units_str(dimensions: set):
-    """Get consistent units formatted as string."""
+    """Get consistent units formatted as string.
+
+    Converts dimensionality to the PyAnsys Heart consistent unit system string
+    representation based on the defined base quantities and derived units.
+
+    Parameters
+    ----------
+    dimensions : set
+        Set of dimensions from a Quantity object.
+
+    Returns
+    -------
+    str
+        String representation of consistent units for the given dimensions.
+    """
     if dimensions in _derived[0]:
         _to_units = _derived[1][_derived[0].index(dimensions)]
         return _to_units
@@ -1179,7 +1247,28 @@ def _get_consistent_units_str(dimensions: set):
 
 
 def _windows_to_wsl_path(windows_path: str):
-    """Convert Windows to WSL path."""
+    r"""Convert Windows path to WSL-compatible path format.
+
+    Handles conversion from Windows drive paths and WSL localhost paths
+    to proper Unix-style paths for use within Windows Subsystem for Linux.
+
+    Parameters
+    ----------
+    windows_path : str
+        Windows path to convert.
+
+    Returns
+    -------
+    str | None
+        WSL-compatible path string, or None if conversion not applicable.
+
+    Examples
+    --------
+    >>> _windows_to_wsl_path(r"C:\Users\example")
+    '/mnt/c/Users/example'
+    >>> _windows_to_wsl_path(r"\\wsl.localhost\Ubuntu\home")
+    '/Ubuntu/home'
+    """
     win_path = Path(windows_path)
     if isinstance(win_path, pathlib.PosixPath):
         return None
@@ -1197,11 +1286,51 @@ def _windows_to_wsl_path(windows_path: str):
 
 
 class DynaSettings:
-    """Class for collecting, managing, and validating LS-DYNA settings."""
+    """Class for collecting, managing, and validating LS-DYNA settings.
+
+    This class provides configuration management for LS-DYNA simulations,
+    including executable paths, parallelization settings, platform-specific
+    configurations, and command-line argument generation.
+
+    Attributes
+    ----------
+    lsdyna_path : pathlib.Path
+        Path to LS-DYNA executable.
+    dynatype : str
+        Type of LS-DYNA executable (smp, intelmpi, platformmpi, msmpi).
+    num_cpus : int
+        Number of CPUs requested for parallel execution.
+    platform : str
+        Platform for LS-DYNA execution (windows, wsl, linux).
+    dyna_options : str
+        Additional command line options for LS-DYNA.
+    mpi_options : str
+        Additional MPI options for parallel execution.
+
+    Examples
+    --------
+    >>> dyna_settings = DynaSettings(
+    ...     lsdyna_path="lsdyna.exe", dynatype="intelmpi", num_cpus=4, platform="windows"
+    ... )
+    >>> commands = dyna_settings.get_commands("input.k")
+    """
 
     @staticmethod
     def _get_available_mpi_exe():
-        """Find whether mpiexec or mpirun are available."""
+        """Find whether mpiexec or mpirun are available.
+
+        Searches for MPI executables in PATH, preferring mpirun over mpiexec.
+
+        Returns
+        -------
+        str
+            Path to available MPI executable.
+
+        Raises
+        ------
+        MPIProgamNotFoundError
+            If neither mpirun nor mpiexec are found in PATH.
+        """
         # preference for mpirun if it is added to PATH. mpiexec is the fallback option.
         if shutil.which("mpirun"):
             return shutil.which("mpirun")
@@ -1282,6 +1411,9 @@ class DynaSettings:
     def get_commands(self, path_to_input: pathlib.Path) -> list[str]:
         """Get command line arguments from the defined settings.
 
+        Builds platform-specific command line arguments for running LS-DYNA
+        with the configured settings including MPI and parallelization options.
+
         Parameters
         ----------
         path_to_input : pathlib.Path
@@ -1289,8 +1421,19 @@ class DynaSettings:
 
         Returns
         -------
-        List[str]
-            List of strings of each of the commands.
+        list[str]
+            List of command line arguments for executing LS-DYNA.
+
+        Raises
+        ------
+        WSLNotFoundError
+            If WSL platform is specified but wsl.exe is not found.
+
+        Examples
+        --------
+        >>> dyna_settings = DynaSettings(dynatype="smp", num_cpus=4)
+        >>> commands = dyna_settings.get_commands(Path("input.k"))
+        >>> print(commands[0])  # LS-DYNA executable path
         """
         if self.platform == "wsl":
             mpi_exe = "mpirun"
@@ -1380,7 +1523,15 @@ class DynaSettings:
         return commands
 
     def _modify_from_global_settings(self):
-        """Set DynaSettings based on globally defined settings for PyAnsys-Heart."""
+        """Set DynaSettings based on globally defined settings for PyAnsys-Heart.
+
+        Checks for PYANSYS_HEART environment variables and updates settings
+        accordingly. Supported environment variables:
+        - PYANSYS_HEART_LSDYNA_PATH: Path to LS-DYNA executable
+        - PYANSYS_HEART_LSDYNA_PLATFORM: Execution platform
+        - PYANSYS_HEART_LSDYNA_TYPE: LS-DYNA executable type
+        - PYANSYS_HEART_NUM_CPU: Number of CPUs for parallel execution
+        """
         keys = [key for key in os.environ.keys() if "PYANSYS_HEART" in key]
         LOGGER.debug(f"PYANSYS_HEART Environment variables: {keys}")
         self.lsdyna_path = os.getenv("PYANSYS_HEART_LSDYNA_PATH", self.lsdyna_path)
@@ -1390,5 +1541,11 @@ class DynaSettings:
         return
 
     def __repr__(self):
-        """Represent self as string."""
+        """Represent self as YAML-formatted string.
+
+        Returns
+        -------
+        str
+            YAML representation of the DynaSettings object attributes.
+        """
         return yaml.dump(vars(self), allow_unicode=True, default_flow_style=False)

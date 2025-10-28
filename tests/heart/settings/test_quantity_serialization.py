@@ -263,21 +263,12 @@ class TestQuantitySerializationPydantic:
             global_damping=Quantity(0.5, "1/s"),
         )
 
-        # Test serialization with deprecated method (should warn)
-        with pytest.warns(DeprecationWarning, match="serialize\\(\\) is deprecated"):
-            data_deprecated = analysis.serialize()
-
         # Test modern serialization method
         data_modern = analysis.model_dump(mode="json")
 
         # Results should be identical (both convert to strings)
-        assert data_deprecated["end_time"] == "1000 millisecond"
-        assert data_deprecated["global_damping"] == "0.5 / second"
         assert data_modern["end_time"] == "1000 millisecond"
         assert data_modern["global_damping"] == "0.5 / second"
-
-        # Verify deprecated and modern methods produce same output
-        assert data_deprecated == data_modern
 
     def test_dimensionless_quantity_handling(self):
         """Test handling of dimensionless quantities."""

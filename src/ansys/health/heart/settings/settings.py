@@ -169,38 +169,6 @@ class BaseSettings(BaseModel):
         # For non-Quantity fields or when annotation cannot be determined, pass through unchanged
         return v
 
-    def serialize(self) -> dict[str, Any]:
-        """Serialize the settings using Pydantic v2's model_dump capabilities.
-
-        .. deprecated:: 0.6.0
-            This method is obsolete. Use `model_dump()` directly or `model_dump_json()`
-            for JSON serialization. This method will be removed in v0.7.0.
-
-        Returns
-        -------
-        dict[str, Any]
-            Serialized settings dictionary with Quantities as strings.
-
-        Examples
-        --------
-        >>> settings = BaseSettings()
-        >>> # Deprecated way:
-        >>> data = settings.serialize()
-        >>> # Modern way:
-        >>> data = settings.model_dump(mode="json")  # or settings.model_dump()
-        """
-        import warnings
-
-        warnings.warn(
-            "serialize() is deprecated and will be removed in v0.7.0. "
-            "Use model_dump() or model_dump_json() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        # Use Pydantic's default serialization with Quantity string conversion
-        return self.model_dump(mode="json", exclude_none=True)
-
     def to_consistent_unit_system(self) -> None:
         """Convert units to consistent system ["MPa", "mm", "N", "ms", "g"].
 

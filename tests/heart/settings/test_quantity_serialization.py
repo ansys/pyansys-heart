@@ -255,23 +255,29 @@ class TestQuantitySerializationPydantic:
         assert analysis.dtmin.magnitude == 100.0
         assert str(analysis.dtmin.units) == "millisecond"
 
-    def test_serialize_with_and_without_units(self):
-        """Test the serialize method with remove_units parameter."""
+    def test_serialize_consistency(self):
+        """Test the serialize method for consistency with modern serialization."""
         analysis = Analysis(
             end_time=Quantity(1000, "ms"),
             dtmin=Quantity(0.1, "ms"),
             global_damping=Quantity(0.5, "1/s"),
         )
 
-        # Test serialization with units (default)
-        data_with_units = analysis.serialize(remove_units=False)
-        assert data_with_units["end_time"] == "1000 millisecond"
-        assert data_with_units["global_damping"] == "0.5 / second"
+        # Test serialization with deprecated method (should warn)
+        with pytest.warns(DeprecationWarning, match="serialize\\(\\) is deprecated"):
+            data_deprecated = analysis.serialize()
 
-        # Test serialization without units
-        data_without_units = analysis.serialize(remove_units=True)
-        assert data_without_units["end_time"] == "1000"
-        assert data_without_units["global_damping"] == "0.5"
+        # Test modern serialization method
+        data_modern = analysis.model_dump(mode="json")
+
+        # Results should be identical (both convert to strings)
+        assert data_deprecated["end_time"] == "1000 millisecond"
+        assert data_deprecated["global_damping"] == "0.5 / second"
+        assert data_modern["end_time"] == "1000 millisecond"
+        assert data_modern["global_damping"] == "0.5 / second"
+
+        # Verify deprecated and modern methods produce same output
+        assert data_deprecated == data_modern
 
     def test_dimensionless_quantity_handling(self):
         """Test handling of dimensionless quantities."""

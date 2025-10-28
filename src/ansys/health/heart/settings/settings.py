@@ -40,7 +40,6 @@ Load existing configuration:
 1000.0 millisecond
 """
 
-import copy
 import json
 import os
 import pathlib
@@ -101,31 +100,43 @@ class BaseSettings(BaseModel):
     )
 
     def __repr__(self) -> str:
-        """Represent object in YAML-style format."""
-        data = self.serialize()
+        """Represent object in YAML-style format using Pydantic v2 serialization."""
+        data = self.model_dump(mode="json", exclude_none=True)
         data = {self.__class__.__name__: data}
         return yaml.dump(json.loads(json.dumps(data)), sort_keys=False)
 
     @field_serializer("*", when_used="json")
-    def serialize_quantities_for_json(self, value: Any) -> str | Any:
-        """Serialize Quantity objects to string representation for JSON output.
+    def serialize_quantities_for_json(self, value: Any, _info) -> str | float | Any:
+        """Serialize Quantity objects for JSON output.
 
-        This serializer is only used when serializing to JSON format, ensuring
-        that Quantity objects become JSON-serializable strings.
+        This serializer handles Quantity objects during JSON serialization,
+        providing string representation.
+        Handles nested Quantity objects in dictionaries and lists.
 
         Parameters
         ----------
         value : Any
             The field value to serialize.
+        _info : SerializationInfo
+            Pydantic serialization context (unused but required by signature).
 
         Returns
         -------
-        str | Any
-            String representation if value is a Quantity, otherwise unchanged.
+        str | float | Any
+            String representation if Quantity, otherwise unchanged.
         """
-        if isinstance(value, Quantity):
-            return str(value)
-        return value
+
+        def _serialize_recursive(obj: Any) -> Any:
+            """Recursively serialize Quantity objects in nested structures."""
+            if isinstance(obj, Quantity):
+                return str(obj)
+            elif isinstance(obj, dict):
+                return {key: _serialize_recursive(val) for key, val in obj.items()}
+            elif isinstance(obj, (list, tuple)):
+                return [_serialize_recursive(item) for item in obj]
+            return obj
+
+        return _serialize_recursive(value)
 
     @field_validator("*", mode="before")
     def parse_quantity(cls, v, info):  # noqa D102
@@ -158,13 +169,12 @@ class BaseSettings(BaseModel):
         # For non-Quantity fields or when annotation cannot be determined, pass through unchanged
         return v
 
-    def serialize(self, remove_units: bool = False) -> dict[str, Any]:
-        """Serialize the settings with Quantity objects as strings.
+    def serialize(self) -> dict[str, Any]:
+        """Serialize the settings using Pydantic v2's model_dump capabilities.
 
-        Parameters
-        ----------
-        remove_units : bool, default: False
-            Whether to remove units and return only numerical values.
+        .. deprecated:: 0.6.0
+            This method is obsolete. Use `model_dump()` directly or `model_dump_json()`
+            for JSON serialization. This method will be removed in v0.7.0.
 
         Returns
         -------
@@ -174,12 +184,22 @@ class BaseSettings(BaseModel):
         Examples
         --------
         >>> settings = BaseSettings()
+        >>> # Deprecated way:
         >>> data = settings.serialize()
-        >>> data_no_units = settings.serialize(remove_units=True)
+        >>> # Modern way:
+        >>> data = settings.model_dump(mode="json")  # or settings.model_dump()
         """
-        dictionary = copy.deepcopy(self.model_dump())
-        _serialize_quantity(dictionary, remove_units)
-        return dictionary
+        import warnings
+
+        warnings.warn(
+            "serialize() is deprecated and will be removed in v0.7.0. "
+            "Use model_dump() or model_dump_json() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        # Use Pydantic's default serialization with Quantity string conversion
+        return self.model_dump(mode="json", exclude_none=True)
 
     def to_consistent_unit_system(self) -> None:
         """Convert units to consistent system ["MPa", "mm", "N", "ms", "g"].
@@ -867,15 +887,13 @@ class SimulationSettings:
         repr_str = self.__class__.__name__ + "\n  " + repr_str
         return repr_str
 
-    def save(self, filename: pathlib.Path, remove_units: bool = False):
+    def save(self, filename: pathlib.Path):
         """Save simulation settings to disk.
 
         Parameters
         ----------
         filename : pathlib.Path
             Path to target .json or .yml file
-        remove_units : bool, optional
-            Flag indicating whether to remove units before writing, by default False
 
         Examples
         --------
@@ -893,14 +911,17 @@ class SimulationSettings:
         if filename.suffix not in [".yml", ".json"]:
             raise ValueError(f"Data format {filename.suffix} not supported")
 
-        # serialize each of the settings.
+        # Serialize each of the settings using Pydantic v2's enhanced model_dump
         serialized_settings = {}
         for attribute_name in self.__dict__.keys():
             if not isinstance(getattr(self, attribute_name), BaseSettings):
                 continue
             else:
                 setting: BaseSettings = getattr(self, attribute_name)
-                serialized_settings[attribute_name] = setting.serialize(remove_units=remove_units)
+                # Use the simplified model dump method (no unit removal)
+                serialized_settings[attribute_name] = setting.model_dump(
+                    mode="json", exclude_none=False
+                )
 
         serialized_settings = {"Simulation Settings": serialized_settings}
 

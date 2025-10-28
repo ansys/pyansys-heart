@@ -53,6 +53,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    ValidationError,
     field_serializer,
     field_validator,
 )
@@ -941,57 +942,69 @@ class SimulationSettings:
         if not isinstance(filename, pathlib.Path):
             filename = pathlib.Path(filename)
 
-        with open(filename, "r") as f:
-            if filename.suffix == ".json":
-                data = json.load(f)
-            if filename.suffix == ".yml":
-                data = yaml.load(f, Loader=yaml.SafeLoader)
-        settings = data["Simulation Settings"]
+        # Load file data with proper error handling
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                if filename.suffix == ".json":
+                    data = json.load(f)
+                elif filename.suffix == ".yml":
+                    data = yaml.load(f, Loader=yaml.SafeLoader)
+                else:
+                    raise ValueError(f"Unsupported file format: {filename.suffix}")
+        except FileNotFoundError as e:
+            LOGGER.error(f"Settings file not found: {filename}")
+            raise FileNotFoundError(f"Settings file not found: {filename}") from e
+        except (json.JSONDecodeError, yaml.YAMLError) as e:
+            LOGGER.error(f"Failed to parse settings file {filename}: {e}")
+            raise ValueError(f"Invalid file format in {filename}: {e}") from e
 
-        # unit registry to convert back to Quantity object
-        ureg = UnitRegistry()
+        settings_data = data.get("Simulation Settings", {})
+        if not settings_data:
+            LOGGER.warning("No 'Simulation Settings' found in file")
+            return
+
+        # Unit registry kept for backward compatibility with external code
+        # ureg = UnitRegistry()  # Commented out - no longer needed
 
         try:
-            # Load mechanics settings using Pydantic model initialization
-            if "mechanics" in settings:
-                _deserialize_quantity(settings["mechanics"], ureg)
-                # Create Pydantic models directly from deserialized data
-                if "analysis" in settings["mechanics"]:
-                    self.mechanics.analysis = Analysis(**settings["mechanics"]["analysis"])
-                if "boundary_conditions" in settings["mechanics"]:
-                    self.mechanics.boundary_conditions = BoundaryConditions(
-                        **settings["mechanics"]["boundary_conditions"]
-                    )
-                if "system" in settings["mechanics"]:
-                    self.mechanics.system = SystemModel(**settings["mechanics"]["system"])
+            # Use streamlined approach - Pydantic handles all validation automatically
+            self._load_settings_section("mechanics", settings_data, Mechanics)
+            self._load_settings_section("stress_free", settings_data, ZeroPressure)
+            self._load_settings_section("electrophysiology", settings_data, Electrophysiology)
+            self._load_settings_section("fibers", settings_data, Fibers)
+            self._load_settings_section("atrial_fibers", settings_data, AtrialFiber)
+            self._load_settings_section("purkinje", settings_data, Purkinje)
 
-            # Load stress-free settings
-            if "stress_free" in settings:
-                _deserialize_quantity(settings["stress_free"], ureg)
-                if "analysis" in settings["stress_free"]:
-                    self.stress_free.analysis = AnalysisZeroPressure(
-                        **settings["stress_free"]["analysis"]
-                    )
-
-            # Load electrophysiology settings
-            if "electrophysiology" in settings:
-                _deserialize_quantity(settings["electrophysiology"], ureg)
-                if "analysis" in settings["electrophysiology"]:
-                    self.electrophysiology.analysis = EPAnalysis(
-                        **settings["electrophysiology"]["analysis"]
-                    )
-                if "stimulation" in settings["electrophysiology"]:
-                    stimulation_dict = {}
-                    for key, stim_data in settings["electrophysiology"]["stimulation"].items():
-                        stimulation_dict[key] = Stimulation(**stim_data)
-                    self.electrophysiology.stimulation = stimulation_dict
-
-        except KeyError as e:
-            LOGGER.error(f"Failed to load settings: missing key {e}")
-            raise
+        except ValidationError as e:
+            LOGGER.error(f"Validation error while loading settings: {e}")
+            raise ValueError(f"Invalid settings data: {e}") from e
         except Exception as e:
-            LOGGER.error(f"Failed to load settings: {e}")
-            raise RuntimeError(f"Failed to deserialize settings: {e}") from e
+            LOGGER.error(f"Unexpected error loading settings: {e}")
+            raise RuntimeError(f"Failed to load settings: {e}") from e
+
+    def _load_settings_section(
+        self, section_name: str, settings_data: dict[str, Any], model_class: type[BaseSettings]
+    ) -> None:
+        """Load a specific settings section using Pydantic v2 validation.
+
+        This helper method streamlines the loading process by using Pydantic's
+        automatic validation and type conversion without manual preprocessing.
+
+        Parameters
+        ----------
+        section_name : str
+            Name of the settings section to load.
+        settings_data : dict[str, Any]
+            Complete settings data dictionary.
+        model_class : type[BaseSettings]
+            Pydantic model class to validate against.
+        """
+        if section_name in settings_data and hasattr(self, section_name):
+            section_data = settings_data[section_name].copy()
+
+            # Let Pydantic handle all validation and type conversion automatically
+            validated_model = model_class.model_validate(section_data)
+            setattr(self, section_name, validated_model)
 
     def load_defaults(self):
         """Load default simulation settings using Pydantic model initialization.
@@ -1175,23 +1188,6 @@ def _serialize_quantity(d: dict, remove_units: bool = False):
                 d[k] = str(d[k].m)
             else:
                 d[k] = str(d[k])
-    return d
-
-
-def _deserialize_quantity(d: dict, ureg: UnitRegistry):
-    """Deserialize string such that "<value> <units>" is replaced by Quantity(value, units)."""
-    for k, v in d.items():
-        if isinstance(v, dict):
-            _deserialize_quantity(v, ureg)
-        if isinstance(v, str):
-            if isinstance(d[k], str):
-                try:
-                    float(d[k].split()[0])
-                    q = ureg(d[k])
-                except ValueError:
-                    # failed to convert to quantity
-                    continue
-                d[k] = q
     return d
 
 

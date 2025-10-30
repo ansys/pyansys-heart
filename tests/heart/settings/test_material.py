@@ -52,14 +52,14 @@ class TestCa2Curve:
     def stress_curve(self):
         return ActiveCurve(func=strocchi_active(), threshold=0.1, type="stress")
 
-    def test_stress_to_ca2(self, stress_curve):
+    def test_stress_to_ca2(self, stress_curve) -> None:
         t, v = stress_curve.dyna_input
 
         # test always activated after t=0
         assert v[0] < stress_curve.threshold
         assert np.all(v[1:] > stress_curve.threshold)
 
-    def test_repeat(self, ca2_curve):
+    def test_repeat(self, ca2_curve) -> None:
         t, v = ca2_curve.dyna_input
         assert len(t) == 501
 
@@ -67,7 +67,7 @@ class TestCa2Curve:
         t, v = ca2_curve.dyna_input
         assert len(t) == 1001
 
-    def test_check_threshold(self):
+    def test_check_threshold(self) -> None:
         # threshold larger than max
         with pytest.raises(ValueError) as e:
             ActiveCurve(func=constant_ca2(), threshold=4.36, type="ca2")
@@ -79,7 +79,7 @@ class TestCa2Curve:
             assert str(e.value) == "Threshold must cross ca2+ curve at least once"
 
 
-def test_active_couple():
+def test_active_couple() -> None:
     active_model = material.ActiveModel3(
         ca2ion50=0.001,
         n=2,
@@ -99,14 +99,14 @@ def test_active_couple():
 class TestISO:
     """Test ISO class."""
 
-    def test_iso_hgo_model_valid(self):
+    def test_iso_hgo_model_valid(self) -> None:
         """Test valid HGO model parameters."""
         iso = ISO(k1=1.0, k2=2.0)
         assert iso.itype == -3
         assert iso.k1 == 1.0
         assert iso.k2 == 2.0
 
-    def test_iso_ogden_model_valid(self):
+    def test_iso_ogden_model_valid(self) -> None:
         """Test valid Ogden model parameters."""
         iso = ISO(itype=-1, mu1=1.0, alpha1=2.0)
         assert iso.itype == -1
@@ -117,25 +117,25 @@ class TestISO:
         iso = material.ISO(mu1=1, alpha1=2, itype=-1, kappa=100)
         assert iso.nu == pytest.approx(0.495, abs=0.01)
 
-    def test_iso_incompatible_itype_with_hgo(self):
+    def test_iso_incompatible_itype_with_hgo(self) -> None:
         """Test incompatible itype with HGO parameters."""
         with pytest.raises(ValueError) as exc_info:
             ISO(itype=-1, k1=1.0, k2=2.0)
         assert "both mu1 and alpha1 must be specified" in str(exc_info.value)
 
-    def test_iso_incompatible_itype_with_ogden(self):
+    def test_iso_incompatible_itype_with_ogden(self) -> None:
         """Test incompatible itype with Ogden parameters."""
         with pytest.raises(ValueError) as exc_info:
             ISO(itype=-3, mu1=1.0, alpha1=2.0)
         assert "both k1 and k2 must be specified" in str(exc_info.value)
 
-    def test_iso_invalid_input(self):
+    def test_iso_invalid_input(self) -> None:
         """Test invalid input without proper parameters."""
         with pytest.raises(ValueError) as exc_info:
             ISO(itype=-3)
         assert "both k1 and k2 must be specified" in str(exc_info.value)
 
-    def test_iso_kappa_updates_nu(self):
+    def test_iso_kappa_updates_nu(self) -> None:
         """Test that kappa updates Poisson's ratio."""
         iso_hgo = ISO(itype=-3, k1=1.0, k2=2.0, kappa=100.0)
         expected_nu = (3 * 100.0 - 2 * 1.0) / (6 * 100.0 + 2 * 1.0)
@@ -145,13 +145,13 @@ class TestISO:
         expected_nu = (3 * 100.0 - 2 * 1.0) / (6 * 100.0 + 2 * 1.0)
         assert abs(iso_ogden.nu - expected_nu) < 1e-10
 
-    def test_iso_default_values(self):
+    def test_iso_default_values(self) -> None:
         """Test default values."""
         iso = ISO(itype=-3, k1=1.0, k2=2.0)
         assert iso.beta == 0.0
         assert iso.nu == 0.499
 
-    def test_iso_serialization(self):
+    def test_iso_serialization(self) -> None:
         """Test serialization and deserialization."""
         iso = ISO(itype=-3, k1=1.0, k2=2.0, beta=0.1)
         data = iso.model_dump()
@@ -165,7 +165,7 @@ class TestISO:
 class TestHGOFiber:
     """Test HGOFiber class."""
 
-    def test_hgo_fiber_defaults(self):
+    def test_hgo_fiber_defaults(self) -> None:
         """Test default values."""
         fiber = HGOFiber()
         assert fiber.k1 is None
@@ -176,7 +176,7 @@ class TestHGOFiber:
         assert fiber._ftype == 1
         assert fiber._fcid == 0
 
-    def test_hgo_fiber_custom_values(self):
+    def test_hgo_fiber_custom_values(self) -> None:
         """Test custom values."""
         fiber = HGOFiber(k1=10.0, k2=20.0, a=0.5, b=0.8)
         assert fiber.k1 == 10.0
@@ -184,7 +184,7 @@ class TestHGOFiber:
         assert fiber.a == 0.5
         assert fiber.b == 0.8
 
-    def test_hgo_fiber_serialization(self):
+    def test_hgo_fiber_serialization(self) -> None:
         """Test serialization excludes private fields."""
         fiber = HGOFiber(k1=10.0, k2=20.0, _theta=45.0)
         data = fiber.model_dump()
@@ -200,7 +200,7 @@ class TestHGOFiber:
 class TestANISO:
     """Test ANISO class."""
 
-    def test_aniso_default_single_fiber(self):
+    def test_aniso_default_single_fiber(self) -> None:
         """Test default behavior with single fiber."""
         aniso = ANISO()
         assert len(aniso.fibers) == 1
@@ -208,7 +208,7 @@ class TestANISO:
         assert aniso._intype == 0
         assert aniso.fibers[0]._theta == 0.0
 
-    def test_aniso_two_fibers(self):
+    def test_aniso_two_fibers(self) -> None:
         """Test with two fibers."""
         fiber1 = HGOFiber(k1=1.0, k2=2.0)
         fiber2 = HGOFiber(k1=3.0, k2=4.0)
@@ -219,7 +219,7 @@ class TestANISO:
         assert aniso.fibers[0]._theta == 0.0
         assert aniso.fibers[1]._theta == 90.0
 
-    def test_aniso_two_fibers_with_interaction(self):
+    def test_aniso_two_fibers_with_interaction(self) -> None:
         """Test two fibers with interaction terms."""
         fiber1 = HGOFiber(k1=1.0, k2=2.0)
         fiber2 = HGOFiber(k1=3.0, k2=4.0)
@@ -227,14 +227,14 @@ class TestANISO:
         assert aniso._nf == 2
         assert aniso._intype == 1
 
-    def test_aniso_single_fiber_with_interaction_error(self):
+    def test_aniso_single_fiber_with_interaction_error(self) -> None:
         """Test error when single fiber has interaction terms."""
         fiber1 = HGOFiber(k1=1.0, k2=2.0)
         with pytest.raises(ValidationError) as exc_info:
             ANISO(fibers=[fiber1], k1fs=5.0, k2fs=6.0)
         assert "One fiber cannot have an interaction term" in str(exc_info.value)
 
-    def test_aniso_invalid_fiber_count(self):
+    def test_aniso_invalid_fiber_count(self) -> None:
         """Test error with invalid number of fibers."""
         fiber1 = HGOFiber(k1=1.0, k2=2.0)
         fiber2 = HGOFiber(k1=3.0, k2=4.0)
@@ -243,14 +243,14 @@ class TestANISO:
             ANISO(fibers=[fiber1, fiber2, fiber3])
         assert "No. of fibers must be 1 or 2" in str(exc_info.value)
 
-    def test_aniso_repr_includes_computed_fields(self):
+    def test_aniso_repr_includes_computed_fields(self) -> None:
         """Test that __repr__ includes computed fields."""
         aniso = ANISO()
         repr_str = repr(aniso)
         assert "nf=1" in repr_str
         assert "intype=0" in repr_str
 
-    def test_aniso_default_values(self):
+    def test_aniso_default_values(self) -> None:
         """Test default values."""
         aniso = ANISO()
         assert aniso.atype == -1
@@ -263,7 +263,7 @@ class TestANISO:
 class TestActiveModel:
     """Test ActiveModel nested classes."""
 
-    def test_active_model1_defaults(self):
+    def test_active_model1_defaults(self) -> None:
         """Test ActiveModel.Model1 default values."""
         model1 = ActiveModel1()
         assert model1.t0 is None
@@ -279,14 +279,14 @@ class TestActiveModel:
         assert model1.mr == 1048.9
         assert model1.tr == -1629.0
 
-    def test_active_model1_custom_values(self):
+    def test_active_model1_custom_values(self) -> None:
         """Test ActiveModel.Model1 with custom values."""
         model1 = ActiveModel1(t0=1.0, ca2ion=2.0, n=3)
         assert model1.t0 == 1.0
         assert model1.ca2ion == 2.0
         assert model1.n == 3
 
-    def test_active_model3_defaults(self):
+    def test_active_model3_defaults(self) -> None:
         """Test ActiveModel.Model3 default values."""
         model3 = ActiveModel3()
         assert model3.t0 is None
@@ -297,7 +297,7 @@ class TestActiveModel:
         assert model3.eta == 0.0
         assert model3.sigmax is None
 
-    def test_active_model3_custom_values(self):
+    def test_active_model3_custom_values(self) -> None:
         """Test ActiveModel.Model3 with custom values."""
         model3 = ActiveModel3(t0=2.0, ca2ion50=1.5, sigmax=100.0)
         assert model3.t0 == 2.0
@@ -308,7 +308,7 @@ class TestActiveModel:
 class TestACTIVE:
     """Test ACTIVE class."""
 
-    def test_active_defaults(self):
+    def test_active_defaults(self) -> None:
         """Test default values."""
         active = ACTIVE()
         assert active.acid is None
@@ -321,7 +321,7 @@ class TestACTIVE:
         assert isinstance(active.model, ActiveModel1)
         assert active.ca2_curve is not None
 
-    def test_active_with_model1(self):
+    def test_active_with_model1(self) -> None:
         """Test ACTIVE with Model1."""
         model1 = ActiveModel1(t0=1.0)
         active = ACTIVE(model=model1)
@@ -329,7 +329,7 @@ class TestACTIVE:
         assert isinstance(active.model, ActiveModel1)
         assert active.model.t0 == 1.0
 
-    def test_active_with_model3(self):
+    def test_active_with_model3(self) -> None:
         """Test ACTIVE with Model3."""
         model3 = ActiveModel3(t0=2.0)
         active = ACTIVE(model=model3)
@@ -337,20 +337,20 @@ class TestACTIVE:
         assert isinstance(active.model, ActiveModel3)
         assert active.model.t0 == 2.0
 
-    def test_active_threshold_from_curve(self):
+    def test_active_threshold_from_curve(self) -> None:
         """Test threshold is taken from ca2_curve."""
         curve = ActiveCurve(func=constant_ca2(), threshold=0.5, type="ca2")
         active = ACTIVE(ca2_curve=curve)
         assert active.acthr == 0.5
 
-    def test_active_threshold_from_curve_strocchi(self):
+    def test_active_threshold_from_curve_strocchi(self) -> None:
         active = ACTIVE(ca2_curve=ActiveCurve(func=strocchi_active(), type="ca2", threshold=0.1))
         assert active.actype == 1
         assert active.acthr == 0.1
         assert active.model.l == 1.85
         assert active.ca2_curve.type == "ca2"
 
-    def test_active_custom_values(self):
+    def test_active_custom_values(self) -> None:
         """Test custom values."""
         active = ACTIVE(acdir=2, sf=0.8, ss=0.1, sn=0.05)
         assert active.acdir == 2
@@ -362,7 +362,7 @@ class TestACTIVE:
 class TestMat295:
     """Test Mat295 class."""
 
-    def test_mat295_minimal(self):
+    def test_mat295_minimal(self) -> None:
         """Test Mat295 with minimal required parameters."""
         iso = ISO(itype=-3, k1=1.0, k2=2.0)
         mat = Mat295(rho=1000.0, iso=iso)
@@ -373,21 +373,21 @@ class TestMat295:
         assert mat.active is None
         assert mat.aniso is None
 
-    def test_mat295_with_aniso(self):
+    def test_mat295_with_aniso(self) -> None:
         """Test Mat295 with anisotropic module."""
         iso = ISO(itype=-3, k1=1.0, k2=2.0)
         aniso = ANISO()
         mat = Mat295(rho=1000.0, iso=iso, aniso=aniso)
         assert mat.aniso == aniso
 
-    def test_mat295_with_active(self):
+    def test_mat295_with_active(self) -> None:
         """Test Mat295 with active module."""
         iso = ISO(itype=-3, k1=1.0, k2=2.0)
         active = ACTIVE()
         mat = Mat295(rho=1000.0, iso=iso, active=active)
         assert mat.active == active
 
-    def test_mat295_complete(self):
+    def test_mat295_complete(self) -> None:
         """Test Mat295 with all modules."""
         iso = ISO(itype=-3, k1=1.0, k2=2.0)
         aniso = ANISO()
@@ -399,7 +399,7 @@ class TestMat295:
         assert mat.active == active
         assert mat.aopt == 3.0
 
-    def test_mat295_serialization(self):
+    def test_mat295_serialization(self) -> None:
         """Test Mat295 serialization."""
         iso = ISO(itype=-3, k1=1.0, k2=2.0)
         mat = Mat295(rho=1000.0, iso=iso)
@@ -413,7 +413,7 @@ class TestMat295:
 class TestNeoHookean:
     """Test NeoHookean class (deprecated)."""
 
-    def test_neohookean_basic(self):
+    def test_neohookean_basic(self) -> None:
         """Test basic NeoHookean creation."""
         neo = NeoHookean(rho=1000.0, c10=1.0)
         assert neo.rho == 1000.0
@@ -421,14 +421,14 @@ class TestNeoHookean:
         assert neo.kappa is None
         assert neo.nu is None
 
-    def test_neohookean_with_kappa(self):
+    def test_neohookean_with_kappa(self) -> None:
         """Test NeoHookean with bulk modulus."""
         neo = NeoHookean(rho=1000.0, c10=1.0, kappa=100.0)
         mu = neo.c10 * 2
         expected_nu = (3 * 100.0 - 2 * mu) / (6 * 100.0 + 2 * mu)
         assert abs(neo.nu - expected_nu) < 1e-10
 
-    def test_neohookean_with_nu(self):
+    def test_neohookean_with_nu(self) -> None:
         """Test NeoHookean with explicit Poisson's ratio."""
         neo = NeoHookean(rho=1000.0, c10=1.0, nu=0.45)
         assert neo.nu == 0.45
@@ -437,7 +437,7 @@ class TestNeoHookean:
 class TestMechanicalMaterialModel:
     """Test MechanicalMaterialModel base class."""
 
-    def test_inheritance(self):
+    def test_inheritance(self) -> None:
         """Test that all material classes inherit from MechanicalMaterialModel."""
         iso = ISO(itype=-3, k1=1.0, k2=2.0)
         mat295 = Mat295(rho=1000.0, iso=iso)
@@ -450,7 +450,7 @@ class TestMechanicalMaterialModel:
 class TestIntegration:
     """Integration tests combining multiple classes."""
 
-    def test_complete_material_setup(self):
+    def test_complete_material_setup(self) -> None:
         """Test creating a complete material with all modules."""
         # Create ISO module
         iso = ISO(itype=-3, k1=10.0, k2=20.0, beta=0.1)
@@ -477,7 +477,7 @@ class TestIntegration:
         assert mat.active.acthr == 0.2
 
     # @pytest.mark.xfail(reason="Serialization of the ACTIVE model not fully functional.")
-    def test_serialization_roundtrip(self):
+    def test_serialization_roundtrip(self) -> None:
         """Test complete serialization and deserialization."""
         # Create complex material
         iso = ISO(itype=-3, k1=10.0, k2=20.0)
@@ -498,7 +498,7 @@ class TestIntegration:
         assert mat_restored.aniso._nf == mat.aniso._nf
         assert mat_restored.active.actype == mat.active.actype
 
-    def test_json_serialization(self):
+    def test_json_serialization(self) -> None:
         """Test JSON serialization."""
         iso = ISO(itype=-3, k1=1.0, k2=2.0)
         mat = Mat295(rho=1000.0, iso=iso)

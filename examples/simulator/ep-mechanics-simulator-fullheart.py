@@ -98,6 +98,9 @@ simulator = EPMechanicsSimulator(
 # Load default simulation settings.
 simulator.settings.load_defaults()
 
+# Use the ReactionEikonal solver for the electrophysiology simulation.
+simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
+
 ###############################################################################
 # Compute the fiber orientation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -185,9 +188,6 @@ simulator.model.save_model(os.path.join(workdir, "heart_fib_beam.vtu"))
 # .. note::
 #    A constant pressure is prescribed to the atria.
 #    No circulation system is coupled with the atria.
-
-# Use the ReactionEikonal solver for the electrophysiology simulation.
-simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
 
 # Start main simulation. The ``auto_post`` option is set to ``False`` to avoid
 # automatic postprocessing.

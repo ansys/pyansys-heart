@@ -102,6 +102,8 @@ simulator = EPSimulator(
 # Load the default settings.
 simulator.settings.load_defaults()
 
+simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
+
 ###############################################################################
 # Compute fiber orientation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -145,7 +147,5 @@ simulator.model.plot_purkinje()
 # Start the main electrophysiology simulation. This uses the previously computed fiber orientation
 # and Purkinje network to set up and run the LS-DYNA model.
 
-
 # Compute the Eikonal solution. This only computes the activation time.
-simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
 simulator.simulate(folder_name="main-ep-ReactionEikonal")

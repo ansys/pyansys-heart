@@ -27,6 +27,7 @@ import tempfile
 
 import numpy as np
 from pint import Quantity
+from pydantic import ValidationError
 import pytest
 
 from ansys.health.heart.settings.defaults import fibers as fibers_defaults
@@ -35,6 +36,7 @@ from ansys.health.heart.settings.settings import (
     Fibers,
     SimulationSettings,
     Stimulation,
+    ZeroPressure,
     _get_consistent_units_str,
     _windows_to_wsl_path,
 )
@@ -80,10 +82,10 @@ REF_STRING_SETTINGS_YML_EP = (
     "        period: 800 millisecond\n"
     "        duration: 20 millisecond\n"
     "        amplitude: 50 microfarad / millimeter ** 3\n"
-    "    _layers:\n"
+    "    layers:\n"
     "      percent_endo: 0.17 dimensionless\n"
     "      percent_mid: 0.41 dimensionless\n"
-    "    _lambda: 0.2 dimensionless\n"
+    "    lambda_ratio: 0.2 dimensionless\n"
 )
 
 
@@ -124,7 +126,12 @@ def test_settings_save_002():
         purkinje=False,
         stress_free=False,
     )
-    stim = Stimulation(t_start=0, period=800, duration=20, amplitude=50)
+    stim = Stimulation(
+        t_start=Quantity(0, "ms"),
+        period=Quantity(800, "ms"),
+        duration=Quantity(20, "ms"),
+        amplitude=Quantity(50, "uF/mm^3"),
+    )
 
     settings.electrophysiology.stimulation = {"stimdefaults": stim}
     # fill some dummy data
@@ -142,7 +149,13 @@ def test_settings_save_002():
 
         compare_string_with_file(REF_STRING_SETTINGS_YML_EP, file_path)
     settings.load_defaults()
-    stim2 = Stimulation(node_ids=[1, 2, 3], t_start=10, period=100, duration=30, amplitude=40)
+    stim2 = Stimulation(
+        node_ids=[1, 2, 3],
+        t_start=Quantity(10, "ms"),
+        period=Quantity(100, "ms"),
+        duration=Quantity(30, "ms"),
+        amplitude=Quantity(40, "uF/mm^3"),
+    )
     settings.electrophysiology.stimulation["stim2"] = stim2
     stim: Stimulation = settings.electrophysiology.stimulation["stim2"]
 
@@ -239,9 +252,10 @@ def test_convert_units_002():
 
 
 def test_settings_set_defaults():
-    """Check if defaults properly set."""
-    settings = Fibers()
-    settings.set_values(fibers_defaults.angles)
+    """Check if defaults properly set using Pydantic model initialization."""
+    # Create Fibers instance with defaults applied directly
+    fibers_data = fibers_defaults.angles
+    settings = Fibers(**fibers_data)
     assert settings.alpha_endo.m == -60
 
 
@@ -309,3 +323,257 @@ def test_windows_path_to_wsl_path():
         _windows_to_wsl_path("\\\\wsl.localhost\\Ubuntu\\home\\user\\project")
         == "/home/user/project"
     )
+
+
+# ZeroPressure test reference strings
+REF_STRING_ZERO_PRESSURE_YML = (
+    "Simulation Settings:\n"
+    "  stress_free:\n"
+    "    analysis:\n"
+    "      end_time: 500 millisecond\n"
+    "      dtmin: 5 millisecond\n"
+    "      dtmax: 50 millisecond\n"
+    "      dt_d3plot: 25 millisecond\n"
+    "      dt_icvout: 10 millisecond\n"
+    "      global_damping: 0.1 / second\n"
+    "      stiffness_damping: 0.05 second\n"
+    "      dt_nodout: 15 millisecond\n"
+    "      max_iters: 5\n"
+    "      method: 1\n"
+    "      tolerance: 1.0\n"
+)
+
+
+def test_zero_pressure_serialization_yaml():
+    """Test YAML serialization of ZeroPressure settings."""
+    settings = SimulationSettings(
+        mechanics=False,
+        electrophysiology=False,
+        fiber=False,
+        purkinje=False,
+        stress_free=True,
+    )
+
+    # Set custom values
+    settings.stress_free.analysis.end_time = Quantity(500, "ms")
+    settings.stress_free.analysis.dtmin = Quantity(5, "ms")
+    settings.stress_free.analysis.dtmax = Quantity(50, "ms")
+    settings.stress_free.analysis.dt_d3plot = Quantity(25, "ms")
+    settings.stress_free.analysis.dt_icvout = Quantity(10, "ms")
+    settings.stress_free.analysis.dt_nodout = Quantity(15, "ms")
+    settings.stress_free.analysis.global_damping = Quantity(0.1, "1/s")
+    settings.stress_free.analysis.stiffness_damping = Quantity(0.05, "s")
+    settings.stress_free.analysis.max_iters = 5
+    settings.stress_free.analysis.method = 1
+    settings.stress_free.analysis.tolerance = 1.0
+
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        file_path = os.path.join(tempdir, "zero_pressure.yml")
+        settings.save(file_path)
+
+        # Read file contents and compare manually
+        with open(file_path, "r") as f:
+            content = f.read()
+
+        # Verify key content exists
+        assert "stress_free:" in content
+        assert "analysis:" in content
+        assert "end_time: 500 millisecond" in content
+        assert "max_iters: 5" in content
+        assert "method: 1" in content
+        assert "tolerance: 1.0" in content
+
+
+def test_zero_pressure_deserialization_yaml():
+    """Test YAML deserialization of ZeroPressure settings."""
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        file_path = os.path.join(tempdir, "zero_pressure_load.yml")
+
+        # Write reference string to file
+        with open(file_path, "w") as f:
+            f.write(REF_STRING_ZERO_PRESSURE_YML)
+
+        # Load settings
+        settings = SimulationSettings(
+            mechanics=False,
+            electrophysiology=False,
+            fiber=False,
+            purkinje=False,
+            stress_free=True,
+        )
+        settings.load(file_path)
+
+        # Verify loaded values
+        assert settings.stress_free.analysis.end_time == Quantity(500, "ms")
+        assert settings.stress_free.analysis.dtmin == Quantity(5, "ms")
+        assert settings.stress_free.analysis.dtmax == Quantity(50, "ms")
+        assert settings.stress_free.analysis.dt_d3plot == Quantity(25, "ms")
+        assert settings.stress_free.analysis.dt_icvout == Quantity(10, "ms")
+        assert settings.stress_free.analysis.dt_nodout == Quantity(15, "ms")
+        assert settings.stress_free.analysis.global_damping == Quantity(0.1, "1/s")
+        assert settings.stress_free.analysis.stiffness_damping == Quantity(0.05, "s")
+        assert settings.stress_free.analysis.max_iters == 5
+        assert settings.stress_free.analysis.method == 1
+        assert settings.stress_free.analysis.tolerance == 1.0
+
+
+def test_zero_pressure_serialization_json():
+    """Test JSON serialization of ZeroPressure settings."""
+    settings = SimulationSettings(
+        mechanics=False,
+        electrophysiology=False,
+        fiber=False,
+        purkinje=False,
+        stress_free=True,
+    )
+
+    # Load defaults
+    settings.load_defaults()
+
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        file_path = os.path.join(tempdir, "zero_pressure.json")
+        settings.save(file_path)
+
+        # Read and parse JSON
+        with open(file_path, "r") as f:
+            content = f.read()
+            import json
+
+            data = json.loads(content)
+
+            # Verify structure
+            assert "Simulation Settings" in data
+            assert "stress_free" in data["Simulation Settings"]
+            assert "analysis" in data["Simulation Settings"]["stress_free"]
+
+            analysis = data["Simulation Settings"]["stress_free"]["analysis"]
+            assert analysis["end_time"] == "1000.0 millisecond"
+            assert analysis["max_iters"] == 3
+            assert analysis["method"] == 2
+            assert analysis["tolerance"] == 5.0
+
+
+def test_zero_pressure_roundtrip():
+    """Test roundtrip serialization/deserialization of ZeroPressure."""
+    # Create settings with custom values
+    original_settings = SimulationSettings(
+        mechanics=False,
+        electrophysiology=False,
+        fiber=False,
+        purkinje=False,
+        stress_free=True,
+    )
+
+    # Set specific values
+    original_settings.stress_free.analysis.end_time = Quantity(750, "ms")
+    original_settings.stress_free.analysis.max_iters = 7
+    original_settings.stress_free.analysis.method = 3
+    original_settings.stress_free.analysis.tolerance = 2.5
+    original_settings.stress_free.analysis.dt_nodout = Quantity(100, "ms")
+
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        file_path = os.path.join(tempdir, "roundtrip.yml")
+
+        # Save settings
+        original_settings.save(file_path)
+
+        # Load settings into new object
+        loaded_settings = SimulationSettings(
+            mechanics=False,
+            electrophysiology=False,
+            fiber=False,
+            purkinje=False,
+            stress_free=True,
+        )
+        loaded_settings.load(file_path)
+
+        # Verify roundtrip consistency
+        assert (
+            loaded_settings.stress_free.analysis.end_time
+            == original_settings.stress_free.analysis.end_time
+        )
+        assert (
+            loaded_settings.stress_free.analysis.max_iters
+            == original_settings.stress_free.analysis.max_iters
+        )
+        assert (
+            loaded_settings.stress_free.analysis.method
+            == original_settings.stress_free.analysis.method
+        )
+        assert (
+            loaded_settings.stress_free.analysis.tolerance
+            == original_settings.stress_free.analysis.tolerance
+        )
+        assert (
+            loaded_settings.stress_free.analysis.dt_nodout
+            == original_settings.stress_free.analysis.dt_nodout
+        )
+
+
+def test_zero_pressure_unit_conversion():
+    """Test unit conversion for ZeroPressure settings."""
+    zero_pressure = ZeroPressure()
+
+    # Set values with different units
+    zero_pressure.analysis.end_time = Quantity(2, "s")  # Will convert to ms
+    zero_pressure.analysis.dtmin = Quantity(0.01, "s")  # Will convert to ms
+    zero_pressure.analysis.global_damping = Quantity(2, "1/s")  # Should stay 1/s
+
+    # Apply unit conversion
+    zero_pressure.to_consistent_unit_system()
+
+    # Verify conversions
+    assert zero_pressure.analysis.end_time.magnitude == 2000.0
+    assert str(zero_pressure.analysis.end_time.units) == "millisecond"
+    assert zero_pressure.analysis.dtmin.magnitude == 10.0
+    assert str(zero_pressure.analysis.dtmin.units) == "millisecond"
+    assert zero_pressure.analysis.global_damping.magnitude == 0.002
+    assert str(zero_pressure.analysis.global_damping.units) == "1 / millisecond"
+
+
+def test_zero_pressure_validation():
+    """Test Pydantic validation for ZeroPressure fields."""
+    zero_pressure = ZeroPressure()
+
+    # Test invalid max_iters (should be int)
+    with pytest.raises(ValidationError):
+        zero_pressure.analysis.max_iters = "invalid"
+
+    # Test invalid tolerance (should be float)
+    with pytest.raises(ValidationError):
+        zero_pressure.analysis.tolerance = "invalid"
+
+    # Test valid updates
+    zero_pressure.analysis.max_iters = 15
+    zero_pressure.analysis.tolerance = 3.14
+    zero_pressure.analysis.method = 5
+
+    assert zero_pressure.analysis.max_iters == 15
+    assert zero_pressure.analysis.tolerance == 3.14
+    assert zero_pressure.analysis.method == 5
+
+
+def test_zero_pressure_defaults_loading():
+    """Test loading default values for ZeroPressure from defaults module."""
+    settings = SimulationSettings(
+        mechanics=False,
+        electrophysiology=False,
+        fiber=False,
+        purkinje=False,
+        stress_free=True,
+    )
+
+    # Load defaults
+    settings.load_defaults()
+
+    # Verify default values from zeropressure defaults module
+    assert settings.stress_free.analysis.end_time == Quantity(1000, "ms")
+    assert settings.stress_free.analysis.dtmin == Quantity(10, "ms")
+    assert settings.stress_free.analysis.dtmax == Quantity(100, "ms")
+    assert settings.stress_free.analysis.dt_d3plot == Quantity(100, "ms")
+    assert settings.stress_free.analysis.dt_nodout == Quantity(200, "ms")
+
+    # Verify base class defaults are preserved
+    assert settings.stress_free.analysis.max_iters == 3
+    assert settings.stress_free.analysis.method == 2
+    assert settings.stress_free.analysis.tolerance == 5.0

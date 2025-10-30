@@ -454,7 +454,9 @@ class EPSimulator(BaseSimulator):
         extra_k_files : list[str], default: None
             User-defined k files.
         """
-        if isinstance(self.model, models.FourChamber) and isinstance(self, EPMechanicsSimulator):
+        if isinstance(self.model, models.FourChamber) and isinstance(
+            self, EPMechanicsSimulator, EPSimulator
+        ):
             self.model._create_atrioventricular_isolation()
 
         # Assign default EP materials if not assigned

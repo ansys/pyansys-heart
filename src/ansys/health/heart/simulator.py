@@ -455,7 +455,7 @@ class EPSimulator(BaseSimulator):
             User-defined k files.
         """
         if isinstance(self.model, models.FourChamber) and isinstance(
-            self, EPMechanicsSimulator, EPSimulator
+            self, (EPMechanicsSimulator, EPSimulator)
         ):
             self.model._create_atrioventricular_isolation()
 

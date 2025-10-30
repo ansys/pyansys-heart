@@ -33,22 +33,22 @@ from ansys.health.heart.settings.material.material_factory import (
 class _Q:
     """Minimal stand-in for Quantity-like objects used by factory (.m attribute)."""
 
-    def __init__(self, value):
+    def __init__(self, value: float) -> None:
         self.m = value
 
 
 def _mock_settings(
-    rho=1000.0,
-    kappa=1.0,
-    k1=0.1,
-    k2=0.2,
-    k1f=2.0,
-    k2f=1.0,
-    taumax=150.0,
-    beat_time=800.0,
-    ss=1.0,
-    sn=1.0,
-):
+    rho: float = 1000.0,
+    kappa: float = 1.0,
+    k1: float = 0.1,
+    k2: float = 0.2,
+    k1f: float = 2.0,
+    k2f: float = 1.0,
+    taumax: float = 150.0,
+    beat_time: float = 800.0,
+    ss: float = 1.0,
+    sn: float = 1.0,
+) -> dict[str, dict[str, _Q | float]]:
     return {
         "isotropic": {
             "rho": _Q(rho),
@@ -61,7 +61,7 @@ def _mock_settings(
     }
 
 
-def test_get_myocardium_material_returns_mat295_with_active():
+def test_get_myocardium_material_returns_mat295_with_active() -> None:
     """Myocardium factory builds Mat295 with iso/aniso and active when ep_coupled=False."""
     settings = _mock_settings()
     mat = _get_myocardium_material(settings, ep_coupled=False)
@@ -96,7 +96,7 @@ def test_get_myocardium_material_returns_mat295_with_active():
     assert np.all(np.diff(t) > 0)
 
 
-def test_get_myocardium_material_ep_coupled_disables_active():
+def test_get_myocardium_material_ep_coupled_disables_active() -> None:
     """Verify ep_coupled=True produces a Mat295 without an active component."""
     settings = _mock_settings()
     mat = _get_myocardium_material(settings, ep_coupled=True)
@@ -106,7 +106,7 @@ def test_get_myocardium_material_ep_coupled_disables_active():
     assert mat.active.ca2_curve is None
 
 
-def test_get_myocardium_material_missing_keys_raises():
+def test_get_myocardium_material_missing_keys_raises() -> None:
     """Factory raises when isotropic/anisotropic sections are missing."""
     # missing 'isotropic' section entirely
     bad_settings = {"anisotropic": {}, "active": {}}
@@ -117,7 +117,9 @@ def test_get_myocardium_material_missing_keys_raises():
 # passive tests
 
 
-def _mock_passive_settings(rho=1050.0, itype=-1, kappa=0.5, mu1=0.3, alpha1=0.2):
+def _mock_passive_settings(
+    rho: float = 1050.0, itype: int = -1, kappa: float = 0.5, mu1: float = 0.3, alpha1: float = 0.2
+) -> dict[str, _Q | int | float]:
     """Create minimal passive settings structure expected by the factory."""
     return {
         "rho": _Q(rho),
@@ -128,7 +130,7 @@ def _mock_passive_settings(rho=1050.0, itype=-1, kappa=0.5, mu1=0.3, alpha1=0.2)
     }
 
 
-def test_get_passive_material_returns_mat295():
+def test_get_passive_material_returns_mat295() -> None:
     """Passive factory returns Mat295 with expected isotropic parameters."""
     settings = _mock_passive_settings()
     mat = _get_passive_material(settings)
@@ -146,7 +148,7 @@ def test_get_passive_material_returns_mat295():
     assert mat.iso.beta == 2
 
 
-def test_get_passive_material_missing_key_raises():
+def test_get_passive_material_missing_key_raises() -> None:
     """Passive factory raises KeyError when required passive keys are absent."""
     bad = {"rho": _Q(1000.0), "itype": -3}  # missing kappa/mu1/alpha1
     with pytest.raises(KeyError):

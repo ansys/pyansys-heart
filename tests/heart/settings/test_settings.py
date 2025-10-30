@@ -89,7 +89,7 @@ REF_STRING_SETTINGS_YML_EP = (
 )
 
 
-def test_settings_save_001():
+def test_settings_save_001() -> None:
     """Test saving of settings to disk."""
     settings = SimulationSettings(
         mechanics=True,
@@ -116,7 +116,7 @@ def test_settings_save_001():
     pass
 
 
-def test_settings_save_002():
+def test_settings_save_002() -> None:
     """Test saving of EP settings to disk."""
 
     settings = SimulationSettings(
@@ -165,7 +165,7 @@ def test_settings_save_002():
     pass
 
 
-def test_settings_load():
+def test_settings_load() -> None:
     """Test loading of settings from file."""
     # write file-to-load from reference string
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
@@ -189,7 +189,7 @@ def test_settings_load():
     pass
 
 
-def test_get_consistent_units():
+def test_get_consistent_units() -> None:
     """Test conversion to consistent unit system."""
     q = Quantity(30, "s")
     assert _get_consistent_units_str(q.dimensionality) == "ms**1"
@@ -203,7 +203,7 @@ def test_get_consistent_units():
     assert _get_consistent_units_str(q.dimensionality) == "N"
 
 
-def test_convert_units_001():
+def test_convert_units_001() -> None:
     """Test consistent unit conversion."""
     settings = Analysis()
 
@@ -230,7 +230,7 @@ def test_convert_units_001():
     assert abs(settings.end_time.m - 1.0) < 1e-15
 
 
-def test_convert_units_002():
+def test_convert_units_002() -> None:
     """Test consistent unit conversion."""
     stim = Stimulation()
     stim.amplitude = Quantity(50, "uF/mm^3")
@@ -251,7 +251,7 @@ def test_convert_units_002():
     assert abs(settings.alpha_endo.m - 10) < 1e-15
 
 
-def test_settings_set_defaults():
+def test_settings_set_defaults() -> None:
     """Check if defaults properly set using Pydantic model initialization."""
     # Create Fibers instance with defaults applied directly
     fibers_data = fibers_defaults.angles
@@ -285,13 +285,13 @@ def default_allsettings():
     return settings
 
 
-def test_load_defaults(default_settings):
+def test_load_defaults(default_settings) -> None:
     default_settings.to_consistent_unit_system()
 
     assert default_settings.mechanics.analysis.end_time.m == 800.0
 
 
-def test_purkinje_settings(default_allsettings: SimulationSettings):
+def test_purkinje_settings(default_allsettings: SimulationSettings) -> None:
     # check default default values
     assert default_allsettings.purkinje.node_id_origin_left is None
     assert default_allsettings.purkinje.node_id_origin_right is None
@@ -313,7 +313,7 @@ def test_purkinje_settings(default_allsettings: SimulationSettings):
 
 
 @pytest.mark.xfail(condition=os.name == "posix", reason="Windows-specific test")
-def test_windows_path_to_wsl_path():
+def test_windows_path_to_wsl_path() -> None:
     """Test conversion of Windows path to WSL path."""
     assert _windows_to_wsl_path("C:\\Program Files\\LS-DYNA") == "/mnt/c/Program Files/LS-DYNA"
     assert _windows_to_wsl_path("D:\\") == "/mnt/d/"
@@ -344,7 +344,7 @@ REF_STRING_ZERO_PRESSURE_YML = (
 )
 
 
-def test_zero_pressure_serialization_yaml():
+def test_zero_pressure_serialization_yaml() -> None:
     """Test YAML serialization of ZeroPressure settings."""
     settings = SimulationSettings(
         mechanics=False,
@@ -384,7 +384,7 @@ def test_zero_pressure_serialization_yaml():
         assert "tolerance: 1.0" in content
 
 
-def test_zero_pressure_deserialization_yaml():
+def test_zero_pressure_deserialization_yaml() -> None:
     """Test YAML deserialization of ZeroPressure settings."""
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         file_path = os.path.join(tempdir, "zero_pressure_load.yml")
@@ -417,7 +417,7 @@ def test_zero_pressure_deserialization_yaml():
         assert settings.stress_free.analysis.tolerance == 1.0
 
 
-def test_zero_pressure_serialization_json():
+def test_zero_pressure_serialization_json() -> None:
     """Test JSON serialization of ZeroPressure settings."""
     settings = SimulationSettings(
         mechanics=False,
@@ -453,7 +453,7 @@ def test_zero_pressure_serialization_json():
             assert analysis["tolerance"] == 5.0
 
 
-def test_zero_pressure_roundtrip():
+def test_zero_pressure_roundtrip() -> None:
     """Test roundtrip serialization/deserialization of ZeroPressure."""
     # Create settings with custom values
     original_settings = SimulationSettings(
@@ -510,7 +510,7 @@ def test_zero_pressure_roundtrip():
         )
 
 
-def test_zero_pressure_unit_conversion():
+def test_zero_pressure_unit_conversion() -> None:
     """Test unit conversion for ZeroPressure settings."""
     zero_pressure = ZeroPressure()
 
@@ -531,7 +531,7 @@ def test_zero_pressure_unit_conversion():
     assert str(zero_pressure.analysis.global_damping.units) == "1 / millisecond"
 
 
-def test_zero_pressure_validation():
+def test_zero_pressure_validation() -> None:
     """Test Pydantic validation for ZeroPressure fields."""
     zero_pressure = ZeroPressure()
 
@@ -553,7 +553,7 @@ def test_zero_pressure_validation():
     assert zero_pressure.analysis.method == 5
 
 
-def test_zero_pressure_defaults_loading():
+def test_zero_pressure_defaults_loading() -> None:
     """Test loading default values for ZeroPressure from defaults module."""
     settings = SimulationSettings(
         mechanics=False,

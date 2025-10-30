@@ -1696,8 +1696,10 @@ class HeartModel:
         part.fiber = False
         part.active = False
         part.meca_material = stiff_material
-        # assign default EP material as for ventricles
-        part.ep_material = ep_materials.Active()
+        # Assign Active EP material.
+        part.ep_material = ep_materials.Active(
+            sigma_fiber=0.5, sigma_sheet=0.1, sigma_sheet_normal=0.1, beta=140.0, cm=0.01
+        )
 
         return part
 

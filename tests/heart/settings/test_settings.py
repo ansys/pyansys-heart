@@ -33,7 +33,7 @@ import pytest
 from ansys.health.heart.settings.defaults import fibers as fibers_defaults
 from ansys.health.heart.settings.settings import (
     Analysis,
-    Fibers,
+    FibersBRBM,
     SimulationSettings,
     Stimulation,
     ZeroPressure,
@@ -234,7 +234,7 @@ def test_convert_units_002():
     """Test consistent unit conversion."""
     stim = Stimulation()
     stim.amplitude = Quantity(50, "uF/mm^3")
-    settings = Fibers()
+    settings = FibersBRBM()
     settings.alpha_endo = Quantity(10, "radian")
 
     # uF/mm^3 --> uF/mm^3
@@ -255,7 +255,7 @@ def test_settings_set_defaults():
     """Check if defaults properly set using Pydantic model initialization."""
     # Create Fibers instance with defaults applied directly
     fibers_data = fibers_defaults.angles
-    settings = Fibers(**fibers_data)
+    settings = FibersBRBM(**fibers_data)
     assert settings.alpha_endo.m == -60
 
 

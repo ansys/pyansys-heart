@@ -699,7 +699,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         self.kw_database = FiberGenerationDecks()
         """Collection of keywords relevant for fiber generation."""
 
-        if sett.Fibers not in self._get_subsettings():
+        if sett.FibersBRBM not in self._get_subsettings():
             raise ValueError("Expecting fiber settings.")
 
     def update(self, rotation_angles: dict[str, list[float]] | None = None) -> None:

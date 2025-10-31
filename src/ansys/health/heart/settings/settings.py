@@ -593,62 +593,77 @@ class Electrophysiology(BaseSettings):
     )
 
 
-class Fibers(BaseSettings):
-    """Class for keeping track of fiber settings.
+class BaseFiberSettings(BaseSettings):
+    """Base class for keeping track of fiber orientation settings.
 
-    Defines fiber orientation parameters for ventricular myocardium,
-    including helical angles and transmural variations.
-
-    Attributes
-    ----------
-    alpha_endo : Quantity
-        Helical angle in endocardium.
-    alpha_epi : Quantity
-        Helical angle in epicardium.
-    beta_endo : Quantity
-        Angle to the outward transmural axis in endocardium.
-    beta_epi : Quantity
-        Angle to the outward transmural axis in epicardium.
-    beta_endo_septum : Quantity
-        Angle to the outward transmural axis in left septum.
-    beta_epi_septum : Quantity
-        Angle to the outward transmural axis in right septum.
-
-    Examples
-    --------
-    >>> from pint import Quantity
-    >>> fibers = Fibers(
-    ...     alpha_endo=Quantity(-60, "degree"),
-    ...     alpha_epi=Quantity(60, "degree"),
-    ...     beta_endo=Quantity(0, "degree"),
-    ...     beta_epi=Quantity(0, "degree"),
-    ... )
-    >>> print(fibers.alpha_endo)
-    -60.0 degree
+    Default values are based on Bayer et al. 2012 http://dx.doi.org/10.1007/s10439-012-0593-5
     """
 
     alpha_endo: Quantity = Field(
-        default=Quantity(0, "degree"), description="Helical angle in endocardium"
+        default=Quantity(-60, "degree"), description="Helical angle in endocardium"
     )
     alpha_epi: Quantity = Field(
-        default=Quantity(0, "degree"), description="Helical angle in epicardium"
+        default=Quantity(60, "degree"), description="Helical angle in epicardium"
     )
     beta_endo: Quantity = Field(
-        default=Quantity(0, "degree"),
+        default=Quantity(-65, "degree"),
         description="Angle to the outward transmural axis in endocardium",
     )
     beta_epi: Quantity = Field(
-        default=Quantity(0, "degree"),
+        default=Quantity(25, "degree"),
         description="Angle to the outward transmural axis in epicardium",
     )
+
+
+class FibersBRBM(BaseFiberSettings):
+    """Class for keeping track of fiber settings for the B-RBM method."""
+
     beta_endo_septum: Quantity = Field(
-        default=Quantity(0, "degree"),
-        description="Angle to the outward transmural axis in left septum",
+        default=Quantity(-65, "degree"),
+        description="Angle to the outward transmural axis on the left septum",
     )
     beta_epi_septum: Quantity = Field(
-        default=Quantity(0, "degree"),
-        description="Angle to the outward transmural axis in right septum",
+        default=Quantity(25, "degree"),
+        description="Angle to the outward transmural axis in the septum",
     )
+
+
+class FibersDRBM(BaseSettings):
+    """Class for storing settings for the D-RBM method.
+
+    Notes
+    -----
+    Defaults based on Doste et al. https://doi.org/10.1002/cnm.3185.
+    """
+
+    # In PyAnsys-Heart the coordinate system is defined based on longitudinal (apex to base)
+    # and transmural (endo to epicardium) directions. The circumferential direction is then defined
+    # as:
+    # e_c = e_l x e_t. Alpha defines the rotation of the circumferential direction around the
+    # transmural direction, and beta the rotation of the circumferential direction around the
+    # longitudinal direction. The values provided by Doste et al. seems to conflict with
+    # this definition, and instead uses alpha values that suggest that the transmural direction
+    # is pointing from epicardium to endocardium.
+
+    left_ventricle: BaseFiberSettings = BaseFiberSettings(
+        alpha_endo=Quantity(60, "degree"),
+        alpha_epi=Quantity(-60, "degree"),
+        beta_endo=Quantity(-20, "degree"),
+        beta_epi=Quantity(20, "degree"),
+    )
+    right_ventricle: BaseFiberSettings = BaseFiberSettings(
+        alpha_endo=Quantity(-90, "degree"),
+        alpha_epi=Quantity(25, "degree"),
+        beta_endo=Quantity(0, "degree"),
+        beta_epi=Quantity(20, "degree"),
+    )
+
+    # This only applies to the right ventricle?
+    alpha_outflow_tract: Quantity | None = None
+    beta_outflow_tract: Quantity | None = None
+
+    septal_fraction: float = 2.0 / 3.0
+    """The fraction of the septum that belongs to the left ventricle."""
 
 
 class AtrialFiber(BaseSettings):
@@ -782,7 +797,7 @@ class SimulationSettings:
     # All parameters default to True, so these attributes exist in the default case
     mechanics: Mechanics  # Exists when mechanics=True (default)
     electrophysiology: Electrophysiology  # Exists when electrophysiology=True (default)
-    fibers: Fibers  # Exists when fiber=True (default)
+    fibers: FibersBRBM  # Exists when fiber=True (default)
     atrial_fibers: AtrialFiber  # Exists when fiber=True (default)
     purkinje: Purkinje  # Exists when purkinje=True (default)
     stress_free: ZeroPressure  # Exists when stress_free=True (default)
@@ -844,7 +859,7 @@ class SimulationSettings:
             """Settings for electrophysiology simulation."""
 
         if fiber:
-            self.fibers: Fibers = Fibers()
+            self.fibers: FibersBRBM = FibersBRBM()
             self.atrial_fibers: AtrialFiber = AtrialFiber()
             """Settings for fiber generation."""
 
@@ -990,7 +1005,7 @@ class SimulationSettings:
             self._load_settings_section("mechanics", settings_data, Mechanics)
             self._load_settings_section("stress_free", settings_data, ZeroPressure)
             self._load_settings_section("electrophysiology", settings_data, Electrophysiology)
-            self._load_settings_section("fibers", settings_data, Fibers)
+            self._load_settings_section("fibers", settings_data, FibersBRBM)
             self._load_settings_section("atrial_fibers", settings_data, AtrialFiber)
             self._load_settings_section("purkinje", settings_data, Purkinje)
 
@@ -1144,7 +1159,7 @@ class SimulationSettings:
                 self.electrophysiology.stimulation = stimulation_dict
 
             # Load fiber defaults
-            if hasattr(self, "fibers") and isinstance(self.fibers, Fibers):
+            if hasattr(self, "fibers") and isinstance(self.fibers, FibersBRBM):
                 # Update fibers with defaults - handle properly based on Fibers model structure
                 for field_name, value in fibers_defaults.angles.items():
                     if hasattr(self.fibers, field_name):

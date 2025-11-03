@@ -1313,13 +1313,6 @@ class SimulationSettings:
                     stimulation_dict[key] = Stimulation(**stim_data)
                 self.electrophysiology.stimulation = stimulation_dict
 
-            # Load fiber defaults
-            if hasattr(self, "fibers") and isinstance(self.fibers, FibersBRBM):
-                # Update fibers with defaults - handle properly based on Fibers model structure
-                for field_name, value in fibers_defaults.angles.items():
-                    if hasattr(self.fibers, field_name):
-                        setattr(self.fibers, field_name, value)
-
             # Load Purkinje defaults
             if hasattr(self, "purkinje") and isinstance(self.purkinje, Purkinje):
                 # Update Purkinje with defaults - handle properly based on Purkinje model structure

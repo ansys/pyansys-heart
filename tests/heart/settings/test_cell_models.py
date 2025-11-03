@@ -252,7 +252,7 @@ epicelldata = dict(
 )
 
 
-def test_cellmodel():
+def test_cellmodel() -> None:
     tentusendo = TentusscherEndo()
     tentusmid = TentusscherMid()
     tentusepi = TentusscherEpi()
@@ -265,7 +265,7 @@ def test_cellmodel():
 class TestTentusscher:
     """Test base Tentusscher cell model."""
 
-    def test_tentusscher_default_creation(self):
+    def test_tentusscher_default_creation(self) -> None:
         """Test creating Tentusscher with default values."""
         model = Tentusscher()
 
@@ -280,7 +280,7 @@ class TestTentusscher:
         assert model.gks == 0.392
         assert model.gto == 0.294
 
-    def test_tentusscher_custom_values(self):
+    def test_tentusscher_custom_values(self) -> None:
         """Test creating Tentusscher with custom values."""
         model = Tentusscher(gas_constant=8000.0, t=300.0, ko=5.0, nao=130.0)
 
@@ -292,7 +292,7 @@ class TestTentusscher:
         assert model.faraday_constant == 96485.3415
         assert model.cm == 0.185
 
-    def test_tentusscher_all_required_fields(self):
+    def test_tentusscher_all_required_fields(self) -> None:
         """Test that all expected fields are present."""
         model = Tentusscher()
 
@@ -372,7 +372,7 @@ class TestTentusscher:
             assert hasattr(model, field), f"Missing field: {field}"
             assert getattr(model, field) is not None, f"Field {field} is None"
 
-    def test_tentusscher_field_types(self):
+    def test_tentusscher_field_types(self) -> None:
         """Test that all fields have correct types."""
         model = Tentusscher()
 
@@ -382,26 +382,26 @@ class TestTentusscher:
                 f"Field {field_name} is not numeric: {type(field_value)}"
             )
 
-    def test_tentusscher_validation_negative_values(self):
+    def test_tentusscher_validation_negative_values(self) -> None:
         """Test validation with negative values where appropriate."""
         # Some parameters like voltage can be negative
         model = Tentusscher(v=-90.0, h=0.5)
         assert model.v == -90.0
         assert model.h == 0.5
 
-    def test_tentusscher_validation_zero_values(self):
+    def test_tentusscher_validation_zero_values(self) -> None:
         """Test validation with zero values."""
         model = Tentusscher(gbna=0.0, vleak=0.0)
         assert model.gbna == 0.0
         assert model.vleak == 0.0
 
-    def test_tentusscher_scientific_notation(self):
+    def test_tentusscher_scientific_notation(self) -> None:
         """Test handling of scientific notation values."""
         model = Tentusscher(d=3.373e-5, r=2.42e-8)
         assert model.d == 3.373e-5
         assert model.r == 2.42e-8
 
-    def test_tentusscher_serialization(self):
+    def test_tentusscher_serialization(self) -> None:
         """Test serialization to dictionary."""
         model = Tentusscher(gas_constant=8000.0, t=305.0)
         data = model.model_dump()
@@ -411,7 +411,7 @@ class TestTentusscher:
         assert data["t"] == 305.0
         assert "faraday_constant" in data
 
-    def test_tentusscher_deserialization(self):
+    def test_tentusscher_deserialization(self) -> None:
         """Test deserialization from dictionary."""
         data = {"gas_constant": 8000.0, "t": 305.0, "ko": 6.0}
 
@@ -422,7 +422,7 @@ class TestTentusscher:
         # Default values should be preserved
         assert model.faraday_constant == 96485.3415
 
-    def test_tentusscher_json_serialization(self):
+    def test_tentusscher_json_serialization(self) -> None:
         """Test JSON serialization."""
         model = Tentusscher(gas_constant=8100.0)
 
@@ -439,13 +439,13 @@ class TestTentusscher:
 class TestTentusscherEndo:
     """Test TentusscherEndo cell model."""
 
-    def test_tentusscher_endo_inheritance(self):
+    def test_tentusscher_endo_inheritance(self) -> None:
         """Test that TentusscherEndo inherits from Tentusscher."""
         model = TentusscherEndo()
         assert isinstance(model, Tentusscher)
         assert isinstance(model, TentusscherEndo)
 
-    def test_tentusscher_endo_overrides(self):
+    def test_tentusscher_endo_overrides(self) -> None:
         """Test that TentusscherEndo overrides specific values."""
         base_model = Tentusscher()
         endo_model = TentusscherEndo()
@@ -460,7 +460,7 @@ class TestTentusscherEndo:
         assert endo_model.gas_constant == base_model.gas_constant
         assert endo_model.faraday_constant == base_model.faraday_constant
 
-    def test_tentusscher_endo_unique_parameters(self):
+    def test_tentusscher_endo_unique_parameters(self) -> None:
         """Test endocardium-specific parameter values."""
         model = TentusscherEndo()
 
@@ -471,7 +471,7 @@ class TestTentusscherEndo:
         assert model.nai == 10.355
         assert model.s == 0.3212  # Very different from base (0.999998)
 
-    def test_tentusscher_endo_custom_values(self):
+    def test_tentusscher_endo_custom_values(self) -> None:
         """Test TentusscherEndo with custom values."""
         model = TentusscherEndo(gto=0.1, v=-90.0)
 
@@ -485,13 +485,13 @@ class TestTentusscherEndo:
 class TestTentusscherEpi:
     """Test TentusscherEpi cell model."""
 
-    def test_tentusscher_epi_inheritance(self):
+    def test_tentusscher_epi_inheritance(self) -> None:
         """Test that TentusscherEpi inherits from Tentusscher."""
         model = TentusscherEpi()
         assert isinstance(model, Tentusscher)
         assert isinstance(model, TentusscherEpi)
 
-    def test_tentusscher_epi_same_as_base(self):
+    def test_tentusscher_epi_same_as_base(self) -> None:
         """Test that TentusscherEpi has same values as base Tentusscher."""
         base_model = Tentusscher()
         epi_model = TentusscherEpi()
@@ -504,7 +504,7 @@ class TestTentusscherEpi:
         assert epi_model.nai == base_model.nai
         assert epi_model.s == base_model.s
 
-    def test_tentusscher_epi_explicit_values(self):
+    def test_tentusscher_epi_explicit_values(self) -> None:
         """Test TentusscherEpi explicit parameter values."""
         model = TentusscherEpi()
 
@@ -520,13 +520,13 @@ class TestTentusscherEpi:
 class TestTentusscherMid:
     """Test TentusscherMid cell model."""
 
-    def test_tentusscher_mid_inheritance(self):
+    def test_tentusscher_mid_inheritance(self) -> None:
         """Test that TentusscherMid inherits from Tentusscher."""
         model = TentusscherMid()
         assert isinstance(model, Tentusscher)
         assert isinstance(model, TentusscherMid)
 
-    def test_tentusscher_mid_overrides(self):
+    def test_tentusscher_mid_overrides(self) -> None:
         """Test that TentusscherMid overrides specific values."""
         mid_model = TentusscherMid()
 
@@ -536,7 +536,7 @@ class TestTentusscherMid:
         assert mid_model.v == -85.423  # Slightly different from base (-85.23)
         assert mid_model.ki == 138.52  # Different from base (136.89)
 
-    def test_tentusscher_mid_unique_parameters(self):
+    def test_tentusscher_mid_unique_parameters(self) -> None:
         """Test mid-myocardium-specific parameter values."""
         model = TentusscherMid()
 
@@ -552,7 +552,7 @@ class TestTentusscherMid:
 class TestModelComparisons:
     """Test comparisons between different Tentusscher variants."""
 
-    def test_model_differences(self):
+    def test_model_differences(self) -> None:
         """Test key differences between model variants."""
         endo = TentusscherEndo()
         epi = TentusscherEpi()
@@ -573,7 +573,7 @@ class TestModelComparisons:
         assert epi.s == 0.999998  # High
         assert mid.s == 0.999998  # High
 
-    def test_model_serialization_differences(self):
+    def test_model_serialization_differences(self) -> None:
         """Test that serialized models show expected differences."""
         endo = TentusscherEndo()
         epi = TentusscherEpi()
@@ -592,7 +592,7 @@ class TestModelComparisons:
 class TestValidationAndErrors:
     """Test validation and error handling."""
 
-    def test_invalid_field_types(self):
+    def test_invalid_field_types(self) -> None:
         """Test validation with invalid field types."""
         with pytest.raises(ValidationError):
             Tentusscher(gas_constant="invalid")
@@ -600,7 +600,7 @@ class TestValidationAndErrors:
         with pytest.raises(ValidationError):
             TentusscherEndo(gks="not_a_number")
 
-    def test_model_validation(self):
+    def test_model_validation(self) -> None:
         """Test model validation with edge cases."""
         # Very large values should be accepted
         model = Tentusscher(gas_constant=1e10, faraday_constant=1e10)
@@ -611,7 +611,7 @@ class TestValidationAndErrors:
         assert model.d == 1e-20
         assert model.r == 1e-20
 
-    def test_field_assignment_after_creation(self):
+    def test_field_assignment_after_creation(self) -> None:
         """Test field assignment after model creation."""
         # Pydantic models are immutable by default, but we can test validation
         with pytest.raises(ValidationError):
@@ -622,7 +622,7 @@ class TestValidationAndErrors:
 class TestSerialization:
     """Test comprehensive serialization scenarios."""
 
-    def test_round_trip_serialization(self):
+    def test_round_trip_serialization(self) -> None:
         """Test complete serialization round trip for all models."""
         models = [
             Tentusscher(gas_constant=8200.0),
@@ -646,7 +646,7 @@ class TestSerialization:
             assert type(restored_json) is type(model)
             assert restored_json.model_dump() == model.model_dump()
 
-    def test_partial_serialization(self):
+    def test_partial_serialization(self) -> None:
         """Test serialization with only some fields specified."""
         # Create model with only some custom values
         model = TentusscherEndo(gto=0.1, v=-88.0)
@@ -656,7 +656,7 @@ class TestSerialization:
         assert data["v"] == -88.0
         assert data["gas_constant"] == 8314.472  # Default value preserved
 
-    def test_json_schema_generation(self):
+    def test_json_schema_generation(self) -> None:
         """Test JSON schema generation."""
         schema = Tentusscher.model_json_schema()
 

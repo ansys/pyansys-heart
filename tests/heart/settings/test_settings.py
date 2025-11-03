@@ -30,7 +30,6 @@ from pint import Quantity
 from pydantic import ValidationError
 import pytest
 
-from ansys.health.heart.settings.defaults import fibers as fibers_defaults
 from ansys.health.heart.settings.settings import (
     Analysis,
     FibersBRBM,
@@ -254,8 +253,7 @@ def test_convert_units_002():
 def test_settings_set_defaults():
     """Check if defaults properly set using Pydantic model initialization."""
     # Create Fibers instance with defaults applied directly
-    fibers_data = fibers_defaults.angles
-    settings = FibersBRBM(**fibers_data)
+    settings = FibersBRBM()
     assert settings.alpha_endo.m == -60
 
 

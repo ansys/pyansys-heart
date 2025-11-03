@@ -189,8 +189,6 @@ class TestFiberDefaultsLoading:
         """Test load_defaults() correctly initializes B-RBM fiber settings."""
         from pint import Quantity
 
-        from ansys.health.heart.settings.defaults import fibers as fibers_defaults
-
         # Create settings with LSDYNA fiber method
         settings = SimulationSettings(fiber_method="LSDYNA")
 
@@ -203,15 +201,6 @@ class TestFiberDefaultsLoading:
 
         # Verify B-RBM specific defaults are loaded from the defaults module
         lsdyna_fibers = settings._get_fiber_config_lsdyna()
-
-        # Verify that defaults from fibers.py are applied
-        expected_defaults = fibers_defaults.angles
-        assert lsdyna_fibers.alpha_endo == expected_defaults["alpha_endo"]
-        assert lsdyna_fibers.alpha_epi == expected_defaults["alpha_epi"]
-        assert lsdyna_fibers.beta_endo == expected_defaults["beta_endo"]
-        assert lsdyna_fibers.beta_epi == expected_defaults["beta_epi"]
-        assert lsdyna_fibers.beta_endo_septum == expected_defaults["beta_endo_septum"]
-        assert lsdyna_fibers.beta_epi_septum == expected_defaults["beta_epi_septum"]
 
         # Verify the specific default values are correct
         assert lsdyna_fibers.alpha_endo == Quantity(-60, "degree")

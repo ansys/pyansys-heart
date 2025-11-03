@@ -671,6 +671,56 @@ class FibersDRBM(BaseSettings):
     septal_fraction: float = 2.0 / 3.0
     """The fraction of the septum that belongs to the left ventricle."""
 
+    def _get_rotation_dict(self) -> dict[str, list[float] | None]:
+        """Get D-RBM rotation angles formatted for legacy compute_fibers method.
+
+        Converts the Pydantic model data to the dictionary format expected by
+        the compute_fibers(method="D-RBM") method.
+
+        Returns
+        -------
+        dict[str, list[float] | None]
+            Dictionary with keys "alpha_left", "alpha_right", "alpha_ot",
+            "beta_left", "beta_right", "beta_ot" containing [endo, epi] angle
+            pairs in degrees, or None for outflow tract if not configured.
+
+        Examples
+        --------
+        >>> settings = SimulationSettings(fiber_method="D-RBM")
+        >>> drbm_fibers = settings.get_fibers_drbm()
+        >>> rotation_angles = drbm_fibers.get_rotation_dict()
+        >>> print(rotation_angles["alpha_left"])
+        [60.0, -60.0]
+        """
+        return {
+            "alpha_left": [
+                self.left_ventricle.alpha_endo.to("degree").magnitude,
+                self.left_ventricle.alpha_epi.to("degree").magnitude,
+            ],
+            "alpha_right": [
+                self.right_ventricle.alpha_endo.to("degree").magnitude,
+                self.right_ventricle.alpha_epi.to("degree").magnitude,
+            ],
+            "alpha_ot": (
+                [self.alpha_outflow_tract.to("degree").magnitude] * 2
+                if self.alpha_outflow_tract is not None
+                else None
+            ),
+            "beta_left": [
+                self.left_ventricle.beta_endo.to("degree").magnitude,
+                self.left_ventricle.beta_epi.to("degree").magnitude,
+            ],
+            "beta_right": [
+                self.right_ventricle.beta_endo.to("degree").magnitude,
+                self.right_ventricle.beta_epi.to("degree").magnitude,
+            ],
+            "beta_ot": (
+                [self.beta_outflow_tract.to("degree").magnitude] * 2
+                if self.beta_outflow_tract is not None
+                else None
+            ),
+        }
+
 
 class AtrialFiber(BaseSettings):
     """Class for keeping track of atrial fiber settings.
@@ -803,7 +853,7 @@ class SimulationSettings:
     # All parameters default to True, so these attributes exist in the default case
     mechanics: Mechanics  # Exists when mechanics=True (default)
     electrophysiology: Electrophysiology  # Exists when electrophysiology=True (default)
-    fibers: FibersBRBM  # Exists when fiber=True (default)
+    fibers: FibersBRBM | FibersDRBM  # Exists when fiber=True (default)
     atrial_fibers: AtrialFiber  # Exists when fiber=True (default)
     purkinje: Purkinje  # Exists when purkinje=True (default)
     stress_free: ZeroPressure  # Exists when stress_free=True (default)
@@ -813,6 +863,7 @@ class SimulationSettings:
         mechanics: bool = True,
         electrophysiology: bool = True,
         fiber: bool = True,
+        fiber_method: Literal["LSDYNA", "D-RBM"] = "LSDYNA",
         purkinje: bool = True,
         stress_free: bool = True,
     ) -> None:
@@ -865,9 +916,25 @@ class SimulationSettings:
             """Settings for electrophysiology simulation."""
 
         if fiber:
-            self.fibers: FibersBRBM = FibersBRBM()
+            if fiber_method == "LSDYNA":
+                self.fibers: FibersBRBM = FibersBRBM()
+                """Fiber settings for the LSDYNA rule-based method."""
+            elif fiber_method == "D-RBM":
+                self.fibers: FibersDRBM = FibersDRBM()
+                """Fiber settings for the D-RBM method."""
+            else:
+                raise ValueError(
+                    "Invalid method to compute the fiber orientation. "
+                    "Valid methods include: [LSDYNA, D-RBM]"
+                )
+
+            # Store the fiber method for later validation and loading
+            self._fiber_method = fiber_method
+
             self.atrial_fibers: AtrialFiber = AtrialFiber()
-            """Settings for fiber generation."""
+            """Settings for atrial fiber generation."""
+        else:
+            self._fiber_method = None
 
         if purkinje:
             self.purkinje: Purkinje = Purkinje()
@@ -877,7 +944,45 @@ class SimulationSettings:
             self.stress_free: ZeroPressure = ZeroPressure()
             """Settings for stress free configuration simulation."""
 
-        pass
+        return
+
+    def _get_fiber_config_lsdyna(self) -> FibersBRBM:
+        """Get LSDYNA fiber settings with type safety.
+
+        Returns
+        -------
+        FibersBRBM
+            LSDYNA fiber settings instance.
+
+        Raises
+        ------
+        ValueError
+            If fiber method is not LSDYNA or fibers not configured.
+        """
+        if not hasattr(self, "fibers"):
+            raise ValueError("Fiber settings not configured")
+        if self._fiber_method != "LSDYNA":
+            raise ValueError(f"Fiber method is {self._fiber_method}, not LSDYNA")
+        return self.fibers  # type: ignore (we know it's FibersBRBM from the check)
+
+    def _get_fiber_config_drbm(self) -> FibersDRBM:
+        """Get D-RBM fiber settings with type safety.
+
+        Returns
+        -------
+        FibersDRBM
+            D-RBM fiber settings instance.
+
+        Raises
+        ------
+        ValueError
+            If fiber method is not D-RBM or fibers not configured.
+        """
+        if not hasattr(self, "fibers"):
+            raise ValueError("Fiber settings not configured")
+        if self._fiber_method != "D-RBM":
+            raise ValueError(f"Fiber method is {self._fiber_method}, not D-RBM")
+        return self.fibers  # type: ignore (we know it's FibersDRBM from the check)
 
     def __repr__(self):
         """Represent object as list of relevant attribute names.

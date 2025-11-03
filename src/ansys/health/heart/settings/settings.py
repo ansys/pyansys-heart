@@ -47,6 +47,7 @@ from pathlib import Path
 import shutil
 from typing import Any, Literal
 
+from deprecated import deprecated
 from pint import Quantity, UnitRegistry
 from pydantic import (
     BaseModel,
@@ -616,7 +617,12 @@ class BaseFiberSettings(BaseSettings):
 
 
 class FibersBRBM(BaseFiberSettings):
-    """Class for keeping track of fiber settings for the B-RBM method."""
+    """Class for keeping track of fiber settings for the Bayer et al rule-based method.
+
+    Notes
+    -----
+    Based on Bayer et al. https://doi.org/10.1007/s10439-012-0593-5.
+    """
 
     beta_endo_septum: Quantity = Field(
         default=Quantity(-65, "degree"),
@@ -629,11 +635,11 @@ class FibersBRBM(BaseFiberSettings):
 
 
 class FibersDRBM(BaseSettings):
-    """Class for storing settings for the D-RBM method.
+    """Class for storing settings for the Doste et al rule-based method.
 
     Notes
     -----
-    Defaults based on Doste et al. https://doi.org/10.1002/cnm.3185.
+    Based on Doste et al. https://doi.org/10.1002/cnm.3185.
     """
 
     # In PyAnsys-Heart the coordinate system is defined based on longitudinal (apex to base)
@@ -997,9 +1003,6 @@ class SimulationSettings:
             LOGGER.warning("No 'Simulation Settings' found in file")
             return
 
-        # Unit registry kept for backward compatibility with external code
-        # ureg = UnitRegistry()  # Commented out - no longer needed
-
         try:
             # Use streamlined approach - Pydantic handles all validation automatically
             self._load_settings_section("mechanics", settings_data, Mechanics)
@@ -1216,6 +1219,9 @@ class SimulationSettings:
                 attr.to_consistent_unit_system()
         return
 
+    @deprecated(
+        reason="Use get_fibers_lsdyna() or get_fibers_drbm() for type-safe fiber access instead."
+    )
     def get_ventricle_fiber_rotation(self, method: Literal["LSDYNA", "D-RBM"]) -> dict:
         """Get rotation angles from fiber settings.
 

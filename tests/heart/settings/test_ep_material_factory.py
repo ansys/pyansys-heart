@@ -22,6 +22,7 @@
 
 import importlib.util as importlib_util
 import sys
+from typing import Any
 
 import pytest
 
@@ -29,8 +30,14 @@ from ansys.health.heart.settings.material import ep_material_factory as factory
 from ansys.health.heart.settings.material.ep_material import EPSolverType
 
 
-def _make_dummy_defaults():
-    """Create a dummy defaults module with eikonal and monodomain entries."""
+def _make_dummy_defaults() -> tuple[str, Any]:
+    """Create a dummy defaults module with eikonal and monodomain entries.
+
+    Returns
+    -------
+    tuple[str, Any]
+        Module name and dummy module instance.
+    """
     module_name = "ansys.health.heart.settings.defaults.electrophysiology"
     spec = importlib_util.spec_from_loader(module_name, loader=None)
     dummy = importlib_util.module_from_spec(spec)
@@ -51,12 +58,16 @@ def _make_dummy_defaults():
 
 # Mocks ActiveBeam and Active EP Material classes.
 class MockActive:
-    def __init__(self, **kwargs):
+    """Mock Active EP material class for testing."""
+
+    def __init__(self, **kwargs: Any) -> None:
         self.kwargs = kwargs
 
 
 class MockActiveBeam:
-    def __init__(self, **kwargs):
+    """Mock ActiveBeam EP material class for testing."""
+
+    def __init__(self, **kwargs: Any) -> None:
         self.kwargs = kwargs
 
 
@@ -64,7 +75,7 @@ class MockActiveBeam:
 class MockPart:
     """Mock Part class for testing material assignment."""
 
-    def __init__(self, name: str, active: bool = True, ep_material=None):
+    def __init__(self, name: str, active: bool = True, ep_material: Any | None = None) -> None:
         self.name = name
         self.active = active
         self.ep_material = ep_material
@@ -73,7 +84,7 @@ class MockPart:
 class MockArtery:
     """Mock Artery class for testing insulator assignment."""
 
-    def __init__(self, name: str, ep_material=None):
+    def __init__(self, name: str, ep_material: Any | None = None) -> None:
         self.name = name
         self.active = False
         self.ep_material = ep_material
@@ -82,7 +93,7 @@ class MockArtery:
 class MockConductionPath:
     """Mock ConductionPath class for testing."""
 
-    def __init__(self, name: str, ep_material=None):
+    def __init__(self, name: str, ep_material: Any | None = None) -> None:
         self.name = name
         self.ep_material = ep_material
 
@@ -90,7 +101,11 @@ class MockConductionPath:
 class MockHeartModel:
     """Mock HeartModel class for testing."""
 
-    def __init__(self, parts=None, conduction_paths=None):
+    def __init__(
+        self,
+        parts: list[MockPart | MockArtery] | None = None,
+        conduction_paths: list[MockConductionPath] | None = None,
+    ) -> None:
         self.parts = parts or []
         self.conduction_paths = conduction_paths or []
 
@@ -98,18 +113,19 @@ class MockHeartModel:
 class MockEPMaterial:
     """Mock EP material base class."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         self.kwargs = kwargs
 
 
 class MockInsulator:
     """Mock Insulator material class."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.material_type = "Insulator"
 
 
-def test_get_default_myocardium_material_selects_correct_defaults(monkeypatch):
+def test_get_default_myocardium_material_selects_correct_defaults(monkeypatch: Any) -> None:
+    """Test that get_default_myocardium_material selects correct default materials."""
     module_name, dummy = _make_dummy_defaults()
     monkeypatch.setitem(sys.modules, module_name, dummy)
 
@@ -132,7 +148,8 @@ def test_get_default_myocardium_material_selects_correct_defaults(monkeypatch):
     assert res.kwargs == dummy.default_myocardium_material_monodomain
 
 
-def test_get_default_conduction_system_material_selects_correct_defaults(monkeypatch):
+def test_get_default_conduction_system_material_selects_correct_defaults(monkeypatch: Any) -> None:
+    """Test that get_default_conduction_system_material selects correct defaults."""
     module_name, dummy = _make_dummy_defaults()
     monkeypatch.setitem(sys.modules, module_name, dummy)
 
@@ -149,7 +166,7 @@ def test_get_default_conduction_system_material_selects_correct_defaults(monkeyp
     assert res.kwargs == dummy.default_beam_material_monodomain
 
 
-def test_assign_default_ep_materials_with_enum_solver_type(monkeypatch):
+def test_assign_default_ep_materials_with_enum_solver_type(monkeypatch: Any) -> None:
     """Test assign_default_ep_materials with EPSolverType enum input.
 
     This test verifies that the function correctly handles enum solver types
@@ -190,7 +207,7 @@ def test_assign_default_ep_materials_with_enum_solver_type(monkeypatch):
     assert conduction_path.ep_material is mock_beam_material
 
 
-def test_assign_default_ep_materials_with_string_solver_type(monkeypatch):
+def test_assign_default_ep_materials_with_string_solver_type(monkeypatch: Any) -> None:
     """Test assign_default_ep_materials with string solver type input.
 
     This test verifies that the function correctly converts string solver types
@@ -214,7 +231,7 @@ def test_assign_default_ep_materials_with_string_solver_type(monkeypatch):
     assert part.ep_material is mock_material
 
 
-def test_assign_default_ep_materials_with_invalid_solver_type():
+def test_assign_default_ep_materials_with_invalid_solver_type() -> None:
     """Test assign_default_ep_materials with invalid solver type.
 
     This test verifies that the function raises appropriate errors for
@@ -233,7 +250,7 @@ def test_assign_default_ep_materials_with_invalid_solver_type():
         factory.assign_default_ep_materials(model, 123)
 
 
-def test_assign_default_ep_materials_skips_existing_materials(monkeypatch):
+def test_assign_default_ep_materials_skips_existing_materials(monkeypatch: Any) -> None:
     """Test that assign_default_ep_materials skips parts with existing valid materials.
 
     This test verifies that the function doesn't overwrite existing EP materials
@@ -260,7 +277,7 @@ def test_assign_default_ep_materials_skips_existing_materials(monkeypatch):
     assert part.ep_material is existing_material
 
 
-def test_assign_default_ep_materials_handles_empty_model(monkeypatch):
+def test_assign_default_ep_materials_handles_empty_model(monkeypatch: Any) -> None:
     """Test assign_default_ep_materials with empty model.
 
     This test verifies that the function handles models with no parts
@@ -280,7 +297,7 @@ def test_assign_default_ep_materials_handles_empty_model(monkeypatch):
     factory.assign_default_ep_materials(model, EPSolverType.MONODOMAIN)
 
 
-def test_assign_default_ep_materials_handles_mixed_part_states(monkeypatch):
+def test_assign_default_ep_materials_handles_mixed_part_states(monkeypatch: Any) -> None:
     """Test assign_default_ep_materials with mixed part material states.
 
     This test verifies correct handling when some parts have materials
@@ -318,7 +335,9 @@ def test_assign_default_ep_materials_handles_mixed_part_states(monkeypatch):
         "ReactionEikonal",
     ],
 )
-def test_assign_default_ep_materials_all_solver_types(monkeypatch, solver_type):
+def test_assign_default_ep_materials_all_solver_types(
+    monkeypatch: Any, solver_type: EPSolverType | str
+) -> None:
     """Test assign_default_ep_materials with all valid solver types.
 
     This parametrized test verifies that the function works correctly

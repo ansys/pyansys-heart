@@ -41,7 +41,7 @@ from ansys.health.heart.settings.settings import (
 class TestQuantitySerializationPydantic:
     """Test Pydantic v2 based Quantity serialization and validation."""
 
-    def test_quantity_field_serializer_json(self):
+    def test_quantity_field_serializer_json(self) -> None:
         """Test that Quantity fields are properly serialized to JSON strings."""
         analysis = Analysis(
             end_time=Quantity(1000, "ms"),
@@ -60,7 +60,7 @@ class TestQuantitySerializationPydantic:
         assert parsed_data["dtmax"] == "10 millisecond"
         assert parsed_data["global_damping"] == "0.5 / second"
 
-    def test_quantity_field_serializer_dict(self):
+    def test_quantity_field_serializer_dict(self) -> None:
         """Test that Quantity fields are properly serialized to dict format."""
         analysis = Analysis(
             end_time=Quantity(1000, "ms"),
@@ -76,7 +76,7 @@ class TestQuantitySerializationPydantic:
         assert dict_data["dtmin"] == Quantity(0.1, "ms")
         assert dict_data["global_damping"] == Quantity(0.5, "1/s")
 
-    def test_quantity_validator_from_string(self):
+    def test_quantity_validator_from_string(self) -> None:
         """Test that Quantity validators properly deserialize from strings."""
         # Test creation from string representation
         analysis_data = {
@@ -97,12 +97,12 @@ class TestQuantitySerializationPydantic:
         assert analysis.global_damping.magnitude == 0.5
         assert str(analysis.global_damping.units) == "1 / second"
 
-    def test_quantity_validator_from_string_invalid_value(self):
+    def test_quantity_validator_from_string_invalid_value(self) -> None:
         """Test that the validator raises an error when a non-quantity string is received."""
         with pytest.raises(ValueError):
             Analysis(end_time="invalid unit string")
 
-    def test_quantity_validator_from_quantity(self):
+    def test_quantity_validator_from_quantity(self) -> None:
         """Test that Quantity validators pass through existing Quantity objects."""
         # Test creation from Quantity objects directly
         analysis = Analysis(
@@ -117,7 +117,7 @@ class TestQuantitySerializationPydantic:
         assert str(analysis.end_time.units) == "millisecond"
 
     @pytest.mark.xfail(reason="Default units not yet implemented in Pydantic validators")
-    def test_quantity_validator_from_numeric_with_default_units(self):
+    def test_quantity_validator_from_numeric_with_default_units(self) -> None:
         """Test that numeric values get default units when specified."""
         # Create stimulation with numeric values - should get default units
         stim_data = {
@@ -134,19 +134,19 @@ class TestQuantitySerializationPydantic:
         assert str(stim.t_start.units) == "millisecond"
 
     @pytest.mark.xfail(reason="Targets units not yet implemented in Pydantic validators")
-    def test_quantity_validation_error_invalid_units(self):
+    def test_quantity_validation_error_invalid_units(self) -> None:
         """Test that invalid unit strings raise proper validation errors."""
         with pytest.raises(ValueError, match="Unable to parse quantity"):
             Analysis(end_time="invalid_unit_string")
 
     @pytest.mark.xfail(reason="Targets dimensions not yet implemented in Pydantic validators")
-    def test_quantity_validation_error_incompatible_dimensions(self):
+    def test_quantity_validation_error_incompatible_dimensions(self) -> None:
         """Test validation of incompatible dimensions."""
         with pytest.raises(ValueError, match="incompatible dimensions"):
             # Trying to assign length unit to time field
             Analysis(end_time="100.0 meter")
 
-    def test_nested_quantity_serialization(self):
+    def test_nested_quantity_serialization(self) -> None:
         """Test serialization of nested models with Quantity fields."""
         mechanics = Mechanics()
         mechanics.analysis.end_time = Quantity(1000, "ms")
@@ -160,7 +160,7 @@ class TestQuantitySerializationPydantic:
         assert parsed_data["analysis"]["end_time"] == "1000 millisecond"
         assert parsed_data["analysis"]["dtmin"] == "0.1 millisecond"
 
-    def test_stimulation_node_ids_validation(self):
+    def test_stimulation_node_ids_validation(self) -> None:
         """Test that Stimulation node_ids field is properly validated."""
         # Test with list of integers
         stim = Stimulation(node_ids=[1, 2, 3])
@@ -174,7 +174,7 @@ class TestQuantitySerializationPydantic:
         with pytest.raises(ValueError):
             Stimulation(node_ids="invalid_node_ids")
 
-    def test_complex_nested_serialization_deserialization(self):
+    def test_complex_nested_serialization_deserialization(self) -> None:
         """Test round-trip serialization/deserialization of complex nested structures."""
         # Create complex settings
         settings = SimulationSettings(
@@ -207,7 +207,7 @@ class TestQuantitySerializationPydantic:
         assert reconstructed_mechanics.analysis.end_time == Quantity(1000, "ms")
         assert isinstance(reconstructed_mechanics.analysis.end_time, Quantity)
 
-    def test_yaml_round_trip_serialization(self):
+    def test_yaml_round_trip_serialization(self) -> None:
         """Test YAML serialization/deserialization round trip."""
         analysis = Analysis(
             end_time=Quantity(1000, "ms"),
@@ -238,7 +238,7 @@ class TestQuantitySerializationPydantic:
         finally:
             Path(temp_path).unlink()
 
-    def test_unit_conversion_during_validation(self):
+    def test_unit_conversion_during_validation(self) -> None:
         """Test that units are properly converted during validation."""
         # Create analysis with different time units
         analysis = Analysis(
@@ -255,7 +255,7 @@ class TestQuantitySerializationPydantic:
         assert analysis.dtmin.magnitude == 100.0
         assert str(analysis.dtmin.units) == "millisecond"
 
-    def test_serialize_consistency(self):
+    def test_serialize_consistency(self) -> None:
         """Test the serialize method for consistency with modern serialization."""
         analysis = Analysis(
             end_time=Quantity(1000, "ms"),
@@ -270,7 +270,7 @@ class TestQuantitySerializationPydantic:
         assert data_modern["end_time"] == "1000 millisecond"
         assert data_modern["global_damping"] == "0.5 / second"
 
-    def test_dimensionless_quantity_handling(self):
+    def test_dimensionless_quantity_handling(self) -> None:
         """Test handling of dimensionless quantities."""
         from ansys.health.heart.settings.settings import Electrophysiology
 
@@ -285,7 +285,7 @@ class TestQuantitySerializationPydantic:
         reconstructed = Electrophysiology(**data)
         assert reconstructed.lambda_ratio == Quantity(0.2, "dimensionless")
 
-    def test_none_quantity_fields(self):
+    def test_none_quantity_fields(self) -> None:
         """Test handling of None values in optional Quantity fields."""
         # Create model with None values (if any fields allow it)
         stim = Stimulation(node_ids=None)  # node_ids can be None
@@ -298,7 +298,7 @@ class TestQuantitySerializationPydantic:
         reconstructed = Stimulation(**data)
         assert reconstructed.node_ids is None
 
-    def test_quantity_field_validation_edge_cases(self):
+    def test_quantity_field_validation_edge_cases(self) -> None:
         """Test edge cases in Quantity field validation."""
         # Test zero values
         analysis = Analysis(end_time="0.0 millisecond")
@@ -312,7 +312,7 @@ class TestQuantitySerializationPydantic:
         analysis = Analysis(dtmin="1e-6 millisecond")
         assert analysis.dtmin.magnitude == 1e-6
 
-    def test_pydantic_validation_assignment(self):
+    def test_pydantic_validation_assignment(self) -> None:
         """Test that assignment validation works with Quantity fields."""
         analysis = Analysis()
 

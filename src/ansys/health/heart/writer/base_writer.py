@@ -36,7 +36,7 @@ from ansys.health.heart.objects import SurfaceMesh
 import ansys.health.heart.parts as anatomy
 import ansys.health.heart.settings.material.ep_material_factory as ep_material_factory
 import ansys.health.heart.settings.settings as sett
-from ansys.health.heart.settings.settings import SimulationSettings
+from ansys.health.heart.settings.settings import FibersBRBM, SimulationSettings
 from ansys.health.heart.writer import custom_keywords as custom_keywords
 from ansys.health.heart.writer.heart_decks import BaseDecks, FiberGenerationDecks
 from ansys.health.heart.writer.writer_utils import (
@@ -751,8 +751,9 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         self._update_ep_settings()
 
         if rotation_angles is None:
-            # find default settings
-            rotation_angles = self.settings.get_ventricle_fiber_rotation(method="LSDYNA")
+            # Get default settings.
+            rotation_angles = FibersBRBM()._get_rotation_dict()
+
         self._update_create_fibers(rotation_angles)
 
         include_files = self._get_decknames_of_include()

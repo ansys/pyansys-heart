@@ -1113,7 +1113,10 @@ class SimulationSettings:
             self._load_settings_section("mechanics", settings_data, Mechanics)
             self._load_settings_section("stress_free", settings_data, ZeroPressure)
             self._load_settings_section("electrophysiology", settings_data, Electrophysiology)
-            self._load_settings_section("fibers", settings_data, FibersBRBM)
+
+            # Handle fiber settings conditionally based on detected method
+            self._load_fiber_settings(settings_data)
+
             self._load_settings_section("atrial_fibers", settings_data, AtrialFiber)
             self._load_settings_section("purkinje", settings_data, Purkinje)
 
@@ -1151,6 +1154,50 @@ class SimulationSettings:
             # Let Pydantic handle all validation and type conversion automatically
             validated_model = model_class.model_validate(section_data)
             setattr(self, section_name, validated_model)
+
+    def _load_fiber_settings(self, settings_data: dict[str, Any]) -> None:
+        """Load fiber settings based on current configuration with fallback detection.
+
+        This method first attempts to load using the current fiber method configuration.
+        If that fails due to data structure mismatch, it auto-detects the method
+        from the data structure and retries with the appropriate model class.
+
+        Parameters
+        ----------
+        settings_data : dict[str, Any]
+            Settings data dictionary.
+        """
+        if "fibers" not in settings_data or not hasattr(self, "fibers"):
+            return
+
+        primary_method = "LSDYNA"
+        fallback_method = "D-RBM"
+
+        try:
+            # Try loading with the primary method first.
+            self._load_settings_section("fibers", settings_data, FibersBRBM)
+            self._fiber_method = primary_method
+            LOGGER.info(f"Successfully loaded fiber settings using {self._fiber_method} method")
+
+            return self.fibers
+
+        except (ValidationError, ValueError) as e:
+            LOGGER.debug(f"Failed to load fiber settings {primary_method}. {e}")
+
+        try:
+            # Try the alternative method.
+            self._load_settings_section("fibers", settings_data, FibersDRBM)
+            self._fiber_method = fallback_method
+            LOGGER.info(f"Successfully loaded fiber settings using {self._fiber_method} method")
+
+            return self.fibers
+
+        except (ValidationError, ValueError) as error:
+            # Both methods failed - provide helpful error message
+            raise ValueError(
+                f"Failed to load fiber settings with both {primary_method} and "
+                f"{fallback_method} methods. {error}."
+            )
 
     def _convert_quantities_recursive(self, data: Any) -> Any:
         """Recursively convert string quantities to Quantity objects in nested data.

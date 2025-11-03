@@ -633,6 +633,23 @@ class FibersBRBM(BaseFiberSettings):
         description="Angle to the outward transmural axis in the septum",
     )
 
+    def _get_rotation_dict(self):
+        """Get D-RBM rotation angles formatted for legacy compute_fibers method."""
+        return {
+            "alpha": [
+                self.alpha_endo.to("degree").magnitude,
+                self.alpha_epi.to("degree").magnitude,
+            ],
+            "beta": [
+                self.beta_endo.to("degree").magnitude,
+                self.beta_epi.to("degree").magnitude,
+            ],
+            "beta_septum": [
+                self.beta_endo_septum.to("degree").magnitude,
+                self.beta_epi_septum.to("degree").magnitude,
+            ],
+        }
+
 
 class FibersDRBM(BaseSettings):
     """Class for storing settings for the Doste et al rule-based method.

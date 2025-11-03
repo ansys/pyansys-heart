@@ -65,7 +65,12 @@ from ansys.health.heart.post.laplace_post import (
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.material.ep_material_factory import assign_default_ep_materials
 from ansys.health.heart.settings.material.material_factory import assign_default_mechanics_materials
-from ansys.health.heart.settings.settings import DynaSettings, SimulationSettings
+from ansys.health.heart.settings.settings import (
+    DynaSettings,
+    FibersBRBM,
+    FibersDRBM,
+    SimulationSettings,
+)
 from ansys.health.heart.utils.misc import _read_orth_element_kfile
 import ansys.health.heart.writer as writers
 
@@ -127,7 +132,9 @@ class BaseSimulator:
         return self.settings
 
     def compute_fibers(
-        self, method: Literal["LSDYNA", "D-RBM"] = "LSDYNA", rotation_angles: dict = None
+        self,
+        method: Literal["LSDYNA", "D-RBM"] = "LSDYNA",
+        fiber_settings: dict | FibersDRBM | FibersBRBM = None,
     ):
         """Compute the fiber sheet directions on the ventricles.
 
@@ -141,32 +148,31 @@ class BaseSimulator:
         LOGGER.info("Computing fiber orientation...")
 
         if method == "LSDYNA":
-            if rotation_angles is None:
-                # find default settings
-                rotation_angles = self.settings.get_ventricle_fiber_rotation(method="LSDYNA")
+            if fiber_settings is None:
+                # Use default settings for the B-RBM method.
+                fiber_settings = FibersBRBM()
 
-            for name in ["alpha", "beta", "beta_septum"]:
-                if name not in rotation_angles.keys():
-                    LOGGER.error(f"Must provide key {name} for D-RBM method.")
-                    raise KeyError(
-                        f"Must provide key {name} for D-RBM method. "
-                        "Please check the settings or provide the rotation angles."
-                    )
+            # For backwards compatibility.
+            if isinstance(fiber_settings, dict):
+                fiber_settings = FibersBRBM(**fiber_settings)
+
+            elif not isinstance(fiber_settings, FibersBRBM):
+                raise ValueError("LS-DYNA requires FibersBRBM settings.")
+
+            rotation_angles = fiber_settings._get_rotation_dict()
 
             self._compute_fibers_lsdyna(rotation_angles)
 
         elif method == "D-RBM":
-            if rotation_angles is None:
-                # find default settings
-                rotation_angles = self.settings.get_ventricle_fiber_rotation(method="D-RBM")
+            if fiber_settings is None:
+                # Use default settings for the D-RBM method.
+                fiber_settings = FibersDRBM()
 
-            for a, b in zip(["alpha", "beta"], ["_left", "_right", "_ot"]):
-                if a + b not in rotation_angles.keys():
-                    LOGGER.error(f"Must provide key {name} for D-RBM method.")
-                    raise KeyError(
-                        f"Must provide key {name} for D-RBM method. "
-                        "Please check the settings or provide the rotation angles."
-                    )
+            elif not isinstance(fiber_settings, FibersDRBM):
+                raise ValueError("D-RBM method requires FibersDRBM settings.")
+
+            rotation_angles = fiber_settings._get_rotation_dict()
+
             self._compute_fibers_drbm(rotation_angles)
 
         else:

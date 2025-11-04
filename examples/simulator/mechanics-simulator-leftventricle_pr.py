@@ -74,7 +74,7 @@ import pyvista as pv
 from ansys.health.heart.examples import get_input_leftventricle
 import ansys.health.heart.models as models
 from ansys.health.heart.post.dpf_utils import ICVoutReader
-from ansys.health.heart.settings.material.material import ACTIVE, ANISO, ISO, Mat295
+from ansys.health.heart.settings.material.material import ACTIVE, ANISO, ISO, HGOFiber, Mat295
 from ansys.health.heart.simulator import DynaSettings, MechanicsSimulator
 
 ###############################################################################
@@ -151,11 +151,31 @@ simulator.settings.load_defaults()
 # Compute fiber orientation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Compute fiber orientation and plot the fibers.
-simulator.compute_fibers(method="D-RBM")
+
+# Set rotation angles:
+rotation_angles = {
+    "alpha_left": [60, -60],
+    "alpha_right": [60, -60],
+    "alpha_ot": None,
+    "beta_left": [-20, 20],
+    "beta_right": [-20, 20],
+    "beta_ot": None,
+}
+simulator.compute_fibers(method="D-RBM", rotation_angles=rotation_angles)
 
 # Plot the fiber orientation by streamlines.
 simulator.model.plot_fibers(n_seed_points=2000)
 
+###############################################################################
+# .. note::
+#    The D-RBM method is based on Doste et al. (2021) and in this implementation
+#    the rotation of the local coordinate system follows the right hand rule, where
+#    the transmural direction is pointing from endocardium to epicardium, the
+#    longitudinal direction is pointing from apex to base. Consequently, the
+#    circumferential direction is orthogonal to both and follows from the cross
+#    product of longtiduinal and transmural directions.
+
+###############################################################################
 
 ###############################################################################
 # Assign a material to the left ventricle.
@@ -167,7 +187,7 @@ myocardium = Mat295(
     iso=ISO(itype=-3, beta=2, kappa=1.0, k1=0.20e-3, k2=6.55),
     aniso=ANISO(
         atype=-1,
-        fibers=[ANISO.HGOFiber(k1=0.00305, k2=29.05), ANISO.HGOFiber(k1=1.25e-3, k2=36.65)],
+        fibers=[HGOFiber(k1=0.00305, k2=29.05), HGOFiber(k1=1.25e-3, k2=36.65)],
         k1fs=0.15e-3,
         k2fs=6.28,
     ),
@@ -180,6 +200,10 @@ simulator.model.left_ventricle.meca_material = myocardium
 ################################################################################
 # Compute the stress-free configuration
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Create a stiff region at the base of the ventricle
+simulator.compute_uhc()
+stiff_part = simulator.model.create_stiff_ventricle_base(threshold_left_ventricle=0.9)
 
 # Compute the stress-free configuration and estimate initial stress.
 report, stress_free_coord, guess_ed_coord = simulator.compute_stress_free_configuration()

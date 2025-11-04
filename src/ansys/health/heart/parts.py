@@ -36,7 +36,7 @@ import yaml
 
 from ansys.health.heart import LOG as LOGGER, __version__
 from ansys.health.heart.objects import Cap, CapType, Cavity, Mesh, Point, SurfaceMesh
-from ansys.health.heart.settings.material.ep_material import EPMaterial
+import ansys.health.heart.settings.material.ep_material as ep_materials
 from ansys.health.heart.settings.material.material import MechanicalMaterialModel
 
 
@@ -137,10 +137,10 @@ class Part:
         self.active: bool = False
         """Flag indicating if active stress is established."""
 
-        self.meca_material: MechanicalMaterialModel = MechanicalMaterialModel.DummyMaterial()
+        self.meca_material: MechanicalMaterialModel = None
         """Material model to assign in the simulator."""
 
-        self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
+        self.ep_material: ep_materials.EPMaterialModel = None
         """EP material model to assign in the simulator."""
 
     def __str__(self) -> str:
@@ -270,7 +270,15 @@ class Part:
 
                 for cap_name, cap_id in part_data.get("caps", {}).items():
                     #! note that we assume cap name equals cap type here.
-                    cap = Cap(cap_name, cap_type=CapType(cap_name))
+                    try:
+                        cap_type = CapType(cap_name)
+                    except ValueError as e:
+                        LOGGER.warning(
+                            f"Invalid cap type: {cap_name}. {e}. Defaulting to UNKNOWN cap type."
+                        )
+                        cap_type = CapType.UNKNOWN
+
+                    cap = Cap(cap_name, cap_type=cap_type)
                     cap._mesh = mesh.get_surface(cap_id)
                     part.caps.append(cap)
 
@@ -336,7 +344,7 @@ class Artery(Part):
 
         self.wall: SurfaceMesh = SurfaceMesh(name="{0} wall".format(self.name))
 
-        self.ep_material = EPMaterial.Insulator()
+        self.ep_material = ep_materials.Insulator()
         """EP material model for the artery part."""
 
 

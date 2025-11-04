@@ -33,7 +33,7 @@ import pyvista as pv
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.objects import Mesh, SurfaceMesh
-from ansys.health.heart.settings.material.ep_material import EPMaterial
+from ansys.health.heart.settings.material.ep_material import EPMaterialModel, Insulator
 
 
 class ConductionPathType(Enum):
@@ -84,7 +84,7 @@ class ConductionPath:
         id: int,
         is_connected: np.ndarray,
         relying_surface: pv.PolyData,
-        material: EPMaterial = EPMaterial.DummyMaterial(),
+        material: EPMaterialModel | Insulator | None = None,
         up_path: ConductionPath | None = None,
         down_path: ConductionPath | None = None,
     ):
@@ -103,7 +103,7 @@ class ConductionPath:
             Mask array of points connected to the solid mesh.
         relying_surface : pv.PolyData
             Surface mesh that the conduction path relies on.
-        material : EPMaterial, default: EPMaterial.DummyMaterial()
+        material : EPMaterial, default: None
             EP Material property.
         up_path : ConductionPath | None, default: None
             Upstream conduction path. Its closest point connects to the first point of this path.

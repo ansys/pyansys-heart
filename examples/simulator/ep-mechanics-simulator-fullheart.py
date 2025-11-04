@@ -50,7 +50,7 @@ from pint import Quantity
 
 from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models
-from ansys.health.heart.settings.material.ep_material import EPMaterial
+import ansys.health.heart.settings.material.ep_material_factory as ep_material_factory
 from ansys.health.heart.settings.material.material import ISO, Mat295
 from ansys.health.heart.simulator import DynaSettings, EPMechanicsSimulator
 
@@ -98,6 +98,9 @@ simulator = EPMechanicsSimulator(
 # Load default simulation settings.
 simulator.settings.load_defaults()
 
+# Use the ReactionEikonal solver for the electrophysiology simulation.
+simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
+
 ###############################################################################
 # Compute the fiber orientation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,7 +136,9 @@ stiff_iso = Mat295(rho=0.001, iso=ISO(itype=-1, beta=2, kappa=10, mu1=0.1, alpha
 ring.meca_material = stiff_iso
 
 # Assign the default EP material
-ring.ep_material = EPMaterial.Active()
+ring.ep_material = ep_material_factory.get_default_myocardium_material(
+    simulator.settings.electrophysiology.analysis.solvertype
+)
 
 # plot the mesh
 simulator.model.plot_mesh()
@@ -183,9 +188,6 @@ simulator.model.save_model(os.path.join(workdir, "heart_fib_beam.vtu"))
 # .. note::
 #    A constant pressure is prescribed to the atria.
 #    No circulation system is coupled with the atria.
-
-# Use the ReactionEikonal solver for the electrophysiology simulation.
-simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
 
 # Start main simulation. The ``auto_post`` option is set to ``False`` to avoid
 # automatic postprocessing.

@@ -37,7 +37,7 @@ import pyvista as pv
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.exceptions import InvalidHeartModelError
+from ansys.health.heart.exceptions import InvalidHeartModelError, PartAlreadyExistsError
 from ansys.health.heart.landmarks import LandMarks
 from ansys.health.heart.objects import (
     Cap,
@@ -54,7 +54,7 @@ from ansys.health.heart.pre.conduction_path import (
 )
 from ansys.health.heart.pre.input import _InputModel
 import ansys.health.heart.pre.mesher as mesher
-from ansys.health.heart.settings.material.ep_material import EPMaterial
+import ansys.health.heart.settings.material.ep_material as ep_materials
 from ansys.health.heart.settings.material.material import (
     ISO,
     Mat295,
@@ -409,7 +409,7 @@ class HeartModel:
 
         if name in [p.name for p in self.parts]:
             LOGGER.error(f"Failed to create {name}. Name already exists.")
-            return None
+            raise PartAlreadyExistsError(f"Part {name} already exists.")
 
         new_part_id = self.mesh._unused_volume_id
 
@@ -1444,13 +1444,21 @@ class HeartModel:
                                 break
 
                         cap_name = split.replace("-plane", "").replace("-inlet", "")
-                        cap.type = CapType(cap_name)
 
-                        if "atrium" in part.name and (
-                            cap.type in [CapType.TRICUSPID_VALVE, CapType.MITRAL_VALVE]
-                        ):
-                            cap_name = cap_name + "-atrium"
-                            cap.type = CapType(cap.type.value + "-atrium")
+                        try:
+                            cap.type = CapType(cap_name)
+
+                            if "atrium" in part.name and (
+                                cap.type in [CapType.TRICUSPID_VALVE, CapType.MITRAL_VALVE]
+                            ):
+                                cap_name = cap_name + "-atrium"
+                                cap.type = CapType(cap.type.value + "-atrium")
+                        except ValueError:
+                            LOGGER.warning(
+                                f"Could not map cap name {cap_name} to CapType enum - default "
+                                "to unknown cap type."
+                            )
+                            cap.type = CapType.UNKNOWN
 
                         cap.name = cap_name
 
@@ -1688,8 +1696,10 @@ class HeartModel:
         part.fiber = False
         part.active = False
         part.meca_material = stiff_material
-        # assign default EP material as for ventricles
-        part.ep_material = EPMaterial.Active()
+        # Assign Active EP material.
+        part.ep_material = ep_materials.Active(
+            sigma_fiber=0.5, sigma_sheet=0.1, sigma_sheet_normal=0.1, beta=140.0, cm=0.01
+        )
 
         return part
 
@@ -1830,7 +1840,7 @@ class FourChamber(HeartModel):
         # Assign a new part ID to the isolation part
         isolation.fiber = True
         isolation.active = False
-        isolation.ep_material = EPMaterial.Insulator()
+        isolation.ep_material = ep_materials.Insulator()
 
         return isolation
 
@@ -1891,7 +1901,7 @@ class FourChamber(HeartModel):
         ring.fiber = False
         ring.active = False
         # assign default EP material
-        ring.ep_material = EPMaterial.Active()
+        ring.ep_material = ep_materials.Active()
 
         return ring
 
@@ -1932,7 +1942,7 @@ class FullHeart(FourChamber):
         self.pulmonary_artery.fiber = False
         self.pulmonary_artery.active = False
 
-        self.aorta.ep_material = EPMaterial.Insulator()
-        self.pulmonary_artery.ep_material = EPMaterial.Insulator()
+        self.aorta.ep_material = ep_materials.Insulator()
+        self.pulmonary_artery.ep_material = ep_materials.Insulator()
 
         super().__init__(working_directory=working_directory)

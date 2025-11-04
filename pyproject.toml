@@ -40,6 +40,7 @@ dependencies = [
     "scipy<=1.15.3",
     "validators>=0.34.0",
     "vtk>=9.1.0,<9.6,!=9.4.*",
+    "pydantic>=2.0.0"
 ]
 
 # Optional dependencies:
@@ -59,11 +60,11 @@ doc = [
     "sphinx-jinja==2.0.2",
     "sphinx_design",
     "sphinxcontrib-video==0.4.1",
-    "trame-vtk==2.9.1"
+    "trame-vtk==2.10.0"
 ]
 tests = [
-    "pytest==8.4.1",
-    "pytest-cov==6.2.1",
+    "pytest==8.4.2",
+    "pytest-cov==7.0.0",
 ]
 
 [project.urls]
@@ -114,7 +115,8 @@ convention = "numpy"
 [tool.ruff.lint.isort]
 combine-as-imports = true
 force-sort-within-sections = true
-known-first-party = ["ansys.health.heart"]
+# Ensures all `ansys` imports are considered first party
+known-first-party = ["ansys.health.heart", "ansys"]
 
 [tool.coverage.run]
 source = ["ansys.health.heart"]

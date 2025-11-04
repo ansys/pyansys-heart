@@ -23,10 +23,11 @@
 
 import copy
 from enum import Enum
-from typing import Callable, Literal, Optional
+from typing import Any, Callable, Literal, Optional
 
 import numpy as np
 import pandas as pd
+from pint import Quantity
 import pyvista as pv
 
 from ansys.dyna.core.keywords import keywords
@@ -36,10 +37,8 @@ from ansys.health.heart.objects import Cap, CapType, SurfaceMesh
 import ansys.health.heart.parts as anatomy
 from ansys.health.heart.settings.material.material import (
     Mat295,
-    MechanicalMaterialModel,
     NeoHookean,
 )
-import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings
 from ansys.health.heart.utils.vtk_utils import compute_surface_nodal_area_pyvista
 from ansys.health.heart.writer import custom_keywords as custom_keywords
@@ -82,8 +81,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self.set_flow_area: bool = True
         """Flag indicating if the flow area is set for control volume."""
 
-        if sett.Mechanics not in self._get_subsettings():
-            raise ValueError("Expecting mechanics settings.")
         return
 
     def update(self, dynain_name: Optional[str] = None, robin_bcs: list[Callable] = None) -> None:
@@ -132,8 +129,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         self._add_pericardium_bc()
 
         # for control volume
-        system_settings = copy.deepcopy(self.settings.mechanics.system)
-        system_settings._remove_units()
+        system_settings = self.settings.mechanics.system
 
         if system_settings.name == "open-loop":
             lcid = self.get_unique_curve_id()
@@ -330,23 +326,6 @@ class MechanicsDynaWriter(BaseDynaWriter):
         return
 
     def _update_material_db(self, add_active: bool = True, em_couple: bool = False) -> None:
-        #
-        for part in self.model.parts:
-            if isinstance(part.meca_material, MechanicalMaterialModel.DummyMaterial):
-                # assign material for part if it's empty
-                LOGGER.info(f"Material of {part.name} is assigned automatically.")
-                if part.fiber:
-                    part.meca_material = self.settings.get_mechanical_material(
-                        required_type="anisotropic", ep_coupled=em_couple
-                    )
-                    # disable active module
-                    if not part.active:
-                        part.meca_material.active = None
-
-                else:
-                    part.meca_material = self.settings.get_mechanical_material(
-                        required_type="isotropic"
-                    )
         # write
         for part in self.model.parts:
             material = part.meca_material
@@ -1096,12 +1075,10 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
         # self.kw_database.main.append(keywords.DatabaseExtentBinary(neiph=27, strflg=1, maxint=0))
 
         # add binout for post-process
-        settings = copy.deepcopy(self.settings.stress_free)
-        settings._remove_units()
+        stress_free_settings = self.settings.stress_free
+        dt_nodout = _get_magnitude(stress_free_settings.analysis.dt_nodout)
 
-        self.kw_database.main.append(
-            keywords.DatabaseNodout(dt=settings.analysis.dt_nodout, binary=2)
-        )
+        self.kw_database.main.append(keywords.DatabaseNodout(dt=dt_nodout, binary=2))
 
         # write for all nodes in nodout
         nodeset_id = self.get_unique_nodeset_id()
@@ -1115,24 +1092,24 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
 
     def _add_solution_controls(self) -> None:
         """Rewrite the method for the zerop simulation."""
-        settings = copy.deepcopy(self.settings.stress_free)
-        settings._remove_units()
+        stress_free_settings = self.settings.stress_free
 
-        self.kw_database.main.append(keywords.ControlTermination(endtim=settings.analysis.end_time))
+        # Extract magnitude values for LS-DYNA keywords
+        end_time = _get_magnitude(stress_free_settings.analysis.end_time)
+        dtmin = _get_magnitude(stress_free_settings.analysis.dtmin)
+        dtmax = _get_magnitude(stress_free_settings.analysis.dtmax)
+
+        self.kw_database.main.append(keywords.ControlTermination(endtim=end_time))
 
         self.kw_database.main.append(keywords.ControlImplicitDynamics(imass=0))
 
         # add auto step controls
         self.kw_database.main.append(
-            keywords.ControlImplicitAuto(
-                iauto=1, dtmin=settings.analysis.dtmin, dtmax=settings.analysis.dtmax
-            )
+            keywords.ControlImplicitAuto(iauto=1, dtmin=dtmin, dtmax=dtmax)
         )
 
         # add general implicit controls
-        self.kw_database.main.append(
-            keywords.ControlImplicitGeneral(imflag=1, dt0=settings.analysis.dtmax)
-        )
+        self.kw_database.main.append(keywords.ControlImplicitGeneral(imflag=1, dt0=dtmax))
 
         # add implicit solution controls
         self.kw_database.main.append(
@@ -1267,3 +1244,19 @@ class ZeroPressureMechanicsDynaWriter(MechanicsDynaWriter):
                 continue
 
         return
+
+
+def _get_magnitude(value: Any) -> Any:
+    """Extract magnitude from Quantity objects, return other values unchanged.
+
+    Parameters
+    ----------
+    value : Any
+        Value to extract magnitude from.
+
+    Returns
+    -------
+    Any
+        Magnitude if value is a Quantity, otherwise the original value.
+    """
+    return value.magnitude if isinstance(value, Quantity) else value

@@ -25,7 +25,7 @@ import pytest
 import pyvista as pv
 
 from ansys.health.heart import __version__
-from ansys.health.heart.objects import Cap, Cavity, Mesh, SurfaceMesh
+from ansys.health.heart.objects import Cap, CapType, Cavity, Mesh, SurfaceMesh
 from ansys.health.heart.parts import (
     Artery,
     Atrium,
@@ -287,3 +287,51 @@ def test_get_element_ids_returns_empty_if_volume_id_missing(caplog):
     assert any(
         "Mesh does not contain '_volume-id' cell data." in m for m in caplog.text.splitlines()
     )
+
+
+def test_set_from_dict_caps_with_unknown_type():
+    """Test _set_from_dict can handle caps with unknown/invalid cap types."""
+    # Setup: create a test dictionary with an invalid cap type
+    part_name = "Left ventricle"
+    test_dict = {
+        part_name: {
+            "part-id": 42,
+            "part-type": "ventricle",
+            "surfaces": {
+                "Left ventricle endocardium": 1,
+                "Left ventricle epicardium": 2,
+            },
+            "_version": "0.15.dev0",
+            "caps": {
+                "unknown_cap_type": 100,  # This should trigger the unknown cap handling
+                "invalid-cap": 101,  # Another invalid cap type
+            },
+        }
+    }
+
+    # Create a mock mesh with the required surfaces and cap surfaces
+    mesh = _get_mock_mesh1()
+
+    # Add cap surfaces to the mesh for testing
+    from pyvista.examples import load_tetbeam
+
+    beam = load_tetbeam()
+    surface = beam.extract_surface()
+    mesh.add_surface(surface, name="unknown_cap_type", id=100)
+    mesh.add_surface(surface, name="invalid-cap", id=101)
+
+    # Act: reconstruct part from dictionary
+    part = Part._set_from_dict(test_dict, mesh=mesh)
+
+    # Assert: part should be created successfully
+    assert isinstance(part, Ventricle)
+    assert part.name == part_name
+    assert part.pid == 42
+
+    # Assert: caps should be created with UNKNOWN type
+    assert len(part.caps) == 2
+
+    for cap in part.caps:
+        assert cap.type == CapType.UNKNOWN
+        assert cap._mesh is not None
+        assert cap.name in ["unknown_cap_type", "invalid-cap"]

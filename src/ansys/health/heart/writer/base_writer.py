@@ -34,6 +34,7 @@ from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.objects import SurfaceMesh
 import ansys.health.heart.parts as anatomy
+import ansys.health.heart.settings.material.ep_material_factory as ep_material_factory
 import ansys.health.heart.settings.settings as sett
 from ansys.health.heart.settings.settings import SimulationSettings
 from ansys.health.heart.writer import custom_keywords as custom_keywords
@@ -126,14 +127,14 @@ class BaseDynaWriter:
 
         return
 
-    def _get_subsettings(self) -> list[sett.Settings]:
+    def _get_subsettings(self) -> list[sett.BaseSettings]:
         """Get subsettings from the settings object."""
         import ansys.health.heart.settings.settings as sett
 
         subsettings_classes = [
             getattr(self.settings, attr).__class__
             for attr in self.settings.__dict__
-            if isinstance(getattr(self.settings, attr), sett.Settings)
+            if isinstance(getattr(self.settings, attr), sett.BaseSettings)
         ]
 
         return subsettings_classes
@@ -799,7 +800,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             parts = ventricles + [septum]
         else:
             parts = ventricles
-        material_settings = self.settings.electrophysiology.material
+        # Obtain reasonable default material parameters
+        default_ep_material = ep_material_factory.get_default_myocardium_material("Monodomain")
         for part in parts:
             # element_ids = part.get_element_ids(self.model.mesh)
             # em_mat_id = self.get_unique_mat_id()
@@ -810,11 +812,11 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=material_settings.myocardium["sigma_fiber"].m,
-                        sigma22=material_settings.myocardium["sigma_sheet"].m,
-                        sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
-                        beta=material_settings.myocardium["beta"].m,
-                        cm=material_settings.myocardium["cm"].m,
+                        sigma11=default_ep_material.sigma_fiber,
+                        sigma22=default_ep_material.sigma_sheet,
+                        sigma33=default_ep_material.sigma_sheet_normal,
+                        beta=default_ep_material.beta,
+                        cm=default_ep_material.cm,
                         aopt=2.0,
                         a1=0,
                         a2=0,

@@ -65,7 +65,12 @@ from ansys.health.heart.post.laplace_post import (
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.settings.material.ep_material_factory import assign_default_ep_materials
 from ansys.health.heart.settings.material.material_factory import assign_default_mechanics_materials
-from ansys.health.heart.settings.settings import DynaSettings, SimulationSettings
+from ansys.health.heart.settings.settings import (
+    DynaSettings,
+    FibersBRBM,
+    FibersDRBM,
+    SimulationSettings,
+)
 from ansys.health.heart.utils.misc import _read_orth_element_kfile
 import ansys.health.heart.writer as writers
 
@@ -127,54 +132,46 @@ class BaseSimulator:
         return self.settings
 
     def compute_fibers(
-        self, method: Literal["LSDYNA", "D-RBM"] = "LSDYNA", rotation_angles: dict = None
+        self,
+        fiber_settings: FibersDRBM | FibersBRBM | None = None,
     ):
         """Compute the fiber sheet directions on the ventricles.
 
         Parameters
         ----------
-        method : Literal["LSDYNA", "D-RBM"], default: "LSDYNA"
-            Method for computing the fiber orientation.
-        rotation_angles : dict, default: None
-            Rotation angle alpha and beta.
+        fiber_settings : FibersDRBM | FibersBRBM, default: None
+            Settings to use for the ventricular fiber computation. If None, the fiber settings
+            defined in the simulation settings will be used.
         """
         LOGGER.info("Computing fiber orientation...")
 
-        if method == "LSDYNA":
-            if rotation_angles is None:
-                # find default settings
-                rotation_angles = self.settings.get_ventricle_fiber_rotation(method="LSDYNA")
+        # Handle case where fiber settings are not provided in the settings object.
+        if isinstance(fiber_settings, (FibersBRBM, FibersDRBM)):
+            LOGGER.info("Overriding simulation settings with provided fiber settings.")
+            self.settings.fibers = fiber_settings
+            if isinstance(fiber_settings, FibersBRBM):
+                self.settings._fiber_method = "LSDYNA"
+            elif isinstance(fiber_settings, FibersDRBM):
+                self.settings._fiber_method = "D-RBM"
 
-            for name in ["alpha", "beta", "beta_septum"]:
-                if name not in rotation_angles.keys():
-                    LOGGER.error(f"Must provide key {name} for D-RBM method.")
-                    raise KeyError(
-                        f"Must provide key {name} for D-RBM method. "
-                        "Please check the settings or provide the rotation angles."
-                    )
+        elif hasattr(self.settings, "fibers") is False or not isinstance(
+            self.settings.fibers, (FibersBRBM, FibersDRBM)
+        ):
+            raise ValueError(
+                "No fiber settings configured. Configure fiber settings using:\n"
+                "  simulator.settings.load_defaults()  # Load default settings\n"
+                "  simulator.settings.fibers = FibersBRBM()  # Custom B-RBM settings\n"
+                "  simulator.settings.fibers = FibersDRBM()  # Custom D-RBM settings\n"
+            )
 
+        fiber_settings = self.settings.fibers
+        rotation_angles = fiber_settings._get_rotation_dict()
+
+        if isinstance(fiber_settings, FibersBRBM):
             self._compute_fibers_lsdyna(rotation_angles)
 
-        elif method == "D-RBM":
-            if rotation_angles is None:
-                # find default settings
-                rotation_angles = self.settings.get_ventricle_fiber_rotation(method="D-RBM")
-
-            for a, b in zip(["alpha", "beta"], ["_left", "_right", "_ot"]):
-                if a + b not in rotation_angles.keys():
-                    LOGGER.error(f"Must provide key {name} for D-RBM method.")
-                    raise KeyError(
-                        f"Must provide key {name} for D-RBM method. "
-                        "Please check the settings or provide the rotation angles."
-                    )
+        elif isinstance(fiber_settings, FibersDRBM):
             self._compute_fibers_drbm(rotation_angles)
-
-        else:
-            LOGGER.error(f"Method {method} is not recognized.")
-            raise ValueError(
-                f"Method {method} is not recognized. "
-                "Please use 'LSDYNA' or 'D-RBM' as the method for computing fibers."
-            )
 
         return
 

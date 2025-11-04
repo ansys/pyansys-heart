@@ -133,54 +133,41 @@ class BaseSimulator:
 
     def compute_fibers(
         self,
-        method: Literal["LSDYNA", "D-RBM"] = "LSDYNA",
-        fiber_settings: dict | FibersDRBM | FibersBRBM = None,
+        fiber_settings: FibersDRBM | FibersBRBM | None = None,
     ):
         """Compute the fiber sheet directions on the ventricles.
 
         Parameters
         ----------
-        method : Literal["LSDYNA", "D-RBM"], default: "LSDYNA"
-            Method for computing the fiber orientation.
-        rotation_angles : dict, default: None
-            Rotation angle alpha and beta.
+        fiber_settings : FibersDRBM | FibersBRBM, default: None
+            Settings to use for the ventricular fiber computation. If None, the fiber settings
+            defined in the simulation settings will be used.
         """
         LOGGER.info("Computing fiber orientation...")
 
-        if method == "LSDYNA":
-            if fiber_settings is None:
-                # Use default settings for the B-RBM method.
-                fiber_settings = FibersBRBM()
+        # Handle case where fiber settings are not provided in the settings object.
+        if isinstance(fiber_settings, (FibersBRBM, FibersDRBM)):
+            self.settings.fibers = fiber_settings
+            LOGGER.info("Overriding simulation settings with provided fiber settings.")
 
-            # For backwards compatibility.
-            if isinstance(fiber_settings, dict):
-                fiber_settings = FibersBRBM(**fiber_settings)
+        elif hasattr(self.settings, "fibers") is False or not isinstance(
+            self.settings.fibers, (FibersBRBM, FibersDRBM)
+        ):
+            raise ValueError(
+                "No fiber settings configured. Configure fiber settings using:\n"
+                "  simulator.settings.load_defaults()  # Load default settings\n"
+                "  simulator.settings.fibers = FibersBRBM()  # Custom B-RBM settings\n"
+                "  simulator.settings.fibers = FibersDRBM()  # Custom D-RBM settings\n"
+            )
 
-            elif not isinstance(fiber_settings, FibersBRBM):
-                raise ValueError("LS-DYNA requires FibersBRBM settings.")
+        fiber_settings = self.settings.fibers
+        rotation_angles = fiber_settings._get_rotation_dict()
 
-            rotation_angles = fiber_settings._get_rotation_dict()
-
+        if isinstance(fiber_settings, FibersBRBM):
             self._compute_fibers_lsdyna(rotation_angles)
 
-        elif method == "D-RBM":
-            if fiber_settings is None:
-                # Use default settings for the D-RBM method.
-                fiber_settings = FibersDRBM()
-
-            elif not isinstance(fiber_settings, FibersDRBM):
-                raise ValueError("D-RBM method requires FibersDRBM settings.")
-
-            rotation_angles = fiber_settings._get_rotation_dict()
-
+        elif isinstance(fiber_settings, FibersDRBM):
             self._compute_fibers_drbm(rotation_angles)
-
-        else:
-            LOGGER.error(f"Method {method} is not recognized.")
-            raise ValueError(
-                f"Method {method} is not recognized. "
-                "Please use 'LSDYNA' or 'D-RBM' as the method for computing fibers."
-            )
 
         return
 

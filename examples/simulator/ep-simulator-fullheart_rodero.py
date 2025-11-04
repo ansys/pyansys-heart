@@ -52,6 +52,7 @@ from pathlib import Path
 
 from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models
+from ansys.health.heart.settings.settings import FibersDRBM
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
 
 # Set the working directory and path to the model. This example assumes that there is a
@@ -115,8 +116,12 @@ from ansys.health.heart.pre.database_utils import right_atrium_appendage_landmar
 # Get the right atrium appendage landmark of the first case of Rodero2021.
 right_atrium_appendage_coordinates = right_atrium_appendage_landmarks.get("Rodero2021").get(1)
 
-# Compute ventricular fibers.
-simulator.compute_fibers(method="D-RBM")
+# Initialize the D-RBM fiber settings.
+d_rbm_settings = FibersDRBM()
+print(d_rbm_settings)
+
+# Compute ventricular fibers using the D-RBM method.
+simulator.compute_fibers(fiber_settings=d_rbm_settings)
 
 # Compute atrial fibers.
 simulator.model.right_atrium.active = True

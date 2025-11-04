@@ -159,7 +159,7 @@ fiber_settings = FibersDRBM()
 # Print settings
 print(fiber_settings)
 
-simulator.compute_fibers(method="D-RBM", fiber_settings=fiber_settings)
+simulator.compute_fibers(fiber_settings=fiber_settings)
 
 # Plot the fiber orientation by streamlines.
 simulator.model.plot_fibers(n_seed_points=2000)

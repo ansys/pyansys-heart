@@ -597,7 +597,61 @@ class Electrophysiology(BaseSettings):
 class BaseFiberSettings(BaseSettings):
     """Base class for keeping track of fiber orientation settings.
 
-    Default values are based on Bayer et al. 2012 http://dx.doi.org/10.1007/s10439-012-0593-5
+    Defines fundamental fiber orientation parameters for cardiac muscle fiber
+    modeling. These settings control the helical and transverse angles that
+    define the spatial orientation of cardiac muscle fibers across the
+    myocardial wall from endocardium to epicardium.
+
+    Attributes
+    ----------
+    alpha_endo : Quantity
+        Helical angle in endocardium (inner heart wall surface) in degrees.
+        Positive values indicate right-handed helix orientation.
+    alpha_epi : Quantity
+        Helical angle in epicardium (outer heart wall surface) in degrees.
+        Typically opposite sign to alpha_endo for transmural rotation.
+    beta_endo : Quantity
+        Angle to the outward transmural axis in endocardium in degrees.
+        Controls fiber inclination relative to heart wall thickness direction.
+    beta_epi : Quantity
+        Angle to the outward transmural axis in epicardium in degrees.
+        Defines fiber inclination at the outer wall surface.
+
+    Notes
+    -----
+    The fiber orientation by rotating a the local coordinate system:
+    - Longitudinal direction (e_l): apex to base
+    - Transmural direction (e_t): endocardium to epicardium
+    - Circumferential direction (e_c): orthogonal to both (right-hand rule)
+
+    Alpha angles define rotation of the circumferential direction around the
+    transmural axis (helical angle).
+    Beta angles define rotation of the circumferential direction around the longitudinal
+    axis (inclination angle).
+
+    Default values are based on Bayer et al. 2012 http://dx.doi.org/10.1007/s10439-012-0593-5. Note
+    that for the Bayer method the transmural direction points inward from epicardium, hence the
+    negative sign of alpha_endo and beta_endo.
+
+    Examples
+    --------
+    Create basic fiber settings with default Bayer et al. values:
+
+    >>> fiber_settings = BaseFiberSettings()
+    >>> print(fiber_settings.alpha_endo)
+    -60 degree
+    >>> print(fiber_settings.alpha_epi)
+    60 degree
+
+    Create custom fiber orientation:
+
+    >>> from pint import Quantity
+    >>> custom_fibers = BaseFiberSettings(
+    ...     alpha_endo=Quantity(-45, "degree"),
+    ...     alpha_epi=Quantity(45, "degree"),
+    ...     beta_endo=Quantity(-30, "degree"),
+    ...     beta_epi=Quantity(30, "degree"),
+    ... )
     """
 
     alpha_endo: Quantity = Field(
@@ -619,9 +673,63 @@ class BaseFiberSettings(BaseSettings):
 class FibersBRBM(BaseFiberSettings):
     """Class for keeping track of fiber settings for the Bayer et al rule-based method.
 
+    Extends BaseFiberSettings with additional septum-specific fiber orientations
+    required for the LS-DYNA/B-RBM fiber generation method. This class implements
+    the Bayer rule-based method for generating spatially-varying fiber orientations
+    in biventricular cardiac models.
+
+    The B-RBM method uses distinct angle specifications for the septum region
+    to account for the unique fiber architecture in the interventricular septum.
+
+    Attributes
+    ----------
+    alpha_endo : Quantity
+        Helical angle in endocardium (inherited from BaseFiberSettings).
+    alpha_epi : Quantity
+        Helical angle in epicardium (inherited from BaseFiberSettings).
+    beta_endo : Quantity
+        Angle to the outward transmural axis in endocardium (inherited).
+    beta_epi : Quantity
+        Angle to the outward transmural axis in epicardium (inherited).
+    beta_endo_septum : Quantity
+        Angle to the outward transmural axis on the left septum endocardium.
+        Specific to the septal region fiber orientation.
+    beta_epi_septum : Quantity
+        Angle to the outward transmural axis in the septum epicardium.
+        Controls septal fiber inclination at the epicardial surface.
+
     Notes
     -----
     Based on Bayer et al. https://doi.org/10.1007/s10439-012-0593-5.
+
+    The B-RBM method distinguishes between:
+    - Free wall fiber orientations (using base class angles)
+    - Septal fiber orientations (using septum-specific beta angles)
+
+    This allows for realistic modeling of the complex fiber architecture
+    in the interventricular septum. Note that for the Bayer method the transmural
+    direction points inward from epicardium to endocardium, and hence positive rotation
+    has a different meaning that for the D-RBM method.
+
+    Examples
+    --------
+    Create B-RBM fiber settings with default values:
+
+    >>> brbm_fibers = FibersBRBM()
+    >>> print(brbm_fibers.beta_endo_septum)
+    -65 degree
+    >>> print(brbm_fibers.beta_epi_septum)
+    25 degree
+
+    Create custom B-RBM settings:
+
+    >>> from pint import Quantity
+    >>> custom_brbm = FibersBRBM(
+    ...     alpha_endo=Quantity(-50, "degree"),
+    ...     alpha_epi=Quantity(50, "degree"),
+    ...     beta_endo_septum=Quantity(-70, "degree"),
+    ...     beta_epi_septum=Quantity(30, "degree"),
+    ... )
     """
 
     beta_endo_septum: Quantity = Field(
@@ -633,8 +741,18 @@ class FibersBRBM(BaseFiberSettings):
         description="Angle to the outward transmural axis in the septum",
     )
 
-    def _get_rotation_dict(self):
-        """Get D-RBM rotation angles formatted for legacy compute_fibers method."""
+    def _get_rotation_dict(self) -> dict[str, list[float]]:
+        """Get B-RBM rotation angles formatted for legacy compute_fibers method.
+
+        Converts the Pydantic model data to the dictionary format expected by
+        the compute_fibers(method="LSDYNA") method for B-RBM fiber generation.
+
+        Returns
+        -------
+        dict[str, list[float]]
+            Dictionary with keys "alpha", "beta", "beta_septum" containing
+            [endo, epi] angle pairs in degrees for B-RBM method.
+        """
         return {
             "alpha": [
                 self.alpha_endo.to("degree").magnitude,
@@ -654,39 +772,98 @@ class FibersBRBM(BaseFiberSettings):
 class FibersDRBM(BaseSettings):
     """Class for storing settings for the Doste et al rule-based method.
 
+    Implements the D-RBM (Doste Rule-Based Method) for fiber orientation
+    generation in biventricular cardiac models. This method uses separate
+    fiber orientation settings for left and right ventricles, with optional
+    outflow tract specifications. Moreover, it includes a septal fraction
+    parameter to define the portion of the septum assigned to the left ventricle.
+
+    The D-RBM method provides ventricle-specific fiber orientations to
+    better represent the distinct fiber architectures in each ventricle,
+    particularly important for accurate mechanical and electrical modeling.
+
+    Attributes
+    ----------
+    left_ventricle : BaseFiberSettings
+        Fiber orientation settings specific to the left ventricle.
+        Contains alpha and beta angles for left ventricular wall.
+    right_ventricle : BaseFiberSettings
+        Fiber orientation settings specific to the right ventricle.
+        Contains alpha and beta angles for right ventricular wall.
+    alpha_outflow_tract : Quantity or None
+        Helical angle for the outflow tract region in degrees.
+        Set to None if outflow tract fiber orientation not specified.
+    beta_outflow_tract : Quantity or None
+        Inclination angle for the outflow tract region in degrees.
+        Set to None if outflow tract fiber orientation not specified.
+    septal_fraction : float
+        The fraction of the septum that belongs to the left ventricle.
+        Typically 2/3 (0.667) based on anatomical measurements.
+
     Notes
     -----
     Based on Doste et al. https://doi.org/10.1002/cnm.3185.
+
+    Coordinate system definition in PyAnsys-Heart:
+    - Longitudinal direction: apex to base
+    - Transmural direction: endo to epicardium
+    - Circumferential direction: e_c = e_l × e_t (right-hand rule)
+
+    Alpha defines rotation around transmural axis (helical angle).
+    Beta defines rotation around longitudinal axis (inclination angle).
+
+    Examples
+    --------
+    Create D-RBM fiber settings with default values:
+
+    >>> drbm_fibers = FibersDRBM()
+    >>> print(drbm_fibers.left_ventricle.alpha_endo)
+    60 degree
+    >>> print(drbm_fibers.right_ventricle.alpha_endo)
+    -90 degree
+    >>> print(drbm_fibers.septal_fraction)
+    0.6666666666666666
+
+    Create custom D-RBM settings:
+
+    >>> from pint import Quantity
+    >>> custom_drbm = FibersDRBM(
+    ...     left_ventricle=BaseFiberSettings(
+    ...         alpha_endo=Quantity(45, "degree"), alpha_epi=Quantity(-45, "degree")
+    ...     ),
+    ...     septal_fraction=0.7,
+    ... )
     """
 
-    # In PyAnsys-Heart the coordinate system is defined based on longitudinal (apex to base)
-    # and transmural (endo to epicardium) directions. The circumferential direction is then defined
-    # as:
-    # e_c = e_l x e_t. Alpha defines the rotation of the circumferential direction around the
-    # transmural direction, and beta the rotation of the circumferential direction around the
-    # longitudinal direction. The values provided by Doste et al. seems to conflict with
-    # this definition, and instead uses alpha values that suggest that the transmural direction
-    # is pointing from epicardium to endocardium.
-
-    left_ventricle: BaseFiberSettings = BaseFiberSettings(
-        alpha_endo=Quantity(60, "degree"),
-        alpha_epi=Quantity(-60, "degree"),
-        beta_endo=Quantity(-20, "degree"),
-        beta_epi=Quantity(20, "degree"),
+    left_ventricle: BaseFiberSettings = Field(
+        default_factory=lambda: BaseFiberSettings(
+            alpha_endo=Quantity(60, "degree"),
+            alpha_epi=Quantity(-60, "degree"),
+            beta_endo=Quantity(-20, "degree"),
+            beta_epi=Quantity(20, "degree"),
+        ),
+        description="Fiber orientation settings for the left ventricle",
     )
-    right_ventricle: BaseFiberSettings = BaseFiberSettings(
-        alpha_endo=Quantity(-90, "degree"),
-        alpha_epi=Quantity(25, "degree"),
-        beta_endo=Quantity(0, "degree"),
-        beta_epi=Quantity(20, "degree"),
+    right_ventricle: BaseFiberSettings = Field(
+        default_factory=lambda: BaseFiberSettings(
+            alpha_endo=Quantity(-90, "degree"),
+            alpha_epi=Quantity(25, "degree"),
+            beta_endo=Quantity(0, "degree"),
+            beta_epi=Quantity(20, "degree"),
+        ),
+        description="Fiber orientation settings for the right ventricle",
     )
-
-    # This only applies to the right ventricle?
-    alpha_outflow_tract: Quantity | None = None
-    beta_outflow_tract: Quantity | None = None
-
-    septal_fraction: float = 2.0 / 3.0
-    """The fraction of the septum that belongs to the left ventricle."""
+    alpha_outflow_tract: Quantity | None = Field(
+        default=None, description="Helical angle for outflow tract region (None if not specified)"
+    )
+    beta_outflow_tract: Quantity | None = Field(
+        default=None,
+        description="Inclination angle for outflow tract region (None if not specified)",
+    )
+    septal_fraction: float = Field(
+        default=2.0 / 3.0,
+        description="Fraction of septum belonging to left ventricle (typically 2/3)",
+    )
 
     def _get_rotation_dict(self) -> dict[str, list[float] | None]:
         """Get D-RBM rotation angles formatted for legacy compute_fibers method.
@@ -1173,11 +1350,10 @@ class SimulationSettings:
             setattr(self, section_name, validated_model)
 
     def _load_fiber_settings(self, settings_data: dict[str, Any]) -> None:
-        """Load fiber settings based on current configuration with fallback detection.
+        """Load fiber settings based on detected method or current configuration.
 
-        This method first attempts to load using the current fiber method configuration.
-        If that fails due to data structure mismatch, it auto-detects the method
-        from the data structure and retries with the appropriate model class.
+        This method detects the fiber method from the loaded data
+        structure and uses the appropriate Pydantic model for validation.
 
         Parameters
         ----------

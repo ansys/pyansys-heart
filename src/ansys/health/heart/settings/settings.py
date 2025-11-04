@@ -47,7 +47,6 @@ from pathlib import Path
 import shutil
 from typing import Any, Literal
 
-from deprecated import deprecated
 from pint import Quantity, UnitRegistry
 from pydantic import (
     BaseModel,
@@ -1556,77 +1555,6 @@ class SimulationSettings:
             if isinstance(attr, BaseSettings):
                 attr.to_consistent_unit_system()
         return
-
-    @deprecated(
-        reason="Use get_fibers_lsdyna() or get_fibers_drbm() for type-safe fiber access instead."
-    )
-    def get_ventricle_fiber_rotation(self, method: Literal["LSDYNA", "D-RBM"]) -> dict:
-        """Get rotation angles from fiber settings.
-
-        Extracts fiber orientation angles from the configured fiber settings
-        and formats them according to the specified fiber generation method.
-
-        Parameters
-        ----------
-        method : Literal["LSDYNA", "D-RBM"]
-            Fiber rule-based method for extracting rotation angles.
-            - "LSDYNA": LS-DYNA fiber generation format
-            - "D-RBM": Discrete Rule-Based Method format
-
-        Returns
-        -------
-        dict
-            Dictionary containing rotation angles (alpha and beta) formatted
-            for the specified method. Keys and structure depend on the method:
-            - LSDYNA: "alpha", "beta", "beta_septum" keys
-            - D-RBM: "alpha_left", "alpha_right", "alpha_ot", "beta_left",
-              "beta_right", "beta_ot" keys
-
-        Examples
-        --------
-        >>> settings = SimulationSettings()
-        >>> settings.load_defaults()
-        >>> rotation = settings.get_ventricle_fiber_rotation("LSDYNA")
-        >>> print(rotation["alpha"])
-        [-60.0, 60.0]
-        """
-        if method == "LSDYNA":
-            rotation = {
-                "alpha": [
-                    self.fibers.alpha_endo.m,
-                    self.fibers.alpha_epi.m,
-                ],
-                "beta": [
-                    self.fibers.beta_endo.m,
-                    self.fibers.beta_epi.m,
-                ],
-                "beta_septum": [
-                    self.fibers.beta_endo_septum.m,
-                    self.fibers.beta_epi_septum.m,
-                ],
-            }
-        elif method == "D-RBM":
-            rotation = {
-                "alpha_left": [
-                    self.fibers.alpha_endo.m,
-                    self.fibers.alpha_epi.m,
-                ],
-                "alpha_right": [
-                    self.fibers.alpha_endo.m,
-                    self.fibers.alpha_epi.m,
-                ],
-                "alpha_ot": None,
-                "beta_left": [
-                    self.fibers.beta_endo.m,
-                    self.fibers.beta_epi.m,
-                ],
-                "beta_right": [
-                    self.fibers.beta_endo.m,
-                    self.fibers.beta_epi.m,
-                ],
-                "beta_ot": None,
-            }
-        return rotation
 
 
 # desired consistent unit system is:

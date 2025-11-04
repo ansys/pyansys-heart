@@ -147,8 +147,12 @@ class BaseSimulator:
 
         # Handle case where fiber settings are not provided in the settings object.
         if isinstance(fiber_settings, (FibersBRBM, FibersDRBM)):
-            self.settings.fibers = fiber_settings
             LOGGER.info("Overriding simulation settings with provided fiber settings.")
+            self.settings.fibers = fiber_settings
+            if isinstance(fiber_settings, FibersBRBM):
+                self.settings._fiber_method = "LSDYNA"
+            elif isinstance(fiber_settings, FibersDRBM):
+                self.settings._fiber_method = "D-RBM"
 
         elif hasattr(self.settings, "fibers") is False or not isinstance(
             self.settings.fibers, (FibersBRBM, FibersDRBM)

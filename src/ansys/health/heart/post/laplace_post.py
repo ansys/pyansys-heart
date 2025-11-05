@@ -493,7 +493,7 @@ def compute_ventricle_fiber_by_drbm(
     directory : str
         Directory of d3plot/tprint files.
     settings : dict[str, list[float] | None]
-        Rotation angles for fiber generation. Default is
+        Rotation angles for fiber generation. The defaults are
         ``{"alpha_left": [60, -60], "alpha_right": [90, -25], "alpha_ot": None,
         "beta_left": [-65, 25], "beta_right": [-65, 25], "beta_ot": None}``.
     left_only : bool, default: False

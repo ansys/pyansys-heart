@@ -249,21 +249,21 @@ class Analysis(BaseSettings):
     Defines core simulation analysis parameters including time stepping,
     output intervals, and damping parameters for cardiac simulations.
 
-    Attributes
+    Parameters
     ----------
-    end_time : Quantity
+    end_time : Quantity, default: Quantity(0, "s")
         End time of simulation in time units.
-    dtmin : Quantity
+    dtmin : Quantity, default: Quantity(0, "s")
         Minimum time-step of simulation in time units.
-    dtmax : Quantity
+    dtmax : Quantity, default: Quantity(0, "s")
         Maximum time-step of simulation in time units.
-    dt_d3plot : Quantity
+    dt_d3plot : Quantity, default: Quantity(0, "s")
         Time-step of d3plot export in time units.
-    dt_icvout : Quantity
+    dt_icvout : Quantity, default: Quantity(0, "s")
         Time-step of icvout export in time units.
-    global_damping : Quantity
+    global_damping : Quantity, default: Quantity(0, "1/s")
         Global damping constant in 1/time units.
-    stiffness_damping : Quantity
+    stiffness_damping : Quantity, default: Quantity(0, "s")
         Stiffness damping constant in time units.
 
     Examples
@@ -296,9 +296,9 @@ class EPAnalysis(Analysis):
     Extends Analysis with electrophysiology-specific solver configuration.
     Supports different EP solver types for cardiac electrical simulation.
 
-    Attributes
+    Parameters
     ----------
-    solvertype : Literal["Monodomain", "Eikonal", "ReactionEikonal"]
+    solvertype : Literal["Monodomain", "Eikonal", "ReactionEikonal"], default: "Monodomain"
         Type of electrophysiology solver to use.
 
     Examples
@@ -319,13 +319,13 @@ class BoundaryConditions(BaseSettings):
     Manages boundary condition parameters for cardiac simulation including
     pericardium constraints, valve mechanics, and pressure loading.
 
-    Attributes
+    Parameters
     ----------
-    robin : dict[str, Any] | None
+    robin : dict[str, Any] | None, default: None
         Parameters for pericardium spring/damper boundary conditions.
-    valve : dict[str, Any] | None
+    valve : dict[str, Any] | None, default: None
         Parameters for valve spring boundary conditions.
-    end_diastolic_cavity_pressure : dict[str, Any] | None
+    end_diastolic_cavity_pressure : dict[str, Any] | None, default: None
         End-diastolic pressure configuration.
 
     Examples
@@ -349,18 +349,18 @@ class BoundaryConditions(BaseSettings):
 
 
 class SystemModel(BaseSettings):
-    """Stores settings/parameters for system model.
+    """Stores settings/parameters for the system model.
 
     Manages system-level model configuration including circulatory system
     models and ventricular-specific parameters.
 
-    Attributes
+    Parameters
     ----------
-    name : str
+    name : str, default: "ConstantPreloadWindkesselAfterload"
         Name of the system model implementation.
-    left_ventricle : dict[str, Any] | None
+    left_ventricle : dict[str, Any] | None, default: None
         Parameters specific to left ventricle modeling.
-    right_ventricle : dict[str, Any] | None
+    right_ventricle : dict[str, Any] | None, default: None
         Parameters specific to right ventricle modeling.
 
     Examples
@@ -391,13 +391,13 @@ class Mechanics(BaseSettings):
     Complete mechanical simulation configuration including analysis parameters,
     boundary conditions, and system model settings.
 
-    Attributes
+    Parameters
     ----------
-    analysis : Analysis
+    analysis : Analysis, default: Analysis()
         Generic analysis settings for time stepping and output.
-    boundary_conditions : BoundaryConditions
+    boundary_conditions : BoundaryConditions, default: BoundaryConditions()
         Boundary condition specifications and parameters.
-    system : SystemModel
+    system : SystemModel, default: SystemModel()
         System model settings and configurations.
 
     Examples
@@ -422,15 +422,15 @@ class AnalysisZeroPressure(Analysis):
     Extends Analysis with specific settings for stress-free configuration
     computation, including iterative solver parameters.
 
-    Attributes
+    Parameters
     ----------
-    dt_nodout : Quantity
+    dt_nodout : Quantity, default: Quantity(0, "s")
         Time interval of nodeout export.
-    max_iters : int
+    max_iters : int, default: 3
         Maximum iterations for stress-free-configuration algorithm.
-    method : int
+    method : int, default: 2
         Method identifier to use for computation.
-    tolerance : float
+    tolerance : float, default: 5.0
         Tolerance for iterative algorithm convergence.
 
     Examples
@@ -456,9 +456,9 @@ class ZeroPressure(BaseSettings):
     Configuration for computing the stress-free (unloaded) configuration
     of cardiac geometry, essential for accurate mechanical simulations.
 
-    Attributes
+    Parameters
     ----------
-    analysis : AnalysisZeroPressure
+    analysis : AnalysisZeroPressure, default: AnalysisZeroPressure()
         Analysis settings specific to zero-pressure computation.
 
     Examples
@@ -481,17 +481,17 @@ class Stimulation(BaseSettings):
     Defines electrical stimulation parameters including timing, location,
     and amplitude for cardiac electrophysiology simulations.
 
-    Attributes
+    Parameters
     ----------
-    node_ids : list[int] | None
+    node_ids : list[int] | None, default: None
         List of node IDs where stimulation is applied.
-    t_start : Quantity
+    t_start : Quantity, default: Quantity(0.0, "ms")
         Start time of stimulation.
-    period : Quantity
+    period : Quantity, default: Quantity(800, "ms")
         Period between stimulation cycles.
-    duration : Quantity
+    duration : Quantity, default: Quantity(2, "ms")
         Duration of each stimulation pulse.
-    amplitude : Quantity
+    amplitude : Quantity, default: Quantity(50, "uF/mm^3")
         Stimulation amplitude.
 
     Examples
@@ -552,15 +552,17 @@ class Electrophysiology(BaseSettings):
     Complete electrophysiology simulation configuration including analysis settings,
     stimulation protocols, layer definitions, and conductivity parameters.
 
-    Attributes
+    Parameters
     ----------
-    analysis : EPAnalysis
+    analysis : EPAnalysis, default EPAnalysis()
         Generic analysis settings for EP simulation.
-    stimulation : dict[str, Stimulation] | None
+    stimulation : dict[str, Stimulation] | None, default None
         Dictionary of stimulation settings by name.
     layers : dict[str, Quantity]
         Layer definitions for material assignment of myocardium.
-    lambda_ratio : Quantity
+        Default: {"percent_endo": Quantity(0.17, "dimensionless"),
+        "percent_mid": Quantity(0.41, "dimensionless")}
+    lambda_ratio : Quantity, default Quantity(0.2, "dimensionless")
         Intra to extracellular conductivity ratio for EP solve.
 
     Examples
@@ -601,18 +603,18 @@ class BaseFiberSettings(BaseSettings):
     define the spatial orientation of cardiac muscle fibers across the
     myocardial wall from endocardium to epicardium.
 
-    Attributes
+    Parameters
     ----------
-    alpha_endo : Quantity
+    alpha_endo : Quantity, default: Quantity(-60, "degree")
         Helical angle in endocardium (inner heart wall surface) in degrees.
         Positive values indicate right-handed helix orientation.
-    alpha_epi : Quantity
+    alpha_epi : Quantity, default: Quantity(60, "degree")
         Helical angle in epicardium (outer heart wall surface) in degrees.
         Typically opposite sign to alpha_endo for transmural rotation.
-    beta_endo : Quantity
+    beta_endo : Quantity, default: Quantity(-65, "degree")
         Angle to the outward transmural axis in endocardium in degrees.
         Controls fiber inclination relative to heart wall thickness direction.
-    beta_epi : Quantity
+    beta_epi : Quantity, default: Quantity(25, "degree")
         Angle to the outward transmural axis in epicardium in degrees.
         Defines fiber inclination at the outer wall surface.
 
@@ -673,27 +675,25 @@ class FibersBRBM(BaseFiberSettings):
     """Class for keeping track of fiber settings for the Bayer et al rule-based method.
 
     Extends BaseFiberSettings with additional septum-specific fiber orientations
-    required for the LS-DYNA/B-RBM fiber generation method. This class implements
-    the Bayer rule-based method for generating spatially-varying fiber orientations
-    in biventricular cardiac models.
+    required for the LS-DYNA/B-RBM fiber generation method.
 
     The B-RBM method uses distinct angle specifications for the septum region
     to account for the unique fiber architecture in the interventricular septum.
 
-    Attributes
+    Parameters
     ----------
-    alpha_endo : Quantity
+    alpha_endo : Quantity, default: Quantity(-60, "degree")
         Helical angle in endocardium (inherited from BaseFiberSettings).
-    alpha_epi : Quantity
+    alpha_epi : Quantity, default: Quantity(60, "degree")
         Helical angle in epicardium (inherited from BaseFiberSettings).
-    beta_endo : Quantity
+    beta_endo : Quantity, default: Quantity(-65, "degree")
         Angle to the outward transmural axis in endocardium (inherited).
-    beta_epi : Quantity
+    beta_epi : Quantity, default: Quantity(25, "degree")
         Angle to the outward transmural axis in epicardium (inherited).
-    beta_endo_septum : Quantity
+    beta_endo_septum : Quantity, default: Quantity(-65, "degree")
         Angle to the outward transmural axis on the left septum endocardium.
         Specific to the septal region fiber orientation.
-    beta_epi_septum : Quantity
+    beta_epi_septum : Quantity, default Quantity(25, "degree")
         Angle to the outward transmural axis in the septum epicardium.
         Controls septal fiber inclination at the epicardial surface.
 
@@ -781,21 +781,25 @@ class FibersDRBM(BaseSettings):
     better represent the distinct fiber architectures in each ventricle,
     particularly important for accurate mechanical and electrical modeling.
 
-    Attributes
+    Parameters
     ----------
-    left_ventricle : BaseFiberSettings
+    left_ventricle : BaseFiberSettings, default: BaseFiberSettings(alpha_endo=Quantity(60, "degree")
+        ,alpha_epi=Quantity(-60, "degree"), beta_endo=Quantity(-20, "degree"),
+        beta_epi=Quantity(20, "degree"))
         Fiber orientation settings specific to the left ventricle.
         Contains alpha and beta angles for left ventricular wall.
-    right_ventricle : BaseFiberSettings
+    right_ventricle : BaseFiberSettings: default: BaseFiberSettings(alpha_endo=
+        Quantity(-90, "degree"),alpha_epi=Quantity(25, "degree"), beta_endo=Quantity(0, "degree"),
+        beta_epi=Quantity(20, "degree"))
         Fiber orientation settings specific to the right ventricle.
         Contains alpha and beta angles for right ventricular wall.
-    alpha_outflow_tract : Quantity or None
+    alpha_outflow_tract : Quantity or None, default: None
         Helical angle for the outflow tract region in degrees.
         Set to None if outflow tract fiber orientation not specified.
-    beta_outflow_tract : Quantity or None
+    beta_outflow_tract : Quantity or None, default: None
         Inclination angle for the outflow tract region in degrees.
         Set to None if outflow tract fiber orientation not specified.
-    septal_fraction : float
+    septal_fraction : float, default: 2.0/3.0
         The fraction of the septum that belongs to the left ventricle.
         Typically 2/3 (0.667) based on anatomical measurements.
 
@@ -921,29 +925,29 @@ class AtrialFiber(BaseSettings):
     Default parameters are from doi.org/10.1016/j.cma.2020.113468 for idealized geometry.
     Defines atrial fiber bundle parameters and orientations.
 
-    Attributes
+    Parameters
     ----------
-    tau_mv : float
+    tau_mv : float, default: 0.0
         Mitral valve parameter.
-    tau_lpv : float
+    tau_lpv : float, default: 0.0
         Left pulmonary vein parameter.
-    tau_rpv : float
+    tau_rpv : float, default: 0.0
         Right pulmonary vein parameter.
-    tau_tv : float
+    tau_tv : float, default: 0.0
         Tricuspid valve parameter.
-    tau_raw : float
+    tau_raw : float, default: 0.0
         Right atrial wall parameter.
-    tau_ct_minus : float
+    tau_ct_minus : float, default: 0.0
         Crista terminalis minus parameter.
-    tau_ct_plus : float
+    tau_ct_plus : float, default: 0.0
         Crista terminalis plus parameter.
-    tau_icv : float
+    tau_icv : float, default: 0.0
         Inferior vena cava parameter.
-    tau_scv : float
+    tau_scv : float, default: 0.0
         Superior vena cava parameter.
-    tau_ib : float
+    tau_ib : float, default: 0.0
         Isthmus bundle parameter.
-    tau_ras : float
+    tau_ras : float, default: 0.0
         Right atrial septum parameter.
 
     Examples
@@ -972,27 +976,27 @@ class Purkinje(BaseSettings):
     Defines parameters for Purkinje network generation and electrical
     properties including geometry, branching, and junction characteristics.
 
-    Attributes
+    Parameters
     ----------
-    node_id_origin_left : int | None
+    node_id_origin_left : int | None, default: None
         Left Purkinje origin node ID.
-    node_id_origin_right : int | None
+    node_id_origin_right : int | None, default: None
         Right Purkinje origin node ID.
-    edgelen : Quantity
+    edgelen : Quantity, default: Quantity(0, "mm")
         Edge length for Purkinje segments.
-    ngen : Quantity
+    ngen : Quantity, default: Quantity(0, "dimensionless")
         Number of generations in the network.
-    nbrinit : Quantity
+    nbrinit : Quantity, default: Quantity(0, "dimensionless")
         Number of initial branches from origin.
-    nsplit : Quantity
+    nsplit : Quantity, default: Quantity(0, "dimensionless")
         Number of splits at each leaf.
-    pmjtype : Quantity
+    pmjtype : Quantity, default: Quantity(0, "dimensionless")
         Purkinje muscle junction type identifier.
-    pmjradius : Quantity
+    pmjradius : Quantity, default: Quantity(0, "mm")
         Purkinje muscle junction radius.
-    pmjrestype : Quantity
+    pmjrestype : Quantity, default: Quantity(1, "dimensionless")
         Purkinje muscle junction resistance type.
-    pmjres : Quantity
+    pmjres : Quantity, default: Quantity(0.001, "1/mS")
         Purkinje muscle junction resistance value.
 
     Examples
@@ -1662,7 +1666,7 @@ class DynaSettings:
     including executable paths, parallelization settings, platform-specific
     configurations, and command-line argument generation.
 
-    Attributes
+    Parameters
     ----------
     lsdyna_path : pathlib.Path
         Path to LS-DYNA executable.

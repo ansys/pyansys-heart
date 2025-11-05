@@ -1732,7 +1732,7 @@ class DynaSettings:
         dynatype : Literal[&quot;smp&quot;, &quot;intelmpi&quot;, &quot;platformmpi&quot;]
             Type of LS-DYNA executable. Shared Memory Parallel or Massively Parallel Processing
         num_cpus : int, default: 1
-            Number of CPU's requested.
+            Number of CPUs requested.
         platform : Literal["windows", "wsl", "linux"], default: "windows"
             Platform.
         dyna_options : str, default: ""

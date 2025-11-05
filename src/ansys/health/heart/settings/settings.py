@@ -958,9 +958,7 @@ class AtrialFiber(BaseSettings):
     """
 
     tau_mv: float = Field(default=0.0, description="Mitral valve parameter")
-    # tau_lpv: float = Field(default=0.0, description="Left pulmonary vein parameter")
-    tau_lpv: float = 0.0
-    """Left pulmonary vein parameter"""
+    tau_lpv: float = Field(default=0.0, description="Left pulmonary vein parameter")
     tau_rpv: float = Field(default=0.0, description="Right pulmonary vein parameter")
     tau_tv: float = Field(default=0.0, description="Tricuspid valve parameter")
     tau_raw: float = Field(default=0.0, description="Right atrial wall parameter")

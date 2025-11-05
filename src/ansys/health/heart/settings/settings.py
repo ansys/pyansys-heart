@@ -1727,14 +1727,14 @@ class DynaSettings:
             Path to LS-DYNA
         dynatype : Literal[&quot;smp&quot;, &quot;intelmpi&quot;, &quot;platformmpi&quot;]
             Type of LS-DYNA executable. Shared Memory Parallel or Massively Parallel Processing
-        num_cpus : int, optional
-            Number of CPU's requested, by default 1
-        platform : Literal[&quot;windows&quot;, &quot;wsl&quot;, &quot;linux&quot;], optional
-            Platform, by default "windows"
-        dyna_options : str, optional
-            Additional command line options, by default ''
-        mpi_options : str, optional
-            Additional mpi options, by default ''
+        num_cpus : int, default: 1
+            Number of CPU's requested.
+        platform : Literal["windows", "wsl", "linux"], default: "windows"
+            Platform.
+        dyna_options : str, default: ""
+            Additional command line options.
+        mpi_options : str, default: ""
+            Additional mpi options.
         """
         self.lsdyna_path: pathlib.Path = lsdyna_path
         """Path to LS-DYNA executable."""

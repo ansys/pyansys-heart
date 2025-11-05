@@ -249,7 +249,7 @@ class Analysis(BaseSettings):
     Defines core simulation analysis parameters including time stepping,
     output intervals, and damping parameters for cardiac simulations.
 
-    Attributes
+    Parameters
     ----------
     end_time : Quantity
         End time of simulation in time units.
@@ -296,7 +296,7 @@ class EPAnalysis(Analysis):
     Extends Analysis with electrophysiology-specific solver configuration.
     Supports different EP solver types for cardiac electrical simulation.
 
-    Attributes
+    Parameters
     ----------
     solvertype : Literal["Monodomain", "Eikonal", "ReactionEikonal"]
         Type of electrophysiology solver to use.
@@ -319,7 +319,7 @@ class BoundaryConditions(BaseSettings):
     Manages boundary condition parameters for cardiac simulation including
     pericardium constraints, valve mechanics, and pressure loading.
 
-    Attributes
+    Parameters
     ----------
     robin : dict[str, Any] | None
         Parameters for pericardium spring/damper boundary conditions.
@@ -354,7 +354,7 @@ class SystemModel(BaseSettings):
     Manages system-level model configuration including circulatory system
     models and ventricular-specific parameters.
 
-    Attributes
+    Parameters
     ----------
     name : str
         Name of the system model implementation.
@@ -391,7 +391,7 @@ class Mechanics(BaseSettings):
     Complete mechanical simulation configuration including analysis parameters,
     boundary conditions, and system model settings.
 
-    Attributes
+    Parameters
     ----------
     analysis : Analysis
         Generic analysis settings for time stepping and output.
@@ -422,7 +422,7 @@ class AnalysisZeroPressure(Analysis):
     Extends Analysis with specific settings for stress-free configuration
     computation, including iterative solver parameters.
 
-    Attributes
+    Parameters
     ----------
     dt_nodout : Quantity
         Time interval of nodeout export.
@@ -456,7 +456,7 @@ class ZeroPressure(BaseSettings):
     Configuration for computing the stress-free (unloaded) configuration
     of cardiac geometry, essential for accurate mechanical simulations.
 
-    Attributes
+    Parameters
     ----------
     analysis : AnalysisZeroPressure
         Analysis settings specific to zero-pressure computation.
@@ -481,7 +481,7 @@ class Stimulation(BaseSettings):
     Defines electrical stimulation parameters including timing, location,
     and amplitude for cardiac electrophysiology simulations.
 
-    Attributes
+    Parameters
     ----------
     node_ids : list[int] | None
         List of node IDs where stimulation is applied.
@@ -552,7 +552,7 @@ class Electrophysiology(BaseSettings):
     Complete electrophysiology simulation configuration including analysis settings,
     stimulation protocols, layer definitions, and conductivity parameters.
 
-    Attributes
+    Parameters
     ----------
     analysis : EPAnalysis
         Generic analysis settings for EP simulation.
@@ -601,7 +601,7 @@ class BaseFiberSettings(BaseSettings):
     define the spatial orientation of cardiac muscle fibers across the
     myocardial wall from endocardium to epicardium.
 
-    Attributes
+    Parameters
     ----------
     alpha_endo : Quantity
         Helical angle in endocardium (inner heart wall surface) in degrees.
@@ -680,7 +680,7 @@ class FibersBRBM(BaseFiberSettings):
     The B-RBM method uses distinct angle specifications for the septum region
     to account for the unique fiber architecture in the interventricular septum.
 
-    Attributes
+    Parameters
     ----------
     alpha_endo : Quantity
         Helical angle in endocardium (inherited from BaseFiberSettings).
@@ -781,7 +781,7 @@ class FibersDRBM(BaseSettings):
     better represent the distinct fiber architectures in each ventricle,
     particularly important for accurate mechanical and electrical modeling.
 
-    Attributes
+    Parameters
     ----------
     left_ventricle : BaseFiberSettings
         Fiber orientation settings specific to the left ventricle.
@@ -921,7 +921,7 @@ class AtrialFiber(BaseSettings):
     Default parameters are from doi.org/10.1016/j.cma.2020.113468 for idealized geometry.
     Defines atrial fiber bundle parameters and orientations.
 
-    Attributes
+    Parameters
     ----------
     tau_mv : float
         Mitral valve parameter.
@@ -972,7 +972,7 @@ class Purkinje(BaseSettings):
     Defines parameters for Purkinje network generation and electrical
     properties including geometry, branching, and junction characteristics.
 
-    Attributes
+    Parameters
     ----------
     node_id_origin_left : int | None
         Left Purkinje origin node ID.
@@ -1662,7 +1662,7 @@ class DynaSettings:
     including executable paths, parallelization settings, platform-specific
     configurations, and command-line argument generation.
 
-    Attributes
+    Parameters
     ----------
     lsdyna_path : pathlib.Path
         Path to LS-DYNA executable.

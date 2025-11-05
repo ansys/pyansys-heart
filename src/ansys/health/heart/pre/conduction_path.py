@@ -226,7 +226,7 @@ class ConductionPath:
         Parameters
         ----------
         show_plotter : bool, default: True
-            Whether to immediately show the plot window. If False, return the plotter
+            Whether to immediately show the plot window. If ``False``, return the plotter
             object for further modification (e.g., adding more meshes).
 
         Returns

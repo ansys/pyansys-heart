@@ -116,7 +116,7 @@ def constant_ca2(tb: float = 800, ca2ionm: float = 4.35) -> tuple[np.ndarray, np
     tb : float, default: 800
         Heart beat period.
     ca2ionm : float, default: 4.35
-        Amplitude which equals ca2ionm in MAT_295.
+        Amplitude, which equals ca2ionm in MAT_295.
 
     Returns
     -------

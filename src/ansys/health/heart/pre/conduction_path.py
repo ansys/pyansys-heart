@@ -226,7 +226,7 @@ class ConductionPath:
         Parameters
         ----------
         show_plotter : bool, default: True
-            If True, immediately show the plot window. If False, return the plotter
+            Whether to immediately show the plot window. If False, return the plotter
             object for further modification (e.g., adding more meshes).
 
         Returns
@@ -348,9 +348,6 @@ class ConductionPath:
             Length of the line element in case of refinement.
         center : bool, default: False
             Whether to use a geodesic path through the centers of the surface cells.
-            Length of the line element in case of refinement.
-        center : bool, default: False
-            If True, the geodesic path passes through the centers of the surface cells.
 
         Returns
         -------

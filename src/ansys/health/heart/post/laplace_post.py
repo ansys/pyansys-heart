@@ -486,7 +486,7 @@ def compute_ventricle_fiber_by_drbm(
     },
     left_only: bool = False,
 ) -> pv.UnstructuredGrid:
-    """Compute the fiber coordinate system from Laplace solving.
+    """Compute the fiber coordinate system from the Laplace solutions.
 
     Parameters
     ----------

@@ -1738,7 +1738,7 @@ class DynaSettings:
         dyna_options : str, default: ""
             Additional command line options.
         mpi_options : str, default: ""
-            Additional mpi options.
+            Additional MPI options.
         """
         self.lsdyna_path: pathlib.Path = lsdyna_path
         """Path to LS-DYNA executable."""

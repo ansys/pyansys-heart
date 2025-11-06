@@ -75,6 +75,7 @@ from ansys.health.heart.examples import get_input_leftventricle
 import ansys.health.heart.models as models
 from ansys.health.heart.post.dpf_utils import ICVoutReader
 from ansys.health.heart.settings.material.material import ACTIVE, ANISO, ISO, HGOFiber, Mat295
+from ansys.health.heart.settings.settings import FibersDRBM
 from ansys.health.heart.simulator import DynaSettings, MechanicsSimulator
 
 ###############################################################################
@@ -152,16 +153,13 @@ simulator.settings.load_defaults()
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Compute fiber orientation and plot the fibers.
 
-# Set rotation angles:
-rotation_angles = {
-    "alpha_left": [60, -60],
-    "alpha_right": [60, -60],
-    "alpha_ot": None,
-    "beta_left": [-20, 20],
-    "beta_right": [-20, 20],
-    "beta_ot": None,
-}
-simulator.compute_fibers(method="D-RBM", rotation_angles=rotation_angles)
+# Use default rotation angles for the D-RBM method.
+fiber_settings = FibersDRBM()
+
+# Print settings
+print(fiber_settings)
+
+simulator.compute_fibers(fiber_settings=fiber_settings)
 
 # Plot the fiber orientation by streamlines.
 simulator.model.plot_fibers(n_seed_points=2000)

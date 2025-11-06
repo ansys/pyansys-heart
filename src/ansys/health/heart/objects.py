@@ -1043,7 +1043,7 @@ class Mesh(pv.UnstructuredGrid):
             PolyData representation of the lines to add.
         id : int
             ID of the surface to add. This ID is tracked as ``_line-id``.
-        name : str, optional
+        name : str, default: None
             Name of the added lines. The added lines are not tracked by default.
         """
         if not id:

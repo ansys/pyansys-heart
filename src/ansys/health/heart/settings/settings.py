@@ -249,21 +249,21 @@ class Analysis(BaseSettings):
     Defines core simulation analysis parameters including time stepping,
     output intervals, and damping parameters for cardiac simulations.
 
-    Attributes
+    Parameters
     ----------
-    end_time : Quantity
+    end_time : Quantity, default: Quantity(0, "s")
         End time of simulation in time units.
-    dtmin : Quantity
+    dtmin : Quantity, default: Quantity(0, "s")
         Minimum time-step of simulation in time units.
-    dtmax : Quantity
+    dtmax : Quantity, default: Quantity(0, "s")
         Maximum time-step of simulation in time units.
-    dt_d3plot : Quantity
+    dt_d3plot : Quantity, default: Quantity(0, "s")
         Time-step of d3plot export in time units.
-    dt_icvout : Quantity
+    dt_icvout : Quantity, default: Quantity(0, "s")
         Time-step of icvout export in time units.
-    global_damping : Quantity
+    global_damping : Quantity, default: Quantity(0, "1/s")
         Global damping constant in 1/time units.
-    stiffness_damping : Quantity
+    stiffness_damping : Quantity, default: Quantity(0, "s")
         Stiffness damping constant in time units.
 
     Examples
@@ -296,9 +296,9 @@ class EPAnalysis(Analysis):
     Extends Analysis with electrophysiology-specific solver configuration.
     Supports different EP solver types for cardiac electrical simulation.
 
-    Attributes
+    Parameters
     ----------
-    solvertype : Literal["Monodomain", "Eikonal", "ReactionEikonal"]
+    solvertype : Literal["Monodomain", "Eikonal", "ReactionEikonal"], default: "Monodomain"
         Type of electrophysiology solver to use.
 
     Examples
@@ -319,13 +319,13 @@ class BoundaryConditions(BaseSettings):
     Manages boundary condition parameters for cardiac simulation including
     pericardium constraints, valve mechanics, and pressure loading.
 
-    Attributes
+    Parameters
     ----------
-    robin : dict[str, Any] | None
+    robin : dict[str, Any] | None, default: None
         Parameters for pericardium spring/damper boundary conditions.
-    valve : dict[str, Any] | None
+    valve : dict[str, Any] | None, default: None
         Parameters for valve spring boundary conditions.
-    end_diastolic_cavity_pressure : dict[str, Any] | None
+    end_diastolic_cavity_pressure : dict[str, Any] | None, default: None
         End-diastolic pressure configuration.
 
     Examples
@@ -349,18 +349,18 @@ class BoundaryConditions(BaseSettings):
 
 
 class SystemModel(BaseSettings):
-    """Stores settings/parameters for system model.
+    """Stores settings/parameters for the system model.
 
     Manages system-level model configuration including circulatory system
     models and ventricular-specific parameters.
 
-    Attributes
+    Parameters
     ----------
-    name : str
+    name : str, default: "ConstantPreloadWindkesselAfterload"
         Name of the system model implementation.
-    left_ventricle : dict[str, Any] | None
+    left_ventricle : dict[str, Any] | None, default: None
         Parameters specific to left ventricle modeling.
-    right_ventricle : dict[str, Any] | None
+    right_ventricle : dict[str, Any] | None, default: None
         Parameters specific to right ventricle modeling.
 
     Examples
@@ -391,13 +391,13 @@ class Mechanics(BaseSettings):
     Complete mechanical simulation configuration including analysis parameters,
     boundary conditions, and system model settings.
 
-    Attributes
+    Parameters
     ----------
-    analysis : Analysis
+    analysis : Analysis, default: Analysis()
         Generic analysis settings for time stepping and output.
-    boundary_conditions : BoundaryConditions
+    boundary_conditions : BoundaryConditions, default: BoundaryConditions()
         Boundary condition specifications and parameters.
-    system : SystemModel
+    system : SystemModel, default: SystemModel()
         System model settings and configurations.
 
     Examples
@@ -422,15 +422,15 @@ class AnalysisZeroPressure(Analysis):
     Extends Analysis with specific settings for stress-free configuration
     computation, including iterative solver parameters.
 
-    Attributes
+    Parameters
     ----------
-    dt_nodout : Quantity
+    dt_nodout : Quantity, default: Quantity(0, "s")
         Time interval of nodeout export.
-    max_iters : int
+    max_iters : int, default: 3
         Maximum iterations for stress-free-configuration algorithm.
-    method : int
+    method : int, default: 2
         Method identifier to use for computation.
-    tolerance : float
+    tolerance : float, default: 5.0
         Tolerance for iterative algorithm convergence.
 
     Examples
@@ -456,9 +456,9 @@ class ZeroPressure(BaseSettings):
     Configuration for computing the stress-free (unloaded) configuration
     of cardiac geometry, essential for accurate mechanical simulations.
 
-    Attributes
+    Parameters
     ----------
-    analysis : AnalysisZeroPressure
+    analysis : AnalysisZeroPressure, default: AnalysisZeroPressure()
         Analysis settings specific to zero-pressure computation.
 
     Examples
@@ -481,17 +481,17 @@ class Stimulation(BaseSettings):
     Defines electrical stimulation parameters including timing, location,
     and amplitude for cardiac electrophysiology simulations.
 
-    Attributes
+    Parameters
     ----------
-    node_ids : list[int] | None
+    node_ids : list[int] | None, default: None
         List of node IDs where stimulation is applied.
-    t_start : Quantity
+    t_start : Quantity, default: Quantity(0.0, "ms")
         Start time of stimulation.
-    period : Quantity
+    period : Quantity, default: Quantity(800, "ms")
         Period between stimulation cycles.
-    duration : Quantity
+    duration : Quantity, default: Quantity(2, "ms")
         Duration of each stimulation pulse.
-    amplitude : Quantity
+    amplitude : Quantity, default: Quantity(50, "uF/mm^3")
         Stimulation amplitude.
 
     Examples
@@ -552,15 +552,17 @@ class Electrophysiology(BaseSettings):
     Complete electrophysiology simulation configuration including analysis settings,
     stimulation protocols, layer definitions, and conductivity parameters.
 
-    Attributes
+    Parameters
     ----------
-    analysis : EPAnalysis
+    analysis : EPAnalysis, default EPAnalysis()
         Generic analysis settings for EP simulation.
-    stimulation : dict[str, Stimulation] | None
+    stimulation : dict[str, Stimulation] | None, default None
         Dictionary of stimulation settings by name.
     layers : dict[str, Quantity]
         Layer definitions for material assignment of myocardium.
-    lambda_ratio : Quantity
+        Default: {"percent_endo": Quantity(0.17, "dimensionless"),
+        "percent_mid": Quantity(0.41, "dimensionless")}
+    lambda_ratio : Quantity, default Quantity(0.2, "dimensionless")
         Intra to extracellular conductivity ratio for EP solve.
 
     Examples
@@ -593,62 +595,328 @@ class Electrophysiology(BaseSettings):
     )
 
 
-class Fibers(BaseSettings):
-    """Class for keeping track of fiber settings.
+class BaseFiberSettings(BaseSettings):
+    """Base class for keeping track of fiber orientation settings.
 
-    Defines fiber orientation parameters for ventricular myocardium,
-    including helical angles and transmural variations.
+    Defines fundamental fiber orientation parameters for cardiac muscle fiber
+    modeling. These settings control the helical and transverse angles that
+    define the spatial orientation of cardiac muscle fibers across the
+    myocardial wall from endocardium to epicardium.
 
-    Attributes
+    Parameters
     ----------
-    alpha_endo : Quantity
-        Helical angle in endocardium.
-    alpha_epi : Quantity
-        Helical angle in epicardium.
-    beta_endo : Quantity
-        Angle to the outward transmural axis in endocardium.
-    beta_epi : Quantity
-        Angle to the outward transmural axis in epicardium.
-    beta_endo_septum : Quantity
-        Angle to the outward transmural axis in left septum.
-    beta_epi_septum : Quantity
-        Angle to the outward transmural axis in right septum.
+    alpha_endo : Quantity, default: Quantity(-60, "degree")
+        Helical angle in endocardium (inner heart wall surface) in degrees.
+        Positive values indicate right-handed helix orientation.
+    alpha_epi : Quantity, default: Quantity(60, "degree")
+        Helical angle in epicardium (outer heart wall surface) in degrees.
+        Typically opposite sign to alpha_endo for transmural rotation.
+    beta_endo : Quantity, default: Quantity(-65, "degree")
+        Angle to the outward transmural axis in endocardium in degrees.
+        Controls fiber inclination relative to heart wall thickness direction.
+    beta_epi : Quantity, default: Quantity(25, "degree")
+        Angle to the outward transmural axis in epicardium in degrees.
+        Defines fiber inclination at the outer wall surface.
+
+    Notes
+    -----
+    The fiber orientation by rotating a the local coordinate system:
+    - Longitudinal direction (e_l): apex to base
+    - Transmural direction (e_t): endocardium to epicardium
+    - Circumferential direction (e_c): orthogonal to both (right-hand rule)
+
+    Alpha angles define rotation of the circumferential direction around the
+    transmural axis (helical angle).
+    Beta angles define rotation of the circumferential direction around the longitudinal
+    axis (inclination angle).
+
+    Default values are based on Bayer et al. 2012 http://dx.doi.org/10.1007/s10439-012-0593-5. Note
+    that for the Bayer method the transmural direction points inward from epicardium, hence the
+    negative sign of alpha_endo and beta_endo.
 
     Examples
     --------
+    Create basic fiber settings with default Bayer et al. values:
+
+    >>> fiber_settings = BaseFiberSettings()
+    >>> print(fiber_settings.alpha_endo)
+    -60 degree
+    >>> print(fiber_settings.alpha_epi)
+    60 degree
+
+    Create custom fiber orientation:
+
     >>> from pint import Quantity
-    >>> fibers = Fibers(
-    ...     alpha_endo=Quantity(-60, "degree"),
-    ...     alpha_epi=Quantity(60, "degree"),
-    ...     beta_endo=Quantity(0, "degree"),
-    ...     beta_epi=Quantity(0, "degree"),
+    >>> custom_fibers = BaseFiberSettings(
+    ...     alpha_endo=Quantity(-45, "degree"),
+    ...     alpha_epi=Quantity(45, "degree"),
+    ...     beta_endo=Quantity(-30, "degree"),
+    ...     beta_epi=Quantity(30, "degree"),
     ... )
-    >>> print(fibers.alpha_endo)
-    -60.0 degree
     """
 
     alpha_endo: Quantity = Field(
-        default=Quantity(0, "degree"), description="Helical angle in endocardium"
+        default=Quantity(-60, "degree"), description="Helical angle in endocardium"
     )
     alpha_epi: Quantity = Field(
-        default=Quantity(0, "degree"), description="Helical angle in epicardium"
+        default=Quantity(60, "degree"), description="Helical angle in epicardium"
     )
     beta_endo: Quantity = Field(
-        default=Quantity(0, "degree"),
+        default=Quantity(-65, "degree"),
         description="Angle to the outward transmural axis in endocardium",
     )
     beta_epi: Quantity = Field(
-        default=Quantity(0, "degree"),
+        default=Quantity(25, "degree"),
         description="Angle to the outward transmural axis in epicardium",
     )
+
+
+class FibersBRBM(BaseFiberSettings):
+    """Class for keeping track of fiber settings for the Bayer et al rule-based method.
+
+    Extends BaseFiberSettings with additional septum-specific fiber orientations
+    required for the LS-DYNA/B-RBM fiber generation method.
+
+    The B-RBM method uses distinct angle specifications for the septum region
+    to account for the unique fiber architecture in the interventricular septum.
+
+    Parameters
+    ----------
+    alpha_endo : Quantity, default: Quantity(-60, "degree")
+        Helical angle in endocardium (inherited from BaseFiberSettings).
+    alpha_epi : Quantity, default: Quantity(60, "degree")
+        Helical angle in epicardium (inherited from BaseFiberSettings).
+    beta_endo : Quantity, default: Quantity(-65, "degree")
+        Angle to the outward transmural axis in endocardium (inherited).
+    beta_epi : Quantity, default: Quantity(25, "degree")
+        Angle to the outward transmural axis in epicardium (inherited).
+    beta_endo_septum : Quantity, default: Quantity(-65, "degree")
+        Angle to the outward transmural axis on the left septum endocardium.
+        Specific to the septal region fiber orientation.
+    beta_epi_septum : Quantity, default Quantity(25, "degree")
+        Angle to the outward transmural axis in the septum epicardium.
+        Controls septal fiber inclination at the epicardial surface.
+
+    Notes
+    -----
+    Based on Bayer et al. https://doi.org/10.1007/s10439-012-0593-5.
+
+    The B-RBM method distinguishes between:
+    - Free wall fiber orientations (using base class angles)
+    - Septal fiber orientations (using septum-specific beta angles)
+
+    This allows for realistic modeling of the complex fiber architecture
+    in the interventricular septum. Note that for the Bayer method the transmural
+    direction points inward from epicardium to endocardium, and hence positive rotation
+    has a different meaning that for the D-RBM method.
+
+    Examples
+    --------
+    Create B-RBM fiber settings with default values:
+
+    >>> brbm_fibers = FibersBRBM()
+    >>> print(brbm_fibers.beta_endo_septum)
+    -65 degree
+    >>> print(brbm_fibers.beta_epi_septum)
+    25 degree
+
+    Create custom B-RBM settings:
+
+    >>> from pint import Quantity
+    >>> custom_brbm = FibersBRBM(
+    ...     alpha_endo=Quantity(-50, "degree"),
+    ...     alpha_epi=Quantity(50, "degree"),
+    ...     beta_endo_septum=Quantity(-70, "degree"),
+    ...     beta_epi_septum=Quantity(30, "degree"),
+    ... )
+    """
+
     beta_endo_septum: Quantity = Field(
-        default=Quantity(0, "degree"),
-        description="Angle to the outward transmural axis in left septum",
+        default=Quantity(-65, "degree"),
+        description="Angle to the outward transmural axis on the left septum",
     )
     beta_epi_septum: Quantity = Field(
-        default=Quantity(0, "degree"),
-        description="Angle to the outward transmural axis in right septum",
+        default=Quantity(25, "degree"),
+        description="Angle to the outward transmural axis in the septum",
     )
+
+    def _get_rotation_dict(self) -> dict[str, list[float]]:
+        """Get B-RBM rotation angles formatted for legacy compute_fibers method.
+
+        Converts the Pydantic model data to the dictionary format expected by
+        the compute_fibers(method="LSDYNA") method for B-RBM fiber generation.
+
+        Returns
+        -------
+        dict[str, list[float]]
+            Dictionary with keys "alpha", "beta", "beta_septum" containing
+            [endo, epi] angle pairs in degrees for B-RBM method.
+        """
+        return {
+            "alpha": [
+                self.alpha_endo.to("degree").magnitude,
+                self.alpha_epi.to("degree").magnitude,
+            ],
+            "beta": [
+                self.beta_endo.to("degree").magnitude,
+                self.beta_epi.to("degree").magnitude,
+            ],
+            "beta_septum": [
+                self.beta_endo_septum.to("degree").magnitude,
+                self.beta_epi_septum.to("degree").magnitude,
+            ],
+        }
+
+
+class FibersDRBM(BaseSettings):
+    """Class for storing settings for the Doste et al rule-based method.
+
+    Implements the D-RBM (Doste Rule-Based Method) for fiber orientation
+    generation in biventricular cardiac models. This method uses separate
+    fiber orientation settings for left and right ventricles, with optional
+    outflow tract specifications. Moreover, it includes a septal fraction
+    parameter to define the portion of the septum assigned to the left ventricle.
+
+    The D-RBM method provides ventricle-specific fiber orientations to
+    better represent the distinct fiber architectures in each ventricle,
+    particularly important for accurate mechanical and electrical modeling.
+
+    Parameters
+    ----------
+    left_ventricle : BaseFiberSettings, default: BaseFiberSettings(alpha_endo=Quantity(60, "degree")
+        ,alpha_epi=Quantity(-60, "degree"), beta_endo=Quantity(-20, "degree"),
+        beta_epi=Quantity(20, "degree"))
+        Fiber orientation settings specific to the left ventricle.
+        Contains alpha and beta angles for left ventricular wall.
+    right_ventricle : BaseFiberSettings: default: BaseFiberSettings(alpha_endo=
+        Quantity(-90, "degree"),alpha_epi=Quantity(25, "degree"), beta_endo=Quantity(0, "degree"),
+        beta_epi=Quantity(20, "degree"))
+        Fiber orientation settings specific to the right ventricle.
+        Contains alpha and beta angles for right ventricular wall.
+    alpha_outflow_tract : Quantity | None, default: None
+        Helical angle for the outflow tract region in degrees.
+        Set to None if outflow tract fiber orientation not specified.
+    beta_outflow_tract : Quantity | None, default: None
+        Inclination angle for the outflow tract region in degrees.
+        Set to None if outflow tract fiber orientation not specified.
+    septal_fraction : float, default: 2.0/3.0
+        The fraction of the septum that belongs to the left ventricle.
+        Typically 2/3 (0.667) based on anatomical measurements.
+
+    Notes
+    -----
+    Based on Doste et al. https://doi.org/10.1002/cnm.3185.
+
+    Coordinate system definition in PyAnsys-Heart:
+    - Longitudinal direction: apex to base
+    - Transmural direction: endo to epicardium
+    - Circumferential direction: e_c = e_l × e_t (right-hand rule)
+
+    Alpha defines rotation around transmural axis (helical angle).
+    Beta defines rotation around longitudinal axis (inclination angle).
+
+    Examples
+    --------
+    Create D-RBM fiber settings with default values:
+
+    >>> drbm_fibers = FibersDRBM()
+    >>> print(drbm_fibers.left_ventricle.alpha_endo)
+    60 degree
+    >>> print(drbm_fibers.right_ventricle.alpha_endo)
+    -90 degree
+    >>> print(drbm_fibers.septal_fraction)
+    0.6666666666666666
+
+    Create custom D-RBM settings:
+
+    >>> from pint import Quantity
+    >>> custom_drbm = FibersDRBM(
+    ...     left_ventricle=BaseFiberSettings(
+    ...         alpha_endo=Quantity(45, "degree"), alpha_epi=Quantity(-45, "degree")
+    ...     ),
+    ...     septal_fraction=0.7,
+    ... )
+    """
+
+    left_ventricle: BaseFiberSettings = Field(
+        default_factory=lambda: BaseFiberSettings(
+            alpha_endo=Quantity(60, "degree"),
+            alpha_epi=Quantity(-60, "degree"),
+            beta_endo=Quantity(-20, "degree"),
+            beta_epi=Quantity(20, "degree"),
+        ),
+        description="Fiber orientation settings for the left ventricle",
+    )
+    right_ventricle: BaseFiberSettings = Field(
+        default_factory=lambda: BaseFiberSettings(
+            alpha_endo=Quantity(-90, "degree"),
+            alpha_epi=Quantity(25, "degree"),
+            beta_endo=Quantity(0, "degree"),
+            beta_epi=Quantity(20, "degree"),
+        ),
+        description="Fiber orientation settings for the right ventricle",
+    )
+    alpha_outflow_tract: Quantity | None = Field(
+        default=None, description="Helical angle for outflow tract region (None if not specified)"
+    )
+    beta_outflow_tract: Quantity | None = Field(
+        default=None,
+        description="Inclination angle for outflow tract region (None if not specified)",
+    )
+    septal_fraction: float = Field(
+        default=2.0 / 3.0,
+        description="Fraction of septum belonging to left ventricle (typically 2/3)",
+    )
+
+    def _get_rotation_dict(self) -> dict[str, list[float] | None]:
+        """Get D-RBM rotation angles formatted for legacy compute_fibers method.
+
+        Converts the Pydantic model data to the dictionary format expected by
+        the compute_fibers(method="D-RBM") method.
+
+        Returns
+        -------
+        dict[str, list[float] | None]
+            Dictionary with keys "alpha_left", "alpha_right", "alpha_ot",
+            "beta_left", "beta_right", "beta_ot" containing [endo, epi] angle
+            pairs in degrees, or None for outflow tract if not configured.
+
+        Examples
+        --------
+        >>> settings = SimulationSettings(fiber_method="D-RBM")
+        >>> drbm_fibers = settings.get_fibers_drbm()
+        >>> rotation_angles = drbm_fibers.get_rotation_dict()
+        >>> print(rotation_angles["alpha_left"])
+        [60.0, -60.0]
+        """
+        return {
+            "alpha_left": [
+                self.left_ventricle.alpha_endo.to("degree").magnitude,
+                self.left_ventricle.alpha_epi.to("degree").magnitude,
+            ],
+            "alpha_right": [
+                self.right_ventricle.alpha_endo.to("degree").magnitude,
+                self.right_ventricle.alpha_epi.to("degree").magnitude,
+            ],
+            "alpha_ot": (
+                [self.alpha_outflow_tract.to("degree").magnitude] * 2
+                if self.alpha_outflow_tract is not None
+                else None
+            ),
+            "beta_left": [
+                self.left_ventricle.beta_endo.to("degree").magnitude,
+                self.left_ventricle.beta_epi.to("degree").magnitude,
+            ],
+            "beta_right": [
+                self.right_ventricle.beta_endo.to("degree").magnitude,
+                self.right_ventricle.beta_epi.to("degree").magnitude,
+            ],
+            "beta_ot": (
+                [self.beta_outflow_tract.to("degree").magnitude] * 2
+                if self.beta_outflow_tract is not None
+                else None
+            ),
+        }
 
 
 class AtrialFiber(BaseSettings):
@@ -657,29 +925,29 @@ class AtrialFiber(BaseSettings):
     Default parameters are from doi.org/10.1016/j.cma.2020.113468 for idealized geometry.
     Defines atrial fiber bundle parameters and orientations.
 
-    Attributes
+    Parameters
     ----------
-    tau_mv : float
+    tau_mv : float, default: 0.0
         Mitral valve parameter.
-    tau_lpv : float
+    tau_lpv : float, default: 0.0
         Left pulmonary vein parameter.
-    tau_rpv : float
+    tau_rpv : float, default: 0.0
         Right pulmonary vein parameter.
-    tau_tv : float
+    tau_tv : float, default: 0.0
         Tricuspid valve parameter.
-    tau_raw : float
+    tau_raw : float, default: 0.0
         Right atrial wall parameter.
-    tau_ct_minus : float
+    tau_ct_minus : float, default: 0.0
         Crista terminalis minus parameter.
-    tau_ct_plus : float
+    tau_ct_plus : float, default: 0.0
         Crista terminalis plus parameter.
-    tau_icv : float
+    tau_icv : float, default: 0.0
         Inferior vena cava parameter.
-    tau_scv : float
+    tau_scv : float, default: 0.0
         Superior vena cava parameter.
-    tau_ib : float
+    tau_ib : float, default: 0.0
         Isthmus bundle parameter.
-    tau_ras : float
+    tau_ras : float, default: 0.0
         Right atrial septum parameter.
 
     Examples
@@ -708,27 +976,27 @@ class Purkinje(BaseSettings):
     Defines parameters for Purkinje network generation and electrical
     properties including geometry, branching, and junction characteristics.
 
-    Attributes
+    Parameters
     ----------
-    node_id_origin_left : int | None
+    node_id_origin_left : int | None, default: None
         Left Purkinje origin node ID.
-    node_id_origin_right : int | None
+    node_id_origin_right : int | None, default: None
         Right Purkinje origin node ID.
-    edgelen : Quantity
+    edgelen : Quantity, default: Quantity(0, "mm")
         Edge length for Purkinje segments.
-    ngen : Quantity
+    ngen : Quantity, default: Quantity(0, "dimensionless")
         Number of generations in the network.
-    nbrinit : Quantity
+    nbrinit : Quantity, default: Quantity(0, "dimensionless")
         Number of initial branches from origin.
-    nsplit : Quantity
+    nsplit : Quantity, default: Quantity(0, "dimensionless")
         Number of splits at each leaf.
-    pmjtype : Quantity
+    pmjtype : Quantity, default: Quantity(0, "dimensionless")
         Purkinje muscle junction type identifier.
-    pmjradius : Quantity
+    pmjradius : Quantity, default: Quantity(0, "mm")
         Purkinje muscle junction radius.
-    pmjrestype : Quantity
+    pmjrestype : Quantity, default: Quantity(1, "dimensionless")
         Purkinje muscle junction resistance type.
-    pmjres : Quantity
+    pmjres : Quantity, default: Quantity(0.001, "1/mS")
         Purkinje muscle junction resistance value.
 
     Examples
@@ -782,7 +1050,7 @@ class SimulationSettings:
     # All parameters default to True, so these attributes exist in the default case
     mechanics: Mechanics  # Exists when mechanics=True (default)
     electrophysiology: Electrophysiology  # Exists when electrophysiology=True (default)
-    fibers: Fibers  # Exists when fiber=True (default)
+    fibers: FibersBRBM | FibersDRBM  # Exists when fiber=True (default)
     atrial_fibers: AtrialFiber  # Exists when fiber=True (default)
     purkinje: Purkinje  # Exists when purkinje=True (default)
     stress_free: ZeroPressure  # Exists when stress_free=True (default)
@@ -792,6 +1060,7 @@ class SimulationSettings:
         mechanics: bool = True,
         electrophysiology: bool = True,
         fiber: bool = True,
+        fiber_method: Literal["LSDYNA", "D-RBM"] = "LSDYNA",
         purkinje: bool = True,
         stress_free: bool = True,
     ) -> None:
@@ -844,9 +1113,25 @@ class SimulationSettings:
             """Settings for electrophysiology simulation."""
 
         if fiber:
-            self.fibers: Fibers = Fibers()
+            if fiber_method == "LSDYNA":
+                self.fibers: FibersBRBM = FibersBRBM()
+                """Fiber settings for the LSDYNA rule-based method."""
+            elif fiber_method == "D-RBM":
+                self.fibers: FibersDRBM = FibersDRBM()
+                """Fiber settings for the D-RBM method."""
+            else:
+                raise ValueError(
+                    "Invalid method to compute the fiber orientation. "
+                    "Valid methods include: [LSDYNA, D-RBM]"
+                )
+
+            # Store the fiber method for later validation and loading
+            self._fiber_method = fiber_method
+
             self.atrial_fibers: AtrialFiber = AtrialFiber()
-            """Settings for fiber generation."""
+            """Settings for atrial fiber generation."""
+        else:
+            self._fiber_method = None
 
         if purkinje:
             self.purkinje: Purkinje = Purkinje()
@@ -856,7 +1141,45 @@ class SimulationSettings:
             self.stress_free: ZeroPressure = ZeroPressure()
             """Settings for stress free configuration simulation."""
 
-        pass
+        return
+
+    def _get_fiber_config_lsdyna(self) -> FibersBRBM:
+        """Get LSDYNA fiber settings with type safety.
+
+        Returns
+        -------
+        FibersBRBM
+            LSDYNA fiber settings instance.
+
+        Raises
+        ------
+        ValueError
+            If fiber method is not LSDYNA or fibers not configured.
+        """
+        if not hasattr(self, "fibers"):
+            raise ValueError("Fiber settings not configured")
+        if self._fiber_method != "LSDYNA":
+            raise ValueError(f"Fiber method is {self._fiber_method}, not LSDYNA")
+        return self.fibers  # type: ignore (we know it's FibersBRBM from the check)
+
+    def _get_fiber_config_drbm(self) -> FibersDRBM:
+        """Get D-RBM fiber settings with type safety.
+
+        Returns
+        -------
+        FibersDRBM
+            D-RBM fiber settings instance.
+
+        Raises
+        ------
+        ValueError
+            If fiber method is not D-RBM or fibers not configured.
+        """
+        if not hasattr(self, "fibers"):
+            raise ValueError("Fiber settings not configured")
+        if self._fiber_method != "D-RBM":
+            raise ValueError(f"Fiber method is {self._fiber_method}, not D-RBM")
+        return self.fibers  # type: ignore (we know it's FibersDRBM from the check)
 
     def __repr__(self):
         """Represent object as list of relevant attribute names.
@@ -982,15 +1305,15 @@ class SimulationSettings:
             LOGGER.warning("No 'Simulation Settings' found in file")
             return
 
-        # Unit registry kept for backward compatibility with external code
-        # ureg = UnitRegistry()  # Commented out - no longer needed
-
         try:
             # Use streamlined approach - Pydantic handles all validation automatically
             self._load_settings_section("mechanics", settings_data, Mechanics)
             self._load_settings_section("stress_free", settings_data, ZeroPressure)
             self._load_settings_section("electrophysiology", settings_data, Electrophysiology)
-            self._load_settings_section("fibers", settings_data, Fibers)
+
+            # Handle fiber settings conditionally based on detected method
+            self._load_fiber_settings(settings_data)
+
             self._load_settings_section("atrial_fibers", settings_data, AtrialFiber)
             self._load_settings_section("purkinje", settings_data, Purkinje)
 
@@ -1028,6 +1351,49 @@ class SimulationSettings:
             # Let Pydantic handle all validation and type conversion automatically
             validated_model = model_class.model_validate(section_data)
             setattr(self, section_name, validated_model)
+
+    def _load_fiber_settings(self, settings_data: dict[str, Any]) -> None:
+        """Load fiber settings based on detected method or current configuration.
+
+        This method detects the fiber method from the loaded data
+        structure and uses the appropriate Pydantic model for validation.
+
+        Parameters
+        ----------
+        settings_data : dict[str, Any]
+            Settings data dictionary.
+        """
+        if "fibers" not in settings_data or not hasattr(self, "fibers"):
+            return
+
+        primary_method = "LSDYNA"
+        fallback_method = "D-RBM"
+
+        try:
+            # Try loading with the primary method first.
+            self._load_settings_section("fibers", settings_data, FibersBRBM)
+            self._fiber_method = primary_method
+            LOGGER.info(f"Successfully loaded fiber settings using {self._fiber_method} method")
+
+            return self.fibers
+
+        except (ValidationError, ValueError) as e:
+            LOGGER.debug(f"Failed to load fiber settings {primary_method}. {e}")
+
+        try:
+            # Try the alternative method.
+            self._load_settings_section("fibers", settings_data, FibersDRBM)
+            self._fiber_method = fallback_method
+            LOGGER.info(f"Successfully loaded fiber settings using {self._fiber_method} method")
+
+            return self.fibers
+
+        except (ValidationError, ValueError) as error:
+            # Both methods failed - provide helpful error message
+            raise ValueError(
+                f"Failed to load fiber settings with both {primary_method} and "
+                f"{fallback_method} methods. {error}."
+            )
 
     def _convert_quantities_recursive(self, data: Any) -> Any:
         """Recursively convert string quantities to Quantity objects in nested data.
@@ -1143,13 +1509,6 @@ class SimulationSettings:
                     stimulation_dict[key] = Stimulation(**stim_data)
                 self.electrophysiology.stimulation = stimulation_dict
 
-            # Load fiber defaults
-            if hasattr(self, "fibers") and isinstance(self.fibers, Fibers):
-                # Update fibers with defaults - handle properly based on Fibers model structure
-                for field_name, value in fibers_defaults.angles.items():
-                    if hasattr(self.fibers, field_name):
-                        setattr(self.fibers, field_name, value)
-
             # Load Purkinje defaults
             if hasattr(self, "purkinje") and isinstance(self.purkinje, Purkinje):
                 # Update Purkinje with defaults - handle properly based on Purkinje model structure
@@ -1200,74 +1559,6 @@ class SimulationSettings:
             if isinstance(attr, BaseSettings):
                 attr.to_consistent_unit_system()
         return
-
-    def get_ventricle_fiber_rotation(self, method: Literal["LSDYNA", "D-RBM"]) -> dict:
-        """Get rotation angles from fiber settings.
-
-        Extracts fiber orientation angles from the configured fiber settings
-        and formats them according to the specified fiber generation method.
-
-        Parameters
-        ----------
-        method : Literal["LSDYNA", "D-RBM"]
-            Fiber rule-based method for extracting rotation angles.
-            - "LSDYNA": LS-DYNA fiber generation format
-            - "D-RBM": Discrete Rule-Based Method format
-
-        Returns
-        -------
-        dict
-            Dictionary containing rotation angles (alpha and beta) formatted
-            for the specified method. Keys and structure depend on the method:
-            - LSDYNA: "alpha", "beta", "beta_septum" keys
-            - D-RBM: "alpha_left", "alpha_right", "alpha_ot", "beta_left",
-              "beta_right", "beta_ot" keys
-
-        Examples
-        --------
-        >>> settings = SimulationSettings()
-        >>> settings.load_defaults()
-        >>> rotation = settings.get_ventricle_fiber_rotation("LSDYNA")
-        >>> print(rotation["alpha"])
-        [-60.0, 60.0]
-        """
-        if method == "LSDYNA":
-            rotation = {
-                "alpha": [
-                    self.fibers.alpha_endo.m,
-                    self.fibers.alpha_epi.m,
-                ],
-                "beta": [
-                    self.fibers.beta_endo.m,
-                    self.fibers.beta_epi.m,
-                ],
-                "beta_septum": [
-                    self.fibers.beta_endo_septum.m,
-                    self.fibers.beta_epi_septum.m,
-                ],
-            }
-        elif method == "D-RBM":
-            rotation = {
-                "alpha_left": [
-                    self.fibers.alpha_endo.m,
-                    self.fibers.alpha_epi.m,
-                ],
-                "alpha_right": [
-                    self.fibers.alpha_endo.m,
-                    self.fibers.alpha_epi.m,
-                ],
-                "alpha_ot": None,
-                "beta_left": [
-                    self.fibers.beta_endo.m,
-                    self.fibers.beta_epi.m,
-                ],
-                "beta_right": [
-                    self.fibers.beta_endo.m,
-                    self.fibers.beta_epi.m,
-                ],
-                "beta_ot": None,
-            }
-        return rotation
 
 
 # desired consistent unit system is:
@@ -1375,7 +1666,7 @@ class DynaSettings:
     including executable paths, parallelization settings, platform-specific
     configurations, and command-line argument generation.
 
-    Attributes
+    Parameters
     ----------
     lsdyna_path : pathlib.Path
         Path to LS-DYNA executable.
@@ -1440,14 +1731,14 @@ class DynaSettings:
             Path to LS-DYNA
         dynatype : Literal[&quot;smp&quot;, &quot;intelmpi&quot;, &quot;platformmpi&quot;]
             Type of LS-DYNA executable. Shared Memory Parallel or Massively Parallel Processing
-        num_cpus : int, optional
-            Number of CPU's requested, by default 1
-        platform : Literal[&quot;windows&quot;, &quot;wsl&quot;, &quot;linux&quot;], optional
-            Platform, by default "windows"
-        dyna_options : str, optional
-            Additional command line options, by default ''
-        mpi_options : str, optional
-            Additional mpi options, by default ''
+        num_cpus : int, default: 1
+            Number of CPUs requested.
+        platform : Literal["windows", "wsl", "linux"], default: "windows"
+            Platform.
+        dyna_options : str, default: ""
+            Additional command line options.
+        mpi_options : str, default: ""
+            Additional MPI options.
         """
         self.lsdyna_path: pathlib.Path = lsdyna_path
         """Path to LS-DYNA executable."""

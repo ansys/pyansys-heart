@@ -255,7 +255,7 @@ class HeartModel:
 
         #! TODO: non-functional flag. Remove or replace.
         self._add_blood_pool: bool = False
-        """Flag indicating whether a blood pool mesh is added. (Experimental)"""
+        """Flag indicating whether a blood pool mesh is added. (Experimental)."""
 
         self._input: _InputModel = None
         """Input model."""
@@ -396,7 +396,7 @@ class HeartModel:
         name : str
             Part name.
         part_type : anatomy._PartType, default: anatomy._PartType.UNDEFINED
-            Type of the part. The default is ``anatomy._PartType.UNDEFINED``.
+            Type of the part to create.
 
         Returns
         -------
@@ -711,8 +711,7 @@ class HeartModel:
         plot_raw_mesh : bool, default: False
             Whether to plot the streamlines on the raw mesh.
         n_seed_points : int, default: 1000
-            Number of seed points. While the default is ``1000``, using ``5000``
-            is recommended.
+            Number of seed points for mesh generation. Using ``5000`` is recommended.
 
         Examples
         --------

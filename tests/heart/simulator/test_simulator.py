@@ -206,6 +206,8 @@ def test_base_simulator_load_default_settings():
 def test_base_simulator_fiber(_mocked_methods):
     """Test ventricle fiber methods."""
     mock_model = mock.MagicMock()
+    from ansys.health.heart.settings.settings import FibersDRBM
+
     mock_model.mesh = pyvista_examples.load_hexbeam()
     mock_model.mesh.cell_data["fiber"] = np.zeros((mock_model.mesh.n_cells, 3), dtype=float)
     mock_model.mesh.cell_data["sheet"] = np.zeros((mock_model.mesh.n_cells, 3), dtype=float)
@@ -233,7 +235,7 @@ def test_base_simulator_fiber(_mocked_methods):
                 "ansys.health.heart.simulator.BaseSimulator._compute_fibers_drbm",
             ) as mock_drbm:
                 simulator.dyna_settings.dynatype = "smp"
-                simulator.compute_fibers(method="D-RBM")
+                simulator.compute_fibers(fiber_settings=FibersDRBM())
 
             mock_drbm.assert_called_once()
 

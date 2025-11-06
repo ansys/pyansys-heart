@@ -534,8 +534,7 @@ def addfile_handler(logger, filename=FILE_NAME, level=LOG_LEVEL_STDOUT, write_he
     filename : str, default: FILE_NAME
         Name of the output file, which is ``'pyconv-de.log'`` by default.
     level : int, default: 10
-        Level of logging. The default is ``10``, in which case the
-        ``logging.DEBUG`` level is used.
+        Level of logging. ``10`` corresponds to ``logging.DEBUG`` level.
     write_headers : bool, default: False
         Whether to write headers to the file.
 

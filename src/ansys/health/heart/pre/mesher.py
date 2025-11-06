@@ -520,7 +520,7 @@ def _mesh_fluid_cavities(
     workdir : str
         Working directory.
     remesh_caps : bool, default: True
-        whether to remesh the caps.
+        Whether to remesh the caps.
 
     Returns
     -------

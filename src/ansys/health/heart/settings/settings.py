@@ -793,10 +793,10 @@ class FibersDRBM(BaseSettings):
         beta_epi=Quantity(20, "degree"))
         Fiber orientation settings specific to the right ventricle.
         Contains alpha and beta angles for right ventricular wall.
-    alpha_outflow_tract : Quantity or None, default: None
+    alpha_outflow_tract : Quantity | None, default: None
         Helical angle for the outflow tract region in degrees.
         Set to None if outflow tract fiber orientation not specified.
-    beta_outflow_tract : Quantity or None, default: None
+    beta_outflow_tract : Quantity | None, default: None
         Inclination angle for the outflow tract region in degrees.
         Set to None if outflow tract fiber orientation not specified.
     septal_fraction : float, default: 2.0/3.0

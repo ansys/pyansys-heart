@@ -169,8 +169,8 @@ def compute_la_fiber_cs(
     settings : AtrialFiber
         Atrial fiber settings.
     endo_surface : pv.PolyData, default: None
-        ``_description_``. If given, normal direction is updated by the surface
-        normal instead of the Laplace solution.
+        Endocardium surface mesh. If provided, normal direction is updated by the
+        surface normal instead of the Laplace solution.
 
     Notes
     -----
@@ -249,8 +249,8 @@ def compute_ra_fiber_cs(
     settings : AtrialFiber
         Atrial fiber settings.
     endo_surface : pv.PolyData, default: None
-        ``_description_``. If given, normal direction is updated by the surface normal
-        instead of the Laplace solution.
+        Endocardium surface mesh. If provided, normal direction is updated by the
+        surface normal instead of the Laplace solution.
 
     Notes
     -----

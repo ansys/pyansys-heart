@@ -255,7 +255,7 @@ class HeartModel:
 
         #! TODO: non-functional flag. Remove or replace.
         self._add_blood_pool: bool = False
-        """Flag indicating whether a blood pool mesh is added. (Experimental)"""
+        """Flag indicating whether a blood pool mesh is added. (Experimental)."""
 
         self._input: _InputModel = None
         """Input model."""

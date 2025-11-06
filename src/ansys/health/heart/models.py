@@ -396,7 +396,7 @@ class HeartModel:
         name : str
             Part name.
         part_type : anatomy._PartType, default: anatomy._PartType.UNDEFINED
-            Type of the part. The default is ``anatomy._PartType.UNDEFINED``.
+            Type of the part to create.
 
         Returns
         -------
@@ -711,8 +711,7 @@ class HeartModel:
         plot_raw_mesh : bool, default: False
             Whether to plot the streamlines on the raw mesh.
         n_seed_points : int, default: 1000
-            Number of seed points. While the default is ``1000``, using ``5000``
-            is recommended.
+            Number of seed points for mesh generation. Using ``5000`` is recommended.
 
         Examples
         --------

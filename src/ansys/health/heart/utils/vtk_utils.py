@@ -58,8 +58,10 @@ def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:
         cell_area[icell] = surface.GetCell(icell).ComputeArea()
         # cell_area[icell] = vtk_surface.GetCell(icell).ComputeArea()
 
-    # tris = get_tri_info_from_polydata(surface)[1]
-    tris = np.reshape(surface.faces, (surface.n_cells, 4))[:, 1:]
+    if surface.is_all_triangles:
+        tris = surface.regular_faces
+    else:
+        ValueError("Surface must be all triangles to compute nodal area.")
 
     ii = 0
     for points, area in zip(tris, cell_area):

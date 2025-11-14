@@ -32,7 +32,7 @@ dependencies = [
     "matplotlib>=3.10.1",
     "natsort>=8.4.0",
     "networkx>=3.2.1",
-    "numpy<=2.2.6",
+    "numpy<3",
     "pandas<=3.0.0",
     "pint>=0.24.4",
     "pyvista>=0.44.1,<0.46",

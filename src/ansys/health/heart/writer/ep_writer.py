@@ -893,8 +893,13 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # self.model.mesh = self.model.mesh.clean()
         # surface = self.model.mesh.get_surface_by_name(name)
         seg_id = self.get_unique_segmentset_id()
-        faces = surface.faces.reshape(-1, 4)[:, 1:]
-        points = surface.points[faces]
+
+        if surface.is_all_triangles:
+            triangles = surface.regular_faces
+        else:
+            raise ValueError("Only triangular surfaces are supported for segment sets.")
+
+        points = surface.points[triangles]
         tree = spatial.cKDTree(self.model.mesh.points)
         a, b = tree.query(points)
 

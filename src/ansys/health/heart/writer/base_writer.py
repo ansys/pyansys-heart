@@ -777,6 +777,9 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         for part in parts:
             for surface in part.surfaces:
+                if surface.n_cells == 0:
+                    continue
+
                 nodes_to_remove = surface.node_ids_triangles[
                     np.isin(
                         surface.node_ids_triangles,
@@ -786,6 +789,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                     )
                 ]
 
+                # NOTE: faces does not exclude the offset, so potentially erroneously
+                # removes node ID 3.
                 faces = surface.faces.reshape(-1, 4)
                 faces_to_remove = np.any(np.isin(faces, nodes_to_remove), axis=1)
                 surface.faces = faces[np.invert(faces_to_remove)].ravel()

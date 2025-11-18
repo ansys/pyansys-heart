@@ -227,8 +227,14 @@ class SurfaceMesh(pv.PolyData):
     @property
     def triangles(self):
         """Triangular faces of the surface ``num_faces`` x 3."""
-        faces = np.reshape(self.faces, (self.n_cells, 3 + 1))[:, 1:]
-        return faces
+        if self.n_cells == 0:
+            return np.empty((0, 3), dtype=int)
+
+        if self.is_all_triangles:
+            return self.regular_faces
+
+        else:
+            raise ValueError("Not all faces in the mesh are triangles.")
 
     @triangles.setter
     def triangles(self, value: np.ndarray):

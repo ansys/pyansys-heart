@@ -1543,9 +1543,6 @@ class HeartModel:
                 part.get_element_ids(self.mesh)
             ).point_data["_global-point-ids"]
 
-            # ! The only information we use from surface here is the ID, not the mesh information.
-            # ! We need to go back to the central mesh to obtain an updated copy of
-            # ! the corresponding mesh.
             for surface in part.surfaces:
                 if "epicardium" in surface.name:
                     # get the surface id.
@@ -1558,12 +1555,11 @@ class HeartModel:
                     surface.triangles = surface.triangles[mask, :]
 
                     # add updated mesh to global mesh.
-                    # TODO: could just change the _surface-ids in the cell data directly.
-                    # TODO: this basically appends the cells of surface at the end of Mesh.
-                    # self.mesh.remove_surface(surf_id)
+                    self.mesh.remove_surface(surf_id)
                     self.mesh.add_surface(
-                        surface, int(surf_id), name=surface.name, overwrite_existing=True
+                        surface, int(surf_id), name=surface.name, overwrite_existing=False
                     )
+                    self.mesh.clean()
 
         return
 

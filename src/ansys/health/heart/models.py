@@ -1550,12 +1550,9 @@ class HeartModel:
                 if "epicardium" in surface.name:
                     # get the surface id.
                     surf_id = self.mesh._surface_name_to_id[surface.name]
-                    global_node_ids_surface = self.mesh.get_surface(surf_id).point_data[
-                        "_global-point-ids"
-                    ]
-                    mask = np.isin(global_node_ids_surface, global_node_ids_part)
-                    # do not use any faces that use a node not in the part.
-                    mask = np.all(np.isin(surface.triangles, np.argwhere(mask).flatten()), axis=1)
+
+                    # do not use any faces that use a node that is not in the part.
+                    mask = np.all(np.isin(surface.triangles_global, global_node_ids_part), axis=1)
 
                     LOGGER.debug(f"Removing {np.sum(np.invert(mask))} faces from {surface.name}.")
                     surface.triangles = surface.triangles[mask, :]
@@ -1563,8 +1560,10 @@ class HeartModel:
                     # add updated mesh to global mesh.
                     # TODO: could just change the _surface-ids in the cell data directly.
                     # TODO: this basically appends the cells of surface at the end of Mesh.
-                    self.mesh.remove_surface(surf_id)
-                    self.mesh.add_surface(surface, int(surf_id), name=surface.name)
+                    # self.mesh.remove_surface(surf_id)
+                    self.mesh.add_surface(
+                        surface, int(surf_id), name=surface.name, overwrite_existing=True
+                    )
 
         return
 

@@ -1539,13 +1539,16 @@ class HeartModel:
         """Clean epicardial surfaces such that these use only nodes of the part."""
         for part in self.parts:
             self.mesh._set_global_ids()
-            global_node_ids_part = self.mesh.extract_cells(
-                part.get_element_ids(self.mesh)
-            ).point_data["_global-point-ids"]
+            element_ids = part.get_element_ids(self.mesh)
 
-            # ! The only information we use from surface here is the ID, not the mesh information.
-            # ! We need to go back to the central mesh to obtain an updated copy of
-            # ! the corresponding mesh.
+            if element_ids.shape[0] == 0:
+                LOGGER.debug(f"No elements for part {part.name}.")
+                continue
+
+            global_node_ids_part = self.mesh.extract_cells(element_ids).point_data[
+                "_global-point-ids"
+            ]
+
             for surface in part.surfaces:
                 if "epicardium" in surface.name:
                     # get the surface id.
@@ -1554,16 +1557,15 @@ class HeartModel:
                     # do not use any faces that use a node that is not in the part.
                     mask = np.all(np.isin(surface.triangles_global, global_node_ids_part), axis=1)
 
+                    if not np.any(mask):
+                        continue
+
                     LOGGER.debug(f"Removing {np.sum(np.invert(mask))} faces from {surface.name}.")
                     surface.triangles = surface.triangles[mask, :]
 
                     # add updated mesh to global mesh.
-                    # TODO: could just change the _surface-ids in the cell data directly.
-                    # TODO: this basically appends the cells of surface at the end of Mesh.
-                    # self.mesh.remove_surface(surf_id)
-                    self.mesh.add_surface(
-                        surface, int(surf_id), name=surface.name, overwrite_existing=True
-                    )
+                    self.mesh.remove_surface(surf_id)
+                    self.mesh.add_surface(surface, int(surf_id), name=surface.name)
 
         return
 

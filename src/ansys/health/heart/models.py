@@ -1565,10 +1565,7 @@ class HeartModel:
 
                     # add updated mesh to global mesh.
                     self.mesh.remove_surface(surf_id)
-                    self.mesh.add_surface(
-                        surface, int(surf_id), name=surface.name, overwrite_existing=False
-                    )
-                    self.mesh.clean()
+                    self.mesh.add_surface(surface, int(surf_id), name=surface.name)
 
         return
 

@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 # Check https://flit.readthedocs.io/en/latest/pyproject_toml.html for all available sections
 name = "ansys-health-heart"
-version = "0.15.dev0"
+version = "0.16.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
 requires-python = ">=3.10,<4"
@@ -32,7 +32,7 @@ dependencies = [
     "matplotlib>=3.10.1",
     "natsort>=8.4.0",
     "networkx>=3.2.1",
-    "numpy<=2.2.6",
+    "numpy<3",
     "pandas<=3.0.0",
     "pint>=0.24.4",
     "pyvista>=0.44.1,<0.46",
@@ -60,10 +60,10 @@ doc = [
     "sphinx-jinja==2.0.2",
     "sphinx_design",
     "sphinxcontrib-video==0.4.1",
-    "trame-vtk==2.9.1"
+    "trame-vtk==2.10.0"
 ]
 tests = [
-    "pytest==8.4.2",
+    "pytest==9.0.1",
     "pytest-cov==7.0.0",
 ]
 
@@ -115,7 +115,8 @@ convention = "numpy"
 [tool.ruff.lint.isort]
 combine-as-imports = true
 force-sort-within-sections = true
-known-first-party = ["ansys.health.heart"]
+# Ensures all `ansys` imports are considered first party
+known-first-party = ["ansys.health.heart", "ansys"]
 
 [tool.coverage.run]
 source = ["ansys.health.heart"]

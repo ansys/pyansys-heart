@@ -22,6 +22,8 @@
 
 """Custom exceptions for PyAnsys Heart."""
 
+from typing import Literal
+
 
 class LSDYNATerminationError(BaseException):
     """Exception raised when ``Normal Termination`` is not found in the LS-DYNA logs."""
@@ -76,3 +78,14 @@ class WSLNotFoundError(FileNotFoundError):
 
 class MissingEnvironmentVariableError(EnvironmentError):
     """Exception raised when a required environment variable is missing."""
+
+
+class MissingMaterialError(ValueError):
+    """Exception raised when a required material is missing in the model."""
+
+    def __init__(self, part_name: str, material_type: Literal["EP", "Mechanical"]):
+        super().__init__(f"Part {part_name} has no {material_type} material assigned.")
+
+
+class PartAlreadyExistsError(ValueError):
+    """Exception raised when a part already exists."""

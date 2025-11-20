@@ -169,8 +169,8 @@ def compute_la_fiber_cs(
     settings : AtrialFiber
         Atrial fiber settings.
     endo_surface : pv.PolyData, default: None
-        ``_description_``. If given, normal direction is updated by the surface
-        normal instead of the Laplace solution.
+        Endocardium surface mesh. If provided, normal direction is updated by the
+        surface normal instead of the Laplace solution.
 
     Notes
     -----
@@ -249,8 +249,8 @@ def compute_ra_fiber_cs(
     settings : AtrialFiber
         Atrial fiber settings.
     endo_surface : pv.PolyData, default: None
-        ``_description_``. If given, normal direction is updated by the surface normal
-        instead of the Laplace solution.
+        Endocardium surface mesh. If provided, normal direction is updated by the
+        surface normal instead of the Laplace solution.
 
     Notes
     -----
@@ -486,15 +486,16 @@ def compute_ventricle_fiber_by_drbm(
     },
     left_only: bool = False,
 ) -> pv.UnstructuredGrid:
-    """Compute the fiber coordinate system from Laplace solving.
+    """Compute the fiber coordinate system from the Laplace solutions.
 
     Parameters
     ----------
     directory : str
         Directory of d3plot/tprint files.
-    settings : dict, optional
-        Rotation angles. By default: ``{ "alpha_left": [-60, 60], "alpha_right": [-60, 60],
-        "alpha_ot": None, "beta_left": [-65, 25], "beta_right": [-65, 25], "beta_ot": None, }``.
+    settings : dict[str, list[float] | None]
+        Rotation angles for fiber generation. The defaults are
+        ``{"alpha_left": [60, -60], "alpha_right": [90, -25], "alpha_ot": None,
+        "beta_left": [-65, 25], "beta_right": [-65, 25], "beta_ot": None}``.
     left_only : bool, default: False
         Whether to only compute fibers on the left ventricle.
 

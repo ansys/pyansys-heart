@@ -49,11 +49,12 @@ def get_left_ventricle():
 
 
 @pytest.mark.requires_dpf
-def test_compute_thickness(get_left_ventricle):
+def test_compute_thickness(get_left_ventricle, monkeypatch):
     test_dir = get_left_ventricle[0]
     model = get_left_ventricle[1]
     d3plot = os.path.join(os.path.join(test_dir, "main", "d3plot"))
 
+    monkeypatch.setenv("ANSYS_DPF_ACCEPT_LA", "Y")
     s = AhaStrainCalculator(model, d3plot)
     lines = s._compute_thickness_lines()
     assert len(lines) == 2
@@ -63,7 +64,8 @@ def test_compute_thickness(get_left_ventricle):
 
 
 @pytest.mark.requires_dpf
-def test_compute_myocardial_strain(get_left_ventricle):
+def test_compute_myocardial_strain(get_left_ventricle, monkeypatch):
+    monkeypatch.setenv("ANSYS_DPF_ACCEPT_LA", "Y")
     test_dir = get_left_ventricle[0]
     model = get_left_ventricle[1]
     d3plot = os.path.join(os.path.join(test_dir, "main", "d3plot"))
@@ -74,7 +76,8 @@ def test_compute_myocardial_strain(get_left_ventricle):
 
 
 @pytest.mark.requires_dpf
-def test_compute_aha_strain(get_left_ventricle):
+def test_compute_aha_strain(get_left_ventricle, monkeypatch):
+    monkeypatch.setenv("ANSYS_DPF_ACCEPT_LA", "Y")
     test_dir = get_left_ventricle[0]
     model = get_left_ventricle[1]
     d3plot = os.path.join(os.path.join(test_dir, "main", "d3plot"))
@@ -86,8 +89,9 @@ def test_compute_aha_strain(get_left_ventricle):
 
 
 @pytest.mark.requires_dpf
-def test_plot_aha_bullseye():
+def test_plot_aha_bullseye(monkeypatch):
     """Test plotting AHA bullseye plot."""
+    monkeypatch.setenv("ANSYS_DPF_ACCEPT_LA", "Y")
 
     # Create the fake data
     data = np.arange(17) + 1
@@ -105,7 +109,8 @@ def test_plot_aha_bullseye():
 
 
 @pytest.mark.requires_dpf
-def test_zerop_post(get_left_ventricle):
+def test_zerop_post(get_left_ventricle, monkeypatch):
+    monkeypatch.setenv("ANSYS_DPF_ACCEPT_LA", "Y")
     test_dir = get_left_ventricle[0]
     model = get_left_ventricle[1]
     dct = zerop_post(os.path.join(test_dir, "zerop"), model)
@@ -124,11 +129,13 @@ def test_zerop_post(get_left_ventricle):
 @pytest.mark.requires_dpf
 class TestSystemModelPost:
     @pytest.fixture
-    def system_model(self, get_left_ventricle):
+    def system_model(self, get_left_ventricle, monkeypatch):
+        monkeypatch.setenv("ANSYS_DPF_ACCEPT_LA", "Y")
         test_dir = get_left_ventricle[0]
         return SystemModelPost(os.path.join(test_dir, "main"))
 
-    def test_plot_pv_loop(self, system_model):
+    def test_plot_pv_loop(self, system_model, monkeypatch):
+        monkeypatch.setenv("ANSYS_DPF_ACCEPT_LA", "Y")
         ef = system_model.get_ejection_fraction()
         fig = system_model.plot_pv_loop(ef=ef)
         fig.savefig("pv_{0:d}.png".format(0))

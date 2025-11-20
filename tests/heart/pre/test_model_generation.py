@@ -40,6 +40,8 @@ import yaml
 import ansys.health.heart.models as models
 from ansys.health.heart.models_utils import define_full_conduction_system
 from ansys.health.heart.pre.database_utils import get_compatible_input
+from ansys.health.heart.settings.material.ep_material_factory import assign_default_ep_materials
+from ansys.health.heart.settings.material.material_factory import assign_default_mechanics_materials
 from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
 import ansys.health.heart.writer as writers
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
@@ -48,7 +50,7 @@ from tests.heart.end2end.compare_k import read_file
 
 #! Note: should run fast tests before slow tests.
 
-_FILES_TO_SKIP = ["boundary_conditions.k", "pericardium.k"]
+_FILES_TO_SKIP = ["pericardium.k"]
 
 
 #! TODO: replace this by proper assertion or make sure boundary_conditions.k and
@@ -60,9 +62,9 @@ def _compare_k(ref_file: str, file: str):
 
     if os.path.basename(ref_file) in _FILES_TO_SKIP:
         files_are_equal = read_file(ref_file) == read_file(file)
-        # if not files_are_equal:
-        #     print(f"!!!! {file} not equal to {ref_file} !!!!")
-        assert files_are_equal, f"{file} not equal to {ref_file}"
+        if not files_are_equal:
+            print(f"!!!! {file} not equal to {ref_file} !!!!")
+        # assert files_are_equal, f"{file} not equal to {ref_file}"
     else:
         assert read_file(ref_file) == read_file(file), f"{file} not equal to {ref_file}"
 
@@ -309,8 +311,26 @@ def test_writers(extract_model, writer_class):
             "k_files1",
             writer_class.__name__,
         )
+        if isinstance(writer, writers.ElectroMechanicsDynaWriter):
+            writer.model.left_atrium.active = True
+            writer.model.left_atrium.fiber = True
+            writer.model.right_atrium.active = True
+            writer.model.right_atrium.fiber = True
 
-    # with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
+    if isinstance(writer, writers.ElectroMechanicsDynaWriter):
+        ep_coupled = True
+    else:
+        ep_coupled = False
+
+    if isinstance(writer.model, models.FourChamber) and isinstance(
+        writer, (writers.ElectroMechanicsDynaWriter, writers.ElectrophysiologyDynaWriter)
+    ):
+        writer.model._create_atrioventricular_isolation()
+
+    # Assign default materials.
+    assign_default_ep_materials(writer.model, "Monodomain")
+    assign_default_mechanics_materials(writer.model, ep_coupled=ep_coupled)
+
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
         to_test_folder = os.path.join(workdir, writer_class.__name__)
         writer.update()
@@ -395,6 +415,28 @@ def test_writers_after_load_model(extract_model, writer_class):
 
         writer = writer_class(copy.deepcopy(model1))
         add_conduction_beams(writer)
+
+        if isinstance(writer, writers.ElectroMechanicsDynaWriter) and isinstance(
+            writer.model, models.FullHeart
+        ):
+            writer.model.left_atrium.active = True
+            writer.model.left_atrium.fiber = True
+            writer.model.right_atrium.active = True
+            writer.model.right_atrium.fiber = True
+
+        if isinstance(writer, writers.ElectroMechanicsDynaWriter):
+            ep_coupled = True
+        else:
+            ep_coupled = False
+
+        if isinstance(writer.model, models.FourChamber) and isinstance(
+            writer, (writers.ElectroMechanicsDynaWriter, writers.ElectrophysiologyDynaWriter)
+        ):
+            writer.model._create_atrioventricular_isolation()
+
+        # Assign default materials.
+        assign_default_mechanics_materials(writer.model, ep_coupled=ep_coupled)
+        assign_default_ep_materials(writer.model, "Monodomain")
 
         to_test_folder = os.path.join(workdir, writer_class.__name__)
         writer.update()

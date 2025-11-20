@@ -34,8 +34,9 @@ from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.objects import SurfaceMesh
 import ansys.health.heart.parts as anatomy
+import ansys.health.heart.settings.material.ep_material_factory as ep_material_factory
 import ansys.health.heart.settings.settings as sett
-from ansys.health.heart.settings.settings import SimulationSettings
+from ansys.health.heart.settings.settings import FibersBRBM, SimulationSettings
 from ansys.health.heart.writer import custom_keywords as custom_keywords
 from ansys.health.heart.writer.heart_decks import BaseDecks, FiberGenerationDecks
 from ansys.health.heart.writer.writer_utils import (
@@ -126,14 +127,14 @@ class BaseDynaWriter:
 
         return
 
-    def _get_subsettings(self) -> list[sett.Settings]:
+    def _get_subsettings(self) -> list[sett.BaseSettings]:
         """Get subsettings from the settings object."""
         import ansys.health.heart.settings.settings as sett
 
         subsettings_classes = [
             getattr(self.settings, attr).__class__
             for attr in self.settings.__dict__
-            if isinstance(getattr(self.settings, attr), sett.Settings)
+            if isinstance(getattr(self.settings, attr), sett.BaseSettings)
         ]
 
         return subsettings_classes
@@ -698,7 +699,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         self.kw_database = FiberGenerationDecks()
         """Collection of keywords relevant for fiber generation."""
 
-        if sett.Fibers not in self._get_subsettings():
+        if sett.FibersBRBM not in self._get_subsettings():
             raise ValueError("Expecting fiber settings.")
 
     def update(self, rotation_angles: dict[str, list[float]] | None = None) -> None:
@@ -750,8 +751,9 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         self._update_ep_settings()
 
         if rotation_angles is None:
-            # find default settings
-            rotation_angles = self.settings.get_ventricle_fiber_rotation(method="LSDYNA")
+            # Get default settings.
+            rotation_angles = FibersBRBM()._get_rotation_dict()
+
         self._update_create_fibers(rotation_angles)
 
         include_files = self._get_decknames_of_include()
@@ -775,6 +777,9 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
 
         for part in parts:
             for surface in part.surfaces:
+                if surface.n_cells == 0:
+                    continue
+
                 nodes_to_remove = surface.node_ids_triangles[
                     np.isin(
                         surface.node_ids_triangles,
@@ -784,6 +789,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                     )
                 ]
 
+                # NOTE: faces does not exclude the offset, so potentially erroneously
+                # removes node ID 3.
                 faces = surface.faces.reshape(-1, 4)
                 faces_to_remove = np.any(np.isin(faces, nodes_to_remove), axis=1)
                 surface.faces = faces[np.invert(faces_to_remove)].ravel()
@@ -799,7 +806,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             parts = ventricles + [septum]
         else:
             parts = ventricles
-        material_settings = self.settings.electrophysiology.material
+        # Obtain reasonable default material parameters
+        default_ep_material = ep_material_factory.get_default_myocardium_material("Monodomain")
         for part in parts:
             # element_ids = part.get_element_ids(self.model.mesh)
             # em_mat_id = self.get_unique_mat_id()
@@ -810,11 +818,11 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=material_settings.myocardium["sigma_fiber"].m,
-                        sigma22=material_settings.myocardium["sigma_sheet"].m,
-                        sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
-                        beta=material_settings.myocardium["beta"].m,
-                        cm=material_settings.myocardium["cm"].m,
+                        sigma11=default_ep_material.sigma_fiber,
+                        sigma22=default_ep_material.sigma_sheet,
+                        sigma33=default_ep_material.sigma_sheet_normal,
+                        beta=default_ep_material.beta,
+                        cm=default_ep_material.cm,
                         aopt=2.0,
                         a1=0,
                         a2=0,

@@ -63,7 +63,14 @@ from ansys.health.heart.post.laplace_post import (
     read_laplace_solution,
 )
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
-from ansys.health.heart.settings.settings import DynaSettings, SimulationSettings
+from ansys.health.heart.settings.material.ep_material_factory import assign_default_ep_materials
+from ansys.health.heart.settings.material.material_factory import assign_default_mechanics_materials
+from ansys.health.heart.settings.settings import (
+    DynaSettings,
+    FibersBRBM,
+    FibersDRBM,
+    SimulationSettings,
+)
 from ansys.health.heart.utils.misc import _read_orth_element_kfile
 import ansys.health.heart.writer as writers
 
@@ -125,54 +132,46 @@ class BaseSimulator:
         return self.settings
 
     def compute_fibers(
-        self, method: Literal["LSDYNA", "D-RBM"] = "LSDYNA", rotation_angles: dict = None
+        self,
+        fiber_settings: FibersDRBM | FibersBRBM | None = None,
     ):
         """Compute the fiber sheet directions on the ventricles.
 
         Parameters
         ----------
-        method : Literal["LSDYNA", "D-RBM"], default: "LSDYNA"
-            Method for computing the fiber orientation.
-        rotation_angles : dict, default: None
-            Rotation angle alpha and beta.
+        fiber_settings : FibersDRBM | FibersBRBM, default: None
+            Settings to use for the ventricular fiber computation. If None, the fiber settings
+            defined in the simulation settings will be used.
         """
         LOGGER.info("Computing fiber orientation...")
 
-        if method == "LSDYNA":
-            if rotation_angles is None:
-                # find default settings
-                rotation_angles = self.settings.get_ventricle_fiber_rotation(method="LSDYNA")
+        # Handle case where fiber settings are not provided in the settings object.
+        if isinstance(fiber_settings, (FibersBRBM, FibersDRBM)):
+            LOGGER.info("Overriding simulation settings with provided fiber settings.")
+            self.settings.fibers = fiber_settings
+            if isinstance(fiber_settings, FibersBRBM):
+                self.settings._fiber_method = "LSDYNA"
+            elif isinstance(fiber_settings, FibersDRBM):
+                self.settings._fiber_method = "D-RBM"
 
-            for name in ["alpha", "beta", "beta_septum"]:
-                if name not in rotation_angles.keys():
-                    LOGGER.error(f"Must provide key {name} for D-RBM method.")
-                    raise KeyError(
-                        f"Must provide key {name} for D-RBM method. "
-                        "Please check the settings or provide the rotation angles."
-                    )
+        elif hasattr(self.settings, "fibers") is False or not isinstance(
+            self.settings.fibers, (FibersBRBM, FibersDRBM)
+        ):
+            raise ValueError(
+                "No fiber settings configured. Configure fiber settings using:\n"
+                "  simulator.settings.load_defaults()  # Load default settings\n"
+                "  simulator.settings.fibers = FibersBRBM()  # Custom B-RBM settings\n"
+                "  simulator.settings.fibers = FibersDRBM()  # Custom D-RBM settings\n"
+            )
 
+        fiber_settings = self.settings.fibers
+        rotation_angles = fiber_settings._get_rotation_dict()
+
+        if isinstance(fiber_settings, FibersBRBM):
             self._compute_fibers_lsdyna(rotation_angles)
 
-        elif method == "D-RBM":
-            if rotation_angles is None:
-                # find default settings
-                rotation_angles = self.settings.get_ventricle_fiber_rotation(method="D-RBM")
-
-            for a, b in zip(["alpha", "beta"], ["_left", "_right", "_ot"]):
-                if a + b not in rotation_angles.keys():
-                    LOGGER.error(f"Must provide key {name} for D-RBM method.")
-                    raise KeyError(
-                        f"Must provide key {name} for D-RBM method. "
-                        "Please check the settings or provide the rotation angles."
-                    )
+        elif isinstance(fiber_settings, FibersDRBM):
             self._compute_fibers_drbm(rotation_angles)
-
-        else:
-            LOGGER.error(f"Method {method} is not recognized.")
-            raise ValueError(
-                f"Method {method} is not recognized. "
-                "Please use 'LSDYNA' or 'D-RBM' as the method for computing fibers."
-            )
 
         return
 
@@ -433,6 +432,15 @@ class EPSimulator(BaseSimulator):
 
         return
 
+    def _assign_default_materials(self):
+        """Assign default materials if not assigned."""
+        assign_default_ep_materials(self.model, self.settings.electrophysiology.analysis.solvertype)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=True, requires_mechanical_material=False
+        )
+        return
+
     def simulate(self, folder_name="main-ep", extra_k_files: list[str] | None = None):
         """Launch the EP simulation.
 
@@ -443,6 +451,14 @@ class EPSimulator(BaseSimulator):
         extra_k_files : list[str], default: None
             User-defined k files.
         """
+        if isinstance(self.model, models.FourChamber) and isinstance(
+            self, (EPMechanicsSimulator, EPSimulator)
+        ):
+            self.model._create_atrioventricular_isolation()
+
+        # Assign default EP materials if not assigned
+        self._assign_default_materials()
+
         directory = os.path.join(self.root_directory, folder_name)
         self._write_main_simulation_files(folder_name, extra_k_files=extra_k_files)
 
@@ -457,6 +473,8 @@ class EPSimulator(BaseSimulator):
 
     def _simulate_conduction(self, folder_name="main-ep-onlybeams"):
         """Launch the main EP simulation."""
+        self._assign_default_materials()
+
         directory = os.path.join(self.root_directory, folder_name)
         self._write_main_conduction_simulation_files(folder_name)
 
@@ -580,6 +598,16 @@ class MechanicsSimulator(BaseSimulator):
         """If stress-free computation is taken into consideration."""
         self._dynain_name = None
         """LS-DYNA initial state file name from zeropressure."""
+
+        return
+
+    def _assign_default_materials(self):
+        """Assign default materials if not assigned."""
+        assign_default_mechanics_materials(self.model, ep_coupled=False)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=False, requires_mechanical_material=True
+        )
         return
 
     def simulate(
@@ -603,6 +631,9 @@ class MechanicsSimulator(BaseSimulator):
         extra_k_files : list[str], default: None
             User-defined k files.
         """
+        # Assign default mechanical materials if not assigned
+        self._assign_default_materials()
+
         if "apico-basal" not in self.model.mesh.point_data.keys():
             LOGGER.warning(
                 "Array named ``apico-basal`` cannot be found. Computing"
@@ -684,6 +715,9 @@ class MechanicsSimulator(BaseSimulator):
             stress free configuration, and
             (re)computed end-of-diastole configuration.
         """
+        # Assign default mechanical materials if not assigned
+        self._assign_default_materials()
+
         directory = os.path.join(self.root_directory, folder_name)
 
         if not os.path.isdir(directory) or overwrite or len(os.listdir(directory)) == 0:
@@ -737,10 +771,13 @@ class MechanicsSimulator(BaseSimulator):
         """Write LS-DYNA files to compute the stress-free configuration."""
         export_directory = os.path.join(self.root_directory, folder_name)
 
-        model = copy.deepcopy(self.model)
         # Isolation part need to be created in Zerop because main will use its dynain.lsda
-        if isinstance(model, models.FourChamber) and isinstance(self, EPMechanicsSimulator):
-            model._create_atrioventricular_isolation()
+        if isinstance(self.model, models.FourChamber) and isinstance(self, EPMechanicsSimulator):
+            self.model._create_atrioventricular_isolation()
+
+        assign_default_mechanics_materials(self.model, ep_coupled=True)
+
+        model = copy.deepcopy(self.model)
 
         dyna_writer = writers.ZeroPressureMechanicsDynaWriter(model, self.settings)
         dyna_writer.update()
@@ -760,6 +797,16 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
     ) -> None:
         MechanicsSimulator.__init__(self, model, dyna_settings, simulation_directory)
 
+        return
+
+    def _assign_default_materials(self):
+        """Assign default materials if not assigned."""
+        assign_default_mechanics_materials(self.model, ep_coupled=True)
+        assign_default_ep_materials(self.model, self.settings.electrophysiology.analysis.solvertype)
+
+        _validate_materials_of_model(
+            self.model, requires_ep_material=True, requires_mechanical_material=True
+        )
         return
 
     def simulate(
@@ -783,6 +830,8 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         extra_k_files : list[str], default: None
             User-defined k files.
         """
+        self._assign_default_materials()
+
         # MechanicalSimulator handle dynain file from zerop
         MechanicsSimulator.simulate(
             self,
@@ -807,6 +856,48 @@ class EPMechanicsSimulator(EPSimulator, MechanicsSimulator):
         dyna_writer.export(export_directory, user_k=extra_k_files)
 
         return
+
+
+def _validate_materials_of_model(
+    model: models.HeartModel,
+    requires_ep_material: bool = True,
+    requires_mechanical_material: bool = True,
+):
+    from ansys.health.heart.exceptions import MissingMaterialError
+    from ansys.health.heart.settings.material.ep_material import EPMaterialModel
+    from ansys.health.heart.settings.material.material import MechanicalMaterialModel
+
+    """Validate that the materials are appropriately defined."""
+    # Validate all solid parts have EP materials assigned
+    if requires_ep_material:
+        for part in model.parts:
+            if part.ep_material is None or not isinstance(part.ep_material, EPMaterialModel):
+                error_message = f"Part {part.name} does not have an EP material assigned."
+                LOGGER.error(error_message)
+                raise ValueError(error_message)
+
+        # Validate all conduction paths have EP materials assigned
+        for conduction_path in model.conduction_paths:
+            if conduction_path.ep_material is None or not isinstance(
+                conduction_path.ep_material, EPMaterialModel
+            ):
+                error_message = (
+                    f"Conduction path {conduction_path.name} does not have an EP material assigned."
+                )
+                LOGGER.error(error_message)
+                raise MissingMaterialError(part.name, material_type="EP")
+
+    # Validate all solid parts have mechanical materials assigned
+    if requires_mechanical_material:
+        for part in model.parts:
+            if part.meca_material is None or not isinstance(
+                part.meca_material, MechanicalMaterialModel
+            ):
+                error_message = f"Part {part.name} does not have a mechanical material assigned."
+                LOGGER.error(error_message)
+                raise MissingMaterialError(part.name, material_type="Mechanical")
+
+    return
 
 
 def _kill_all_ansyscl():

@@ -95,15 +95,17 @@ def test_get_dyna_commands_001(dynatype, platform, unset_env_vars):
     # Mock shutil.which to get the right side effect.
     with mock.patch("pathlib.Path.is_file", return_value=True):
         with mock.patch("shutil.which", side_effect=_which_side_effects):
-            # define mock data
-            settings = DynaSettings(
-                lsdyna_path="my-dyna-path.exe",
-                dynatype=dynatype,
-                num_cpus=2,
-                platform=platform,
-            )
-
-            commands = settings.get_commands("path-to-input.k")
+            with mock.patch(
+                "ansys.health.heart.settings.settings._windows_to_wsl_path", return_value=""
+            ):
+                # define mock data
+                settings = DynaSettings(
+                    lsdyna_path="my-dyna-path.exe",
+                    dynatype=dynatype,
+                    num_cpus=2,
+                    platform=platform,
+                )
+                commands = settings.get_commands("path-to-input.k")
 
     if platform == "wsl":
         expected = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
@@ -145,16 +147,19 @@ def test_get_dyna_commands_002(dynatype, platform, unset_env_vars):
 
     with mock.patch("pathlib.Path.is_file", return_value=True):
         with mock.patch("shutil.which", side_effect=_which_side_effects):
-            # define mock data
-            settings = DynaSettings(
-                lsdyna_path="my-dyna-path.exe",
-                dynatype=dynatype,
-                num_cpus=2,
-                platform=platform,
-                dyna_options="memory=1000",
-            )
+            with mock.patch(
+                "ansys.health.heart.settings.settings._windows_to_wsl_path", return_value=""
+            ):
+                # define mock data
+                settings = DynaSettings(
+                    lsdyna_path="my-dyna-path.exe",
+                    dynatype=dynatype,
+                    num_cpus=2,
+                    platform=platform,
+                    dyna_options="memory=1000",
+                )
 
-            commands = settings.get_commands("path-to-input.k")
+                commands = settings.get_commands("path-to-input.k")
 
     if platform == "wsl":
         expected = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
@@ -210,17 +215,20 @@ def test_get_dyna_commands_003(dynatype, platform, unset_env_vars):
 
     with mock.patch("pathlib.Path.is_file", return_value=True):
         with mock.patch("shutil.which", side_effect=_which_side_effects):
-            # define mock data
-            settings = DynaSettings(
-                lsdyna_path="my-dyna-path.exe",
-                dynatype=dynatype,
-                num_cpus=2,
-                platform=platform,
-                dyna_options="memory=1000",
-                mpi_options="-hostfile myhostfile",
-            )
+            with mock.patch(
+                "ansys.health.heart.settings.settings._windows_to_wsl_path", return_value=""
+            ):
+                # define mock data
+                settings = DynaSettings(
+                    lsdyna_path="my-dyna-path.exe",
+                    dynatype=dynatype,
+                    num_cpus=2,
+                    platform=platform,
+                    dyna_options="memory=1000",
+                    mpi_options="-hostfile myhostfile",
+                )
 
-            commands = settings.get_commands("path-to-input.k")
+                commands = settings.get_commands("path-to-input.k")
 
     if platform == "wsl":
         expected = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]
@@ -284,15 +292,18 @@ def test_get_dyna_commands_004(dynatype, platform, unset_env_vars, monkeypatch):
     # define mock data
     with mock.patch("pathlib.Path.is_file", return_value=True):
         with mock.patch("shutil.which", side_effect=_which_side_effects):
-            settings = DynaSettings(
-                lsdyna_path="my-dyna-path.exe",
-                dynatype=dynatype,
-                num_cpus=2,
-                platform=platform,
-                dyna_options="memory=1000",
-                mpi_options=mpi_options,
-            )
-            commands = settings.get_commands("path-to-input.k")
+            with mock.patch(
+                "ansys.health.heart.settings.settings._windows_to_wsl_path", return_value=""
+            ):
+                settings = DynaSettings(
+                    lsdyna_path="my-dyna-path.exe",
+                    dynatype=dynatype,
+                    num_cpus=2,
+                    platform=platform,
+                    dyna_options="memory=1000",
+                    mpi_options=mpi_options,
+                )
+                commands = settings.get_commands("path-to-input.k")
 
     if platform == "wsl":
         expected = ["powershell", "-Command", "wsl", "-e", "bash", "-lic", "./run_lsdyna.sh"]

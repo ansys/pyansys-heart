@@ -63,7 +63,7 @@ doc = [
     "trame-vtk==2.10.0"
 ]
 tests = [
-    "pytest==8.4.2",
+    "pytest==9.0.1",
     "pytest-cov==7.0.0",
 ]
 

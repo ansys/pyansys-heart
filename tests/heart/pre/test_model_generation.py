@@ -50,7 +50,7 @@ from tests.heart.end2end.compare_k import read_file
 
 #! Note: should run fast tests before slow tests.
 
-_FILES_TO_SKIP = ["boundary_conditions.k", "pericardium.k"]
+_FILES_TO_SKIP = ["pericardium.k"]
 
 
 #! TODO: replace this by proper assertion or make sure boundary_conditions.k and

@@ -720,12 +720,15 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 for part in self.model.parts
                 if isinstance(part, (anatomy.Ventricle, anatomy.Septum))
             ]
-            #! Note that this only works when tetrahedrons are added at the beginning
-            #! of the mesh (file)! E.g. check self.mesh.celltypes to make sure this is the case!
+
+            # Gather tetrahedrons belonging to ventricles.
             tet_ids = np.empty((0), dtype=int)
+            self.model.mesh._set_global_ids()
             for part in parts:
                 tet_ids = np.append(tet_ids, part.get_element_ids(self.model.mesh))
-                tets = self.model.mesh.tetrahedrons[tet_ids, :]
+
+            mask = np.isin(self.model.mesh._global_tetrahedron_ids, tet_ids)
+            tets = self.model.mesh.tetrahedrons[mask, :]
             nids = np.unique(tets)
 
             #  only write nodes attached to ventricle parts

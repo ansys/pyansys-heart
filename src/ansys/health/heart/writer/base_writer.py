@@ -274,14 +274,11 @@ class BaseDynaWriter:
             Array of boundary nodes after problematic node removal.
         """
         # getting elements in active parts
-        element_ids = np.array([], dtype=int)
         node_ids = surface.global_node_ids_triangles
 
+        active_tets = np.empty((0, 4), dtype=int)
         for part in self.model.parts:
-            element_ids = np.append(element_ids, part.get_element_ids(self.model.mesh))
-
-        element_ids = np.unique(element_ids)
-        active_tets = self.model.mesh.tetrahedrons[element_ids]
+            active_tets = np.vstack([active_tets, part._get_tetrahedrons(self.model.mesh)])
 
         # make sure not all nodes of the same elements are in the boundary
         node_mask = np.zeros(self.model.mesh.number_of_points, dtype=int)
@@ -636,11 +633,8 @@ class BaseDynaWriter:
             LOGGER.debug(
                 "\tAdding elements for {0} | adding fibers: {1}".format(part.name, part_add_fibers)
             )
-            #! This only works since tetrahedrons are at start of model.mesh, and surface
-            #! cells are added behind these tetrahedrons.
-            tetrahedrons = (
-                self.model.mesh.tetrahedrons[part.get_element_ids(self.model.mesh), :] + 1
-            )
+
+            tetrahedrons = part._get_tetrahedrons(self.model.mesh) + 1
             num_elements = tetrahedrons.shape[0]
 
             # element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
@@ -721,23 +715,20 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 if isinstance(part, (anatomy.Ventricle, anatomy.Septum))
             ]
 
-            # Gather tetrahedrons belonging to ventricles.
-            tet_ids = np.empty((0), dtype=int)
-            self.model.mesh._set_global_ids()
+            # Collect all tetrahedrons from ventricular parts.
+            tets = np.empty((0, 4), dtype=int)
             for part in parts:
-                tet_ids = np.append(tet_ids, part.get_element_ids(self.model.mesh))
+                tets = np.vstack([tets, part._get_tetrahedrons(self.model.mesh)])
 
-            mask = np.isin(self.model.mesh._global_tetrahedron_ids, tet_ids)
-            tets = self.model.mesh.tetrahedrons[mask, :]
             nids = np.unique(tets)
 
-            #  only write nodes attached to ventricle parts
+            # Only write nodes attached to ventricle parts.
             self._update_node_db(ids=nids)
 
-            # remove parts not belonged to ventricles
+            # Remove parts not belonged to ventricles.
             self._keep_ventricles()
 
-            # remove segment which contains atrial nodes
+            # Remove segments which contains atrial nodes.
             self._remove_atrial_nodes_from_ventricles_surfaces()
 
         else:
@@ -772,10 +763,10 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             if isinstance(part, (anatomy.Ventricle, anatomy.Septum))
         ]
 
-        tet_ids = np.empty((0), dtype=int)
+        tets = np.empty((0, 4), dtype=int)
         for part in parts:
-            tet_ids = np.append(tet_ids, part.get_element_ids(self.model.mesh))
-            tets = self.model.mesh.tetrahedrons[tet_ids, :]
+            tets = np.vstack([tets, part._get_tetrahedrons(self.model.mesh)])
+
         nids = np.unique(tets)
 
         for part in parts:
@@ -912,18 +903,16 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         node_apex = apex_point.node_id  # is this a global node ID?
 
         # validate nodeset by removing nodes not part of the model without ventricles
-        tet_ids_ventricles = np.empty((0), dtype=int)
         if septum:
             parts = ventricles + [septum]
         else:
             parts = ventricles
 
+        tetra_ventricles = np.empty((0, 4), dtype=int)
         for part in parts:
-            tet_ids_ventricles = np.append(
-                tet_ids_ventricles, part.get_element_ids(self.model.mesh)
+            tetra_ventricles = np.vstack(
+                [tetra_ventricles, part._get_tetrahedrons(self.model.mesh)]
             )
-
-        tetra_ventricles = self.model.mesh.tetrahedrons[tet_ids_ventricles, :]
 
         # remove nodes that occur just in atrial part
         mask = np.isin(nodes_base, tetra_ventricles, invert=True)

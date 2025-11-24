@@ -170,9 +170,7 @@ def define_his_bundle_bifurcation_node(
             return
         target_coord = av_coord
 
-    septum_point_ids = np.unique(
-        np.ravel(model.mesh.tetrahedrons[model.septum.get_element_ids(model.mesh)])
-    )
+    septum_point_ids = np.unique(model.septum._get_tetrahedrons(model.mesh))
 
     # remove nodes on surface, to make sure His bundle nodes are inside of septum
     septum_point_ids = np.setdiff1d(

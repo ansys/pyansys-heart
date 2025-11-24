@@ -634,7 +634,7 @@ class BaseDynaWriter:
                 "\tAdding elements for {0} | adding fibers: {1}".format(part.name, part_add_fibers)
             )
 
-            tetrahedrons = part._get_tetrahedrons(self.model.mesh)
+            tetrahedrons = part._get_tetrahedrons(self.model.mesh) + 1
             num_elements = tetrahedrons.shape[0]
 
             # element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count

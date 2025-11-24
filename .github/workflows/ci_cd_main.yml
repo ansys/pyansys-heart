@@ -40,6 +40,9 @@ jobs:
         run: |
           Add-Content $env:GITHUB_PATH "C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin\utils;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\libfabric\bin;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin\release;C:\Program Files (x86)\Intel\oneAPI\mpi\latest\env\..\bin"
 
+      - name: Set up headless display
+        uses: pyvista/setup-headless-display-action@7d84ae825e6d9297a8e99bdbbae20d1b919a0b19 # v4.2
+
       - name: "Build documentation"
         env:
           PYANSYS_HEART_FLUENT_VERSION: 25.2

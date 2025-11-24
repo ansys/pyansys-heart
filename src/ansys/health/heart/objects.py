@@ -88,7 +88,7 @@ def _get_fill_data(
 
 
 def _get_global_cell_ids(mesh: pv.UnstructuredGrid, celltype: pv.CellType) -> np.ndarray:
-    """Get the global cell iID of a given cell type.
+    """Get the global cell IDs of a given cell type.
 
     Parameters
     ----------

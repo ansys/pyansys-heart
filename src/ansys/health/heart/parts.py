@@ -111,6 +111,46 @@ class Part:
 
         return np.argwhere(mesh.cell_data["_volume-id"] == self.pid).flatten()
 
+    def _get_tetrahedrons(self, mesh: Mesh) -> np.ndarray:
+        """Get tetrahedrons that make up the part.
+
+        Parameters
+        ----------
+        mesh : Mesh
+            The mesh object from which to extract tetrahedrons.
+
+        Returns
+        -------
+        np.ndarray
+            Array of tetrahedrons with shape (n_tetrahedrons, 4) containing global
+            point IDs from the mesh that make up each tetrahedral cell. Returns
+            empty array if no tetrahedrons are found for this part.
+
+        Examples
+        --------
+        >>> part = Part("Left ventricle")
+        >>> part.pid = 1
+        >>> tetrahedrons = part.get_tetrahedrons(mesh)
+        >>> print(f"Part has {len(tetrahedrons)} tetrahedral elements")
+        """
+        # Get element IDs for this part (indices into full mesh.cell_data arrays)
+        element_ids = self.get_element_ids(mesh)
+
+        if len(element_ids) == 0:
+            LOGGER.debug(f"No elements found for part '{self.name}' (PID={self.pid}).")
+            return np.empty((0, 4), dtype=int)
+
+        # Find which tetrahedrons belong to this part
+        mask = np.isin(mesh._global_tetrahedron_ids, element_ids)
+
+        if not np.any(mask):
+            LOGGER.debug(f"No tetrahedral elements found for part '{self.name}' (PID={self.pid}).")
+            return np.empty((0, 4), dtype=int)
+
+        # Extract tetrahedrons - mesh.tetrahedrons contains only tetrahedral cells
+        # with global point IDs preserved
+        return mesh.tetrahedrons[mask, :]
+
     @property
     @deprecated(
         """`element_ids` as an attribute is deprecated. Use `part.get_element_ids(mesh)` instead.

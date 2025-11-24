@@ -720,21 +720,21 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 for part in self.model.parts
                 if isinstance(part, (anatomy.Ventricle, anatomy.Septum))
             ]
-            #! Note that this only works when tetrahedrons are added at the beginning
-            #! of the mesh (file)! E.g. check self.mesh.celltypes to make sure this is the case!
-            tet_ids = np.empty((0), dtype=int)
+
+            # Collect all tetrahedrons from ventricular parts.
+            tets = np.empty((0, 4), dtype=int)
             for part in parts:
-                tet_ids = np.append(tet_ids, part.get_element_ids(self.model.mesh))
-                tets = self.model.mesh.tetrahedrons[tet_ids, :]
+                tets = np.vstack([tets, part._get_tetrahedrons(self.model.mesh)])
+
             nids = np.unique(tets)
 
-            #  only write nodes attached to ventricle parts
+            # Only write nodes attached to ventricle parts.
             self._update_node_db(ids=nids)
 
-            # remove parts not belonged to ventricles
+            # Remove parts not belonged to ventricles.
             self._keep_ventricles()
 
-            # remove segment which contains atrial nodes
+            # Remove segments which contains atrial nodes.
             self._remove_atrial_nodes_from_ventricles_surfaces()
 
         else:

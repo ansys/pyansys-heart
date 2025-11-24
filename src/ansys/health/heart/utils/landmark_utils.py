@@ -262,7 +262,7 @@ def compute_aha17(
     return aha_ids
 
 
-@deprecated(reason="Using gradient from UVC to get better results.")
+@deprecated(reason="Use gradient from UVC to get better results.")
 def compute_element_cs(
     model: HeartModel, short_axis: dict, aha_element: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:

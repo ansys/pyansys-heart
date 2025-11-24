@@ -276,7 +276,7 @@ class BaseDynaWriter:
         # getting elements in active parts
         node_ids = surface.global_node_ids_triangles
 
-        active_tets = np.array((0, 4), dtype=int)
+        active_tets = np.empty((0, 4), dtype=int)
         for part in self.model.parts:
             active_tets = np.vstack([active_tets, part._get_tetrahedrons(self.model.mesh)])
 

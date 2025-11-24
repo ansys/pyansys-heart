@@ -145,8 +145,6 @@ def compute_aha17(
             )
         ]
 
-    model.mesh.tetrahedrons
-
     # element's center
     elem_center = np.mean(model.mesh.points[tetrahedrons], axis=1)
 

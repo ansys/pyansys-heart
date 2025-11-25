@@ -20,19 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module contains default values for fiber generation."""
-
-from pint import Quantity
-
-"""Ventricle fiber angles."""
-angles = {
-    "alpha_endo": Quantity(-60, "degree"),
-    "alpha_epi": Quantity(60, "degree"),
-    "beta_endo": Quantity(-65, "degree"),
-    "beta_epi": Quantity(25, "degree"),
-    "beta_endo_septum": Quantity(-65, "degree"),
-    "beta_epi_septum": Quantity(25, "degree"),
-}
+"""Module contains default values for atrial fiber generation."""
 
 # From https://doi.org/10.1016/j.cma.2020.113468, table 4, for idealized geometry
 # paper has a typo, lpv should smaller than rpv

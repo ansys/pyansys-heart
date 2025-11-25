@@ -45,10 +45,10 @@ def strocchi_active(t_end=800, t_act=0) -> tuple[np.ndarray, np.ndarray]:
 
     Parameters
     ----------
-    t_end : int, optional
-        heart beat period, by default 800
-    t_act : int, optional
-        start time, by default 0
+    t_end : int, default: 800
+        Heart beat period.
+    t_act : int, default: 0
+        Start time.
 
     Returns
     -------
@@ -83,8 +83,8 @@ def kumaraswamy_active(t_end=1000) -> tuple[np.ndarray, np.ndarray]:
 
     Parameters
     ----------
-    t_end : int, optional
-        heart beat duration, by default 1000
+    t_end : int, default: 1000
+        Heart beat duration.
 
     Returns
     -------
@@ -113,10 +113,10 @@ def constant_ca2(tb: float = 800, ca2ionm: float = 4.35) -> tuple[np.ndarray, np
 
     Parameters
     ----------
-    tb : float, optional
-        heart beat period, by default 800
-    ca2ionm : : float, optional
-        amplitude which equals ca2ionm in MAT_295
+    tb : float, default: 800
+        Heart beat period.
+    ca2ionm : float, default: 4.35
+        Amplitude, which equals ca2ionm in MAT_295.
 
     Returns
     -------

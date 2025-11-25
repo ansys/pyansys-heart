@@ -88,7 +88,7 @@ def _get_fill_data(
 
 
 def _get_global_cell_ids(mesh: pv.UnstructuredGrid, celltype: pv.CellType) -> np.ndarray:
-    """Get the global cell iID of a given cell type.
+    """Get the global cell IDs of a given cell type.
 
     Parameters
     ----------
@@ -227,8 +227,14 @@ class SurfaceMesh(pv.PolyData):
     @property
     def triangles(self):
         """Triangular faces of the surface ``num_faces`` x 3."""
-        faces = np.reshape(self.faces, (self.n_cells, 3 + 1))[:, 1:]
-        return faces
+        if self.n_cells == 0:
+            return np.empty((0, 3), dtype=int)
+
+        if self.is_all_triangles:
+            return self.regular_faces
+
+        else:
+            raise ValueError("Not all faces in the mesh are triangles.")
 
     @triangles.setter
     def triangles(self, value: np.ndarray):
@@ -723,7 +729,7 @@ class Mesh(pv.UnstructuredGrid):
                     continue
                 mesh.point_data[name] = fill_data
 
-        merged = pv.merge((self, mesh), merge_points=merge_points, main_has_priority=False)
+        merged = pv.merge((self, mesh), merge_points=merge_points)
         super().__init__(merged)
         return self
 
@@ -1043,7 +1049,7 @@ class Mesh(pv.UnstructuredGrid):
             PolyData representation of the lines to add.
         id : int
             ID of the surface to add. This ID is tracked as ``_line-id``.
-        name : str, optional
+        name : str, default: None
             Name of the added lines. The added lines are not tracked by default.
         """
         if not id:

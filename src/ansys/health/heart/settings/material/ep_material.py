@@ -22,12 +22,20 @@
 
 """EP material module."""
 
-from typing import Literal, Optional
+from enum import Enum
+from typing import Optional
 
 from pydantic import BaseModel, Field, model_validator
 
-from ansys.health.heart.settings.defaults import electrophysiology as ep_defaults
 from ansys.health.heart.settings.material.cell_models import Tentusscher
+
+
+class EPSolverType(Enum):
+    """Enumeration of EP solver types."""
+
+    MONODOMAIN = "Monodomain"
+    EIKONAL = "Eikonal"
+    REACTION_EIKONAL = "ReactionEikonal"
 
 
 class EPMaterialModel(BaseModel):
@@ -36,8 +44,8 @@ class EPMaterialModel(BaseModel):
     sigma_fiber: Optional[float] = None
     sigma_sheet: Optional[float] = None
     sigma_sheet_normal: Optional[float] = None
-    beta: Optional[float] = ep_defaults.material["myocardium"]["beta"].m
-    cm: Optional[float] = ep_defaults.material["myocardium"]["cm"].m
+    beta: Optional[float] = None
+    cm: Optional[float] = None
     lambda_: Optional[float] = None
 
     @model_validator(mode="after")
@@ -51,63 +59,39 @@ class EPMaterialModel(BaseModel):
         return self
 
 
-class Insulator(BaseModel):
+class Insulator(EPMaterialModel):
     """Insulator material."""
 
     sigma_fiber: float = 0.0
+    sigma_sheet_normal: float = 0.0
+    sigma_sheet: float = 0.0
     cm: float = 0.0
     beta: float = 0.0
 
 
+class Passive(EPMaterialModel):
+    """Hold data for a passive EP material."""
+
+
 class Active(EPMaterialModel):
-    """Hold data for EP material."""
+    """Hold data for an active EP material."""
 
-    solver_type: Literal["Monodomain", "Eikonal", "Reaction-Eikonal"] = ep_defaults.analysis[
-        "solvertype"
-    ]
-
-    sigma_fiber: Optional[float] = None
-    sigma_sheet: Optional[float] = None
-    sigma_sheet_normal: Optional[float] = None
+    # NOTE: an active EP material has a cell model associated with it.
 
     cell_model: Tentusscher = Field(default_factory=lambda: Tentusscher())
-
-    # NOTE: complicated logic and conditional default values. Should split into different classes
-    @model_validator(mode="after")
-    def check_sigmas(self):
-        """Conditional validation of sigmas."""
-        if self.solver_type == "Monodomain":
-            if self.sigma_fiber is None:
-                self.sigma_fiber = ep_defaults.material["myocardium"]["sigma_fiber"].m
-            if self.sigma_sheet is None:
-                self.sigma_sheet = ep_defaults.material["myocardium"]["sigma_sheet"].m
-            if self.sigma_sheet_normal is None:
-                self.sigma_sheet_normal = ep_defaults.material["myocardium"]["sigma_sheet_normal"].m
-        elif self.solver_type == "Eikonal" or self.solver_type == "ReactionEikonal":
-            if self.sigma_fiber is None:
-                self.sigma_fiber = ep_defaults.material["myocardium"]["velocity_fiber"].m
-            if self.sigma_sheet is None:
-                self.sigma_sheet = ep_defaults.material["myocardium"]["velocity_sheet"].m
-            if self.sigma_sheet_normal is None:
-                self.sigma_sheet_normal = ep_defaults.material["myocardium"][
-                    "velocity_sheet_normal"
-                ].m
-
-        return self
 
 
 class ActiveBeam(Active):
     """Hold data for beam active EP material."""
 
-    sigma_fiber: float = ep_defaults.material["beam"]["sigma"].m
     # TODO: replace by TentusscherEndo
     cell_model: Tentusscher = Tentusscher()
-    pmjres: float = ep_defaults.material["beam"]["pmjres"].m
 
+    @model_validator(mode="after")
+    def check_inputs(self):
+        """Post init method."""
+        # ActiveBeam is by definition isotropic, so remove sheet conductivities if set
+        self.sigma_sheet is None
+        self.sigma_sheet_normal is None
 
-class Passive(EPMaterialModel):
-    """Hold data for EP passive material."""
-
-    sigma_fiber: float = ep_defaults.material["myocardium"]["sigma_fiber"].m
-    sigma_sheet: Optional[float] = None
-    sigma_sheet_normal: Optional[float] = None
+        return self

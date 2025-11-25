@@ -31,7 +31,7 @@ from ansys.health.heart.settings.material.curve import (
 )
 
 
-def test_repeat_default_and_custom_n():
+def test_repeat_default_and_custom_n() -> None:
     curve = ActiveCurve(func=constant_ca2(), threshold=0.1, type="ca2")
     t, v = curve.dyna_input
     # default n_beat = 5 --> 101 + 4*100 = 501
@@ -43,7 +43,7 @@ def test_repeat_default_and_custom_n():
     assert len(t) == 1001
 
 
-def test_check_threshold_raises():
+def test_check_threshold_raises() -> None:
     # threshold larger than max
     with pytest.raises(ValueError):
         ActiveCurve(func=constant_ca2(), threshold=4.36, type="ca2")
@@ -53,7 +53,7 @@ def test_check_threshold_raises():
         ActiveCurve(func=constant_ca2(), threshold=-0.1, type="ca2")
 
 
-def test_stress_to_ca2_conversion_and_threshold_reset():
+def test_stress_to_ca2_conversion_and_threshold_reset() -> None:
     # When type == "stress", threshold is reset to 0.5e-6 inside ActiveCurve
     curve = ActiveCurve(func=strocchi_active(), type="stress")
     assert curve.threshold == pytest.approx(0.5e-6)
@@ -64,7 +64,7 @@ def test_stress_to_ca2_conversion_and_threshold_reset():
     assert np.all(v[1:] > curve.threshold)
 
 
-def test_invalid_stress_values_raise():
+def test_invalid_stress_values_raise() -> None:
     time = np.linspace(0, 100, 5)
 
     # negative stress value
@@ -78,7 +78,7 @@ def test_invalid_stress_values_raise():
         ActiveCurve(func=(time, stress_gt1), type="stress")
 
 
-def test_repeat_time_offsets():
+def test_repeat_time_offsets() -> None:
     base_time, _ = constant_ca2()
     tb = base_time[-1]
     curve = ActiveCurve(func=constant_ca2(), threshold=0.1, type="ca2")

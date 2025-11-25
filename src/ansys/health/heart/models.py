@@ -37,7 +37,7 @@ import pyvista as pv
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.exceptions import InvalidHeartModelError
+from ansys.health.heart.exceptions import InvalidHeartModelError, PartAlreadyExistsError
 from ansys.health.heart.landmarks import LandMarks
 from ansys.health.heart.objects import (
     Cap,
@@ -255,7 +255,7 @@ class HeartModel:
 
         #! TODO: non-functional flag. Remove or replace.
         self._add_blood_pool: bool = False
-        """Flag indicating whether a blood pool mesh is added. (Experimental)"""
+        """Flag indicating whether a blood pool mesh is added. (Experimental)."""
 
         self._input: _InputModel = None
         """Input model."""
@@ -396,7 +396,7 @@ class HeartModel:
         name : str
             Part name.
         part_type : anatomy._PartType, default: anatomy._PartType.UNDEFINED
-            Type of the part. The default is ``anatomy._PartType.UNDEFINED``.
+            Type of the part to create.
 
         Returns
         -------
@@ -409,7 +409,7 @@ class HeartModel:
 
         if name in [p.name for p in self.parts]:
             LOGGER.error(f"Failed to create {name}. Name already exists.")
-            return None
+            raise PartAlreadyExistsError(f"Part {name} already exists.")
 
         new_part_id = self.mesh._unused_volume_id
 
@@ -711,8 +711,7 @@ class HeartModel:
         plot_raw_mesh : bool, default: False
             Whether to plot the streamlines on the raw mesh.
         n_seed_points : int, default: 1000
-            Number of seed points. While the default is ``1000``, using ``5000``
-            is recommended.
+            Number of seed points for mesh generation. Using ``5000`` is recommended.
 
         Examples
         --------
@@ -1444,13 +1443,21 @@ class HeartModel:
                                 break
 
                         cap_name = split.replace("-plane", "").replace("-inlet", "")
-                        cap.type = CapType(cap_name)
 
-                        if "atrium" in part.name and (
-                            cap.type in [CapType.TRICUSPID_VALVE, CapType.MITRAL_VALVE]
-                        ):
-                            cap_name = cap_name + "-atrium"
-                            cap.type = CapType(cap.type.value + "-atrium")
+                        try:
+                            cap.type = CapType(cap_name)
+
+                            if "atrium" in part.name and (
+                                cap.type in [CapType.TRICUSPID_VALVE, CapType.MITRAL_VALVE]
+                            ):
+                                cap_name = cap_name + "-atrium"
+                                cap.type = CapType(cap.type.value + "-atrium")
+                        except ValueError:
+                            LOGGER.warning(
+                                f"Could not map cap name {cap_name} to CapType enum - default "
+                                "to unknown cap type."
+                            )
+                            cap.type = CapType.UNKNOWN
 
                         cap.name = cap_name
 
@@ -1532,32 +1539,34 @@ class HeartModel:
         """Clean epicardial surfaces such that these use only nodes of the part."""
         for part in self.parts:
             self.mesh._set_global_ids()
-            global_node_ids_part = self.mesh.extract_cells(
-                part.get_element_ids(self.mesh)
-            ).point_data["_global-point-ids"]
+            element_ids = part.get_element_ids(self.mesh)
 
-            # ! The only information we use from surface here is the ID, not the mesh information.
-            # ! We need to go back to the central mesh to obtain an updated copy of
-            # ! the corresponding mesh.
+            if element_ids.shape[0] == 0:
+                LOGGER.debug(f"No elements for part {part.name}.")
+                continue
+
+            global_node_ids_part = self.mesh.extract_cells(element_ids).point_data[
+                "_global-point-ids"
+            ]
+
             for surface in part.surfaces:
                 if "epicardium" in surface.name:
                     # get the surface id.
                     surf_id = self.mesh._surface_name_to_id[surface.name]
-                    global_node_ids_surface = self.mesh.get_surface(surf_id).point_data[
-                        "_global-point-ids"
-                    ]
-                    mask = np.isin(global_node_ids_surface, global_node_ids_part)
-                    # do not use any faces that use a node not in the part.
-                    mask = np.all(np.isin(surface.triangles, np.argwhere(mask).flatten()), axis=1)
+                    surface = self.mesh.get_surface(surf_id)
+
+                    # do not use any faces that use a node that is not in the part.
+                    mask = np.all(np.isin(surface.triangles_global, global_node_ids_part), axis=1)
+
+                    if not np.any(mask):
+                        continue
 
                     LOGGER.debug(f"Removing {np.sum(np.invert(mask))} faces from {surface.name}.")
-                    surface.triangles = surface.triangles[mask, :]
+                    global_cell_ids_to_remove = surface.cell_data["_global-cell-ids"][
+                        np.invert(mask)
+                    ]
 
-                    # add updated mesh to global mesh.
-                    # TODO: could just change the _surface-ids in the cell data directly.
-                    # TODO: this basically appends the cells of surface at the end of Mesh.
-                    self.mesh.remove_surface(surf_id)
-                    self.mesh.add_surface(surface, int(surf_id), name=surface.name)
+                    self.mesh.cell_data["_surface-id"][global_cell_ids_to_remove] = np.nan
 
         return
 
@@ -1688,8 +1697,10 @@ class HeartModel:
         part.fiber = False
         part.active = False
         part.meca_material = stiff_material
-        # assign default EP material as for ventricles
-        part.ep_material = ep_materials.Active()
+        # Assign Active EP material.
+        part.ep_material = ep_materials.Active(
+            sigma_fiber=0.5, sigma_sheet=0.1, sigma_sheet_normal=0.1, beta=140.0, cm=0.01
+        )
 
         return part
 

@@ -47,14 +47,14 @@ def _set_env_vars(monkeypatch):
 def test_compute_la_fiber_cs(_set_env_vars):
     dir = os.path.join(get_assets_folder(), "post", "la_fiber")
 
-    setting = AtrialFiber()
-    setting.set_values(
-        {
+    setting = AtrialFiber(
+        **{
             "tau_mv": 0.65,
             "tau_lpv": 0.1,
             "tau_rpv": 0.65,
         }
     )
+
     input_grid = pv.read(os.path.join(dir, "la_input.vtu"))
     la_endo = pv.read(os.path.join(dir, "la_endo.vtk"))
 
@@ -72,9 +72,8 @@ def test_compute_la_fiber_cs(_set_env_vars):
 def test_compute_ra_fiber_cs(_set_env_vars):
     dir = os.path.join(get_assets_folder(), "post", "ra_fiber")
 
-    setting = AtrialFiber()
-    setting.set_values(
-        {
+    setting = AtrialFiber(
+        **{
             "tau_tv": 0.9,
             "tau_raw": 0.55,
             "tau_ct_minus": -0.18,

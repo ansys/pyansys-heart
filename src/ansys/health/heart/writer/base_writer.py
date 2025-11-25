@@ -34,8 +34,9 @@ from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.models import BiVentricle, FourChamber, FullHeart, HeartModel, LeftVentricle
 from ansys.health.heart.objects import SurfaceMesh
 import ansys.health.heart.parts as anatomy
+import ansys.health.heart.settings.material.ep_material_factory as ep_material_factory
 import ansys.health.heart.settings.settings as sett
-from ansys.health.heart.settings.settings import SimulationSettings
+from ansys.health.heart.settings.settings import FibersBRBM, SimulationSettings
 from ansys.health.heart.writer import custom_keywords as custom_keywords
 from ansys.health.heart.writer.heart_decks import BaseDecks, FiberGenerationDecks
 from ansys.health.heart.writer.writer_utils import (
@@ -126,14 +127,14 @@ class BaseDynaWriter:
 
         return
 
-    def _get_subsettings(self) -> list[sett.Settings]:
+    def _get_subsettings(self) -> list[sett.BaseSettings]:
         """Get subsettings from the settings object."""
         import ansys.health.heart.settings.settings as sett
 
         subsettings_classes = [
             getattr(self.settings, attr).__class__
             for attr in self.settings.__dict__
-            if isinstance(getattr(self.settings, attr), sett.Settings)
+            if isinstance(getattr(self.settings, attr), sett.BaseSettings)
         ]
 
         return subsettings_classes
@@ -273,14 +274,11 @@ class BaseDynaWriter:
             Array of boundary nodes after problematic node removal.
         """
         # getting elements in active parts
-        element_ids = np.array([], dtype=int)
         node_ids = surface.global_node_ids_triangles
 
+        active_tets = np.empty((0, 4), dtype=int)
         for part in self.model.parts:
-            element_ids = np.append(element_ids, part.get_element_ids(self.model.mesh))
-
-        element_ids = np.unique(element_ids)
-        active_tets = self.model.mesh.tetrahedrons[element_ids]
+            active_tets = np.vstack([active_tets, part._get_tetrahedrons(self.model.mesh)])
 
         # make sure not all nodes of the same elements are in the boundary
         node_mask = np.zeros(self.model.mesh.number_of_points, dtype=int)
@@ -635,11 +633,8 @@ class BaseDynaWriter:
             LOGGER.debug(
                 "\tAdding elements for {0} | adding fibers: {1}".format(part.name, part_add_fibers)
             )
-            #! This only works since tetrahedrons are at start of model.mesh, and surface
-            #! cells are added behind these tetrahedrons.
-            tetrahedrons = (
-                self.model.mesh.tetrahedrons[part.get_element_ids(self.model.mesh), :] + 1
-            )
+
+            tetrahedrons = part._get_tetrahedrons(self.model.mesh) + 1
             num_elements = tetrahedrons.shape[0]
 
             # element_ids = np.arange(1, num_elements + 1, 1) + solid_element_count
@@ -698,7 +693,7 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         self.kw_database = FiberGenerationDecks()
         """Collection of keywords relevant for fiber generation."""
 
-        if sett.Fibers not in self._get_subsettings():
+        if sett.FibersBRBM not in self._get_subsettings():
             raise ValueError("Expecting fiber settings.")
 
     def update(self, rotation_angles: dict[str, list[float]] | None = None) -> None:
@@ -719,21 +714,21 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                 for part in self.model.parts
                 if isinstance(part, (anatomy.Ventricle, anatomy.Septum))
             ]
-            #! Note that this only works when tetrahedrons are added at the beginning
-            #! of the mesh (file)! E.g. check self.mesh.celltypes to make sure this is the case!
-            tet_ids = np.empty((0), dtype=int)
+
+            # Collect all tetrahedrons from ventricular parts.
+            tets = np.empty((0, 4), dtype=int)
             for part in parts:
-                tet_ids = np.append(tet_ids, part.get_element_ids(self.model.mesh))
-                tets = self.model.mesh.tetrahedrons[tet_ids, :]
+                tets = np.vstack([tets, part._get_tetrahedrons(self.model.mesh)])
+
             nids = np.unique(tets)
 
-            #  only write nodes attached to ventricle parts
+            # Only write nodes attached to ventricle parts.
             self._update_node_db(ids=nids)
 
-            # remove parts not belonged to ventricles
+            # Remove parts not belonged to ventricles.
             self._keep_ventricles()
 
-            # remove segment which contains atrial nodes
+            # Remove segments which contains atrial nodes.
             self._remove_atrial_nodes_from_ventricles_surfaces()
 
         else:
@@ -750,8 +745,9 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         self._update_ep_settings()
 
         if rotation_angles is None:
-            # find default settings
-            rotation_angles = self.settings.get_ventricle_fiber_rotation(method="LSDYNA")
+            # Get default settings.
+            rotation_angles = FibersBRBM()._get_rotation_dict()
+
         self._update_create_fibers(rotation_angles)
 
         include_files = self._get_decknames_of_include()
@@ -767,14 +763,17 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             if isinstance(part, (anatomy.Ventricle, anatomy.Septum))
         ]
 
-        tet_ids = np.empty((0), dtype=int)
+        tets = np.empty((0, 4), dtype=int)
         for part in parts:
-            tet_ids = np.append(tet_ids, part.get_element_ids(self.model.mesh))
-            tets = self.model.mesh.tetrahedrons[tet_ids, :]
+            tets = np.vstack([tets, part._get_tetrahedrons(self.model.mesh)])
+
         nids = np.unique(tets)
 
         for part in parts:
             for surface in part.surfaces:
+                if surface.n_cells == 0:
+                    continue
+
                 nodes_to_remove = surface.node_ids_triangles[
                     np.isin(
                         surface.node_ids_triangles,
@@ -784,6 +783,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                     )
                 ]
 
+                # NOTE: faces does not exclude the offset, so potentially erroneously
+                # removes node ID 3.
                 faces = surface.faces.reshape(-1, 4)
                 faces_to_remove = np.any(np.isin(faces, nodes_to_remove), axis=1)
                 surface.faces = faces[np.invert(faces_to_remove)].ravel()
@@ -799,7 +800,8 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
             parts = ventricles + [septum]
         else:
             parts = ventricles
-        material_settings = self.settings.electrophysiology.material
+        # Obtain reasonable default material parameters
+        default_ep_material = ep_material_factory.get_default_myocardium_material("Monodomain")
         for part in parts:
             # element_ids = part.get_element_ids(self.model.mesh)
             # em_mat_id = self.get_unique_mat_id()
@@ -810,11 +812,11 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
                     custom_keywords.EmMat003(
                         mid=em_mat_id,
                         mtype=2,
-                        sigma11=material_settings.myocardium["sigma_fiber"].m,
-                        sigma22=material_settings.myocardium["sigma_sheet"].m,
-                        sigma33=material_settings.myocardium["sigma_sheet_normal"].m,
-                        beta=material_settings.myocardium["beta"].m,
-                        cm=material_settings.myocardium["cm"].m,
+                        sigma11=default_ep_material.sigma_fiber,
+                        sigma22=default_ep_material.sigma_sheet,
+                        sigma33=default_ep_material.sigma_sheet_normal,
+                        beta=default_ep_material.beta,
+                        cm=default_ep_material.cm,
                         aopt=2.0,
                         a1=0,
                         a2=0,
@@ -901,18 +903,16 @@ class FiberGenerationDynaWriter(BaseDynaWriter):
         node_apex = apex_point.node_id  # is this a global node ID?
 
         # validate nodeset by removing nodes not part of the model without ventricles
-        tet_ids_ventricles = np.empty((0), dtype=int)
         if septum:
             parts = ventricles + [septum]
         else:
             parts = ventricles
 
+        tetra_ventricles = np.empty((0, 4), dtype=int)
         for part in parts:
-            tet_ids_ventricles = np.append(
-                tet_ids_ventricles, part.get_element_ids(self.model.mesh)
+            tetra_ventricles = np.vstack(
+                [tetra_ventricles, part._get_tetrahedrons(self.model.mesh)]
             )
-
-        tetra_ventricles = self.model.mesh.tetrahedrons[tet_ids_ventricles, :]
 
         # remove nodes that occur just in atrial part
         mask = np.isin(nodes_base, tetra_ventricles, invert=True)

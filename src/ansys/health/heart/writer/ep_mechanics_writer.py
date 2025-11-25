@@ -24,7 +24,7 @@
 from typing import Callable, Optional
 
 from ansys.dyna.core.keywords import keywords
-from ansys.health.heart.models import FourChamber, HeartModel
+from ansys.health.heart.models import HeartModel
 from ansys.health.heart.settings.settings import SimulationSettings
 from ansys.health.heart.writer.base_writer import BaseDynaWriter
 from ansys.health.heart.writer.ep_writer import ElectrophysiologyDynaWriter
@@ -40,9 +40,6 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         model: HeartModel,
         settings: Optional[SimulationSettings] = None,
     ) -> None:
-        if isinstance(model, FourChamber):
-            model._create_atrioventricular_isolation()
-
         BaseDynaWriter.__init__(self, model=model, settings=settings)
 
         self.kw_database = ElectroMechanicsDecks()
@@ -67,12 +64,6 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         -----
         You do not need to write mesh files if a Dynain file is given.
         """
-        if isinstance(self.model, FourChamber):
-            self.model.left_atrium.fiber = True
-            self.model.left_atrium.active = True
-            self.model.right_atrium.fiber = True
-            self.model.right_atrium.active = True
-
         MechanicsDynaWriter.update(self, dynain_name=dynain_name, robin_bcs=robin_bcs)
 
         if self.model.conduction_mesh.number_of_cells != 0:

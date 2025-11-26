@@ -97,7 +97,7 @@ def _process_zerop_iteration_file(directory: str, model: HeartModel, filename: s
         "Left ventricle cavity": "left_ventricle",
         "Right ventricle cavity": "right_ventricle",
         "Left atrium cavity": "left_atrial",
-        "Right atrium cavity": "left_atrial",
+        "Right atrium cavity": "right_atrial",
     }
 
     volume_info = {}

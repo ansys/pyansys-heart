@@ -213,10 +213,8 @@ def get_boundary_edges(surface: pv.PolyData) -> pv.MultiBlock:
         boundary_edges=True, non_manifold_edges=False, feature_edges=False, manifold_edges=False
     )
     # NOTE: is line ordering ensured for closed loops?
-    # use connectivity filter to find connected edges
-    edge_group = edge_group.connectivity()
-    # split by connectivity:
-    edge_groups = edge_group.split_bodies("RegionId")
+    # Split by connectivity.
+    edge_groups = edge_group.split_bodies()
 
     return edge_groups
 

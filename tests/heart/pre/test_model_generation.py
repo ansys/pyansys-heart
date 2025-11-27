@@ -460,6 +460,10 @@ def test_get_compatible_input():
         path_to_tar = pathlib.Path(
             get_assets_folder(), "reference_models", "rodero2021", "01.tar.gz"
         )
+
+        shutil.copy(path_to_tar, tempdir)
+        path_to_tar = pathlib.Path(tempdir, "01.tar.gz")
+
         with mock.patch(
             "ansys.health.heart.utils.download.download_case_from_zenodo", return_value=path_to_tar
         ):

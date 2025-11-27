@@ -31,6 +31,7 @@ import pathlib
 import shutil
 import tempfile
 from typing import Union
+from unittest import mock
 
 import numpy as np
 import pytest
@@ -456,9 +457,19 @@ def test_writers_after_load_model(extract_model, writer_class):
 @pytest.mark.extract_models
 def test_get_compatible_input():
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
-        path_to_tar = download_case_from_zenodo("Rodero2021", 1, tempdir)
+        path_to_tar = pathlib.Path(
+            get_assets_folder(), "reference_models", "rodero2021", "01.tar.gz"
+        )
+
+        shutil.copy(path_to_tar, tempdir)
+        path_to_tar = pathlib.Path(tempdir, "01.tar.gz")
+
+        with mock.patch(
+            "ansys.health.heart.utils.download.download_case_from_zenodo", return_value=path_to_tar
+        ):
+            path_to_tar = download_case_from_zenodo("Rodero2021", 1, tempdir)
+
         unpack_case(path_to_tar)
-        import os
 
         mesh_path = os.path.join(tempdir, "Rodero2021", "01", "01.vtk")
         assert os.path.isfile(mesh_path)

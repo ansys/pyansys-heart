@@ -34,6 +34,7 @@ from typing import Literal
 from deprecated import deprecated
 import numpy as np
 import pyvista as pv
+from scipy.spatial.transform import Rotation as Rotation
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
@@ -296,6 +297,116 @@ class HeartModel:
     def conduction_mesh(self):
         """Conduction mesh."""
         return self._conduction_mesh
+
+    def set_electrodes(self, angle1: int = 0, angle2: int = 0):
+        """Adjust the placement of electrodes on the loaded model.
+
+        This function adjusts the placement of electrodes on the loaded model.
+        The initial electrode placement comes from a clinical placement on a
+        skin-heart model called "Hans".
+
+        The electrode displacement is done in steps: first, a translation from
+        the apex of the initial model to the apex of the loaded model. Then, two
+        translations are performed around the apex-centroid of the tricuspid valve
+        axis (axis 1), followed by a second rotation around the apex-centroid  of the
+        mitral valve axis (axis 2). Angles are in degrees.
+
+        The function input parameters `angle1` and `angle2` allow adding or
+        subtracting from the rotation to fine-tune the electrode positioning.
+        `angle1` = rotation around axis 1, and `angle2` = rotation around axis 2.
+        """
+        electrodes_hans = np.array(
+            [
+                [-21, 1314, 117],
+                [21, 1314, 117],
+                [62, 1285, 124],
+                [104, 1262, 103],
+                [136, 1267, 73],
+                [156, 1273, 32],
+                [-153, 1458, 2],
+                [153, 1458, 2],
+                [-80, 1150, 34],
+                [80, 1150, 34],
+            ]
+        )
+
+        hans_apex = np.array([65, 1265, 72])
+        hans_mitral = np.array([28, 1310, -1.5])
+        hans_tricuspide = np.array([-10, 1305, 35])
+        hans_pulm = np.array([25, 1353, 22])
+
+        self._extract_apex()
+        apex = self.left_ventricle.apex_points[1].xyz
+        centroid_tricuspide = self.cap_centroids[3].xyz
+        centroid_mitral = self.cap_centroids[0].xyz
+        centroid_v_pulm = self.cap_centroids[2].xyz
+
+        p_hans = np.array([hans_apex, hans_tricuspide, hans_mitral, hans_pulm])
+        p_model = np.array([apex, centroid_tricuspide, centroid_mitral, centroid_v_pulm])
+
+        apex, centroid_tricuspide, centroid_mitral, centroid_v_pulm = (
+            apex,
+            centroid_tricuspide,
+            centroid_mitral,
+            centroid_v_pulm,
+        )
+
+        # Translation
+        translation = p_model[0] - p_hans[0]
+        p_hans_t = p_hans + translation
+
+        # R1
+        vt_hans = p_hans_t[1] - p_hans_t[0]
+        vt_model = centroid_tricuspide - apex
+        normal_r1 = np.cross(vt_model, vt_hans)
+        angle_deg_r1 = (
+            np.degrees(
+                -np.arccos(
+                    np.dot(vt_hans, vt_model) / (np.linalg.norm(vt_model) * np.linalg.norm(vt_hans))
+                )
+            )
+            + angle1
+        )
+        axis_r1 = normal_r1 / np.linalg.norm(normal_r1)
+        rot_r1 = Rotation.from_rotvec(np.radians(angle_deg_r1) * axis_r1)
+        p_hans_r1 = rot_r1.apply(p_hans_t - apex) + apex
+
+        # R2
+        vm_hans = p_hans_r1[2] - p_hans_r1[1]
+        vm_model = centroid_mitral - centroid_tricuspide
+        normal_r2 = p_hans_r1[1] - p_hans_r1[0]
+        angle_deg_r2 = (
+            -np.degrees(
+                np.arccos(
+                    np.dot(vm_hans, vm_model) / (np.linalg.norm(vm_hans) * np.linalg.norm(vm_model))
+                )
+            )
+            + angle2
+        )
+        axis_r2 = normal_r2 / np.linalg.norm(normal_r2)
+        rot_r2 = Rotation.from_rotvec(np.radians(angle_deg_r2) * axis_r2)
+        # p_hans_r2 = rot_r2.apply(p_hans_r1 - centroid_tricuspide) + centroid_tricuspide
+
+        electrodes_t = electrodes_hans + translation
+        electrodes_r1 = rot_r1.apply(electrodes_t - apex) + apex
+        electrodes_r2 = rot_r2.apply(electrodes_r1 - centroid_tricuspide) + centroid_tricuspide
+
+        electrodes_align = electrodes_r2
+
+        self.electrodes = [
+            Point(name="V1", xyz=electrodes_align[0]),
+            Point(name="V2", xyz=electrodes_align[1]),
+            Point(name="V3", xyz=electrodes_align[2]),
+            Point(name="V4", xyz=electrodes_align[3]),
+            Point(name="V5", xyz=electrodes_align[4]),
+            Point(name="V6", xyz=electrodes_align[5]),
+            Point(name="RA", xyz=electrodes_align[6]),
+            Point(name="LA", xyz=electrodes_align[7]),
+            Point(name="RL", xyz=electrodes_align[8]),
+            Point(name="LL", xyz=electrodes_align[9]),
+        ]
+
+        return electrodes_align
 
     def assign_conduction_paths(self, paths: ConductionPath | list[ConductionPath]):
         """Assign conduction paths to the model.

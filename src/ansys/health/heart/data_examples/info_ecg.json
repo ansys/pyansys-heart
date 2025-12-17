@@ -1,0 +1,55 @@
+{
+    "Rodero_1" : {
+        "angle1" : 0,
+        "angle2" : 0,
+        "bachman_point_0" : [41, 99, 91],
+        "bachman_point_1" :  [74, 93,90],
+        "bachman_point_2" :  [74, 93,90],
+        "mid_sa_av_point_0" : [0, 54, 70],
+        "mid_sa_av_point_1" : [4, 40, 55],
+        "mid_sa_av_point_2" : [8, 34, 34],
+        "post_sa_av_point_0" : [2, 65, 53],
+        "post_sa_av_point_1" : [6, 73, 34],
+        "post_sa_av_point_2" : [25, 75, 26],
+        "left_anterio_fascile_point" : [113, 70, 64],
+        "left_posterior_fascile_point" : [79, 79, 32],
+        "Cv_his_top" : 0.08,
+        "travel_time" : 32
+    },
+
+    "Rodero_3" : {
+        "angle1" : 0,
+        "angle2" : 0,
+        "bachman_point_0" :[24, 90, 90],
+        "bachman_point_1"  : [23, 104, 79],
+        "bachman_point_2" :  [61, 130, 61],
+        "mid_sa_av_point_0" :  [0,54,70],
+        "mid_sa_av_point_1" :[4,40,55],
+        "mid_sa_av_point_2" :  [8,34,34],
+        "post_sa_av_point_0" : [2, 65, 53],
+        "post_sa_av_point_1" : [6, 73, 34],
+        "post_sa_av_point_2" : [25, 75, 26],
+        "left_anterio_fascile_point" : [111, 89, 61],
+        "left_posterior_fascile_point" :[97, 75, 20],
+        "Cv_his_top" : 0.08,
+        "travel_time" : 32
+    },
+
+    "Rodero_4" : {
+        "angle1" : 0,
+        "angle2" : -40,
+        "bachman_point_0" : [16, 68, 91],
+        "bachman_point_1" :  [42, 91, 96],
+        "bachman_point_2" :  [55, 105, 85],
+        "mid_sa_av_point_0" :  [0,54,70],
+        "mid_sa_av_point_1" :[4,40,55],
+        "mid_sa_av_point_2" :  [8,34,34],
+        "post_sa_av_point_0" : [2, 65, 53],
+        "post_sa_av_point_1" : [6, 73, 34],
+        "post_sa_av_point_2" : [25, 75, 26],
+        "left_anterio_fascile_point" :[101, 72, 33],
+        "left_posterior_fascile_point" :[125, 64, 77],
+        "Cv_his_top" : 0.08,
+        "travel_time" : 28
+    }
+}

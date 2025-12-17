@@ -51,7 +51,10 @@ import json
 import os
 from pathlib import Path
 
+import numpy as np
+
 import ansys.health.heart.models as models
+from ansys.health.heart.objects import SurfaceMesh
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
 
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
@@ -134,7 +137,7 @@ simulator = EPSimulator(
 
 # Save the model.
 model.mesh.save(os.path.join(model.workdir, "simulation_model.vtu"))
-
+"""
 new_electrodes = simulator.model.set_electrodes(angle1=0, angle2=0)
 
 if plot:
@@ -146,15 +149,15 @@ if plot:
     plotter.add_mesh(point_cloud_1, color="blue", point_size=10, render_points_as_spheres=True)
     plotter.add_mesh(heart_model, color="red", show_edges=False, opacity=0.5)
     plotter.show()
-
 """
+
 ###############################################################################
 # Load simulation settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~
 # Load the default settings.
 simulator.settings.load_defaults()
 
-
+"""
 ###############################################################################
 # Compute fiber orientation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -165,7 +168,7 @@ from ansys.health.heart.pre.database_utils import right_atrium_appendage_landmar
 
 # Get the right atrium appendage landmark of the first case of Rodero2021.
 right_atrium_appendage_coordinates =
-        right_atrium_appendage_landmarks.get("Rodero2021").get(num_rodero)
+right_atrium_appendage_landmarks.get("Rodero2021").get(num_rodero)
 
 # Compute ventricular fibers.
 simulator.compute_fibers(method="D-RBM")
@@ -179,15 +182,55 @@ simulator.compute_left_atrial_fiber()
 simulator.compute_right_atrial_fiber(appendage=right_atrium_appendage_coordinates)
 if plot == True :
     simulator.model.plot_fibers(n_seed_points=1000)
-
+"""
 ###############################################################################
 # Compute the conduction system
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 # Compute the conduction system and Purkinje network, and then visualize the results.
 # The action potential propagates faster through this system compared to the rest of the model.
 
+
+def merge_surfaces(surf1: SurfaceMesh, surf2: SurfaceMesh, keep="first") -> SurfaceMesh:
+    # PyVista merge (évite doublons si merge_points=True)
+    merged = surf1.merge(surf2, merge_points=True, tolerance=1e-8)
+
+    # Créer un nouvel object SurfaceMesh
+    new_surf = SurfaceMesh(merged)
+
+    # Récupérer nodes / triangles (ton API)
+    new_surf.nodes = np.array(new_surf.points)
+    faces = np.reshape(new_surf.faces, (new_surf.n_cells, 4))[:, 1:]
+    new_surf.triangles = faces
+
+    # Copier l’id et le nom
+    if keep == "first":
+        new_surf.id = surf1.id
+        new_surf.name = surf1.name
+    else:
+        new_surf.id = surf2.id
+        new_surf.name = surf2.name
+
+    return new_surf
+
+
+simulator.model.right_ventricle.endocardium = merge_surfaces(
+    simulator.model.right_ventricle.endocardium,
+    simulator.model.right_ventricle.septum,
+    keep="first",
+)
+
+
+ureg = simulator.settings.purkinje.pmjtype._REGISTRY
+simulator.settings.purkinje.pmjtype = 1 * ureg.dimensionless
+simulator.settings.purkinje.edgelen = 0.5 * ureg.dimensionless
+simulator.settings.purkinje.nsplit = 6 * ureg.dimensionless
+simulator.settings.purkinje.ngen = 300 * ureg.dimensionless
+simulator.settings.purkinje.nbrinit = 6 * ureg.dimensionless
+
 simulator.compute_purkinje()
 
+simulator.model.plot_purkinje()
+"""
 # By calling this method, stimulation is at the atrioventricular node.
 # If you do not call this method, the two apex regions of the ventricles are stimulated.
 ###############################################################################

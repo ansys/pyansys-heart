@@ -220,7 +220,8 @@ class BaseDynaWriter:
         # write surfaces as segment sets
         for part in self.model.parts:
             for surface in part.surfaces:
-                surface_global = self.model.mesh.get_surface(surface.id)
+                # surface_global = self.model.mesh.get_surface(surface.id)
+                surface_global = surface
                 if not surface_global:
                     LOGGER.debug(f"Failed to create segment set for {surface.name}.")
                     continue

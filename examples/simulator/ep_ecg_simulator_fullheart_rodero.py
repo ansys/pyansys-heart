@@ -55,6 +55,7 @@ import numpy as np
 
 import ansys.health.heart.models as models
 from ansys.health.heart.objects import SurfaceMesh
+from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
 
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
@@ -80,11 +81,13 @@ dyna_settings = DynaSettings(
     lsdyna_path=lsdyna_path, dynatype="msmpi", num_cpus=18, platform="windows"
 )
 
-# import info model
-plot = True
+# Plot option for all scripts
+plot = False
 
-# choice which model you want
-num_rodero = 1
+# A .json file containing the information required to run the script.
+# Rodero 01, 03, and 04 are available. To customize a new model, you
+# must either add the information to the .json file using the same format,
+#  or add the customization directly in this script.
 
 # path of data model
 ecg_data_path = (
@@ -97,7 +100,13 @@ ecg_data_path = (
     / "heart"
     / "data_examples"
 )
-rodero_file_info = os.path.join(ecg_data_path, "info_ecg.json")
+rodero_file_info = os.path.join(
+    ecg_data_path,
+    "pyansys-heart/src/ansys/health/heart/data_examples/info_rodero_conduction_system_ecg.json",
+)
+
+# choice which model you want
+num_rodero = 1
 
 # Set the working directory and path to the model. This example assumes that there is a
 workdir = (
@@ -190,6 +199,9 @@ if plot == True :
 # The action potential propagates faster through this system compared to the rest of the model.
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+# Function to merge the right ventricular endocardium and the right side of the Purkinje network
+# so that the surface is treated as a single, complete surface during network generation.
 def merge_surfaces(surf1: SurfaceMesh, surf2: SurfaceMesh, keep="first") -> SurfaceMesh:
     # PyVista merge (évite doublons si merge_points=True)
     merged = surf1.merge(surf2, merge_points=True, tolerance=1e-8)
@@ -219,7 +231,7 @@ simulator.model.right_ventricle.endocardium = merge_surfaces(
     keep="first",
 )
 
-
+# Parameterization of a dense Purkinje network
 ureg = simulator.settings.purkinje.pmjtype._REGISTRY
 simulator.settings.purkinje.pmjtype = 1 * ureg.dimensionless
 simulator.settings.purkinje.edgelen = 0.5 * ureg.dimensionless
@@ -229,8 +241,10 @@ simulator.settings.purkinje.nbrinit = 6 * ureg.dimensionless
 
 simulator.compute_purkinje()
 
-simulator.model.plot_purkinje()
-"""
+if plot:
+    # Visualize the entire conduction system
+    simulator.model.plot_purkinje()
+
 # By calling this method, stimulation is at the atrioventricular node.
 # If you do not call this method, the two apex regions of the ventricles are stimulated.
 ###############################################################################
@@ -239,10 +253,11 @@ simulator.model.plot_purkinje()
 import ansys.health.heart.models_utils as heart_model_utils
 
 beam_list, simulator.model._landmarks = heart_model_utils.define_full_conduction_system(
-                simulator.model, os.path.join(simulator.root_directory, "purkinjegeneration")
-            )
+    simulator.model, os.path.join(simulator.root_directory, "purkinjegeneration")
+)
 
-[   left_purkinje,
+[
+    left_purkinje,
     right_purkinje,
     sa_av,
     his_top,
@@ -250,21 +265,25 @@ beam_list, simulator.model._landmarks = heart_model_utils.define_full_conduction
     his_right,
     left_bundle,
     right_bundle,
-    ]   = beam_list
+] = beam_list
 
 # Compute the conduction system user add
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
+# The coordinates of the fascicle terminations, or those that are imposed,
+# come from a file called ‘Rodero info’. They can be modified directly in
+# this file for other models. The correct definition of these coordinates
+# is responsible for physiological activation of the cardiac electrical activity
+# and allows obtaining valid ECGs. These points need to be redefined for each new model.
+
 # Create the Bachmann bundle
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 bachman_bundle = ConductionPath.create_from_keypoints(
     name=ConductionPathType.BACHMANN_BUNDLE,
-    keypoints= [
+    keypoints=[
         simulator.model._landmarks.sa_node.xyz,
-        info_rodero['bachman_point_0'],
-        info_rodero['bachman_point_1'],
-        info_rodero['bachman_point_2'],
+        info_rodero["bachman_point_0"],
+        info_rodero["bachman_point_1"],
+        info_rodero["bachman_point_2"],
     ],
     id=9,
     base_mesh=model.left_atrium.endocardium,
@@ -273,14 +292,15 @@ bachman_bundle = ConductionPath.create_from_keypoints(
 )
 bachman_bundle.add_pmj_path(list(range(1, bachman_bundle.mesh.n_points - 1, 4)))
 bachman_bundle.up_path = sa_av
+
 # The mid and post SA-AV node conduction paths are created by providing a list of keypoints.
 mid_sa_av = ConductionPath.create_from_keypoints(
     name=ConductionPathType.MID_SAN_AVN,
     keypoints=[
         simulator.model._landmarks.sa_node.xyz,
-        info_rodero['mid_sa_av_point_0'],
-        info_rodero['mid_sa_av_point_1'],
-        info_rodero['mid_sa_av_point_2'],
+        info_rodero["mid_sa_av_point_0"],
+        info_rodero["mid_sa_av_point_1"],
+        info_rodero["mid_sa_av_point_2"],
         simulator.model._landmarks.av_node.xyz,
     ],
     id=10,
@@ -292,14 +312,15 @@ mid_sa_av.add_pmj_path(list(range(5, mid_sa_av.mesh.n_points - 5, 4)))
 mid_sa_av.up_path = sa_av
 mid_sa_av.down_path = sa_av
 
-
 post_sa_av = ConductionPath.create_from_keypoints(
     name=ConductionPathType.POST_SAN_AVN,
-    keypoints=[simulator.model._landmarks.sa_node.xyz,
-            info_rodero['post_sa_av_point_0'],
-            info_rodero['post_sa_av_point_1'],
-            info_rodero['post_sa_av_point_2'],
-            simulator.model._landmarks.av_node.xyz],
+    keypoints=[
+        simulator.model._landmarks.sa_node.xyz,
+        info_rodero["post_sa_av_point_0"],
+        info_rodero["post_sa_av_point_1"],
+        info_rodero["post_sa_av_point_2"],
+        simulator.model._landmarks.av_node.xyz,
+    ],
     id=11,
     base_mesh=model.right_atrium.endocardium,
     line_length=None,
@@ -315,8 +336,10 @@ post_sa_av.down_path = sa_av
 
 left_anterio_fascile = ConductionPath.create_from_keypoints(
     name=ConductionPathType.LEFT_ANTERIOR_FASCILE,
-    keypoints=[simulator.model._landmarks.his_left_end_node.xyz,
-            info_rodero['left_anterio_fascile_point']],
+    keypoints=[
+        simulator.model._landmarks.his_left_end_node.xyz,
+        info_rodero["left_anterio_fascile_point"],
+    ],
     id=12,
     base_mesh=model.left_ventricle.endocardium,
     connection=None,
@@ -331,8 +354,10 @@ left_anterio_fascile.down_path = left_purkinje
 
 left_posterior_fascile = ConductionPath.create_from_keypoints(
     name=ConductionPathType.LEFT_POSTERIOR_FASCICLE,
-    keypoints=[simulator.model._landmarks.his_left_end_node.xyz,
-            info_rodero['left_posterior_fascile_point']],
+    keypoints=[
+        simulator.model._landmarks.his_left_end_node.xyz,
+        info_rodero["left_posterior_fascile_point"],
+    ],
     id=13,
     base_mesh=model.left_ventricle.endocardium,
     connection=None,
@@ -341,7 +366,10 @@ left_posterior_fascile = ConductionPath.create_from_keypoints(
 left_posterior_fascile.up_path = his_left
 left_posterior_fascile.down_path = left_purkinje
 
-model.assign_conduction_paths([
+
+# Addition of new conduction fibers to the model
+model.assign_conduction_paths(
+    [
         left_purkinje,
         right_purkinje,
         sa_av,
@@ -354,13 +382,15 @@ model.assign_conduction_paths([
         mid_sa_av,
         post_sa_av,
         left_anterio_fascile,
-        left_posterior_fascile
-        ])
+        left_posterior_fascile,
+    ]
+)
 
-if plot == True :
+
+if plot:
     # Visualize the entire conduction system
     simulator.model.plot_purkinje()
-"""
+
 """
 ###############################################################################
 # Start the main simulation

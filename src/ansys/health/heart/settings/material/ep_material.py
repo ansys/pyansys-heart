@@ -81,6 +81,18 @@ class Active(EPMaterialModel):
     cell_model: Tentusscher = Field(default_factory=lambda: Tentusscher())
 
 
+class Active2(EPMaterialModel):
+    """Hold data for an active EP material."""
+
+    """ Active2: used to enable the MAT005 keyword and allow different conductivities
+    and conduction velocities to be assigned. If no conductivity setting is provided,"""
+    # NOTE: an active EP material has a cell model associated with it.
+    cond_sigma_fiber: Optional[float] = None
+    cond_sigma_sheet: Optional[float] = None
+    cond_sigma_sheet_normal: Optional[float] = None
+    cell_model: Tentusscher = Field(default_factory=lambda: Tentusscher())
+
+
 class ActiveBeam(Active):
     """Hold data for beam active EP material."""
 

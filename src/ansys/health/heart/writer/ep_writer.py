@@ -923,7 +923,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _get_ep_material_kw(
         self, ep_mid: int, ep_material: ep_materials.EPMaterialModel
-    ) -> Union[custom_keywords.EmMat001, custom_keywords.EmMat003]:
+    ) -> Union[custom_keywords.EmMat001, custom_keywords.EmMat003, custom_keywords.EmMat005]:
         if type(ep_material) is ep_materials.Insulator:
             # insulator mtype
             mtype = 1
@@ -953,6 +953,39 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 beta=ep_material.beta,
                 cm=ep_material.cm,
                 aopt=2.0,
+                a1=0,
+                a2=0,
+                a3=1,
+                d1=0,
+                d2=-1,
+                d3=0,
+            )
+
+        # active myocardium
+        elif type(ep_material) is ep_materials.Active2:
+            mtype = 2
+            # "isotropic" case
+            if ep_material.sigma_sheet is None:
+                # LS-DYNA bug prevents using isotropic mat (EMMAT001) for active isotropic case
+                # Bypass: using EMMAT005 with same sigma value in all directions
+                ep_material.sigma_sheet = ep_material.sigma_fiber
+                ep_material.sigma_sheet_normal = ep_material.sigma_fiber
+            if ep_material.cond_sigma_fiber is None:
+                ep_material.cond_sigma_fiber = ep_material.sigma_fiber
+                ep_material.cond_sigma_sheet = ep_material.sigma_sheet
+                ep_material.cond_sigma_sheet_normal = ep_material.sigma_sheet_normal
+            kw = custom_keywords.EmMat005(
+                mid=ep_mid,
+                mtype=mtype,
+                cvsigma11=ep_material.sigma_fiber,
+                cvsigma22=ep_material.sigma_sheet,
+                cvsigma33=ep_material.sigma_sheet_normal,
+                condsigma11=ep_material.cond_sigma_fiber,
+                condsigma22=ep_material.cond_sigma_sheet,
+                condsigma33=ep_material.cond_sigma_sheet_normal,
+                beta=ep_material.beta,
+                cm=ep_material.cm,
+                aopt1=2.0,
                 a1=0,
                 a2=0,
                 a3=1,

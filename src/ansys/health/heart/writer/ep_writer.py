@@ -409,57 +409,118 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 ep_mid = part.pid
                 # One cell model for myocardium, default value is epi layer parameters
                 self._add_cell_model_keyword(matid=ep_mid, cellmodel=part.ep_material.cell_model)
-        # different cell models for endo/mid/epi layer
-        # TODO:  this will override previous definition?
-        #        what's the situation at setptum? and at atrial?
-        if "transmural" in self.model.mesh.point_data.keys():
-            (
-                endo_id,
-                mid_id,
-                epi_id,
-            ) = self._create_myocardial_nodeset_layers()
-            tentusscher_endo = cell_models.TentusscherEndo()
-            tentusscher_mid = cell_models.TentusscherEndo()
-            tentusscher_epi = cell_models.TentusscherEpi()
 
-            self._add_Tentusscher_keyword(matid=-endo_id, params=tentusscher_endo.model_dump())
-            self._add_Tentusscher_keyword(matid=-mid_id, params=tentusscher_mid.model_dump())
-            self._add_Tentusscher_keyword(matid=-epi_id, params=tentusscher_epi.model_dump())
+        if "transmural" not in self.model.mesh.point_data.keys():
+            return
 
-    def _create_myocardial_nodeset_layers(self) -> tuple[int, int, int]:
-        """Create myocardial node set layers."""
-        percent_endo = self.settings.electrophysiology.layers["percent_endo"].m
-        percent_mid = self.settings.electrophysiology.layers["percent_mid"].m
+        region_nodeset_ids = self._create_myocardial_nodeset_layers(
+            self.settings.electrophysiology.nb_layers
+        )
+
+        endo_ref = cell_models.TentusscherEndo()
+        epi_ref = cell_models.TentusscherEpi()
+
+        gto_endo = getattr(endo_ref, "gto", 0.0)
+        gks_endo = getattr(endo_ref, "gks", 0.0)
+        gto_epi = getattr(epi_ref, "gto", 0.0)
+        gks_epi = getattr(epi_ref, "gks", 0.0)
+
+        for region_name, layer_ids in region_nodeset_ids.items():
+            # Cell model not differentiated in the septum
+            if region_name == "SEP":
+                for i, layer_id in enumerate(layer_ids):
+                    model_layer = cell_models.TentusscherEdit(gto=gto_endo, gks=gks_endo)
+                    # Add the Tentusscher keyword for this layer
+                    self._add_Tentusscher_keyword(matid=-layer_id, params=model_layer.model_dump())
+            else:
+                n = len(layer_ids)
+                if n == 0:
+                    continue
+
+                for i, layer_id in enumerate(layer_ids):
+                    alpha = i / (n - 1) if n > 1 else 0.0
+
+                    # Linear transmural interpolation of gto and gks between endo and epi
+                    gto_val = (1 - alpha) * gto_endo + alpha * gto_epi
+                    gks_val = (1 - alpha) * gks_endo + alpha * gks_epi
+                    gto_val = round(gto_val, 3)
+                    gks_val = round(gks_val, 3)
+                    # Construction of the corresponding cell model
+                    model_layer = cell_models.TentusscherEdit(gto=gto_val, gks=gks_val)
+                    self._add_Tentusscher_keyword(matid=-layer_id, params=model_layer.model_dump())
+
+    def _create_myocardial_nodeset_layers(self, n_layers: int) -> dict[str, list[int]]:
         values = self.model.mesh.point_data["transmural"]
-        # Values from experimental data. See:
-        # https://www.frontiersin.org/articles/10.3389/fphys.2019.00580/full
-        th_endo = percent_endo
-        th_mid = percent_endo + percent_mid
-        endo_nodes = (np.nonzero(np.logical_and(values >= 0, values < th_endo)))[0]
-        mid_nodes = (np.nonzero(np.logical_and(values >= th_endo, values < th_mid)))[0]
-        epi_nodes = (np.nonzero(np.logical_and(values >= th_mid, values <= 1)))[0]
-        endo_nodeset_id = self.get_unique_nodeset_id()
-        node_set_kw = create_node_set_keyword(
-            node_ids=endo_nodes + 1,
-            node_set_id=endo_nodeset_id,
-            title="Layer-Endo",
+
+        # --- Part mask ---
+        lv_mask = self._create_mask_part(
+            part_elem=self.model.left_ventricle.get_element_ids(self.model.mesh)
         )
-        self.kw_database.node_sets.append(node_set_kw)
-        mid_nodeset_id = self.get_unique_nodeset_id()
-        node_set_kw = create_node_set_keyword(
-            node_ids=mid_nodes + 1,
-            node_set_id=mid_nodeset_id,
-            title="Layer-Mid",
+        rv_mask = self._create_mask_part(
+            part_elem=self.model.right_ventricle.get_element_ids(self.model.mesh)
         )
-        self.kw_database.node_sets.append(node_set_kw)
-        epi_nodeset_id = self.get_unique_nodeset_id()
-        node_set_kw = create_node_set_keyword(
-            node_ids=epi_nodes + 1,
-            node_set_id=epi_nodeset_id,
-            title="Layer-Epi",
+        septum_mask = self._create_mask_part(
+            part_elem=self.model.septum.get_element_ids(self.model.mesh)
         )
-        self.kw_database.node_sets.append(node_set_kw)
-        return endo_nodeset_id, mid_nodeset_id, epi_nodeset_id
+
+        region_masks = {
+            "LV": lv_mask,
+            "RV": rv_mask,
+            "SEP": septum_mask,
+        }
+        region_nodeset_ids: dict[str, list[int]] = {}
+
+        for region_name, region_mask in region_masks.items():
+            layers = self._get_layer_nodes(mask=region_mask, values=values, n_layers=n_layers)
+            layer_ids = []
+
+            for layer_name, layer_nodes in layers.items():
+                if len(layer_nodes) == 0:
+                    continue
+
+                nodeset_id = self.get_unique_nodeset_id()
+                layer_ids.append(nodeset_id)
+
+                node_set_kw = create_node_set_keyword(
+                    node_ids=layer_nodes + 1,  # conversion 0-based → 1-based
+                    node_set_id=nodeset_id,
+                    title=f"{region_name}-{layer_name}",
+                )
+                self.kw_database.node_sets.append(node_set_kw)
+
+            region_nodeset_ids[region_name] = layer_ids
+
+        return region_nodeset_ids
+
+    def _get_layer_nodes(
+        self, mask: np.ndarray, values: np.ndarray, n_layers: int
+    ) -> dict[str, np.ndarray]:
+        thresholds = np.linspace(0, 1, n_layers + 1)
+        layers = {}
+        for i in range(n_layers):
+            th_min = thresholds[i]
+            th_max = thresholds[i + 1]
+            layer_nodes = np.where(mask & (values >= th_min) & (values < th_max))[0]
+            layers[f"Layer_{i + 1}"] = layer_nodes
+
+        # Le dernier intervalle peut exclure les points à values == 1.0
+        # → on les ajoute à la dernière couche
+        last_layer = f"Layer_{n_layers}"
+        layers[last_layer] = np.unique(
+            np.concatenate([layers[last_layer], np.where(mask & (values == 1.0))[0]])
+        )
+
+        return layers
+
+    def _create_mask_part(self, part_elem):
+        part_nodes_id = []
+        part_mask = np.zeros(self.model.mesh.n_points, dtype=bool)
+        for cell_id in part_elem:
+            cell_point_ids = self.model.mesh.get_cell(cell_id).point_ids
+            part_nodes_id.extend(cell_point_ids)
+        part_nodes_id = np.unique(part_nodes_id)
+        part_mask[part_nodes_id] = True
+        return part_mask
 
     def _add_cell_model_keyword(self, matid: int, cellmodel: cell_models.Tentusscher) -> None:
         """Add cell model keyword to the database."""

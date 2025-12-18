@@ -589,6 +589,11 @@ class Electrophysiology(BaseSettings):
         description="Layers for material assignment of the myocardium",
     )
 
+    nb_layers: int = Field(
+        default=3,
+        description="Number of layers through the wall thickness",
+    )
+
     lambda_ratio: Quantity = Field(
         default=Quantity(0.2, "dimensionless"),
         description="Intra to extracellular conductivity ratio",

@@ -462,6 +462,9 @@ ep_atrium.sigma_sheet_normal = 0.3
 simulator.model.parts[3].ep_material = ep_atrium
 simulator.model.parts[4].ep_material = ep_atrium
 
+simulator.compute_uhc()
+# Configurable number of layers
+simulator.settings.electrophysiology.nb_layers = 5
 ###############################################################################
 # Start the main simulation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~

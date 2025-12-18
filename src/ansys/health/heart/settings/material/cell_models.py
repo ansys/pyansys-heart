@@ -22,7 +22,9 @@
 
 """Module to collect ionic cell models."""
 
-from pydantic import BaseModel
+from typing import Optional
+
+from pydantic import BaseModel, model_validator
 
 
 class Tentusscher(BaseModel):
@@ -75,8 +77,6 @@ class Tentusscher(BaseModel):
     kbufsf: float = 0.3
     bufss: float = 0.4
     kbufss: float = 0.00025
-    # gas_constant=8314.472,
-    # faraday_constant=96485.3415,
     gks: float = 0.392
     gto: float = 0.294
     v: float = -85.23
@@ -104,7 +104,7 @@ class Tentusscher(BaseModel):
 class TentusscherEndo(Tentusscher):
     """Data for Tentusscher cell model in its endocardium version."""
 
-    gks: float = 0.392
+    gks: float = 0.062
     gto: float = 0.073
     v: float = -86.709
     ki: float = 138.4
@@ -130,7 +130,7 @@ class TentusscherEndo(Tentusscher):
 class TentusscherEpi(Tentusscher):
     """Data for Tentusscher cell model in its epicardium version."""
 
-    gks: float = 0.392
+    gks: float = 0.245
     gto: float = 0.294
     v: float = -85.23
     ki: float = 136.89
@@ -153,27 +153,63 @@ class TentusscherEpi(Tentusscher):
     r: float = 2.42e-8
 
 
-class TentusscherMid(Tentusscher):
-    """Data for Tentusscher cell model in its mid-myocardium version."""
+class TentusscherAtria(Tentusscher):
+    """Data for Tentusscher cell model in its endocardium version."""
 
-    gks: float = 0.098
+    gks: float = 0.900
     gto: float = 0.294
-    v: float = -85.423
-    ki: float = 138.52
-    nai: float = 10.132
-    cai: float = 0.000153
-    cass: float = 0.00042
-    casr: float = 4.272
-    rpri: float = 0.8978
-    xr1: float = 0.0165
-    xr2: float = 0.473
-    xs: float = 0.0174
-    m: float = 0.00165
-    h: float = 0.749
-    j: float = 0.6788
-    d: float = 3.288e-5
-    f: float = 0.7026
-    f2: float = 0.9526
-    fcass: float = 0.9942
+    v: float = -85.23
+    ki: float = 136.89
+    nai: float = 8.604
+    cai: float = 0.000126
+    cass: float = 0.00036
+    casr: float = 3.64
+    rpri: float = 0.9073
+    xr1: float = 0.00621
+    xr2: float = 0.4712
+    xs: float = 0.0095
+    m: float = 0.00172
+    h: float = 0.7444
+    j: float = 0.7045
+    d: float = 3.373e-5
+    f: float = 0.7888
+    f2: float = 0.9755
+    fcass: float = 0.9953
     s: float = 0.999998
-    r: float = 2.347e-8
+    r: float = 2.42e-8
+    gcal: float = 0.00001
+
+
+class TentusscherEdit(Tentusscher):
+    """Tentusscher mid-myocardium version with optional overrides."""
+
+    gks: Optional[float] = None
+    gto: Optional[float] = None
+    v: Optional[float] = None
+    ki: Optional[float] = None
+    nai: Optional[float] = None
+    cai: Optional[float] = None
+    cass: Optional[float] = None
+    casr: Optional[float] = None
+    rpri: Optional[float] = None
+    xr1: Optional[float] = None
+    xr2: Optional[float] = None
+    xs: Optional[float] = None
+    m: Optional[float] = None
+    h: Optional[float] = None
+    j: Optional[float] = None
+    d: Optional[float] = None
+    f: Optional[float] = None
+    f2: Optional[float] = None
+    fcass: Optional[float] = None
+    s: Optional[float] = None
+    r: Optional[float] = None
+
+    @model_validator(mode="after")
+    def set_defaults_from_parent(self):
+        """If a parameter is None, take the value from the parent class."""
+        parent = Tentusscher()
+        for field in self.model_fields:
+            if getattr(self, field) is None and hasattr(parent, field):
+                setattr(self, field, getattr(parent, field))
+        return self

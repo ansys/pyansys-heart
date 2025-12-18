@@ -402,7 +402,10 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _update_parts_cellmodels(self) -> None:
         """Add cell model for each defined part."""
         for part in self.model.parts:
-            if type(part.ep_material) is ep_materials.Active:
+            if (
+                type(part.ep_material) is ep_materials.Active
+                or type(part.ep_material) is ep_materials.Active2
+            ):
                 ep_mid = part.pid
                 # One cell model for myocardium, default value is epi layer parameters
                 self._add_cell_model_keyword(matid=ep_mid, cellmodel=part.ep_material.cell_model)
@@ -416,7 +419,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 epi_id,
             ) = self._create_myocardial_nodeset_layers()
             tentusscher_endo = cell_models.TentusscherEndo()
-            tentusscher_mid = cell_models.TentusscherMid()
+            tentusscher_mid = cell_models.TentusscherEndo()
             tentusscher_epi = cell_models.TentusscherEpi()
 
             self._add_Tentusscher_keyword(matid=-endo_id, params=tentusscher_endo.model_dump())

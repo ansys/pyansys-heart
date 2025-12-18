@@ -450,19 +450,17 @@ ep_vent = mat.Active2()
 ep_vent.sigma_fiber = 0.7
 ep_vent.sigma_sheet = 0.35
 ep_vent.sigma_sheet_normal = 0.18
-
 simulator.model.parts[0].ep_material = ep_vent
 simulator.model.parts[1].ep_material = ep_vent
 simulator.model.parts[2].ep_material = ep_vent
 
 ep_atrium = mat.Active2()
-ep_atrium.cell_model = cell_mod.TentusscherEndo()
+ep_atrium.cell_model = cell_mod.TentusscherAtria()
 ep_atrium.sigma_fiber = 1.2
 ep_atrium.sigma_sheet = 0.6
 ep_atrium.sigma_sheet_normal = 0.3
 simulator.model.parts[3].ep_material = ep_atrium
 simulator.model.parts[4].ep_material = ep_atrium
-
 
 ###############################################################################
 # Start the main simulation

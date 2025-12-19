@@ -64,6 +64,16 @@ class EmMat005(KeywordBase):
                     Field("condsigma33", float, 40, 10, kwargs.get("condsigma33")),
                 ],
             ),
+                        Card(
+                [
+                    Field("sigma12", float, 0, 10, kwargs.get("sigma12")),
+                    Field("sigma13", float, 10, 10, kwargs.get("sigma13")),
+                    Field("sigma21", float, 20, 10, kwargs.get("sigma21")),
+                    Field("sigma23", float, 30, 10, kwargs.get("sigma23")),
+                    Field("sigma31", float, 40, 10, kwargs.get("sigma31")),
+                    Field("sigma32", float, 50, 10, kwargs.get("sigma32")),
+                ],
+            ),
             Card(
                 [
                     Field("AOPT", int, 0, 10, kwargs.get("AOPT",2)),
@@ -73,7 +83,7 @@ class EmMat005(KeywordBase):
                     Field("a1", float, 40, 10, kwargs.get("a1")),
                     Field("a2", float, 50, 10, kwargs.get("a2")),
                     Field("a3", float, 60, 10, kwargs.get("a3")),
-                    Field("macf", float, 70, 10, kwargs.get("macf",1)),
+                    Field("macf", int, 70, 10, kwargs.get("macf",1)),
                 ],
             ),
             Card(

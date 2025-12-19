@@ -27,7 +27,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, model_validator
 
-from ansys.health.heart.settings.material.cell_models import Tentusscher
+from ansys.health.heart.settings.material.cell_models import Tentusscher, TentusscherEndo
 
 
 class EPSolverType(Enum):
@@ -90,14 +90,17 @@ class Active2(EPMaterialModel):
     cond_sigma_fiber: Optional[float] = None
     cond_sigma_sheet: Optional[float] = None
     cond_sigma_sheet_normal: Optional[float] = None
+    cm: Optional[float] = 0.01
+    beta: Optional[float] = 140.0
     cell_model: Tentusscher = Field(default_factory=lambda: Tentusscher())
 
 
 class ActiveBeam(Active):
     """Hold data for beam active EP material."""
 
-    # TODO: replace by TentusscherEndo
-    cell_model: Tentusscher = Tentusscher()
+    cm: Optional[float] = 0.01
+    beta: Optional[float] = 140.0
+    cell_model: Tentusscher = TentusscherEndo()
 
     @model_validator(mode="after")
     def check_inputs(self):

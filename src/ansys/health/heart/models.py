@@ -337,7 +337,7 @@ class HeartModel:
 
         self._extract_apex()
         apex = self.left_ventricle.apex_points[1].xyz
-        centroid_tricuspide = self.cap_centroids[3].xyz
+        centroid_tricuspide = self.cap_centroids[1].xyz
         centroid_mitral = self.cap_centroids[0].xyz
         centroid_v_pulm = self.cap_centroids[2].xyz
 

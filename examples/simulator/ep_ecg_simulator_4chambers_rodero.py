@@ -28,6 +28,9 @@ This example shows how to consume a full-heart model and set it up for the
 main electrophysiology simulation. It loads a pre-computed heart model
 and computes the fiber orientation, Purkinje network, and conduction system. It
 then simulates the electrophysiology.
+
+In order to obtain valid ECGs, a 1.5 mm mesh is required :
+model.mesh_volume(use_wrapper=True, global_mesh_size=2.0, _global_wrap_size=2.0)
 """
 
 ###############################################################################
@@ -51,7 +54,12 @@ import json
 import os
 from pathlib import Path
 
+import numpy as np
+import pyvista as pv
+
 import ansys.health.heart.models as models
+from ansys.health.heart.objects import SurfaceMesh
+from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
 import ansys.health.heart.settings.material.cell_models as cell_mod
 import ansys.health.heart.settings.material.ep_material as mat
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
@@ -80,8 +88,9 @@ dyna_settings = DynaSettings(
 )
 
 # Plot option for all scripts
-plot = False
-
+plot = True
+compute_fib = False
+compute_purk = False
 # A .json file containing the information required to run the script.
 # Rodero 01, 03, and 04 are available. To customize a new model, you
 # must either add the information to the .json file using the same format,
@@ -133,7 +142,7 @@ info_rodero = part_info["Rodero_" + str(num_rodero)]
 path_to_model = os.path.join(workdir, "heart_model.vtu")
 path_to_partinfo = os.path.join(workdir, "heart_model.partinfo.json")
 
-model: models.FullHeart = models.HeartModel.load_model(
+model: models.FourChamber = models.HeartModel.load_model(
     path_to_model, path_to_partinfo, working_directory=workdir
 )
 
@@ -144,53 +153,51 @@ simulator = EPSimulator(
 
 # Save the model.
 model.mesh.save(os.path.join(model.workdir, "simulation_model.vtu"))
-"""
-new_electrodes = simulator.model.set_electrodes(angle1=0, angle2=0)
+
+new_electrodes = simulator.model.set_electrodes(angle1=10, angle2=-10)
 
 if plot:
-    import pyvista as pv
-
     heart_model = pv.read(str(workdir / "heart_model.vtu"))
     plotter = pv.Plotter()
     point_cloud_1 = pv.PolyData(new_electrodes)
     plotter.add_mesh(point_cloud_1, color="blue", point_size=10, render_points_as_spheres=True)
-    plotter.add_mesh(heart_model, color="red", show_edges=False, opacity=0.5)
+    plotter.add_mesh(heart_model, color="red", show_edges=False, opacity=0.8)
     plotter.show()
-"""
+
 
 ###############################################################################
 # Load simulation settings
 # ~~~~~~~~~~~~~~~~~~~~~~~~
 # Load the default settings.
 simulator.settings.load_defaults()
+simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
 
-"""
-###############################################################################
+###############################################################-################
 # Compute fiber orientation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Compute fiber orientation and plot the fibers on the entire model.
+if compute_fib:
+    # Import the appendage landmarks.
+    from ansys.health.heart.pre.database_utils import right_atrium_appendage_landmarks
 
-# Import the appendage landmarks.
-from ansys.health.heart.pre.database_utils import right_atrium_appendage_landmarks
+    # Get the right atrium appendage landmark of the first case of Rodero2021.
+    right_atrium_appendage_coordinates = right_atrium_appendage_landmarks.get("Rodero2021").get(
+        num_rodero
+    )
 
-# Get the right atrium appendage landmark of the first case of Rodero2021.
-right_atrium_appendage_coordinates =
-right_atrium_appendage_landmarks.get("Rodero2021").get(num_rodero)
+    # Compute ventricular fibers.
+    simulator.compute_fibers()
 
-# Compute ventricular fibers.
-simulator.compute_fibers(method="D-RBM")
+    # Compute atrial fibers.
+    simulator.model.right_atrium.active = True
+    simulator.model.left_atrium.active = True
+    simulator.model.right_atrium.fiber = True
+    simulator.model.left_atrium.fiber = True
+    simulator.compute_left_atrial_fiber()
+    simulator.compute_right_atrial_fiber(appendage=right_atrium_appendage_coordinates)
+    if plot:
+        simulator.model.plot_fibers(n_seed_points=1000)
 
-# Compute atrial fibers.
-simulator.model.right_atrium.active = True
-simulator.model.left_atrium.active = True
-simulator.model.right_atrium.fiber = True
-simulator.model.left_atrium.fiber = True
-simulator.compute_left_atrial_fiber()
-simulator.compute_right_atrial_fiber(appendage=right_atrium_appendage_coordinates)
-if plot == True :
-    simulator.model.plot_fibers(n_seed_points=1000)
-"""
-"""
 ###############################################################################
 # Compute the conduction system
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -202,25 +209,17 @@ if plot == True :
 # Function to merge the right ventricular endocardium and the right side of the Purkinje network
 # so that the surface is treated as a single, complete surface during network generation.
 def merge_surfaces(surf1: SurfaceMesh, surf2: SurfaceMesh, keep="first") -> SurfaceMesh:
-    # PyVista merge (évite doublons si merge_points=True)
     merged = surf1.merge(surf2, merge_points=True, tolerance=1e-8)
-
-    # Créer un nouvel object SurfaceMesh
     new_surf = SurfaceMesh(merged)
-
-    # Récupérer nodes / triangles (ton API)
     new_surf.nodes = np.array(new_surf.points)
     faces = np.reshape(new_surf.faces, (new_surf.n_cells, 4))[:, 1:]
     new_surf.triangles = faces
-
-    # Copier l’id et le nom
     if keep == "first":
         new_surf.id = surf1.id
         new_surf.name = surf1.name
     else:
         new_surf.id = surf2.id
         new_surf.name = surf2.name
-
     return new_surf
 
 
@@ -230,15 +229,22 @@ simulator.model.right_ventricle.endocardium = merge_surfaces(
     keep="first",
 )
 
-# Parameterization of a dense Purkinje network
-ureg = simulator.settings.purkinje.pmjtype._REGISTRY
-simulator.settings.purkinje.pmjtype = 1 * ureg.dimensionless
-simulator.settings.purkinje.edgelen = 0.5 * ureg.dimensionless
-simulator.settings.purkinje.nsplit = 6 * ureg.dimensionless
-simulator.settings.purkinje.ngen = 300 * ureg.dimensionless
-simulator.settings.purkinje.nbrinit = 6 * ureg.dimensionless
+directory = os.path.join(simulator.root_directory, "purkinjegeneration")
+if compute_purk:
+    orig_num_cpus = simulator.dyna_settings.num_cpus
+    simulator.dyna_settings.num_cpus = 1
 
-simulator.compute_purkinje()
+    ureg = simulator.settings.purkinje.pmjtype._REGISTRY
+    simulator.settings.purkinje.pmjtype = 1 * ureg.dimensionless
+    simulator.settings.purkinje.edgelen = 0.5 * ureg.dimensionless
+    simulator.settings.purkinje.nsplit = 6 * ureg.dimensionless
+    simulator.settings.purkinje.ngen = 500 * ureg.dimensionless
+    simulator.settings.purkinje.nbrinit = 6 * ureg.dimensionless
+
+    simulator._write_purkinje_files(directory)
+    input_file = os.path.join(directory, "main.k")
+    simulator._run_dyna(input_file)
+    simulator.dyna_settings.num_cpus = orig_num_cpus
 
 if plot:
     # Visualize the entire conduction system
@@ -265,6 +271,8 @@ beam_list, simulator.model._landmarks = heart_model_utils.define_full_conduction
     left_bundle,
     right_bundle,
 ] = beam_list
+
+# model.assign_conduction_paths(beam_list)
 
 # Compute the conduction system user add
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -365,7 +373,6 @@ left_posterior_fascile = ConductionPath.create_from_keypoints(
 left_posterior_fascile.up_path = his_left
 left_posterior_fascile.down_path = left_purkinje
 
-
 # Addition of new conduction fibers to the model
 model.assign_conduction_paths(
     [
@@ -385,71 +392,69 @@ model.assign_conduction_paths(
     ]
 )
 
+
 if plot:
     # Visualize the entire conduction system
     simulator.model.plot_purkinje()
-"""
+
 ###############################################################################
 # Setup of custom parameters
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Conduction path parameterization
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-"""
-#atrium conduction path
+
+# atrium conduction path
 mat_sa_av = mat.ActiveBeam()
 mat_sa_av.sigma_fiber = 2.25
-mat_sa_av.pmjres = 0.001
 simulator.model.conduction_paths[2].ep_material = mat_sa_av
 simulator.model.conduction_paths[8].ep_material = mat_sa_av
 simulator.model.conduction_paths[9].ep_material = mat_sa_av
 simulator.model.conduction_paths[10].ep_material = mat_sa_av
 
-#hit_top
-#The His_top bundle conductivity parameters must be implemented
+# hit_top
+# The His_top bundle conductivity parameters must be implemented
 # to coordinate atrial and ventricular activity according to the
 # chosen action potential durations.
 mat_his_top = mat.ActiveBeam()
-mat_his_top.sigma_fiber = info_rodero['Cv_his_top']
-mat_his_top.pmjres = 0.001
+mat_his_top.sigma_fiber = info_rodero["Cv_his_top"]
 simulator.model.conduction_paths[3].ep_material = mat_his_top
 
-#ventricle conduction path
+# ventricle conduction path
 mat_purkinje = mat.ActiveBeam()
 mat_purkinje.sigma_fiber = 2.0
-mat_purkinje.pmjres = 0.001
 
-#his_left & his_right
+# his_left & his_right
 simulator.model.conduction_paths[4].ep_material = mat_purkinje
 simulator.model.conduction_paths[5].ep_material = mat_purkinje
 
-#left_bundle & right_bundle
+# left_bundle & right_bundle
 simulator.model.conduction_paths[6].ep_material = mat_purkinje
 simulator.model.conduction_paths[7].ep_material = mat_purkinje
 simulator.model.conduction_paths[0].ep_material = mat_purkinje
 simulator.model.conduction_paths[1].ep_material = mat_purkinje
 
-#fascicle left ventricle
-#The fascicle conductivity must be set so that both fascicles activate
-#the tissue at the same time. Therefore, the travel time variable allows
-#synchronizing activation of the free wall with that of the septum.
-traveltime = info_rodero['travel_time']
-mat_left_anterio_fascile = mat.ActiveBeam()
-mat_left_anterio_fascile.sigma_fiber = simulator.model.conduction_paths[11].mesh.length/traveltime
-mat_left_anterio_fascile.pmjres = 0.001
-simulator.model.conduction_paths[11].ep_material = mat_left_anterio_fascile
+# fascicle left ventricle
+# The fascicle conductivity must be set so that both fascicles activate
+# the tissue at the same time. Therefore, the travel time variable allows
+# synchronizing activation of the free wall with that of the septum.
 
-mat_left_post_fascile = mat.ActiveBeam()
-mat_left_post_fascile.sigma_fiber = simulator.model.conduction_paths[12].mesh.length/traveltime
-mat_left_post_fascile.pmjres = 0.001
-simulator.model.conduction_paths[12].ep_material = mat_left_post_fascile
-"""
+# Set the CV of the left and right bundle branches
+simulator.model.conduction_paths[6].ep_material.sigma_fiber = 1.786
+simulator.model.conduction_paths[7].ep_material.sigma_fiber = 1.786
+# Set the CV of the left and right purkinjes
+simulator.model.conduction_paths[0].ep_material.sigma_fiber = 2
+simulator.model.conduction_paths[1].ep_material.sigma_fiber = 2
+
 # Tissue parameterization
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ep_vent = mat.Active2()
 ep_vent.sigma_fiber = 0.7
 ep_vent.sigma_sheet = 0.35
 ep_vent.sigma_sheet_normal = 0.18
+ep_vent.cond_sigma_fiber = 0.17
+ep_vent.cond_sigma_sheet = 0.08
+ep_vent.cond_sigma_sheet_normal = 0.08
 simulator.model.parts[0].ep_material = ep_vent
 simulator.model.parts[1].ep_material = ep_vent
 simulator.model.parts[2].ep_material = ep_vent
@@ -459,19 +464,20 @@ ep_atrium.cell_model = cell_mod.TentusscherAtria()
 ep_atrium.sigma_fiber = 1.2
 ep_atrium.sigma_sheet = 0.6
 ep_atrium.sigma_sheet_normal = 0.3
+ep_atrium.cond_sigma_fiber = 0.17
+ep_atrium.cond_sigma_sheet = 0.08
+ep_atrium.cond_sigma_sheet_normal = 0.08
 simulator.model.parts[3].ep_material = ep_atrium
 simulator.model.parts[4].ep_material = ep_atrium
 
 simulator.compute_uhc()
 # Configurable number of layers
-simulator.settings.electrophysiology.nb_layers = 5
+simulator.settings.electrophysiology.nb_layers = 7
+
 ###############################################################################
 # Start the main simulation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Start the main electrophysiology simulation. This uses the previously computed fiber orientation
 # and Purkinje network to set up and run the LS-DYNA model.
 
-
-# Write .k input file for launching the simulation
-simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
-simulator._write_main_simulation_files(folder_name="main-ep-ReactionEikonal")
+simulator.simulate(folder_name="main-ep-ReactionEikonal")

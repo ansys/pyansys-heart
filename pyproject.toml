@@ -44,7 +44,7 @@ dependencies = [
     "pydantic>=2.0.0"
 ]
 
-# Optional dependencies 1:
+# Optional dependencies:
 [project.optional-dependencies]
 doc = [
     "ansys-sphinx-theme[autoapi]==1.5.2",

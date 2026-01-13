@@ -209,6 +209,11 @@ jobs:
           docker pull ghcr.io/ansys/pyfluent:${{ env.FLUENT_IMAGE_TAG }}
           docker image prune -f
 
+      - name: Generate certificates
+        if: matrix.tests.needs_fluent
+        run: |
+          .ci/generate_certs.sh
+
       - name: Run Tox
         if: ${{ ! matrix.tests.needs_dpf }}
         run: |

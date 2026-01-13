@@ -260,6 +260,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
     _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
     if _uses_container:
         _supported_fluent_versions = _supported_fluent_versions_container
+        _extra_launch_kwargs["certificates_folder"] = os.path.join(os.getcwd(), "certs")
 
     num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus))
 
@@ -304,7 +305,6 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
                 "mount_target": "/mnt/pyfluent/meshing",
             }
             launch_config["ui_mode"] = pyfluent.UIMode.NO_GUI_OR_GRAPHICS
-            launch_config["certificates_folder"] = os.path.join(os.getcwd(), "certs")
             session = pyfluent.PureMeshing.from_container(**launch_config, **_extra_launch_kwargs)
 
         case LaunchMode.STANDALONE:

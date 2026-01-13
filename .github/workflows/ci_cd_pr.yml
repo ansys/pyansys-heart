@@ -202,17 +202,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Generate certificates
+        if: matrix.tests.needs_fluent
+        run: |
+          chmod +x .ci/generate_certs.sh
+          ls -l
+
       - name: Pull Fluent docker image
         if: matrix.tests.needs_fluent
         run: |
           sudo rm -rf /usr/share/dotnet
           docker pull ghcr.io/ansys/pyfluent:${{ env.FLUENT_IMAGE_TAG }}
           docker image prune -f
-
-      - name: Generate certificates
-        if: matrix.tests.needs_fluent
-        run: |
-          chmod +x .ci/generate_certs.sh
 
       - name: Run Tox
         if: ${{ ! matrix.tests.needs_dpf }}

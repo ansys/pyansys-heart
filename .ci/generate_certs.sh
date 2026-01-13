@@ -3,7 +3,10 @@
 
 set -e
 
-# Create certs directory
+# Get script directory for reliable path resolution
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Create certs directory in current working directory (where script is called from)
 mkdir -p certs
 pushd certs > /dev/null
 
@@ -23,7 +26,7 @@ openssl req -new -key server.key -out server.csr \
 
 # Generate server certificate signed by the CA
 openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial \
-    -out server.crt -days 3650 -sha256 -extfile ../.ci/server_ext.cnf -extensions v3_req
+    -out server.crt -days 3650 -sha256 -extfile "${SCRIPT_DIR}/server_ext.cnf" -extensions v3_req
 
 # Generate client private key
 openssl genrsa -out client.key 4096

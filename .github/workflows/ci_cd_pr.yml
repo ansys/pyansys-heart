@@ -206,9 +206,11 @@ jobs:
         if: matrix.tests.needs_fluent
         run: |
           chmod +x .ci/generate_certs.sh
-          ls -l
+          ls -la
 
-          ls -l .ci
+          ls -la .ci
+
+          ls -la .ci/certs
 
       - name: Pull Fluent docker image
         if: matrix.tests.needs_fluent

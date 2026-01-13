@@ -206,11 +206,7 @@ jobs:
         if: matrix.tests.needs_fluent
         run: |
           chmod +x .ci/generate_certs.sh
-          ls -la
-
-          ls -la .ci
-
-          ls -la .ci/certs
+          .ci/generate_certs.sh
 
       - name: Pull Fluent docker image
         if: matrix.tests.needs_fluent
@@ -222,7 +218,7 @@ jobs:
       - name: Run Tox
         if: ${{ ! matrix.tests.needs_dpf }}
         env:
-          ANSYS_GRPC_CERTIFICATES: "~/.ci/certs"
+          ANSYS_GRPC_CERTIFICATES: "~/certs"
         run: |
           uv tool run tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
 

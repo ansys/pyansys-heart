@@ -304,6 +304,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
                 "mount_target": "/mnt/pyfluent/meshing",
             }
             launch_config["ui_mode"] = pyfluent.UIMode.NO_GUI_OR_GRAPHICS
+            launch_config["certificates_folder"] = os.path.join(os.getcwd(), "certs")
             session = pyfluent.PureMeshing.from_container(**launch_config, **_extra_launch_kwargs)
 
         case LaunchMode.STANDALONE:

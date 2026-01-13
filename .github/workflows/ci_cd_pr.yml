@@ -212,7 +212,7 @@ jobs:
       - name: Generate certificates
         if: matrix.tests.needs_fluent
         run: |
-          .ci/generate_certs.sh
+          chmod +x .ci/generate_certs.sh
 
       - name: Run Tox
         if: ${{ ! matrix.tests.needs_dpf }}

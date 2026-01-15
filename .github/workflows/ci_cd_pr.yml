@@ -144,7 +144,7 @@ jobs:
           ANSYS_DPF_ACCEPT_LA: Y
           AWP_ROOT252: C:\\Program Files\\ANSYS Inc\\v252
           PYFLUENT_UI_MODE: no_gui # default hidden_gui fails on self-hosted runner
-          NIGHTLY_DOC_BUILD: 1
+          NIGHTLY_DOC_BUILD: 0
         run: |
           tox -e doc-html,doc-links,doc-pdf
           # Check if the examples folder exists and list its contents

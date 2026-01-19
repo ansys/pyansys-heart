@@ -22,6 +22,8 @@
 
 """Collection of methods to test pyfluent."""
 
+import os
+
 import pytest
 
 import ansys.fluent.core as pyfluent
@@ -33,7 +35,12 @@ pytestmark = pytest.mark.requires_fluent
 
 def test_launch_fluent():
     """Launch pyfluent in meshing mode and check health."""
+
+    _extra_launch_kwargs = {}
     try:
+        if os.getenv("PYFLUENT_CONTAINER_INSECURE_MODE") == "1":
+            _extra_launch_kwargs["insecure_mode"] = True
+
         session = pyfluent.launch_fluent(
             mode="meshing",
             precision="double",
@@ -42,6 +49,7 @@ def test_launch_fluent():
             ui_mode="no_gui",
             dimension=3,
             product_version=_get_supported_fluent_version(),
+            **_extra_launch_kwargs,
         )
         assert session.is_server_healthy()
         # try to initialize workflow

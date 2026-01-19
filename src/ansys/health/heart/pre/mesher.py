@@ -303,6 +303,8 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
                 "mount_source": f"{working_directory}",
                 "mount_target": "/mnt/pyfluent/meshing",
             }
+            if os.getenv("PYFLUENT_CONTAINER_INSECURE_MODE") == "1":
+                _extra_launch_kwargs["insecure_mode"] = True
             launch_config["ui_mode"] = pyfluent.UIMode.NO_GUI_OR_GRAPHICS
             session = pyfluent.PureMeshing.from_container(**launch_config, **_extra_launch_kwargs)
 

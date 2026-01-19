@@ -49,7 +49,7 @@ def test_launch_fluent():
             ui_mode="no_gui",
             dimension=3,
             product_version=_get_supported_fluent_version(),
-            **_extra_launch_kwargs,
+            # **_extra_launch_kwargs,
         )
         assert session.is_server_healthy()
         # try to initialize workflow

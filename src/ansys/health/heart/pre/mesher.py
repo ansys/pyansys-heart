@@ -79,9 +79,6 @@ def _get_supported_fluent_version() -> str:
             )
         return version
 
-    if os.getenv("PYFLUENT_CONTAINER_INSECURE_MODE") == "1":
-        _extra_launch_kwargs["insecure_mode"] = True
-
     for version in _supported_fluent_versions:
         try:
             pyfluent.launch_fluent(product_version=version, dry_run=True, **_extra_launch_kwargs)

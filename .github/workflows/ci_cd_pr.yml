@@ -49,11 +49,11 @@ jobs:
       pull-requests: write
     steps:
 
-      - uses: ansys/actions/check-pr-title@eb7d0fc873deeee6d4740774675ce1741cb6f154 # v10.2.2
+      - uses: ansys/actions/check-pr-title@41f86da4c9ead510db9135e428e33df9cc6f92e1 # v10.2.3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: ansys/actions/doc-changelog@eb7d0fc873deeee6d4740774675ce1741cb6f154 # v10.2.2
+      - uses: ansys/actions/doc-changelog@41f86da4c9ead510db9135e428e33df9cc6f92e1 # v10.2.3
         with:
           token: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
           use-conventional-commits: true
@@ -66,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: changelog-fragment
     steps:
-      - uses: ansys/actions/code-style@eb7d0fc873deeee6d4740774675ce1741cb6f154 # v10.2.2
+      - uses: ansys/actions/code-style@41f86da4c9ead510db9135e428e33df9cc6f92e1 # v10.2.3
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
@@ -74,7 +74,7 @@ jobs:
     name: Vulnerabilities
     runs-on: ubuntu-latest
     steps:
-      - uses: ansys/actions/check-vulnerabilities@eb7d0fc873deeee6d4740774675ce1741cb6f154 # v10.2.2
+      - uses: ansys/actions/check-vulnerabilities@41f86da4c9ead510db9135e428e33df9cc6f92e1 # v10.2.3
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
           python-package-name: ${{ env.LIBRARY_NAME }}
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: changelog-fragment
     steps:
-      - uses: ansys/actions/doc-style@eb7d0fc873deeee6d4740774675ce1741cb6f154 # v10.2.2
+      - uses: ansys/actions/doc-style@41f86da4c9ead510db9135e428e33df9cc6f92e1 # v10.2.3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -100,7 +100,7 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13']
     steps:
-      - uses: ansys/actions/build-wheelhouse@eb7d0fc873deeee6d4740774675ce1741cb6f154 # v10.2.2
+      - uses: ansys/actions/build-wheelhouse@41f86da4c9ead510db9135e428e33df9cc6f92e1 # v10.2.3
         with:
           library-name: ${{ env.LIBRARY_NAME }}
           operating-system: ${{ matrix.os }}
@@ -118,7 +118,7 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: "Install Python ${{ env.MAIN_PYTHON_VERSION }}"
-        uses: astral-sh/setup-uv@ed21f2f24f8dd64503750218de024bcf64c7250a # v7.1.5
+        uses: astral-sh/setup-uv@61cb8a9741eeb8a550a1b8544337180c0fc8476b # v7.2.0
         with:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
@@ -152,14 +152,14 @@ jobs:
           if (Test-Path $examples_folder){ Dir -Recurse $examples_folder | Get-Childitem} else {Write-Host "WARNING: Expecting an examples folder in $examples_folder. Interactive plots will not work..."}
 
       - name: Upload HTML documentation artifact
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: documentation-html
           path: doc/_build/html
           retention-days: 7
 
       - name: Upload PDF documentation artifact
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: documentation-pdf
           path: doc/_build/latex/*.pdf
@@ -183,7 +183,7 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       - name: "Set up uv"
-        uses: astral-sh/setup-uv@ed21f2f24f8dd64503750218de024bcf64c7250a # v7.1.5
+        uses: astral-sh/setup-uv@61cb8a9741eeb8a550a1b8544337180c0fc8476b # v7.2.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -224,7 +224,7 @@ jobs:
     runs-on: ubuntu-latest
     # needs: [wheelhouse, doc-build, tests]
     steps:
-      - uses: ansys/actions/build-library@eb7d0fc873deeee6d4740774675ce1741cb6f154 # v10.2.2
+      - uses: ansys/actions/build-library@41f86da4c9ead510db9135e428e33df9cc6f92e1 # v10.2.3
         with:
           library-name: ${{ env.LIBRARY_NAME }}
           python-version: ${{ env.MAIN_PYTHON_VERSION }}

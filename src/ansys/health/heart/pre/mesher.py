@@ -260,9 +260,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
     _uses_container = bool(int(os.getenv("PYFLUENT_LAUNCH_CONTAINER", False)))
     if _uses_container:
         _supported_fluent_versions = _supported_fluent_versions_container
-        _extra_launch_kwargs["certificates_folder"] = os.getenv(
-            "ANSYS_GRPC_CERTIFICATES", "./certs"
-        )
+        _extra_launch_kwargs["certificates_folder"] = os.getenv("ANSYS_GRPC_CERTIFICATES", "certs")
 
     num_cpus = int(os.getenv("PYANSYS_HEART_NUM_CPU", _num_cpus))
 

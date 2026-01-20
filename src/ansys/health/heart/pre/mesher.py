@@ -304,7 +304,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
                 "mount_target": "/mnt/pyfluent/meshing",
             }
             if os.getenv("PYFLUENT_CONTAINER_INSECURE_MODE") == "1":
-                insecure_mode = True
+                insecure_mode = False
             else:
                 insecure_mode = False
 

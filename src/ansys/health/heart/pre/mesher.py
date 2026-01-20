@@ -304,9 +304,14 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
                 "mount_target": "/mnt/pyfluent/meshing",
             }
             if os.getenv("PYFLUENT_CONTAINER_INSECURE_MODE") == "1":
-                _extra_launch_kwargs["insecure_mode"] = True
+                insecure_mode = True
+            else:
+                insecure_mode = False
+
             launch_config["ui_mode"] = pyfluent.UIMode.NO_GUI_OR_GRAPHICS
-            session = pyfluent.PureMeshing.from_container(**launch_config, **_extra_launch_kwargs)
+            session = pyfluent.PureMeshing.from_container(
+                **launch_config, **_extra_launch_kwargs, insecure_mode=insecure_mode
+            )  # noqa: E501
 
         case LaunchMode.STANDALONE:
             LOGGER.info(f"Launching Fluent in Standalone mode with config: {launch_config}")

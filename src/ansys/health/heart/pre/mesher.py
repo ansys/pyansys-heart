@@ -305,7 +305,7 @@ def _get_fluent_meshing_session(working_directory: str | Path) -> MeshingSession
             }
             launch_config["ui_mode"] = pyfluent.UIMode.NO_GUI_OR_GRAPHICS
             session = pyfluent.PureMeshing.from_container(
-                **launch_config, **_extra_launch_kwargs, insecure_mode=False
+                **launch_config, **_extra_launch_kwargs, insecure_mode=True
             )
 
         case LaunchMode.STANDALONE:

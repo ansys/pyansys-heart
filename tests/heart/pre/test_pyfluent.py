@@ -33,7 +33,6 @@ pytestmark = pytest.mark.requires_fluent
 
 def test_launch_fluent():
     """Launch pyfluent in meshing mode and check health."""
-
     try:
         session = pyfluent.launch_fluent(
             mode="meshing",

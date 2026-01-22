@@ -316,14 +316,16 @@ def _validate_checksum(file_path: Path, expected_checksum: str) -> bool:
         algorithm = algorithm.lower()
 
         # Get the appropriate hash function
+        # Note: usedforsecurity=False for MD5/SHA1 since we're doing file integrity
+        # verification, not cryptographic security operations
         if algorithm == "md5":
-            hash_func = hashlib.md5()
+            hash_func = hashlib.md5(usedforsecurity=False)
         elif algorithm in ("sha256", "sha-256"):
             hash_func = hashlib.sha256()
         elif algorithm in ("sha512", "sha-512"):
             hash_func = hashlib.sha512()
         elif algorithm == "sha1":
-            hash_func = hashlib.sha1()
+            hash_func = hashlib.sha1(usedforsecurity=False)
         else:
             raise ValueError(f"Unsupported checksum algorithm: {algorithm}")
 

@@ -28,12 +28,10 @@ from unittest import mock
 import pytest
 
 from ansys.health.heart.utils.download import (
-    _SHA256_TABLE,
     _ZENODO_RECORDS,
     _get_file_download_url,
     _infer_extraction_path_from_tar,
     _validate_checksum,
-    _validate_hash_sha256,
     download_case_from_zenodo,
 )
 
@@ -145,36 +143,6 @@ def test_infer_extraction_path_from_tar(tar_subpaths):
 
             expected_path = str(Path(tempdir) / tar_subpaths[0])
             assert path == expected_path
-
-
-def test_validate_hash_function_001():
-    """Test hash validator."""
-    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
-        # create dummy data
-        path_file1 = Path(tempdir) / "file1.txt"
-        path_file2 = Path(tempdir) / "file2.txt"
-
-        with open(path_file1, "w") as fid:
-            fid.write("abc")
-
-        with open(path_file2, "w") as fid:
-            fid.write("abcd\nblbla")
-
-        expected_hash = hashlib.sha256(open(path_file1, "rb").read()).hexdigest()
-
-        # override original hash value with expected value.
-        _SHA256_TABLE["Rodero2021"][1] = expected_hash
-
-        assert _validate_hash_sha256(path_file1, "Rodero2021", casenumber=1), (
-            "Expecting matching hash function"
-        )
-
-        # hashes of two different files should be different
-        assert not _validate_hash_sha256(path_file2, "Rodero2021", casenumber=1), (
-            "Expecting non-matching hash function"
-        )
-
-    return
 
 
 def test_validate_checksum_md5():

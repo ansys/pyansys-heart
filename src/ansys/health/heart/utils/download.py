@@ -23,24 +23,22 @@
 """Module containing methods to download cases from public databases."""
 
 import hashlib
-import os
-from pathlib import Path, PurePath
+from pathlib import Path
 import tarfile
-import typing
 
 import httpx
 import rich.progress
-import validators
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import DatabaseNotSupportedError
 
-_URLS = {
-    "Strocchi2020": {"url": "https://zenodo.org/record/3890034", "num_cases": 24},
-    "Rodero2021": {"url": "https://zenodo.org/record/4590294", "num_cases": 20},
+_ZENODO_RECORDS = {
+    "Strocchi2020": {"record_id": "3890034", "num_cases": 24},
+    "Rodero2021": {"record_id": "4590294", "num_cases": 20},
 }
-_VALID_DATABASES = list(_URLS.keys())
-_DOWNLOAD_DIR = PurePath.joinpath(Path.home(), "pyansys-heart", "downloads")
+_VALID_DATABASES = list(_ZENODO_RECORDS.keys())
+_DOWNLOAD_DIR = Path.home() / "pyansys-heart" / "downloads"
+_ZENODO_API_BASE = "https://zenodo.org/api"
 
 # checksum table for Rodero 2021 et al and Strocchi 2020 et al.
 _SHA256_TABLE = {
@@ -95,21 +93,72 @@ _SHA256_TABLE = {
 }
 
 
-def _format_download_urls() -> dict:
-    """Format the URLS for all cases."""
-    download_urls = {}
-    for database_name in _URLS.keys():
-        download_urls[database_name] = {}
-        url = _URLS[database_name]["url"]
-        num_cases = _URLS[database_name]["num_cases"]
-        for case_number in range(1, num_cases + 1):
-            download_urls[database_name][case_number] = "{:}/files/{:02d}.tar.gz".format(
-                url, case_number
+def _get_file_download_url(record_id: str, filename: str) -> tuple[str, int]:
+    """Get download URL and size for a specific file from Zenodo API.
+
+    Parameters
+    ----------
+    record_id : str
+        Zenodo record identifier.
+    filename : str
+        Name of file to download (e.g., "01.tar.gz").
+
+    Returns
+    -------
+    tuple[str, int]
+        Download URL and file size in bytes.
+
+    Raises
+    ------
+    httpx.HTTPStatusError
+        If API request fails.
+    FileNotFoundError
+        If file not found in record.
+    ValueError
+        If file metadata is incomplete.
+
+    Examples
+    --------
+    >>> url, size = _get_file_download_url("3890034", "01.tar.gz")
+    """
+    api_url = f"{_ZENODO_API_BASE}/records/{record_id}"
+
+    try:
+        response = httpx.get(api_url, timeout=10.0, follow_redirects=True)
+        response.raise_for_status()
+        metadata = response.json()
+    except httpx.HTTPStatusError as e:
+        error_msg = f"Failed to fetch Zenodo record {record_id}: {e.response.status_code}"
+        LOGGER.error(error_msg)
+        raise
+    except httpx.RequestError as e:
+        error_msg = f"Network error fetching Zenodo record {record_id}: {e}"
+        LOGGER.error(error_msg)
+        raise
+
+    try:
+        # Find the requested file in the files array
+        file_info = next(
+            (f for f in metadata.get("files", []) if f["key"] == filename),
+            None,
+        )
+
+        if file_info is None:
+            available_files = [f["key"] for f in metadata.get("files", [])]
+            raise FileNotFoundError(
+                f"File '{filename}' not found in record {record_id}. "
+                f"Available files: {available_files}"
             )
-    return download_urls
 
+        download_url = file_info["links"]["self"]
+        file_size = file_info["size"]
 
-_ALL_DOWNLOAD_URLS = _format_download_urls()
+        return download_url, file_size
+
+    except KeyError as e:
+        error_msg = f"Invalid metadata structure for record {record_id}: missing {e}"
+        LOGGER.error(error_msg)
+        raise ValueError(error_msg) from e
 
 
 def download_case_from_zenodo(
@@ -119,7 +168,7 @@ def download_case_from_zenodo(
     overwrite: bool = True,
     validate_hash: bool = True,
 ) -> Path | None:
-    """Download a case from the remote repository.
+    """Download a case from the remote repository using Zenodo REST API.
 
     Parameters
     ----------
@@ -129,59 +178,89 @@ def download_case_from_zenodo(
         Case number to download.
     download_folder : Path
         Path to the folder to download the case to.
+    overwrite : bool, default: True
+        Whether to overwrite existing files.
+    validate_hash : bool, default: True
+        Whether to validate file integrity using checksums.
 
     Returns
     -------
-    Path
-        Path to the tarball that contains the VTK/CASE files.
+    Path or None
+        Path to the tarball that contains the VTK/CASE files, or None if download failed.
+
+    Raises
+    ------
+    DatabaseNotSupportedError
+        If database name is not recognized.
+    ValueError
+        If case number is invalid for the database.
 
     Examples
     --------
     Download case 1 from the public repository (``'Strocchi2020'``) of pathological hearts.
 
     >>> path_to_tar_file = download_case_from_zenodo(
-        database="Strocchi2020", case_number=1, download_folder="my/download/folder"
-        )
+    ...     database="Strocchi2020", case_number=1, download_folder="my/download/folder"
+    ... )
 
     Download case 1 from the public repository (``'Rodero2021'``) of healthy hearts.
 
     >>> path_to_tar_file = download_case_from_zenodo(
-        database="Rodero2021", case_number=1, download_folder="my/download/folder"
-        )
+    ...     database="Rodero2021", case_number=1, download_folder="my/download/folder"
+    ... )
     """
+    # Validate database
     if database not in _VALID_DATABASES:
         raise DatabaseNotSupportedError(database, f"Please choose one of {_VALID_DATABASES}")
 
+    # Validate case number
+    num_cases = _ZENODO_RECORDS[database]["num_cases"]
+    if not 1 <= case_number <= num_cases:
+        raise ValueError(
+            f"Case number {case_number} is invalid for {database}. Valid range: 1-{num_cases}"
+        )
+
+    # Setup paths using pathlib
+    download_folder = Path(download_folder)
     if database == "Rodero2021":
-        save_dir = os.path.join(download_folder, database, "{:>02d}".format(case_number))
-    elif database == "Strocchi2020":
-        save_dir = os.path.join(download_folder, database)
+        save_dir = download_folder / database / f"{case_number:02d}"
+    else:  # Strocchi2020
+        save_dir = download_folder / database
 
-    save_path = os.path.join(save_dir, "{:02d}.tar.gz".format(case_number))
+    save_path = save_dir / f"{case_number:02d}.tar.gz"
 
-    if not os.path.isdir(save_dir):
-        os.makedirs(save_dir)
+    # Create directory
+    save_dir.mkdir(parents=True, exist_ok=True)
 
-    if not overwrite and os.path.isfile(save_path):
+    # Check if file exists
+    if not overwrite and save_path.exists():
         LOGGER.warning(f"File {save_path} already exists. Skipping...")
         return save_path
 
+    # Get download URL from Zenodo API
     try:
-        download_url = _ALL_DOWNLOAD_URLS[database][case_number]
-    except KeyError as e:
-        LOGGER.error(f"Case {case_number} is not found in database {database}. {e}")
+        record_id = _ZENODO_RECORDS[database]["record_id"]
+        filename = f"{case_number:02d}.tar.gz"
+        download_url, expected_size = _get_file_download_url(record_id, filename)
+        LOGGER.info(f"Downloading {database} case {case_number} from Zenodo API...")
+        LOGGER.debug(f"Download URL: {download_url}")
+        LOGGER.debug(f"Expected size: {expected_size / 1024 / 1024:.2f} MB")
+
+    except (FileNotFoundError, ValueError, httpx.HTTPStatusError) as e:
+        LOGGER.error(f"Failed to get download URL: {e}")
         return None
 
-    # validate URL
-    if not validators.url(download_url):
-        LOGGER.error(f"'{download_url}' is not a well-formed URL.")
-        return None
-
-    # Use httpx to stream data and write to target file. link is redirected
-    # so requires follow_redirects=True.
+    # Download file with progress bar
     try:
-        with httpx.stream("GET", download_url, follow_redirects=True) as response:
-            total = int(response.headers["Content-Length"])
+        with httpx.stream(
+            "GET",
+            download_url,
+            follow_redirects=True,
+            timeout=300.0,  # 5 minute timeout
+        ) as response:
+            response.raise_for_status()
+
+            total = int(response.headers.get("Content-Length", expected_size))
 
             with rich.progress.Progress(
                 "[progress.percentage]{task.percentage:>3.0f}%",
@@ -193,24 +272,57 @@ def download_case_from_zenodo(
                 with open(save_path, "wb") as fp:
                     for chunk in response.iter_bytes():
                         fp.write(chunk)
-                        progress.update(download_task, completed=response.num_bytes_downloaded)
+                        progress.update(
+                            download_task,
+                            completed=response.num_bytes_downloaded,
+                        )
 
-    except Exception as e:
-        LOGGER.error(f"Failed to download from {download_url}: {e}")
+        LOGGER.info(f"Download completed: {save_path}")
+
+    except httpx.HTTPStatusError as e:
+        error_msg = f"HTTP error downloading from {download_url}: {e.response.status_code}"
+        LOGGER.error(error_msg)
+        if save_path.exists():
+            save_path.unlink()
         return None
 
+    except httpx.RequestError as e:
+        error_msg = f"Network error downloading from {download_url}: {e}"
+        LOGGER.error(error_msg)
+        if save_path.exists():
+            save_path.unlink()
+        return None
+
+    except OSError as e:
+        error_msg = f"File system error writing to {save_path}: {e}"
+        LOGGER.error(error_msg)
+        if save_path.exists():
+            save_path.unlink()
+        return None
+
+    # Validate checksum
     if validate_hash:
-        is_valid_file = _validate_hash_sha256(
-            file_path=save_path,
-            database=database,
-            casenumber=case_number,
-        )
+        try:
+            is_valid_file = _validate_hash_sha256(
+                file_path=save_path,
+                database=database,
+                casenumber=case_number,
+            )
+            if not is_valid_file:
+                LOGGER.error(f"Checksum validation failed for {save_path}. File may be corrupted.")
+                save_path.unlink()
+                return None
+
+            LOGGER.info("Checksum validation passed.")
+
+        except Exception as e:
+            LOGGER.error(f"Error validating checksum: {e}")
+            save_path.unlink()
+            return None
     else:
-        LOGGER.warning("Not validating hash. Proceed at own risk")
-        is_valid_file = True
-    if not is_valid_file:
-        LOGGER.error("File data integrity cannot be validated.")
-        os.remove(save_path)
+        LOGGER.warning(
+            "Skipping checksum validation. Downloaded file integrity cannot be guaranteed."
+        )
 
     return save_path
 
@@ -268,10 +380,10 @@ def _get_members_to_unpack(tar_ball: tarfile.TarFile) -> list:
 
 def _is_safe_tar_member(member: tarfile.TarInfo, target_dir: str):
     """Get safe members, prevent absolute paths and path traversal."""
-    member_path = os.path.join(target_dir, member.name)
-    abs_target_dir = os.path.abspath(target_dir)
-    abs_member_path = os.path.abspath(member_path)
-    return abs_member_path.startswith(abs_target_dir)
+    member_path = Path(target_dir) / member.name
+    abs_target_dir = Path(target_dir).resolve()
+    abs_member_path = member_path.resolve()
+    return abs_member_path.is_relative_to(abs_target_dir)
 
 
 def unpack_case(tar_path: Path, reduce_size: bool = True) -> str | bool:
@@ -296,15 +408,16 @@ def unpack_case(tar_path: Path, reduce_size: bool = True) -> str | bool:
         Path to the CASE or VTK file.
     """
     try:
+        tar_path = Path(tar_path)
         with tarfile.open(tar_path, "r:gz") as tar_ball:
-            tar_dir = os.path.dirname(tar_path)
+            tar_dir = tar_path.parent
             if reduce_size:
                 members = _get_members_to_unpack(tar_ball)
             else:
                 members = tar_ball.getmembers()
 
             # Validate members
-            unsafe_members = [m for m in members if not _is_safe_tar_member(m, tar_dir)]
+            unsafe_members = [m for m in members if not _is_safe_tar_member(m, str(tar_dir))]
             if unsafe_members:
                 names = [m.name for m in unsafe_members]
                 raise ValueError(f"Unsafe tar members detected in '{tar_path}': {names}")
@@ -345,27 +458,29 @@ def download_all_cases(download_dir: str = None) -> list[str]:
     """
     if download_dir is None:
         download_dir = _DOWNLOAD_DIR
+    else:
+        download_dir = Path(download_dir)
 
-    if not os.path.isdir(download_dir):
+    if not download_dir.exists():
         raise FileExistsError(f"{download_dir} does not exist.")
 
     tar_files = []
-    for database_name, subdict in _URLS.items():
-        num_cases = subdict["num_cases"]
-        download_dir = PurePath.joinpath(download_dir)
+    for database_name, metadata in _ZENODO_RECORDS.items():
+        num_cases = metadata["num_cases"]
         for ii in range(1, num_cases + 1):
             LOGGER.info("Downloading {0} : {1}".format(database_name, ii))
             path_to_tar_file = download_case_from_zenodo(database_name, ii, download_dir)
-            tar_files = tar_files + path_to_tar_file
+            if path_to_tar_file:
+                tar_files.append(str(path_to_tar_file))
     return tar_files
 
 
-def unpack_cases(list_of_tar_files: typing.List) -> None:
+def unpack_cases(list_of_tar_files: list[Path | str]) -> None:
     """Unpack a list of TAR files.
 
     Parameters
     ----------
-    list_of_tar_files : typing.List
+    list_of_tar_files : list[Path or str]
         List of TAR files to unpack.
 
     Examples
@@ -375,5 +490,9 @@ def unpack_cases(list_of_tar_files: typing.List) -> None:
     """
     for file in list_of_tar_files:
         LOGGER.info(f"Unpacking {file}...")
-        unpack_case(file)
+        unpack_case(Path(file))
     return
+
+
+if __name__ == "__main__":
+    download_case_from_zenodo("Rodero2021", 1, ".")

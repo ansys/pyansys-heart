@@ -363,7 +363,7 @@ def _infer_extraction_path_from_tar(tar_path: str | Path) -> str:
     return str(path)
 
 
-def _get_members_to_unpack(tar_ball: tarfile.TarFile) -> list:
+def _get_members_to_unpack(tar_ball: tarfile.TarFile) -> list[tarfile.TarInfo]:
     """Get the members to unpack from the tarball.
 
     Notes
@@ -379,7 +379,7 @@ def _get_members_to_unpack(tar_ball: tarfile.TarFile) -> list:
     return members_to_unpack
 
 
-def _is_safe_tar_member(member: tarfile.TarInfo, target_dir: str):
+def _is_safe_tar_member(member: tarfile.TarInfo, target_dir: str) -> bool:
     """Get safe members, prevent absolute paths and path traversal."""
     member_path = Path(target_dir) / member.name
     abs_target_dir = Path(target_dir).resolve()
@@ -433,12 +433,12 @@ def unpack_case(tar_path: Path, reduce_size: bool = True) -> str | bool:
         return False
 
 
-def download_all_cases(download_dir: str = None) -> list[str]:
+def download_all_cases(download_dir: str | None = None) -> list[str]:
     """Download all supported cases.
 
     Parameters
     ----------
-    download_dir : str
+    download_dir : str or None, default: None
         Base directory to download cases to.
 
     Examples
@@ -492,4 +492,3 @@ def unpack_cases(list_of_tar_files: list[Path | str]) -> None:
     for file in list_of_tar_files:
         LOGGER.info(f"Unpacking {file}...")
         unpack_case(Path(file))
-    return

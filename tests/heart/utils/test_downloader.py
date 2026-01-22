@@ -32,6 +32,7 @@ from ansys.health.heart.utils.download import (
     _ZENODO_RECORDS,
     _get_file_download_url,
     _infer_extraction_path_from_tar,
+    _validate_checksum,
     _validate_hash_sha256,
     download_case_from_zenodo,
 )
@@ -54,13 +55,14 @@ def test_get_file_download_url_from_api(database_name):
             {
                 "key": filename,
                 "size": 12345678,
+                "checksum": "md5:2942bfabb3d05332b66eb128e0842cff",
                 "links": {"self": f"https://zenodo.org/api/files/bucket-id/{filename}"},
             }
         ]
     }
 
     with mock.patch("httpx.get", return_value=mock_response) as mock_get:
-        url, size = _get_file_download_url(record_id, filename)
+        url, size, checksum = _get_file_download_url(record_id, filename)
 
         # Verify the API was called correctly
         mock_get.assert_called_once()
@@ -70,6 +72,7 @@ def test_get_file_download_url_from_api(database_name):
         # Verify the returned values
         assert url == f"https://zenodo.org/api/files/bucket-id/{filename}"
         assert size == 12345678
+        assert checksum == "md5:2942bfabb3d05332b66eb128e0842cff"
 
 
 @pytest.mark.parametrize(
@@ -89,6 +92,7 @@ def test_download_case(database_name):
                 {
                     "key": "01.tar.gz",
                     "size": 1024,
+                    "checksum": "md5:d8e8fca2dc0f896fd7cb4cb0031ba249",
                     "links": {"self": "https://zenodo.org/api/files/bucket-id/01.tar.gz"},
                 }
             ]
@@ -173,6 +177,60 @@ def test_validate_hash_function_001():
     return
 
 
+def test_validate_checksum_md5():
+    """Test checksum validation with MD5 (Zenodo API default)."""
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        test_file = Path(tempdir) / "test.txt"
+        test_content = b"test data for checksum validation"
+
+        # Write test file
+        with open(test_file, "wb") as f:
+            f.write(test_content)
+
+        # Calculate expected MD5 checksum
+        expected_md5 = hashlib.md5(test_content).hexdigest()
+
+        # Test with format "md5:hash"
+        assert _validate_checksum(test_file, f"md5:{expected_md5}")
+
+        # Test with just hash (should default to MD5)
+        assert _validate_checksum(test_file, expected_md5)
+
+        # Test with wrong checksum
+        assert not _validate_checksum(test_file, "md5:wronghash123")
+
+
+def test_validate_checksum_sha256():
+    """Test checksum validation with SHA256."""
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        test_file = Path(tempdir) / "test.txt"
+        test_content = b"test data for sha256"
+
+        with open(test_file, "wb") as f:
+            f.write(test_content)
+
+        # Calculate expected SHA256 checksum
+        expected_sha256 = hashlib.sha256(test_content).hexdigest()
+
+        # Test with format "sha256:hash"
+        assert _validate_checksum(test_file, f"sha256:{expected_sha256}")
+
+        # Test with wrong checksum
+        assert not _validate_checksum(test_file, "sha256:wronghash123")
+
+
+def test_validate_checksum_unsupported_algorithm():
+    """Test that unsupported algorithm raises ValueError."""
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        test_file = Path(tempdir) / "test.txt"
+
+        with open(test_file, "wb") as f:
+            f.write(b"test")
+
+        with pytest.raises(ValueError, match="Unsupported checksum algorithm"):
+            _validate_checksum(test_file, "unsupported_algo:abc123")
+
+
 def test_get_file_download_url_file_not_found():
     """Test that FileNotFoundError is raised when file not found in API response."""
     record_id = "3890034"
@@ -185,6 +243,7 @@ def test_get_file_download_url_file_not_found():
             {
                 "key": "01.tar.gz",
                 "size": 12345,
+                "checksum": "md5:abc123def456",
                 "links": {"self": "https://zenodo.org/api/files/bucket-id/01.tar.gz"},
             }
         ]
@@ -224,6 +283,7 @@ def test_download_case_http_error_handling():
                 {
                     "key": "01.tar.gz",
                     "size": 1024,
+                    "checksum": "md5:d8e8fca2dc0f896fd7cb4cb0031ba249",
                     "links": {"self": "https://zenodo.org/api/files/bucket-id/01.tar.gz"},
                 }
             ]

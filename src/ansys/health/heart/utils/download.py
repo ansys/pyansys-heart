@@ -93,8 +93,8 @@ _SHA256_TABLE = {
 }
 
 
-def _get_file_download_url(record_id: str, filename: str) -> tuple[str, int]:
-    """Get download URL and size for a specific file from Zenodo API.
+def _get_file_download_url(record_id: str, filename: str) -> tuple[str, int, str]:
+    """Get download URL, size, and checksum for a specific file from Zenodo API.
 
     Parameters
     ----------
@@ -105,8 +105,8 @@ def _get_file_download_url(record_id: str, filename: str) -> tuple[str, int]:
 
     Returns
     -------
-    tuple[str, int]
-        Download URL and file size in bytes.
+    tuple[str, int, str]
+        Download URL, file size in bytes, and checksum string (format: "algorithm:hash").
 
     Raises
     ------
@@ -119,7 +119,8 @@ def _get_file_download_url(record_id: str, filename: str) -> tuple[str, int]:
 
     Examples
     --------
-    >>> url, size = _get_file_download_url("3890034", "01.tar.gz")
+    >>> url, size, checksum = _get_file_download_url("3890034", "01.tar.gz")
+    >>> print(checksum)  # e.g., "md5:2942bfabb3d05332b66eb128e0842cff"
     """
     api_url = f"{_ZENODO_API_BASE}/records/{record_id}"
 
@@ -152,8 +153,9 @@ def _get_file_download_url(record_id: str, filename: str) -> tuple[str, int]:
 
         download_url = file_info["links"]["self"]
         file_size = file_info["size"]
+        checksum = file_info["checksum"]  # Format: "md5:hash_value" or similar
 
-        return download_url, file_size
+        return download_url, file_size, checksum
 
     except KeyError as e:
         error_msg = f"Invalid metadata structure for record {record_id}: missing {e}"
@@ -241,10 +243,11 @@ def download_case_from_zenodo(
     try:
         record_id = _ZENODO_RECORDS[database]["record_id"]
         filename = f"{case_number:02d}.tar.gz"
-        download_url, expected_size = _get_file_download_url(record_id, filename)
+        download_url, expected_size, api_checksum = _get_file_download_url(record_id, filename)
         LOGGER.info(f"Downloading {database} case {case_number} from Zenodo API...")
         LOGGER.debug(f"Download URL: {download_url}")
         LOGGER.debug(f"Expected size: {expected_size / 1024 / 1024:.2f} MB")
+        LOGGER.debug(f"API checksum: {api_checksum}")
 
     except (FileNotFoundError, ValueError, httpx.HTTPStatusError) as e:
         LOGGER.error(f"Failed to get download URL: {e}")
@@ -303,13 +306,14 @@ def download_case_from_zenodo(
     # Validate checksum
     if validate_hash:
         try:
-            is_valid_file = _validate_hash_sha256(
-                file_path=save_path,
-                database=database,
-                casenumber=case_number,
-            )
+            LOGGER.debug(f"Validating checksum: {api_checksum}")
+            is_valid_file = _validate_checksum(save_path, api_checksum)
+
             if not is_valid_file:
-                LOGGER.error(f"Checksum validation failed for {save_path}. File may be corrupted.")
+                LOGGER.error(
+                    f"Checksum validation failed for {save_path}. "
+                    f"File may be corrupted. Expected: {api_checksum}"
+                )
                 save_path.unlink()
                 return None
 
@@ -325,6 +329,69 @@ def download_case_from_zenodo(
         )
 
     return save_path
+
+
+def _validate_checksum(file_path: Path, expected_checksum: str) -> bool:
+    """Validate file checksum against expected value from Zenodo API.
+
+    Parameters
+    ----------
+    file_path : Path
+        Path to the file to validate.
+    expected_checksum : str
+        Expected checksum in format "algorithm:hash" (e.g., "md5:abc123...").
+
+    Returns
+    -------
+    bool
+        True if checksum matches, False otherwise.
+
+    Raises
+    ------
+    ValueError
+        If checksum format is invalid or algorithm is unsupported.
+
+    Examples
+    --------
+    >>> is_valid = _validate_checksum(Path("file.tar.gz"), "md5:2942bfabb3d05332b66eb128e0842cff")
+    """
+    try:
+        # Parse checksum format: "algorithm:hash"
+        if ":" in expected_checksum:
+            algorithm, expected_hash = expected_checksum.split(":", 1)
+        else:
+            # Default to MD5 if no algorithm specified (Zenodo default)
+            algorithm = "md5"
+            expected_hash = expected_checksum
+
+        # Normalize algorithm name
+        algorithm = algorithm.lower()
+
+        # Get the appropriate hash function
+        if algorithm == "md5":
+            hash_func = hashlib.md5()
+        elif algorithm in ("sha256", "sha-256"):
+            hash_func = hashlib.sha256()
+        elif algorithm in ("sha512", "sha-512"):
+            hash_func = hashlib.sha512()
+        elif algorithm == "sha1":
+            hash_func = hashlib.sha1()
+        else:
+            raise ValueError(f"Unsupported checksum algorithm: {algorithm}")
+
+        # Calculate file checksum
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(8192), b""):
+                hash_func.update(chunk)
+
+        computed_hash = hash_func.hexdigest()
+
+        # Compare checksums (case-insensitive)
+        return computed_hash.lower() == expected_hash.lower()
+
+    except Exception as e:
+        LOGGER.error(f"Error validating checksum: {e}")
+        raise
 
 
 def _validate_hash_sha256(file_path: Path, database: str, casenumber: int) -> bool:

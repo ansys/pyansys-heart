@@ -493,7 +493,3 @@ def unpack_cases(list_of_tar_files: list[Path | str]) -> None:
         LOGGER.info(f"Unpacking {file}...")
         unpack_case(Path(file))
     return
-
-
-if __name__ == "__main__":
-    download_case_from_zenodo("Rodero2021", 1, ".")

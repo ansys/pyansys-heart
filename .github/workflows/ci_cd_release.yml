@@ -176,6 +176,7 @@ jobs:
        if: ${{ ! matrix.tests.needs_dpf }}
        env:
          PYFLUENT_UI_MODE: "hidden_gui"
+         PYFLUENT_CONTAINER_INSECURE_MODE: 1
        run: |
          uv tool run tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
 

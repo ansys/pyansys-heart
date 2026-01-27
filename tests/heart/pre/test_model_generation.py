@@ -31,7 +31,6 @@ import pathlib
 import shutil
 import tempfile
 from typing import Union
-from unittest import mock
 
 import numpy as np
 import pytest
@@ -43,7 +42,7 @@ from ansys.health.heart.models_utils import define_full_conduction_system
 from ansys.health.heart.pre.database_utils import get_compatible_input
 from ansys.health.heart.settings.material.ep_material_factory import assign_default_ep_materials
 from ansys.health.heart.settings.material.material_factory import assign_default_mechanics_materials
-from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_case
+from ansys.health.heart.utils.download import unpack_case
 import ansys.health.heart.writer as writers
 from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
 from tests.heart.conftest import get_assets_folder
@@ -460,18 +459,11 @@ def test_get_compatible_input():
         path_to_tar = pathlib.Path(
             get_assets_folder(), "reference_models", "rodero2021", "01.tar.gz"
         )
-
         shutil.copy(path_to_tar, tempdir)
         path_to_tar = pathlib.Path(tempdir, "01.tar.gz")
 
-        with mock.patch(
-            "ansys.health.heart.utils.download.download_case_from_zenodo", return_value=path_to_tar
-        ):
-            path_to_tar = download_case_from_zenodo("Rodero2021", 1, tempdir)
+        mesh_path = unpack_case(path_to_tar)
 
-        unpack_case(path_to_tar)
-
-        mesh_path = os.path.join(tempdir, "Rodero2021", "01", "01.vtk")
         assert os.path.isfile(mesh_path)
         input_geom, part_definitions = get_compatible_input(mesh_path, "FullHeart")
 

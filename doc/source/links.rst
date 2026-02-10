@@ -18,7 +18,7 @@
 .. _tox: https://tox.wiki/en/stable/
 .. _Sphinx: https://www.sphinx-doc.org/en/master/
 .. _Sphinx-Gallery: https://sphinx-gallery.github.io/stable/index.html
-.. _reStructuredText: https://docutils.sourceforge.io/rst.html
+.. _reStructuredText: https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
 .. _Markdown: https://www.markdownguide.org/
 .. _Python documentation: https://docs.python.org/3/library/venv.html
 

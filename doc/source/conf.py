@@ -198,7 +198,12 @@ rst_epilog = ""
 links_filepath = Path(__file__).parent.absolute() / "links.rst"
 rst_epilog += links_filepath.read_text(encoding="utf-8")
 
-exclude_patterns = ["links.rst"]
+exclude_patterns = [
+    "links.rst",
+    # Exclude AutoAPI-generated index files that are not meant to be in toctree
+    "api/ansys/health/heart/settings/defaults/*/index.rst",
+    "api/ansys/health/heart/settings/material/*/index.rst",
+]
 
 # Configuration for Jinja
 # -----------------------------------------------------------------------------

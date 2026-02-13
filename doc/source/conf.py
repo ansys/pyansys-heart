@@ -1,5 +1,6 @@
 """Sphinx documentation configuration file."""
 
+import atexit
 from datetime import datetime
 import os
 from pathlib import Path
@@ -244,3 +245,25 @@ linkcheck_ignore = [
     # Pages generated at build time
     r"../examples/",
 ]
+
+# Final cleanup at exit
+# -----------------------------------------------------------------------------
+# NOTE: this attempts to resolve the hanging doc build issue.
+
+
+def final_cleanup():
+    """Clean up all resources when Sphinx exits."""
+    try:
+        import pyvista as pv
+
+        pv.close_all()
+    except Exception:
+        pass
+
+    # Force garbage collection
+    import gc
+
+    gc.collect()
+
+
+atexit.register(final_cleanup)

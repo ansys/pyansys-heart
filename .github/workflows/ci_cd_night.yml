@@ -76,6 +76,13 @@ jobs:
        run: |
          uv tool run tox -e tests -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -- -m "${{ matrix.tests.markers }}" -vv
 
+     - name: "Upload coverage results"
+       if: ${{ matrix.python == env.MINIMUM_PYTHON_VERSION }}
+       uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+       with:
+         path: .cov/${{ env.LIBRARY_NAME }}-coverage
+         name: ${{ env.LIBRARY_NAME }}-coverage
+
   doc-style:
     name: Documentation Style Check
     runs-on: ubuntu-latest

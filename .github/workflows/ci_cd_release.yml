@@ -205,6 +205,11 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - name: "Install Python ${{ env.MAIN_PYTHON_VERSION }}"
+        uses: astral-sh/setup-uv@803947b9bd8e9f986429fa0c5a41c367cd732b41 # v7.2.1
+        with:
+          python-version: ${{ env.MAIN_PYTHON_VERSION }}
+
       - name: "Set up uv"
         uses: astral-sh/setup-uv@803947b9bd8e9f986429fa0c5a41c367cd732b41 # v7.2.1
         with:

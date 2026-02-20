@@ -221,6 +221,12 @@ jobs:
         run: |
           uv tool run tox -e tests -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -- -m "${{ matrix.tests.markers }}" -vv
 
+      - name: "Upload coverage reports to Codecov"
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
+        with:
+          files: .cov/tests/xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   build-library:
     name: "Build library"
     runs-on: ubuntu-latest

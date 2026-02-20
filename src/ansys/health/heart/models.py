@@ -844,7 +844,7 @@ class HeartModel:
         filename_mesh: str,
         filename_part_info: str,
         working_directory: pathlib.Path | str = None,
-    ) -> FullHeart | FourChamber | BiVentricle | LeftVentricle:
+    ) -> FullHeart | FourChamber | BiVentricle | LeftVentricle | LeftAtrium:
         """Load a heart model from an existing VTU file and part information dictionary.
 
         Parameters
@@ -858,7 +858,7 @@ class HeartModel:
 
         Returns
         -------
-        FullHeart | FourChamber | BiVentricle | LeftVentricle
+        FullHeart | FourChamber | BiVentricle | LeftVentricle | LeftAtrium
             Instance of the heart model.
 
         Raises
@@ -894,6 +894,8 @@ class HeartModel:
             model = BiVentricle(working_directory)
         elif set(LeftVentricle().part_names).issubset(part_names):
             model = LeftVentricle(working_directory)
+        elif set(LeftAtrium().part_names).issubset(part_names):
+            model = LeftAtrium(working_directory)
         else:
             msg = "Failed to infer the type of heart model from the part names."
             LOGGER.error(msg)
@@ -1716,6 +1718,21 @@ class LeftVentricle(HeartModel):
 
         self.left_ventricle.fiber = True
         self.left_ventricle.active = True
+
+        super().__init__(working_directory=working_directory)
+
+        return
+
+
+class LeftAtrium(HeartModel):
+    """Model of only the left atrium."""
+
+    def __init__(self, working_directory: pathlib.Path | str = None) -> None:
+        self.left_atrium: anatomy.Atrium = anatomy.Atrium(name="Left atrium")
+        """Left atrium part."""
+
+        self.left_atrium.fiber = True
+        self.left_atrium.active = True
 
         super().__init__(working_directory=working_directory)
 

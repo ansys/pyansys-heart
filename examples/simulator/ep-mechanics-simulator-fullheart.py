@@ -43,6 +43,7 @@ set it up for a coupled electromechanical simulation.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Import the required modules.
 
+import logging
 import os
 from pathlib import Path
 
@@ -53,6 +54,14 @@ import ansys.health.heart.models as models
 import ansys.health.heart.settings.material.ep_material_factory as ep_material_factory
 from ansys.health.heart.settings.material.material import ISO, Mat295
 from ansys.health.heart.simulator import DynaSettings, EPMechanicsSimulator
+
+###############################################################################
+# Suppress verbose logging output
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Reduce logging verbosity to avoid excessive output in the generated
+# documentation, which can cause LaTeX PDF build failures.
+
+logging.getLogger("PyAnsys Heart_global").setLevel(logging.WARNING)
 
 ###############################################################################
 # Set the required paths

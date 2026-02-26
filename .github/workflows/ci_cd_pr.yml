@@ -260,7 +260,7 @@ jobs:
       - name: Combine coverage files
         run: |
           # Find all .coverage.* files and combine them
-          find coverage-artifacts -name '.coverage.*' -exec cp {} . \;
+          find coverage-artifacts -name '*-coverage' -exec cp {} . \;
           coverage combine
           coverage xml -o coverage.xml
           coverage report

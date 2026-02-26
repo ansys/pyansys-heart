@@ -214,23 +214,24 @@ jobs:
         env:
           PYFLUENT_UI_MODE: "hidden_gui"
           PYFLUENT_CONTAINER_INSECURE_MODE: 1
-          COVERAGE_FILE: .coverage.${{ matrix.python-version }}.${{ matrix.tests.name }}
+          COVERAGE_FILE: ${{ matrix.python-version == env.MAIN_PYTHON_VERSION && format('.coverage.{0}', matrix.tests.name) || '' }}
         run: |
           uv tool run tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
 
       - name: Run Tox
         if: matrix.tests.needs_dpf
         env:
-          COVERAGE_FILE: .coverage.${{ matrix.python-version }}.${{ matrix.tests.name }}
+          COVERAGE_FILE: ${{ matrix.python-version == env.MAIN_PYTHON_VERSION && format('.coverage.{0}', matrix.tests.name) || '' }}
         run: |
           uv tool run tox -e tests -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -- -m "${{ matrix.tests.markers }}" -vv
 
       - name: Upload coverage artifact
+        if: matrix.python-version == env.MAIN_PYTHON_VERSION
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: coverage-${{ matrix.python-version }}-${{ matrix.tests.name }}
+          name: ${{ matrix.tests.name }}-coverage
           path: |
-            .coverage.${{ matrix.python-version }}.${{ matrix.tests.name }}
+            .coverage.${{ matrix.tests.name }}
             .cov/tests/xml
           retention-days: 7
 
@@ -248,7 +249,7 @@ jobs:
       - name: Download all coverage artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          pattern: coverage-*
+          pattern: '*-coverage'
           path: coverage-artifacts
           merge-multiple: false
 

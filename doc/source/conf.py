@@ -1,5 +1,6 @@
 """Sphinx documentation configuration file."""
 
+import atexit
 from datetime import datetime
 import os
 from pathlib import Path
@@ -198,7 +199,12 @@ rst_epilog = ""
 links_filepath = Path(__file__).parent.absolute() / "links.rst"
 rst_epilog += links_filepath.read_text(encoding="utf-8")
 
-exclude_patterns = ["links.rst"]
+exclude_patterns = [
+    "links.rst",
+    # Exclude AutoAPI-generated index files that are not meant to be in toctree
+    "api/ansys/health/heart/settings/defaults/*/index.rst",
+    "api/ansys/health/heart/settings/material/*/index.rst",
+]
 
 # Configuration for Jinja
 # -----------------------------------------------------------------------------
@@ -244,3 +250,25 @@ linkcheck_ignore = [
     # Pages generated at build time
     r"../examples/",
 ]
+
+# Final cleanup at exit
+# -----------------------------------------------------------------------------
+# NOTE: this attempts to resolve the hanging doc build issue.
+
+
+def final_cleanup():
+    """Clean up all resources when Sphinx exits."""
+    try:
+        import pyvista as pv
+
+        pv.close_all()
+    except Exception:
+        pass
+
+    # Force garbage collection
+    import gc
+
+    gc.collect()
+
+
+atexit.register(final_cleanup)

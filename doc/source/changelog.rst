@@ -7,6 +7,48 @@ Release notes
 
 .. towncrier release notes start
 
+`0.15.1 <https://github.com/ansys/pyansys-heart/releases/tag/v0.15.1>`_ (February 12, 2026)
+===========================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Fixed
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Limit allowed versions of pydyna
+          - `#1313 <https://github.com/ansys/pyansys-heart/pull/1313>`_
+
+
+  .. tab-item:: Documentation
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Fix broken link-check for restructured text
+          - `#1322 <https://github.com/ansys/pyansys-heart/pull/1322>`_
+
+
+  .. tab-item:: Dependencies
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Bump ansys-fluent-core from 0.35.0 to 0.37.1
+          - `#1297 <https://github.com/ansys/pyansys-heart/pull/1297>`_
+
+        * - Remove ansys-units from dependencies
+          - `#1309 <https://github.com/ansys/pyansys-heart/pull/1309>`_
+
+        * - Bump ansys-fluent-core from 0.37.1 to 0.37.2
+          - `#1321 <https://github.com/ansys/pyansys-heart/pull/1321>`_
+
+
 `0.15.0 <https://github.com/ansys/pyansys-heart/releases/tag/v0.15.0>`_ (November 06, 2025)
 ===========================================================================================
 

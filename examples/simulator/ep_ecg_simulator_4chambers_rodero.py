@@ -66,8 +66,6 @@ from ansys.health.heart.simulator import DynaSettings, EPSimulator
 
 os.environ["ANSYS_DPF_ACCEPT_LA"] = "Y"
 
-os.environ["ANSYSLMD_LICENSE_FILE"] = "1055@SERVER"
-
 ############################### à modifier  ###################################
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Instantiate the simulator and define settings.
@@ -77,10 +75,8 @@ os.environ["ANSYSLMD_LICENSE_FILE"] = "1055@SERVER"
 #    including ``smp``, ``intempi``, ``msmpi``, ``windows``, ``linux``, and ``wsl``.
 #    Choose the one that works for your setup.
 # Specify the LS-DYNA path. (The last tested working version is ``intelmpi-linux-DEV-106117``.)
-ls_path = Path("C:\\") / "Users" / "mbouchai" / "pyansys-heart" / "ansys-dev-env" / "exe_07_07"
-lsdyna_path = os.path.join(
-    ls_path, r"ls-dyna_mpp_d_DEV_122687-g00479ad686_winx64_ifort190_sse2_msmpi.exe"
-)
+
+lsdyna_path = lsdyna_path = r"your_dyna_exe"
 
 # Instantiate LS-DYNA settings.
 dyna_settings = DynaSettings(
@@ -96,38 +92,21 @@ compute_purk = False
 # must either add the information to the .json file using the same format,
 #  or add the customization directly in this script.
 
-# path of data model
-ecg_data_path = (
-    Path("D:\\")
-    / "env_pyheart_meca"
-    / "pyansys-heart"
-    / "src"
-    / "ansys"
-    / "health"
-    / "heart"
-    / "data_examples"
-)
-rodero_file_info = os.path.join(
-    ecg_data_path,
-    "info_rodero_conduction_system_ecg.json",
-)
-
 # choice which model you want
 num_rodero = 1
 
 # Set the working directory and path to the model. This example assumes that there is a
-workdir = (
-    Path("D:\\")
-    / "env_pyheart_meca"
-    / "env_pyheart_meca"
-    / "mes_modeles"
-    / "EP"
-    / "Rodero2021"
-    / ("0" + str(num_rodero))
-    / "FullHeart"
-)
+workdir = Path.home() / "pyansys-heart" / "downloads" / "Rodero2021"/ ("0" + str(num_rodero)) / "FourChamber"
 
 simulation_directory = os.path.join(workdir, "simulation-EP")
+
+# path of data model
+ecg_data_path = Path.home() / "pyansys-heart" / "src" / "ansys" / "health" / "heart" / "data_examples"
+
+rodero_file_info = os.path.join(
+    ecg_data_path,
+    "info_rodero_conduction_system_ecg.json",
+)
 
 ##############################################################################
 # Import rodero model parameters
@@ -472,7 +451,8 @@ simulator.model.parts[4].ep_material = ep_atrium
 
 simulator.compute_uhc()
 # Configurable number of layers
-simulator.settings.electrophysiology.nb_layers = 7
+simulator.settings.electrophysiology.apex_base_nb_layers = 5
+simulator.settings.electrophysiology.epi_endo_nb_layers = 5
 
 ###############################################################################
 # Start the main simulation

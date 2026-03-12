@@ -156,7 +156,7 @@ class TentusscherEpi(Tentusscher):
 class TentusscherAtria(Tentusscher):
     """Data for Tentusscher cell model in its endocardium version."""
 
-    gks: float = 0.245
+    gks: float = 0.275
     gto: float = 0.294
     v: float = -85.23
     ki: float = 136.89

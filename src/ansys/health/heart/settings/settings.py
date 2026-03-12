@@ -589,9 +589,14 @@ class Electrophysiology(BaseSettings):
         description="Layers for material assignment of the myocardium",
     )
 
-    nb_layers: int = Field(
+    epi_endo_nb_layers: int = Field(
         default=3,
         description="Number of layers through the wall thickness",
+    )
+
+    apex_base_nb_layers: int = Field(
+        default=3,
+        description="Number of layers along the apex-to-base direction",
     )
 
     lambda_ratio: Quantity = Field(

@@ -412,44 +412,94 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
         if "transmural" not in self.model.mesh.point_data.keys():
             return
-
-        region_nodeset_ids = self._create_myocardial_nodeset_layers(
-            self.settings.electrophysiology.nb_layers
-        )
+        if "apico-basal" not in self.model.mesh.point_data.keys():
+            return
 
         endo_ref = cell_models.TentusscherEndo()
         epi_ref = cell_models.TentusscherEpi()
 
-        gto_endo = getattr(endo_ref, "gto", 0.0)
-        gks_endo = getattr(endo_ref, "gks", 0.0)
-        gto_epi = getattr(epi_ref, "gto", 0.0)
-        gks_epi = getattr(epi_ref, "gks", 0.0)
+        gto_min = getattr(endo_ref, "gto", 0.0)
+        gks_min = getattr(endo_ref, "gks", 0.0)
+        gto_max = getattr(epi_ref, "gto", 0.0)
+        gks_max = getattr(epi_ref, "gks", 0.0)
 
-        for region_name, layer_ids in region_nodeset_ids.items():
-            # Cell model not differentiated in the septum
-            if region_name == "SEP":
-                for i, layer_id in enumerate(layer_ids):
-                    model_layer = cell_models.TentusscherEdit(gto=gto_endo, gks=gks_endo)
-                    # Add the Tentusscher keyword for this layer
-                    self._add_Tentusscher_keyword(matid=-layer_id, params=model_layer.model_dump())
-            else:
-                n = len(layer_ids)
-                if n == 0:
-                    continue
+        if self.settings.electrophysiology.apex_base_nb_layers is False:
 
-                for i, layer_id in enumerate(layer_ids):
-                    alpha = i / (n - 1) if n > 1 else 0.0
+            region_nodeset_ids = self._create_transmural_nodeset_layers(
+                self.settings.electrophysiology.epi_endo_nb_layers
+            )        
 
-                    # Linear transmural interpolation of gto and gks between endo and epi
-                    gto_val = (1 - alpha) * gto_endo + alpha * gto_epi
-                    gks_val = (1 - alpha) * gks_endo + alpha * gks_epi
-                    gto_val = round(gto_val, 3)
-                    gks_val = round(gks_val, 3)
-                    # Construction of the corresponding cell model
-                    model_layer = cell_models.TentusscherEdit(gto=gto_val, gks=gks_val)
-                    self._add_Tentusscher_keyword(matid=-layer_id, params=model_layer.model_dump())
+            for region_name, layer_ids in region_nodeset_ids.items():
+                # Cell model not differentiated in the septum
+                if region_name == "SEP":
+                    for i, layer_id in enumerate(layer_ids):
+                        model_layer = cell_models.TentusscherEdit(gto=gto_min, gks=gks_min)
+                        # Add the Tentusscher keyword for this layer
+                        self._add_Tentusscher_keyword(matid=-layer_id, params=model_layer.model_dump())
+                else:
+                    n = len(layer_ids)
 
-    def _create_myocardial_nodeset_layers(self, n_layers: int) -> dict[str, list[int]]:
+                    for i, layer_id in enumerate(layer_ids):
+                        alpha = i / (n - 1) if n > 1 else 0.0
+
+                        # Linear transmural interpolation of gto and gks between endo and epi
+                        gto_val = (1 - alpha) * gto_min + alpha * gto_max
+                        gks_val = (1 - alpha) * gks_min + alpha * gks_max
+                        gto_val = round(gto_val, 3)
+                        gks_val = round(gks_val, 3)
+                        # Construction of the corresponding cell model
+                        model_layer = cell_models.TentusscherEdit(gto=gto_val, gks=gks_val)
+                        self._add_Tentusscher_keyword(matid=-layer_id, params=model_layer.model_dump())
+
+        else:
+            n_tm = self.settings.electrophysiology.epi_endo_nb_layers
+            n_ab = self.settings.electrophysiology.apex_base_nb_layers
+            region_nodesets = self._create_2d_nodeset_layers(n_tm,n_ab)
+
+            gto_table, gks_table = self._build_2d_conductance_table(n_tm, n_ab, gto_min, gto_max, gks_min, gks_max)
+
+            for region_name, layer_info_list in region_nodesets.items():
+
+                if region_name == "SEP":
+                    for layer_info in layer_info_list:
+                        layer_id = layer_info["nodeset_id"]
+                        i_ab = layer_info["i_ab"] 
+                        gto_val = gto_table[i_ab, 0]
+                        gks_val = gks_table[i_ab, 0]
+
+                        model_layer = cell_models.TentusscherEdit(
+                            gto=gto_val,
+                            gks=gks_val,
+                        )
+                        self._add_Tentusscher_keyword(
+                            matid=-layer_id,
+                            params=model_layer.model_dump(),
+                        )
+
+                else:
+
+                    for layer_info in layer_info_list:
+
+                        layer_id = layer_info["nodeset_id"]
+                        i_ab = layer_info["i_ab"]
+                        i_tm = layer_info["i_tm"]
+
+                        gto_val = gto_table[i_ab, i_tm]
+                        gks_val = gks_table[i_ab, i_tm]
+
+                        model_layer = cell_models.TentusscherEdit(
+                            gto=gto_val,
+                            gks=gks_val,
+                        )
+
+                        self._add_Tentusscher_keyword(
+                            matid=-layer_id,
+                            params=model_layer.model_dump(),
+                        )
+
+
+
+    def _create_transmural_nodeset_layers(self, n_layers: int) -> dict[str, list[int]]:
         values = self.model.mesh.point_data["transmural"]
 
         # --- Part mask ---
@@ -491,6 +541,126 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             region_nodeset_ids[region_name] = layer_ids
 
         return region_nodeset_ids
+
+    def _create_2d_nodeset_layers(
+        self,
+        n_tm_layers: int,
+        n_ab_layers: int,
+    ) -> dict[str, list[dict]]:
+        
+        tm_thresholds = np.linspace(0.0, 1.0, n_tm_layers + 1)
+        ab_thresholds= (1 - np.exp(-0.6*np.linspace(0, n_ab_layers, n_ab_layers+1))).tolist()
+    
+        transmural_values = self.model.mesh.point_data["transmural"]
+        apicobasal_values = self.model.mesh.point_data["apico-basal"]
+
+        lv_mask = self._create_mask_part(
+            self.model.left_ventricle.get_element_ids(self.model.mesh)
+        )
+        rv_mask = self._create_mask_part(
+            self.model.right_ventricle.get_element_ids(self.model.mesh)
+        )
+        sep_mask = self._create_mask_part(
+            self.model.septum.get_element_ids(self.model.mesh)
+        )
+        region_masks = {
+            "LV": lv_mask,
+            "RV": rv_mask,
+            "SEP": sep_mask,
+        }
+
+        region_nodesets: dict[str, list[dict]] = {}
+
+        for region_name, region_mask in region_masks.items():
+            layer_info_list = []
+
+            for i_ab in range(n_ab_layers):
+                ab_min = ab_thresholds[i_ab]
+                ab_max = ab_thresholds[i_ab + 1]
+                ab_mask = (
+                    (apicobasal_values >= ab_min)
+                    & (apicobasal_values < ab_max)
+                )
+                if i_ab == n_ab_layers - 1:
+                    ab_mask |= (apicobasal_values == 1.0)
+
+                for i_tm in range(n_tm_layers):
+                    tm_min = tm_thresholds[i_tm]
+                    tm_max = tm_thresholds[i_tm + 1]
+                    tm_mask = (
+                        (transmural_values >= tm_min)
+                        & (transmural_values < tm_max)
+                    )
+                    if i_tm == n_tm_layers - 1:
+                        tm_mask |= (transmural_values == 1.0)
+                    combined_mask = region_mask & ab_mask & tm_mask
+                    layer_nodes = np.where(combined_mask)[0]
+                    if len(layer_nodes) == 0:
+                        continue
+
+                    nodeset_id = self.get_unique_nodeset_id()
+
+                    node_set_kw = create_node_set_keyword(
+                        node_ids=layer_nodes + 1,
+                        node_set_id=nodeset_id,
+                        title=f"{region_name}-AB{i_ab+1}-TM{i_tm+1}",
+                    )
+
+                    self.kw_database.node_sets.append(node_set_kw)
+
+                    layer_info_list.append(
+                        {"nodeset_id": nodeset_id,
+                            "i_ab": i_ab,
+                            "i_tm": i_tm,})
+
+            region_nodesets[region_name] = layer_info_list
+
+        return region_nodesets
+
+    def _build_2d_conductance_table(
+        self,
+        n_tm_layers: int,
+        n_ab_layers: int,
+        gto_min: float,
+        gto_max: float,
+        gks_min: float,
+        gks_max: float,
+    ):
+        gto_table = np.zeros((n_ab_layers, n_tm_layers))
+        gks_table = np.zeros((n_ab_layers, n_tm_layers))
+
+        # Coins 2D
+        # apex-endo = min
+        gto_ae = gto_min
+        gto_ape = gto_min + (gto_max - gto_min)/2
+        gto_be = gto_min + (gto_max - gto_min)/2
+        gto_bpe = gto_max
+
+        gks_ae = gks_min
+        gks_ape = gks_min + (gks_max - gks_min)/2
+        gks_be = gks_min + (gks_max - gks_min)/2
+        gks_bpe = gks_max
+
+        for i_ab in range(n_ab_layers):
+            beta = i_ab / (n_ab_layers - 1) if n_ab_layers > 1 else 0.0
+
+            for i_tm in range(n_tm_layers):
+                alpha = i_tm / (n_tm_layers - 1) if n_tm_layers > 1 else 0.0
+
+                gto_val = (
+                    (1 - beta) * ((1 - alpha) * gto_ae + alpha * gto_ape) +
+                    beta * ((1 - alpha) * gto_be + alpha * gto_bpe)
+                )
+
+                gks_val = (
+                    (1 - beta) * ((1 - alpha) * gks_ae + alpha * gks_ape) +
+                    beta * ((1 - alpha) * gks_be + alpha * gks_bpe)
+                )
+
+                gto_table[i_ab, i_tm] = round(gto_val, 3)
+                gks_table[i_ab, i_tm] = round(gks_val, 3)
+
+        return gto_table, gks_table
 
     def _get_layer_nodes(
         self, mask: np.ndarray, values: np.ndarray, n_layers: int

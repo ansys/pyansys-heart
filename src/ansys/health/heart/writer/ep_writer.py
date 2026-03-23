@@ -923,8 +923,23 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
 
     def _get_ep_material_kw(
         self, ep_mid: int, ep_material: ep_materials.EPMaterialModel
-    ) -> Union[custom_keywords.EmMat001, custom_keywords.EmMat003]:
-        if type(ep_material) is ep_materials.Insulator:
+    ) -> Union[custom_keywords.EmMat001, custom_keywords.EmMat003, custom_keywords.EmMat005]:
+        """Get the appropriate EP material keyword based on the material type.
+
+        Parameters
+        ----------
+        ep_mid : int
+            Material ID.
+
+        ep_material : ep_materials.EPMaterialModel
+            EP material model.
+
+        Returns
+        -------
+        Union[custom_keywords.EmMat001, custom_keywords.EmMat003, custom_keywords.EmMat005]
+            EP material keyword.
+        """
+        if isinstance(ep_material, ep_materials.Insulator):
             # insulator mtype
             mtype = 1
             kw = custom_keywords.EmMat001(
@@ -936,7 +951,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
         # active myocardium
-        elif type(ep_material) is ep_materials.Active:
+        elif isinstance(ep_material, ep_materials.Active):
             mtype = 2
             # "isotropic" case
             if ep_material.sigma_sheet is None:
@@ -961,7 +976,41 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 d3=0,
             )
 
-        elif type(ep_material) is ep_materials.ActiveBeam:
+        # active myocardium
+        elif isinstance(ep_material, ep_materials.ActiveNew):
+            mtype = 2
+            # "isotropic" case
+            if ep_material.sigma_sheet is None:
+                # LS-DYNA bug prevents using isotropic mat (EMMAT001) for active isotropic case
+                # Bypass: using EMMAT005 with same sigma value in all directions
+                ep_material.sigma_sheet = ep_material.sigma_fiber
+                ep_material.sigma_sheet_normal = ep_material.sigma_fiber
+            if ep_material.cond_sigma_fiber is None:
+                ep_material.cond_sigma_fiber = ep_material.sigma_fiber
+                ep_material.cond_sigma_sheet = ep_material.sigma_sheet
+                ep_material.cond_sigma_sheet_normal = ep_material.sigma_sheet_normal
+
+            kw = custom_keywords.EmMat005(
+                mid=ep_mid,
+                mtype=mtype,
+                cvsigma11=ep_material.sigma_fiber,
+                cvsigma22=ep_material.sigma_sheet,
+                cvsigma33=ep_material.sigma_sheet_normal,
+                condsigma11=ep_material.cond_sigma_fiber,
+                condsigma22=ep_material.cond_sigma_sheet,
+                condsigma33=ep_material.cond_sigma_sheet_normal,
+                beta=ep_material.beta,
+                cm=ep_material.cm,
+                aopt1=2.0,
+                a1=0,
+                a2=0,
+                a3=1,
+                d1=0,
+                d2=-1,
+                d3=0,
+            )
+
+        elif isinstance(ep_material, ep_materials.ActiveBeam):
             mtype = 2
             kw = custom_keywords.EmMat001(
                 mid=ep_mid,
@@ -970,7 +1019,8 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 beta=ep_material.beta,
                 cm=ep_material.cm,
             )
-        elif type(ep_material) is ep_materials.Passive:
+
+        elif isinstance(ep_material, ep_materials.Passive):
             mtype = 4
             # isotropic
             if ep_material.sigma_sheet is None:
@@ -999,6 +1049,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     d2=-1,
                     d3=0,
                 )
+
         return kw
 
 

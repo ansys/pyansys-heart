@@ -27,7 +27,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, model_validator
 
-from ansys.health.heart.settings.material.cell_models import Tentusscher
+from ansys.health.heart.settings.material.cell_models import Tentusscher, TentusscherEndo
 
 
 class EPSolverType(Enum):
@@ -60,7 +60,11 @@ class EPMaterialModel(BaseModel):
 
 
 class Insulator(EPMaterialModel):
-    """Insulator material."""
+    """
+    Insulator material.
+
+    Will use *EMMAT_001 with mtype=1.
+    """
 
     sigma_fiber: float = 0.0
     sigma_sheet_normal: float = 0.0
@@ -70,28 +74,50 @@ class Insulator(EPMaterialModel):
 
 
 class Passive(EPMaterialModel):
-    """Hold data for a passive EP material."""
+    """
+    Hold data for a passive EP material.
+
+    Will use *EMMAT_001 or *EMMAT_003 but no cell model associated with it.
+    """
 
 
 class Active(EPMaterialModel):
-    """Hold data for an active EP material."""
+    """
+    Hold data for an active EP material.
 
-    # NOTE: an active EP material has a cell model associated with it.
+    Use *EMMAT_003 with mtype=2, associated with a cell model.
+    """
+
+    cm: Optional[float] = 0.01
+    beta: Optional[float] = 140.0
 
     cell_model: Tentusscher = Field(default_factory=lambda: Tentusscher())
 
 
-class ActiveBeam(Active):
-    """Hold data for beam active EP material."""
+class ActiveNew(Active):
+    """
+    Same with Active except use *EMMAT_005.
 
-    # TODO: replace by TentusscherEndo
-    cell_model: Tentusscher = Tentusscher()
+    In Eikonal-reaction model, it uses anistropic conductivity tensor
+    for ECG computation.
+    More advantages in Bio-domain model but not supported in current version.
+    """
+
+
+class ActiveBeam(Active):
+    """
+    Hold data for conduction beam's active EP material.
+
+    Will use *EMMAT_001 with mtype=2, associated with a cell model same to the endocardium.
+    """
+
+    cell_model: Tentusscher = TentusscherEndo()
 
     @model_validator(mode="after")
     def check_inputs(self):
         """Post init method."""
-        # ActiveBeam is by definition isotropic, so remove sheet conductivities if set
-        self.sigma_sheet is None
-        self.sigma_sheet_normal is None
+        # ActiveBeam is isotropic, so remove sheet conductivity if set
+        self.sigma_sheet = None
+        self.sigma_sheet_normal = None
 
         return self

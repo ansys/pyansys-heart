@@ -25,7 +25,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 from ansys.health.heart.settings.material.cell_models import Tentusscher, TentusscherEndo
 
@@ -40,8 +40,6 @@ class EPSolverType(Enum):
 
 class EPMaterialModel(BaseModel):
     """Base class for all EP material models."""
-
-    model_config = ConfigDict(extra="forbid")
 
     sigma_fiber: Optional[float] = None
     sigma_sheet: Optional[float] = None

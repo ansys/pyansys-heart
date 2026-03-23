@@ -939,7 +939,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         Union[custom_keywords.EmMat001, custom_keywords.EmMat003, custom_keywords.EmMat005]
             EP material keyword.
         """
-        if isinstance(ep_material, ep_materials.Insulator):
+        if type(ep_material) is ep_materials.Insulator:
             # insulator mtype
             mtype = 1
             kw = custom_keywords.EmMat001(
@@ -951,7 +951,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
         # active myocardium
-        elif isinstance(ep_material, ep_materials.Active):
+        elif type(ep_material) is ep_materials.Active:
             mtype = 2
             # "isotropic" case
             if ep_material.sigma_sheet is None:
@@ -977,7 +977,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
             )
 
         # active myocardium
-        elif isinstance(ep_material, ep_materials.ActiveNew):
+        elif type(ep_material) is ep_materials.ActiveNew:
             mtype = 2
             # "isotropic" case
             if ep_material.sigma_sheet is None:
@@ -1010,7 +1010,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 d3=0,
             )
 
-        elif isinstance(ep_material, ep_materials.ActiveBeam):
+        elif type(ep_material) is ep_materials.ActiveBeam:
             mtype = 2
             kw = custom_keywords.EmMat001(
                 mid=ep_mid,
@@ -1020,7 +1020,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 cm=ep_material.cm,
             )
 
-        elif isinstance(ep_material, ep_materials.Passive):
+        elif type(ep_material) is ep_materials.Passive:
             mtype = 4
             # isotropic
             if ep_material.sigma_sheet is None:

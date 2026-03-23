@@ -28,6 +28,7 @@ from ansys.health.heart.settings.material.cell_models import Tentusscher, Tentus
 from ansys.health.heart.settings.material.ep_material import (
     Active,
     ActiveBeam,
+    ActiveNew,
     EPMaterialModel,
     Insulator,
     Passive,
@@ -194,8 +195,8 @@ class TestActive:
         assert active.sigma_fiber is None
         assert active.sigma_sheet is None
         assert active.sigma_sheet_normal is None
-        assert active.beta is None
-        assert active.cm is None
+        assert active.beta == 140
+        assert active.cm == 0.01
 
         # Active-specific defaults
         assert isinstance(active.cell_model, Tentusscher)
@@ -209,6 +210,19 @@ class TestActive:
         assert active1.cell_model is not active2.cell_model
         assert isinstance(active1.cell_model, Tentusscher)
         assert isinstance(active2.cell_model, Tentusscher)
+
+    def test_active_new(self) -> None:
+        """Test ActiveNew class."""
+        active_new = ActiveNew(sigma_fiber=1, cond_sigma_fiber=1)
+
+        assert isinstance(active_new, Active)
+        assert active_new.sigma_fiber == 1
+        assert active_new.cond_sigma_fiber == 1
+
+    def test_error_on_invalid_active_new_field(self) -> None:
+        """Test that ActiveNew raises error on invalid field."""
+        with pytest.raises(ValidationError):
+            ActiveNew(sigma_fiber=1, invalid_field=123)
 
     def test_active_custom_cell_model(self) -> None:
         """Test Active with custom cell model."""

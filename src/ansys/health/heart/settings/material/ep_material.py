@@ -25,7 +25,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from ansys.health.heart.settings.material.cell_models import Tentusscher, TentusscherEndo
 
@@ -40,6 +40,8 @@ class EPSolverType(Enum):
 
 class EPMaterialModel(BaseModel):
     """Base class for all EP material models."""
+
+    model_config = ConfigDict(extra="forbid")
 
     sigma_fiber: Optional[float] = None
     sigma_sheet: Optional[float] = None
@@ -96,12 +98,16 @@ class Active(EPMaterialModel):
 
 class ActiveNew(Active):
     """
-    Same with Active except use *EMMAT_005.
+    Same with :class:`Active` except use *EMMAT_005.
 
-    In Eikonal-reaction model, it uses anistropic conductivity tensor
+    In Eikonal-reaction model, it uses anisotropic conductivity tensor
     for ECG computation.
-    More advantages in Bio-domain model but not supported in current version.
+    Other advantages in Bi-domain model but not supported in current version.
     """
+
+    cond_sigma_fiber: Optional[float] = None
+    cond_sigma_sheet: Optional[float] = None
+    cond_sigma_sheet_normal: Optional[float] = None
 
 
 class ActiveBeam(Active):

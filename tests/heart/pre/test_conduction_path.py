@@ -39,6 +39,17 @@ from ansys.health.heart.pre.conduction_path import (
 from tests.heart.conftest import get_assets_folder, get_fourchamber, get_fullheart
 
 
+def test_define_12lead_electrodes():
+    model = get_fourchamber()
+    _ = model.define_12lead_electrodes()
+
+    assert len(model.electrodes) == 10
+    assert model.electrodes[0].name == "V1"
+    assert np.allclose(
+        model.electrodes[0].xyz, np.array([8.32595409, 51.56545606, 440.3230059]), atol=1e-3
+    )
+
+
 def test_create_conductionbeams_on_surface():
     """Test conductionbeams can be initialized correctly on a surface."""
     model = get_fourchamber()

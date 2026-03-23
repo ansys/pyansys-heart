@@ -34,6 +34,7 @@ from typing import Literal
 from deprecated import deprecated
 import numpy as np
 import pyvista as pv
+from scipy.spatial.transform import Rotation as Rotation
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
@@ -296,6 +297,110 @@ class HeartModel:
     def conduction_mesh(self):
         """Conduction mesh."""
         return self._conduction_mesh
+
+    def define_12lead_electrodes(self, angle1: float = 0, angle2: float = 0) -> None:
+        """Define the 12-lead ECG electrode positions based on the model geometry.
+
+        Parameters
+        ----------
+        angle1 : float, default: 0
+            First fine tune angle, not used.
+        angle2 : float, default: 0
+            Second fine tune angle, not used.
+        """
+        # template data
+        reference_electrode_positions = np.array(
+            [
+                [-21, 1314, 117],
+                [21, 1314, 117],
+                [62, 1285, 124],
+                [104, 1262, 103],
+                [136, 1267, 73],
+                [156, 1273, 32],
+                [-153, 1458, 2],
+                [153, 1458, 2],
+                [-80, 1150, 34],
+                [80, 1150, 34],
+            ],
+            dtype=float,
+        )
+
+        ref_apex = np.array([65, 1265, 72])
+        ref_mitral = np.array([28, 1310, -1.5])
+        ref_tricuspid = np.array([-10, 1305, 35])
+        ref_pulmonary = np.array([25, 1353, 22])
+
+        # extract points from model
+        self._extract_apex()
+        model_apex = self.left_ventricle.apex_points[1].xyz
+        # TODO: maelys: why inbdex is wrong
+        # centroid_tricuspide = self.cap_centroids[1].xyz
+        # centroid_mitral = self.cap_centroids[0].xyz
+        # centroid_v_pulm = self.cap_centroids[2].xyz
+
+        model_tricuspid = next(cap.centroid for cap in self.all_caps if "aortic-valve" == cap.name)
+        model_mitral = next(cap.centroid for cap in self.all_caps if "mitral-valve" == cap.name)
+        model_pulmonary = next(
+            cap.centroid for cap in self.all_caps if "tricuspid-valve" == cap.name
+        )
+
+        ref_pp = np.array([ref_apex, ref_tricuspid, ref_mitral, ref_pulmonary])
+        model_pp = np.array([model_apex, model_tricuspid, model_mitral, model_pulmonary])
+
+        # Translation
+        translation = model_pp[0] - ref_pp[0]
+        p_ref_t = ref_pp + translation
+
+        # first rotation @ TODO: Maelys what to what
+        vt_ref = p_ref_t[1] - p_ref_t[0]
+        vt_model = model_tricuspid - model_apex
+        normal_r1 = np.cross(vt_model, vt_ref)
+        angle_deg_r1 = (
+            np.degrees(
+                -np.arccos(
+                    np.dot(vt_ref, vt_model) / (np.linalg.norm(vt_model) * np.linalg.norm(vt_ref))
+                )
+            )
+            + angle1
+        )
+        axis_r1 = normal_r1 / np.linalg.norm(normal_r1)
+        rot_r1 = Rotation.from_rotvec(np.radians(angle_deg_r1) * axis_r1)
+        p_ref_r1 = rot_r1.apply(p_ref_t - model_apex) + model_apex
+
+        # second rotation, can reuse 1st rotation algo?
+        vm_ref = p_ref_r1[2] - p_ref_r1[1]
+        vm_model = model_mitral - model_tricuspid
+        normal_r2 = p_ref_r1[1] - p_ref_r1[0]
+        angle_deg_r2 = (
+            -np.degrees(
+                np.arccos(
+                    np.dot(vm_ref, vm_model) / (np.linalg.norm(vm_ref) * np.linalg.norm(vm_model))
+                )
+            )
+            + angle2
+        )
+        axis_r2 = normal_r2 / np.linalg.norm(normal_r2)
+        rot_r2 = Rotation.from_rotvec(np.radians(angle_deg_r2) * axis_r2)
+
+        # apply transformations to the electrodes
+        electrodes_t = reference_electrode_positions + translation
+        electrodes_r1 = rot_r1.apply(electrodes_t - model_apex) + model_apex
+        electrodes_align = rot_r2.apply(electrodes_r1 - model_tricuspid) + model_tricuspid
+
+        self.electrodes = [
+            Point(name="V1", xyz=electrodes_align[0]),
+            Point(name="V2", xyz=electrodes_align[1]),
+            Point(name="V3", xyz=electrodes_align[2]),
+            Point(name="V4", xyz=electrodes_align[3]),
+            Point(name="V5", xyz=electrodes_align[4]),
+            Point(name="V6", xyz=electrodes_align[5]),
+            Point(name="RA", xyz=electrodes_align[6]),
+            Point(name="LA", xyz=electrodes_align[7]),
+            Point(name="RL", xyz=electrodes_align[8]),
+            Point(name="LL", xyz=electrodes_align[9]),
+        ]
+
+        return
 
     def assign_conduction_paths(self, paths: ConductionPath | list[ConductionPath]):
         """Assign conduction paths to the model.

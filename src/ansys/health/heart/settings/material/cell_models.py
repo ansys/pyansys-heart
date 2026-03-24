@@ -27,7 +27,7 @@ from pydantic import BaseModel
 
 class Tentusscher(BaseModel):
     """
-    Data for Tentusscher cell model.
+    Basic data for Tentusscher cell model, same with  :class:`TentusscherEpi`.
 
     Reference: https://doi.org/10.1152/ajpheart.00109.2006
     """

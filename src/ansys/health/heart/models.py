@@ -29,14 +29,13 @@ import json
 import os
 import pathlib
 import re
-from typing import Literal
+from typing import Literal, Tuple
 
 from deprecated import deprecated
 import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as Rotation
 import yaml
-from typing import Tuple
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import InvalidHeartModelError, PartAlreadyExistsError
@@ -298,116 +297,125 @@ class HeartModel:
     def conduction_mesh(self):
         """Conduction mesh."""
         return self._conduction_mesh
-    
 
     def define_12lead_electrodes(self) -> None:
-        """Define the 12-lead ECG electrode positions based on the model geometry.
-
-        Parameters
-        ----------
-        angle1 : float, default: 0
-            First fine tune angle, not used.
-        angle2 : float, default: 0
-            Second fine tune angle, not used.
-        """
-
-        # reference electrode positions - positioned according to current clinical practice
+        """Define the 12-lead ECG electrode positions based on the model geometry."""
+        # reference electrode positions
+        # positioned according to current clinical practice
         reference_electrode_positions = np.array(
             [
-                [-21, 1314, 117],   # V1
-                [21, 1314, 117],    # V2
-                [62, 1285, 124],    # V3
-                [104, 1262, 103],   # V4
-                [136, 1267, 73],    # V5
-                [156, 1273, 32],    # V6
-                [-153, 1458, 2],    # RA
-                [153, 1458, 2],     # LA
-                [-80, 1150, 34],    # RL
-                [80, 1150, 34],     # LL
+                [-21, 1314, 117],  # V1
+                [21, 1314, 117],  # V2
+                [62, 1285, 124],  # V3
+                [104, 1262, 103],  # V4
+                [136, 1267, 73],  # V5
+                [156, 1273, 32],  # V6
+                [-153, 1458, 2],  # RA
+                [153, 1458, 2],  # LA
+                [-80, 1150, 34],  # RL
+                [80, 1150, 34],  # LL
             ],
             dtype=float,
         )
 
         # Reference anatomical landmarks
-        ref_apex      = np.array([65, 1265, 72], dtype=float)
-        ref_mitral    = np.array([28, 1310, -1.5], dtype=float)
+        ref_apex = np.array([65, 1265, 72], dtype=float)
+        ref_mitral = np.array([28, 1310, -1.5], dtype=float)
         ref_tricuspid = np.array([-10, 1305, 35], dtype=float)
         ref_pulmonary = np.array([25, 1353, 22], dtype=float)
 
-        A = np.vstack([ref_apex, ref_tricuspid, ref_mitral, ref_pulmonary])  
+        ref_landmarks = np.vstack([ref_apex, ref_tricuspid, ref_mitral, ref_pulmonary])
 
-        # Extraction of the corresponding anatomical landmarks from the model 
+        # Extraction of the corresponding anatomical landmarks from the model
         self._extract_apex()
-        model_apex = np.asarray(self.left_ventricle.apex_points[1].xyz, dtype=float)
+        model_apex = np.array(self.left_ventricle.apex_points[1].xyz)
 
-        model_tricuspid = np.asarray(
+        model_tricuspid = np.array(
             next(cap.centroid for cap in self.all_caps if cap.name == "tricuspid-valve"),
-            dtype=float,
         )
-        model_mitral = np.asarray(
+        model_mitral = np.array(
             next(cap.centroid for cap in self.all_caps if cap.name == "mitral-valve"),
-            dtype=float,
         )
-        model_pulmonary = np.asarray(
+        model_pulmonary = np.array(
             next(cap.centroid for cap in self.all_caps if cap.name == "pulmonary-valve"),
-            dtype=float,
         )
 
-        B = np.vstack([model_apex, model_tricuspid, model_mitral, model_pulmonary]) 
+        model_landmarks = np.vstack([model_apex, model_tricuspid, model_mitral, model_pulmonary])
 
         # Computation of the optimal rigid transformation
-        R, t = self.rigid_transform_3d(A, B)
-        print(R)
-        electrodes_align = self.apply_rigid_transform(reference_electrode_positions, R, t)
+        rotation, translation = HeartModel.rigid_transform_3d(ref_landmarks, model_landmarks)
 
-        # Instantiating Point objects for all electrodes and assign it to the model
-        names = ["V1","V2","V3","V4","V5","V6","RA","LA","RL","LL"]
-        self.electrodes = [Point(name=n, xyz=xyz) for n, xyz in zip(names, electrodes_align)]
+        aligned_electrodes = (rotation @ reference_electrode_positions.T).T + translation
 
-        return electrodes_align
-    
-    def rigid_transform_3d(self, A: np.ndarray, B: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        # Instantiating Point objects for all electrodes and assign it
+        names = ["V1", "V2", "V3", "V4", "V5", "V6", "RA", "LA", "RL", "LL"]
+        self.electrodes = [Point(name=n, xyz=xyz) for n, xyz in zip(names, aligned_electrodes)]
+
+        return aligned_electrodes
+
+    @staticmethod
+    def rigid_transform_3d(
+        source_points: np.ndarray, target_points: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Compute the optimal rigid transformation that aligns source points to target points.
+
+        Uses singular value decomposition (SVD) of the cross-covariance matrix.
+
+        Parameters
+        ----------
+        source_points : np.ndarray
+            Source point set of shape (N, 3) with N >= 3 non-collinear points.
+        target_points : np.ndarray
+            Target point set of shape (N, 3) with N >= 3 non-collinear points.
+
+        Returns
+        -------
+        rotation : np.ndarray
+            Rotation matrix of shape (3, 3) with det(rotation) = +1.
+        translation : np.ndarray
+            Translation vector of shape (3,).
+
+        Raises
+        ------
+        ValueError
+            If source_points and target_points do not have the same shape, are not (N, 3) arrays,
+            or contain fewer than 3 points.
         """
-        Computes the rigid transformation (R, t) that aligns A to B (A → B).
-        A, B: (N, 3) with N ≥ 3 non collinear points.
-        Returns:
-        R : (3, 3) rotation matrix (det(R) = +1)
-        t : (3,) translation vector"
-        """
-        assert A.shape == B.shape and A.shape[1] == 3, "A et B doivent être de forme (N, 3)"
-        N = A.shape[0]
-        assert N >= 3, "A minimum of 3 points is required "
+        if (
+            source_points.shape != target_points.shape
+            or source_points.ndim != 2
+            or source_points.shape[1] != 3
+        ):
+            raise ValueError(
+                f"source_points and target_points must both have shape (N, 3), "
+                f"got {source_points.shape} and {target_points.shape}."
+            )
+        if source_points.shape[0] < 3:
+            raise ValueError(f"At least 3 points are required, got {source_points.shape[0]}.")
 
-        # Centroides
-        centroid_A = A.mean(axis=0)
-        centroid_B = B.mean(axis=0)
+        # Compute centroids
+        source_centroid = source_points.mean(axis=0)
+        target_centroid = target_points.mean(axis=0)
 
-        # Points centrés
-        AA = A - centroid_A
-        BB = B - centroid_B
+        # Centre the point sets
+        source_centered = source_points - source_centroid
+        target_centered = target_points - target_centroid
 
-        # Matrice de covariance (3x3)
-        H = AA.T @ BB
+        # Cross-covariance matrix (3x3)
+        cross_covariance = source_centered.T @ target_centered
 
-        # SVD de H
-        U, _, Vt = np.linalg.svd(H)
-        R = Vt.T @ U.T
+        # SVD decomposition
+        u_mat, _, vt_mat = np.linalg.svd(cross_covariance)
+        rotation = vt_mat.T @ u_mat.T
 
-        # Correction en cas de réflexion
-        if np.linalg.det(R) < 0:
-            Vt[-1, :] *= -1
-            R = Vt.T @ U.T
+        # Correct reflection if det(rotation) = -1
+        if np.linalg.det(rotation) < 0:
+            vt_mat[-1, :] *= -1
+            rotation = vt_mat.T @ u_mat.T
 
         # Translation
-        t = centroid_B - R @ centroid_A
-        return R, t
-
-    def apply_rigid_transform(self, X: np.ndarray, R: np.ndarray, t: np.ndarray) -> np.ndarray:
-        """
-        Applies the rigid transformation (R, t) to a point cloud of shape (N, 3)
-        """
-        return (R @ X.T).T + t
-
+        translation = target_centroid - rotation @ source_centroid
+        return rotation, translation
 
     def assign_conduction_paths(self, paths: ConductionPath | list[ConductionPath]):
         """Assign conduction paths to the model.

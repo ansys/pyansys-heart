@@ -161,30 +161,15 @@ class TentusscherEpi(Tentusscher):
 
 class TentusscherAtria(Tentusscher):
     """
-    Data for Tentusscher cell model adapted for atrial cells.
+    Tentusscher cell model adapted for atrial cells.
 
-    # @TODO: add reference paper.
+    @TODO: add reference paper?
+
+    Notes: This is a simplified approach since not atrial cell model
+    is implemented in current version of LS-DYNA.
+    CRN cell model will be implemented in the future.
     """
 
     gks: float = 0.275
     gto: float = 0.294
-    v: float = -85.23
-    ki: float = 136.89
-    nai: float = 8.604
-    cai: float = 0.000126
-    cass: float = 0.00036
-    casr: float = 3.64
-    rpri: float = 0.9073
-    xr1: float = 0.00621
-    xr2: float = 0.4712
-    xs: float = 0.0095
-    m: float = 0.00172
-    h: float = 0.7444
-    j: float = 0.7045
-    d: float = 3.373e-5
-    f: float = 0.7888
-    f2: float = 0.9755
-    fcass: float = 0.9953
-    s: float = 0.999998
-    r: float = 2.42e-8
     gcal: float = 0.00001

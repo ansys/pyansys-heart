@@ -106,7 +106,7 @@ class TentusscherEndo(Tentusscher):
     # TODO: add reference paper.
     """
 
-    gks: float = 0.062
+    gks: float = 0.392
     gto: float = 0.073
     v: float = -86.709
     ki: float = 138.4
@@ -136,7 +136,7 @@ class TentusscherEpi(Tentusscher):
     @TODO: add reference paper.
     """
 
-    gks: float = 0.245
+    gks: float = 0.392
     gto: float = 0.294
     v: float = -85.23
     ki: float = 136.89
@@ -157,6 +157,32 @@ class TentusscherEpi(Tentusscher):
     fcass: float = 0.9953
     s: float = 0.999998
     r: float = 2.42e-8
+
+
+class TentusscherMid(Tentusscher):
+    """Data for Tentusscher cell model in its mid-myocardium version."""
+
+    gks: float = 0.098
+    gto: float = 0.294
+    v: float = -85.423
+    ki: float = 138.52
+    nai: float = 10.132
+    cai: float = 0.000153
+    cass: float = 0.00042
+    casr: float = 4.272
+    rpri: float = 0.8978
+    xr1: float = 0.0165
+    xr2: float = 0.473
+    xs: float = 0.0174
+    m: float = 0.00165
+    h: float = 0.749
+    j: float = 0.6788
+    d: float = 3.288e-5
+    f: float = 0.7026
+    f2: float = 0.9526
+    fcass: float = 0.9942
+    s: float = 0.999998
+    r: float = 2.347e-8
 
 
 class TentusscherAtria(Tentusscher):

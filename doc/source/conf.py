@@ -249,7 +249,7 @@ linkcheck_ignore = [
     "https://support.ansys.com/Home/HomePage",
     # Pages generated at build time
     r"../examples/",
-    # Zenodo block crawling
+    # Zenodo blocks crawling
     r"https://zenodo.org/records/3890034",
     r"https://zenodo.org/records/4590294",
 ]

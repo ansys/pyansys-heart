@@ -26,7 +26,11 @@ from pydantic import BaseModel
 
 
 class Tentusscher(BaseModel):
-    """Data for Tentusscher cell model."""
+    """
+    Data for Tentusscher cell model.
+
+    Reference: https://doi.org/10.1152/ajpheart.00109.2006
+    """
 
     gas_constant: float = 8314.472
     t: float = 310
@@ -103,7 +107,7 @@ class TentusscherEndo(Tentusscher):
     """
     Data for Tentusscher cell model in its endocardium version.
 
-    # TODO: add reference paper.
+    Reference: https://doi.org/10.1152/ajpheart.00109.2006
     """
 
     gks: float = 0.392
@@ -133,7 +137,7 @@ class TentusscherEpi(Tentusscher):
     """
     Data for Tentusscher cell model in its epicardium version.
 
-    @TODO: add reference paper.
+    Reference: https://doi.org/10.1152/ajpheart.00109.2006
     """
 
     gks: float = 0.392
@@ -160,7 +164,11 @@ class TentusscherEpi(Tentusscher):
 
 
 class TentusscherMid(Tentusscher):
-    """Data for Tentusscher cell model in its mid-myocardium version."""
+    """
+    Data for Tentusscher cell model in its mid-myocardium version.
+
+    Reference: https://doi.org/10.1152/ajpheart.00109.2006
+    """
 
     gks: float = 0.098
     gto: float = 0.294

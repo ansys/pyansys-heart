@@ -409,6 +409,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
         # different cell models for endo/mid/epi layer
         # TODO:  this will override previous definition?
         #        what's the situation at setptum? and at atrial?
+        # use will notice this overwrite
         if "transmural" in self.model.mesh.point_data.keys():
             (
                 endo_id,

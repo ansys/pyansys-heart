@@ -36,6 +36,7 @@ import numpy as np
 import pyvista as pv
 from scipy.spatial.transform import Rotation as Rotation
 import yaml
+from typing import Tuple
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.exceptions import InvalidHeartModelError, PartAlreadyExistsError
@@ -297,8 +298,9 @@ class HeartModel:
     def conduction_mesh(self):
         """Conduction mesh."""
         return self._conduction_mesh
+    
 
-    def define_12lead_electrodes(self, angle1: float = 0, angle2: float = 0) -> None:
+    def define_12lead_electrodes(self) -> None:
         """Define the 12-lead ECG electrode positions based on the model geometry.
 
         Parameters
@@ -308,99 +310,104 @@ class HeartModel:
         angle2 : float, default: 0
             Second fine tune angle, not used.
         """
-        # template data
+
+        # reference electrode positions - positioned according to current clinical practice
         reference_electrode_positions = np.array(
             [
-                [-21, 1314, 117],
-                [21, 1314, 117],
-                [62, 1285, 124],
-                [104, 1262, 103],
-                [136, 1267, 73],
-                [156, 1273, 32],
-                [-153, 1458, 2],
-                [153, 1458, 2],
-                [-80, 1150, 34],
-                [80, 1150, 34],
+                [-21, 1314, 117],   # V1
+                [21, 1314, 117],    # V2
+                [62, 1285, 124],    # V3
+                [104, 1262, 103],   # V4
+                [136, 1267, 73],    # V5
+                [156, 1273, 32],    # V6
+                [-153, 1458, 2],    # RA
+                [153, 1458, 2],     # LA
+                [-80, 1150, 34],    # RL
+                [80, 1150, 34],     # LL
             ],
             dtype=float,
         )
 
-        ref_apex = np.array([65, 1265, 72])
-        ref_mitral = np.array([28, 1310, -1.5])
-        ref_tricuspid = np.array([-10, 1305, 35])
-        ref_pulmonary = np.array([25, 1353, 22])
+        # Reference anatomical landmarks
+        ref_apex      = np.array([65, 1265, 72], dtype=float)
+        ref_mitral    = np.array([28, 1310, -1.5], dtype=float)
+        ref_tricuspid = np.array([-10, 1305, 35], dtype=float)
+        ref_pulmonary = np.array([25, 1353, 22], dtype=float)
 
-        # extract points from model
+        A = np.vstack([ref_apex, ref_tricuspid, ref_mitral, ref_pulmonary])  
+
+        # Extraction of the corresponding anatomical landmarks from the model 
         self._extract_apex()
-        model_apex = self.left_ventricle.apex_points[1].xyz
-        # TODO: maelys: why inbdex is wrong
-        # centroid_tricuspide = self.cap_centroids[1].xyz
-        # centroid_mitral = self.cap_centroids[0].xyz
-        # centroid_v_pulm = self.cap_centroids[2].xyz
+        model_apex = np.asarray(self.left_ventricle.apex_points[1].xyz, dtype=float)
 
-        model_tricuspid = next(cap.centroid for cap in self.all_caps if "aortic-valve" == cap.name)
-        model_mitral = next(cap.centroid for cap in self.all_caps if "mitral-valve" == cap.name)
-        model_pulmonary = next(
-            cap.centroid for cap in self.all_caps if "tricuspid-valve" == cap.name
+        model_tricuspid = np.asarray(
+            next(cap.centroid for cap in self.all_caps if cap.name == "tricuspid-valve"),
+            dtype=float,
+        )
+        model_mitral = np.asarray(
+            next(cap.centroid for cap in self.all_caps if cap.name == "mitral-valve"),
+            dtype=float,
+        )
+        model_pulmonary = np.asarray(
+            next(cap.centroid for cap in self.all_caps if cap.name == "pulmonary-valve"),
+            dtype=float,
         )
 
-        ref_pp = np.array([ref_apex, ref_tricuspid, ref_mitral, ref_pulmonary])
-        model_pp = np.array([model_apex, model_tricuspid, model_mitral, model_pulmonary])
+        B = np.vstack([model_apex, model_tricuspid, model_mitral, model_pulmonary]) 
+
+        # Computation of the optimal rigid transformation
+        R, t = self.rigid_transform_3d(A, B)
+        print(R)
+        electrodes_align = self.apply_rigid_transform(reference_electrode_positions, R, t)
+
+        # Instantiating Point objects for all electrodes and assign it to the model
+        names = ["V1","V2","V3","V4","V5","V6","RA","LA","RL","LL"]
+        self.electrodes = [Point(name=n, xyz=xyz) for n, xyz in zip(names, electrodes_align)]
+
+        return electrodes_align
+    
+    def rigid_transform_3d(self, A: np.ndarray, B: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Computes the rigid transformation (R, t) that aligns A to B (A → B).
+        A, B: (N, 3) with N ≥ 3 non collinear points.
+        Returns:
+        R : (3, 3) rotation matrix (det(R) = +1)
+        t : (3,) translation vector"
+        """
+        assert A.shape == B.shape and A.shape[1] == 3, "A et B doivent être de forme (N, 3)"
+        N = A.shape[0]
+        assert N >= 3, "A minimum of 3 points is required "
+
+        # Centroides
+        centroid_A = A.mean(axis=0)
+        centroid_B = B.mean(axis=0)
+
+        # Points centrés
+        AA = A - centroid_A
+        BB = B - centroid_B
+
+        # Matrice de covariance (3x3)
+        H = AA.T @ BB
+
+        # SVD de H
+        U, _, Vt = np.linalg.svd(H)
+        R = Vt.T @ U.T
+
+        # Correction en cas de réflexion
+        if np.linalg.det(R) < 0:
+            Vt[-1, :] *= -1
+            R = Vt.T @ U.T
 
         # Translation
-        translation = model_pp[0] - ref_pp[0]
-        p_ref_t = ref_pp + translation
+        t = centroid_B - R @ centroid_A
+        return R, t
 
-        # first rotation @ TODO: Maelys what to what
-        vt_ref = p_ref_t[1] - p_ref_t[0]
-        vt_model = model_tricuspid - model_apex
-        normal_r1 = np.cross(vt_model, vt_ref)
-        angle_deg_r1 = (
-            np.degrees(
-                -np.arccos(
-                    np.dot(vt_ref, vt_model) / (np.linalg.norm(vt_model) * np.linalg.norm(vt_ref))
-                )
-            )
-            + angle1
-        )
-        axis_r1 = normal_r1 / np.linalg.norm(normal_r1)
-        rot_r1 = Rotation.from_rotvec(np.radians(angle_deg_r1) * axis_r1)
-        p_ref_r1 = rot_r1.apply(p_ref_t - model_apex) + model_apex
+    def apply_rigid_transform(self, X: np.ndarray, R: np.ndarray, t: np.ndarray) -> np.ndarray:
+        """
+        Applies the rigid transformation (R, t) to a point cloud of shape (N, 3)
+        """
+        return (R @ X.T).T + t
 
-        # second rotation, can reuse 1st rotation algo?
-        vm_ref = p_ref_r1[2] - p_ref_r1[1]
-        vm_model = model_mitral - model_tricuspid
-        normal_r2 = p_ref_r1[1] - p_ref_r1[0]
-        angle_deg_r2 = (
-            -np.degrees(
-                np.arccos(
-                    np.dot(vm_ref, vm_model) / (np.linalg.norm(vm_ref) * np.linalg.norm(vm_model))
-                )
-            )
-            + angle2
-        )
-        axis_r2 = normal_r2 / np.linalg.norm(normal_r2)
-        rot_r2 = Rotation.from_rotvec(np.radians(angle_deg_r2) * axis_r2)
-
-        # apply transformations to the electrodes
-        electrodes_t = reference_electrode_positions + translation
-        electrodes_r1 = rot_r1.apply(electrodes_t - model_apex) + model_apex
-        electrodes_align = rot_r2.apply(electrodes_r1 - model_tricuspid) + model_tricuspid
-
-        self.electrodes = [
-            Point(name="V1", xyz=electrodes_align[0]),
-            Point(name="V2", xyz=electrodes_align[1]),
-            Point(name="V3", xyz=electrodes_align[2]),
-            Point(name="V4", xyz=electrodes_align[3]),
-            Point(name="V5", xyz=electrodes_align[4]),
-            Point(name="V6", xyz=electrodes_align[5]),
-            Point(name="RA", xyz=electrodes_align[6]),
-            Point(name="LA", xyz=electrodes_align[7]),
-            Point(name="RL", xyz=electrodes_align[8]),
-            Point(name="LL", xyz=electrodes_align[9]),
-        ]
-
-        return
 
     def assign_conduction_paths(self, paths: ConductionPath | list[ConductionPath]):
         """Assign conduction paths to the model.

@@ -46,7 +46,7 @@ def test_define_12lead_electrodes():
     assert len(model.electrodes) == 10
     assert model.electrodes[0].name == "V1"
     assert np.allclose(
-        model.electrodes[0].xyz, np.array([8.32595409, 51.56545606, 440.3230059]), atol=1e-3
+        model.electrodes[0].xyz, np.array([[-16.07677295, 9.77005318, 364.10423886]]), atol=1e-3
     )
 
 

@@ -402,7 +402,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
     def _update_parts_cellmodels(self) -> None:
         """Add cell model for each defined part."""
         for part in self.model.parts:
-            if type(part.ep_material) is ep_materials.Active:
+            if isinstance(part.ep_material, ep_materials.Active):
                 ep_mid = part.pid
                 # One cell model for myocardium, default value is epi layer parameters
                 self._add_cell_model_keyword(matid=ep_mid, cellmodel=part.ep_material.cell_model)
@@ -418,9 +418,7 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                     title="space-varying cell model group_{0}".format(i),
                 )
                 self.kw_database.node_sets.append(node_set_kw)
-                self._add_cell_model_keyword(
-                    matid=-nodeset_id, cellmodel=cell_model_list[i].model_dump()
-                )
+                self._add_cell_model_keyword(matid=-nodeset_id, cellmodel=cell_model_list[i])
         return
 
         # different cell models for endo/mid/epi layer

@@ -233,10 +233,6 @@ p.show()
 all_groups_flat = ventricle_groups_flat + septum_groups_flat
 all_models_flat = ventricle_models_flat + septum_models_flat
 
-
-###############################################################################
-# assign to the model
-# ~~~~~~~~~~~~~~~~~~~
 # The cell model will be defined based on the nodeset
 # This overwrites any existing cell model assignment based on part.
 model.__setattr__("cell_model", (all_groups_flat, all_models_flat))

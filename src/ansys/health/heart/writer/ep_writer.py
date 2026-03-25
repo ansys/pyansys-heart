@@ -406,6 +406,23 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 ep_mid = part.pid
                 # One cell model for myocardium, default value is epi layer parameters
                 self._add_cell_model_keyword(matid=ep_mid, cellmodel=part.ep_material.cell_model)
+
+        # space varying cell model assignment based on nodesets, overwrite part-based assignment
+        if hasattr(self.model, "cell_model"):
+            node_set_list, cell_model_list = self.model.cell_model
+            for i in range(len(node_set_list)):
+                nodeset_id = self.get_unique_nodeset_id()
+                node_set_kw = create_node_set_keyword(
+                    node_ids=node_set_list[i] + 1,
+                    node_set_id=nodeset_id,
+                    title="space-varying cell model group_{0}".format(i),
+                )
+                self.kw_database.node_sets.append(node_set_kw)
+                self._add_cell_model_keyword(
+                    matid=-nodeset_id, cellmodel=cell_model_list[i].model_dump()
+                )
+        return
+
         # different cell models for endo/mid/epi layer
         # TODO:  this will override previous definition?
         #        what's the situation at setptum? and at atrial?

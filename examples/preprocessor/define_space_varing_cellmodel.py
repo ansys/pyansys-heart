@@ -145,10 +145,10 @@ ventricle_node_groups = define_node_group(
 )
 
 n_row, n_col = len(endo_epi_bins) - 1, len(apex_base_bins) - 1
-interpolation_factors = np.arange(n_row * n_col).reshape(n_row, n_col) / (n_row * n_col - 1)
+factors = np.arange(n_row * n_col).reshape(n_row, n_col) / (n_row * n_col - 1)
 
-gks_matrix = gks_min + interpolation_factors * (gks_max - gks_min)
-gto_matrix = gto_min + interpolation_factors * (gto_max - gto_min)
+gks_matrix = gks_min + factors * (gks_max - gks_min)
+gto_matrix = gto_min + factors * (gto_max - gto_min)
 
 ventricle_cell_models = [
     [cell_models.Tentusscher(gks=gks_matrix[i, j], gto=gto_matrix[i, j]) for j in range(n_col)]
@@ -184,15 +184,16 @@ p.show()
 # Assign cell models to the septum
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # For the septum, only the apex-base direction is used for variation.
-
+# Parameters will be interpolated from endo values.
 septum_nodes = model.septum.get_node_ids(model.mesh)
 septum_node_groups = define_node_group(septum_nodes, endo_epi, apex_base, bins2=apex_base_bins)
 
 n_row, n_col = 1, len(apex_base_bins) - 1
-interpolation_factors = np.arange(n_row * n_col).reshape(n_row, n_col) / (n_row * n_col - 1)
+factors = np.arange(n_row * n_col).reshape(n_row, n_col) / (n_row * n_col - 1)
+factors = np.array([[0]]) if n_row * n_col == 1 else factors  # handle the case with only one group
 
-gks_matrix = gks_min + interpolation_factors * (gks_max - gks_min)
-gto_matrix = gto_min + interpolation_factors * (gto_max - gto_min)
+gks_matrix = gks_min + factors * (gks_max - gks_min)
+gto_matrix = gto_min + factors * (gto_max - gto_min)
 
 
 septum_cell_models = [
@@ -232,4 +233,10 @@ p.show()
 all_groups_flat = ventricle_groups_flat + septum_groups_flat
 all_models_flat = ventricle_models_flat + septum_models_flat
 
-# TODO: assign all_groups_flat and all_models_flat to the model
+
+###############################################################################
+# assign to the model
+# ~~~~~~~~~~~~~~~~~~~
+# The cell model will be defined based on the nodeset
+# This overwrites any existing cell model assignment based on part.
+model.__setattr__("cell_model", (all_groups_flat, all_models_flat))

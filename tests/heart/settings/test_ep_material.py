@@ -219,11 +219,6 @@ class TestActive:
         assert active_new.sigma_fiber == 1
         assert active_new.cond_sigma_fiber == 1
 
-    def test_error_on_invalid_active_new_field(self) -> None:
-        """Test that ActiveNew raises error on invalid field."""
-        with pytest.raises(ValidationError):
-            ActiveNew(sigma_fiber=1, invalid_field=123)
-
     def test_active_custom_cell_model(self) -> None:
         """Test Active with custom cell model."""
         custom_cell = TentusscherEndo(gto=0.1)

@@ -276,6 +276,17 @@ class HeartModel:
         self._conduction_mesh: Mesh = Mesh()
         """Mesh of merged conduction paths."""
 
+        self._nodeset_cellmodel: tuple[list[np.ndarray], list[ep_materials.Tentusscher]] = None
+        """
+        Nodeset-based cell model assignment.
+
+        This attribute is used for defining space-varying cell models based on nodesets,
+        e.g. from endocardium to epicardium.
+
+        Notes
+        -----
+        If defined, it overwrites the cell model assignment based on part definitions.
+        """
         self._part_info = {}
         """Information about all parts in the model."""
 

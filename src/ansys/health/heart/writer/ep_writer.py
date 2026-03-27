@@ -408,8 +408,12 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 self._add_cell_model_keyword(matid=ep_mid, cellmodel=part.ep_material.cell_model)
 
         # space varying cell model assignment based on nodesets, overwrite part-based assignment
-        if hasattr(self.model, "cell_model"):
-            node_set_list, cell_model_list = self.model.cell_model
+        if self.model._nodeset_cellmodel is not None:
+            LOGGER.info(
+                "Assigning cell models based on nodesets. "
+                "This will overwrite part-based cell model assignment for selected nodes."
+            )
+            node_set_list, cell_model_list = self.model._nodeset_cellmodel
             for i in range(len(node_set_list)):
                 nodeset_id = self.get_unique_nodeset_id()
                 node_set_kw = create_node_set_keyword(

@@ -122,12 +122,15 @@ def define_node_group(selected_nodes, coord1, coord2, bins1=[0, 1], bins2=[0, 1]
 # extremal values of ``gks`` and ``gto`` used for linear interpolation.
 
 endo_epi_bins = [0, 0.17, 0.41, 1]  # 0-0.17: endo, 0.17-0.41: mid, 0.41-1: epi
-apex_base_bins = [0, 0.5, 0.65, 0.8, 1]  # apex to base
+apex_base_bins = [0, 0.5, 0.65, 0.8, 1]  # apex to base binned into 4 groups
 
-gks_min = 0.062  # extreme value at endo apex
-gks_max = 0.245  # extreme value at epi base
-gto_min = 0.073  # extreme value at endo apex
-gto_max = 0.294  # extreme value at epi base
+# Set bounds for gks and gto based on the range of values in Tentusscher cell models,
+# which will be used for 2D linear interpolation.
+
+gks_min = cell_models.TentusscherEndo().gks  # extreme value at endo apex
+gks_max = cell_models.TentusscherEpi().gks  # extreme value at epi base
+gto_min = cell_models.TentusscherEndo().gto  # extreme value at endo apex
+gto_max = cell_models.TentusscherEpi().gto  # extreme value at epi base
 
 
 ###############################################################################

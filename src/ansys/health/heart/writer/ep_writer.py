@@ -425,59 +425,6 @@ class ElectrophysiologyDynaWriter(BaseDynaWriter):
                 self._add_cell_model_keyword(matid=-nodeset_id, cellmodel=cell_model_list[i])
         return
 
-        # different cell models for endo/mid/epi layer
-        # TODO:  this will override previous definition?
-        #        what's the situation at setptum? and at atrial?
-        # use will notice this overwrite
-        if "transmural" in self.model.mesh.point_data.keys():
-            (
-                endo_id,
-                mid_id,
-                epi_id,
-            ) = self._create_myocardial_nodeset_layers()
-            tentusscher_endo = cell_models.TentusscherEndo()
-            tentusscher_mid = cell_models.TentusscherMid()
-            tentusscher_epi = cell_models.TentusscherEpi()
-
-            self._add_Tentusscher_keyword(matid=-endo_id, params=tentusscher_endo.model_dump())
-            self._add_Tentusscher_keyword(matid=-mid_id, params=tentusscher_mid.model_dump())
-            self._add_Tentusscher_keyword(matid=-epi_id, params=tentusscher_epi.model_dump())
-
-    def _create_myocardial_nodeset_layers(self) -> tuple[int, int, int]:
-        """Create myocardial node set layers."""
-        percent_endo = self.settings.electrophysiology.layers["percent_endo"].m
-        percent_mid = self.settings.electrophysiology.layers["percent_mid"].m
-        values = self.model.mesh.point_data["transmural"]
-        # Values from experimental data. See:
-        # https://www.frontiersin.org/articles/10.3389/fphys.2019.00580/full
-        th_endo = percent_endo
-        th_mid = percent_endo + percent_mid
-        endo_nodes = (np.nonzero(np.logical_and(values >= 0, values < th_endo)))[0]
-        mid_nodes = (np.nonzero(np.logical_and(values >= th_endo, values < th_mid)))[0]
-        epi_nodes = (np.nonzero(np.logical_and(values >= th_mid, values <= 1)))[0]
-        endo_nodeset_id = self.get_unique_nodeset_id()
-        node_set_kw = create_node_set_keyword(
-            node_ids=endo_nodes + 1,
-            node_set_id=endo_nodeset_id,
-            title="Layer-Endo",
-        )
-        self.kw_database.node_sets.append(node_set_kw)
-        mid_nodeset_id = self.get_unique_nodeset_id()
-        node_set_kw = create_node_set_keyword(
-            node_ids=mid_nodes + 1,
-            node_set_id=mid_nodeset_id,
-            title="Layer-Mid",
-        )
-        self.kw_database.node_sets.append(node_set_kw)
-        epi_nodeset_id = self.get_unique_nodeset_id()
-        node_set_kw = create_node_set_keyword(
-            node_ids=epi_nodes + 1,
-            node_set_id=epi_nodeset_id,
-            title="Layer-Epi",
-        )
-        self.kw_database.node_sets.append(node_set_kw)
-        return endo_nodeset_id, mid_nodeset_id, epi_nodeset_id
-
     def _add_cell_model_keyword(self, matid: int, cellmodel: cell_models.Tentusscher) -> None:
         """Add cell model keyword to the database."""
         if isinstance(cellmodel, cell_models.Tentusscher):

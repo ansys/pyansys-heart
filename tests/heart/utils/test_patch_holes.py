@@ -39,7 +39,7 @@ def test_patch_holes_001(method):
     sphere_with_hole = sphere.boolean_difference(tube)
     sphere_with_hole = sphere_with_hole.extract_cells(
         sphere_with_hole.cell_data["CellSource"] == 0
-    ).extract_surface()
+    ).extract_surface(algorithm="dataset_surface")
 
     patches = method(sphere_with_hole)
     assert len(patches) == 2
@@ -71,7 +71,7 @@ def test_patch_holes_002(method):
     sphere_with_hole = sphere.boolean_difference(tube)
     sphere_with_hole = sphere_with_hole.extract_cells(
         sphere_with_hole.cell_data["CellSource"] == 0
-    ).extract_surface()
+    ).extract_surface(algorithm="dataset_surface")
 
     patches = method(sphere_with_hole)
 
@@ -91,7 +91,7 @@ def test_boundary_edge_loops():
     sphere_with_hole = sphere.boolean_difference(tube)
     sphere_with_hole = sphere_with_hole.extract_cells(
         sphere_with_hole.cell_data["CellSource"] == 0
-    ).extract_surface()
+    ).extract_surface(algorithm="dataset_surface")
 
     edge_loops = get_boundary_edge_loops(
         sphere_with_hole, remove_open_edge_loops=True, return_types=False

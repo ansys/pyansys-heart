@@ -111,6 +111,23 @@ class Part:
 
         return np.argwhere(mesh.cell_data["_volume-id"] == self.pid).flatten()
 
+    def get_node_ids(self, mesh: Mesh = None) -> np.ndarray:
+        """Get node IDs that make up the part.
+
+        Parameters
+        ----------
+        mesh : Mesh, default: None
+            The mesh object where to get the node IDs from.
+
+        Returns
+        -------
+        np.ndarray
+            Array of node IDs that make up the part.
+        """
+        # Get node IDs from the cells that belong to this part
+        node_ids = self._get_tetrahedrons(mesh).flatten()
+        return np.unique(node_ids)
+
     def _get_tetrahedrons(self, mesh: Mesh) -> np.ndarray:
         """Get tetrahedrons that make up the part.
 

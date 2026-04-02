@@ -899,7 +899,9 @@ class HeartModel:
             )
             return None
         tubes = streamlines.tube()
-        plotter.add_mesh(mesh.extract_surface(), opacity=0.5, color="white")
+        plotter.add_mesh(
+            mesh.extract_surface(algorithm="dataset_surface"), opacity=0.5, color="white"
+        )
         plotter.add_mesh(tubes, color="white")
         plotter.show()
         return plotter

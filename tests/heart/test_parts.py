@@ -122,7 +122,7 @@ def _get_mock_mesh1():
     from pyvista.examples import load_tetbeam
 
     beam = load_tetbeam()
-    surface = beam.extract_surface()
+    surface = beam.extract_surface(algorithm="dataset_surface")
 
     mesh = Mesh()
     mesh.add_surface(surface, name="Left ventricle endocardium", id=1)
@@ -329,7 +329,7 @@ def test_set_from_dict_caps_with_unknown_type():
     from pyvista.examples import load_tetbeam
 
     beam = load_tetbeam()
-    surface = beam.extract_surface()
+    surface = beam.extract_surface(algorithm="dataset_surface")
     mesh.add_surface(surface, name="unknown_cap_type", id=100)
     mesh.add_surface(surface, name="invalid-cap", id=101)
 

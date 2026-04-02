@@ -1092,12 +1092,16 @@ class Mesh(pv.UnstructuredGrid):
         """
         if sid in list(self._surface_id_to_name.keys()):
             return SurfaceMesh(
-                self._get_submesh(sid, scalar="_surface-id").extract_surface(),
+                self._get_submesh(sid, scalar="_surface-id").extract_surface(
+                    algorithm="dataset_surface"
+                ),
                 name=self._surface_id_to_name[sid],
                 id=sid,
             )
         else:
-            return self._get_submesh(sid, scalar="_surface-id").extract_surface()
+            return self._get_submesh(sid, scalar="_surface-id").extract_surface(
+                algorithm="dataset_surface"
+            )
 
     def get_surface_by_name(self, name: str) -> Union[pv.PolyData, SurfaceMesh]:
         # ?: Return SurfaceMesh instead of PolyData?
@@ -1110,7 +1114,9 @@ class Mesh(pv.UnstructuredGrid):
 
     def get_lines(self, sid: int) -> pv.PolyData:
         """Get lines as a PyVista polydata object."""
-        return self._get_submesh(sid, scalar="_line-id").extract_surface()
+        return self._get_submesh(sid, scalar="_line-id").extract_surface(
+            algorithm="dataset_surface"
+        )
 
     def get_lines_by_name(self, name: str) -> pv.PolyData:
         """Get the lines associated with a given name."""

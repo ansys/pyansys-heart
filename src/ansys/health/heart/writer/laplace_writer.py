@@ -177,7 +177,7 @@ class LaplaceWriter(BaseDynaWriter):
     def _find_top_nodeset_by_geodesic(self, atrium: pv.UnstructuredGrid) -> np.ndarray:
         """Define top nodeset by connecting landmark points with a geodesic path."""
         top_ids = []
-        surface: pv.PolyData = atrium.extract_surface()
+        surface: pv.PolyData = atrium.extract_surface(algorithm="dataset_surface")
         for i in range(len(self.landmarks["top"]) - 1):
             p1 = self.landmarks["top"][i]
             p2 = self.landmarks["top"][i + 1]

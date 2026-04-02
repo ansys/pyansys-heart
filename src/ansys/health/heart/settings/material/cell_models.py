@@ -26,7 +26,11 @@ from pydantic import BaseModel
 
 
 class Tentusscher(BaseModel):
-    """Data for Tentusscher cell model."""
+    """
+    Basic data for Tentusscher cell model, same with  :class:`TentusscherEpi`.
+
+    Reference: https://doi.org/10.1152/ajpheart.00109.2006
+    """
 
     gas_constant: float = 8314.472
     t: float = 310
@@ -75,8 +79,6 @@ class Tentusscher(BaseModel):
     kbufsf: float = 0.3
     bufss: float = 0.4
     kbufss: float = 0.00025
-    # gas_constant=8314.472,
-    # faraday_constant=96485.3415,
     gks: float = 0.392
     gto: float = 0.294
     v: float = -85.23
@@ -102,7 +104,11 @@ class Tentusscher(BaseModel):
 
 
 class TentusscherEndo(Tentusscher):
-    """Data for Tentusscher cell model in its endocardium version."""
+    """
+    Data for Tentusscher cell model in its endocardium version.
+
+    Reference: https://doi.org/10.1152/ajpheart.00109.2006
+    """
 
     gks: float = 0.392
     gto: float = 0.073
@@ -128,7 +134,11 @@ class TentusscherEndo(Tentusscher):
 
 
 class TentusscherEpi(Tentusscher):
-    """Data for Tentusscher cell model in its epicardium version."""
+    """
+    Data for Tentusscher cell model in its epicardium version.
+
+    Reference: https://doi.org/10.1152/ajpheart.00109.2006
+    """
 
     gks: float = 0.392
     gto: float = 0.294
@@ -154,7 +164,11 @@ class TentusscherEpi(Tentusscher):
 
 
 class TentusscherMid(Tentusscher):
-    """Data for Tentusscher cell model in its mid-myocardium version."""
+    """
+    Data for Tentusscher cell model in its mid-myocardium version.
+
+    Reference: https://doi.org/10.1152/ajpheart.00109.2006
+    """
 
     gks: float = 0.098
     gto: float = 0.294
@@ -177,3 +191,19 @@ class TentusscherMid(Tentusscher):
     fcass: float = 0.9942
     s: float = 0.999998
     r: float = 2.347e-8
+
+
+class TentusscherAtria(Tentusscher):
+    """
+    Tentusscher cell model adapted for atrial cells.
+
+    @TODO: add reference paper?
+
+    Notes: This is a simplified approach since not atrial cell model
+    is implemented in current version of LS-DYNA.
+    CRN cell model will be implemented in the future.
+    """
+
+    gks: float = 0.275
+    gto: float = 0.294
+    gcal: float = 0.00001

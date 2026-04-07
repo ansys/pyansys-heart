@@ -286,6 +286,7 @@ class HeartModel:
         self._l4cv_axis: dict = None
         """l4cv axis."""
 
+        self.__nodeset_cellmodel: tuple[list[np.ndarray], list[ep_materials.Tentusscher]] = None
         return
 
     @property
@@ -297,6 +298,51 @@ class HeartModel:
     def conduction_mesh(self):
         """Conduction mesh."""
         return self._conduction_mesh
+
+    @property
+    def _nodeset_cellmodel(
+        self,
+    ) -> tuple[list[np.ndarray], list[ep_materials.Tentusscher]] | None:
+        """
+        Nodeset-based cell model assignment.
+
+        This attribute is used for defining space-varying cell models based on nodesets,
+        e.g. from endocardium to epicardium.
+
+        Notes
+        -----
+        If defined, it overwrites the cell model assignment based on part definitions.
+        """
+        return self.__nodeset_cellmodel
+
+    @_nodeset_cellmodel.setter
+    def _nodeset_cellmodel(
+        self, value: tuple[list[np.ndarray], list[ep_materials.Tentusscher]] | None
+    ):
+        if value is None:
+            self.__nodeset_cellmodel = None
+            return
+        if not isinstance(value, tuple) or len(value) != 2:
+            raise TypeError(
+                "_nodeset_cellmodel must be a tuple of (list[np.ndarray], list[Tentusscher])."
+            )
+        node_sets, cell_models = value
+        if not isinstance(node_sets, list) or not all(
+            isinstance(ns, np.ndarray) for ns in node_sets
+        ):
+            raise TypeError("First element of _nodeset_cellmodel must be a list of np.ndarray.")
+        if not isinstance(cell_models, list) or not all(
+            isinstance(cm, ep_materials.Tentusscher) for cm in cell_models
+        ):
+            raise TypeError(
+                "Second element of _nodeset_cellmodel must be a list of Tentusscher instances."
+            )
+        if len(node_sets) != len(cell_models):
+            raise ValueError(
+                "node_sets and cell_models must have the same length, "
+                f"got {len(node_sets)} and {len(cell_models)}."
+            )
+        self.__nodeset_cellmodel = value
 
     def define_12lead_electrodes(self) -> None:
         """Define the 12-lead ECG electrode positions based on the model geometry."""
@@ -853,7 +899,9 @@ class HeartModel:
             )
             return None
         tubes = streamlines.tube()
-        plotter.add_mesh(mesh.extract_surface(), opacity=0.5, color="white")
+        plotter.add_mesh(
+            mesh.extract_surface(algorithm="dataset_surface"), opacity=0.5, color="white"
+        )
         plotter.add_mesh(tubes, color="white")
         plotter.show()
         return plotter

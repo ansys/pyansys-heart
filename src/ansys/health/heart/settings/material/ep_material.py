@@ -27,6 +27,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, model_validator
 
+from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.settings.material.cell_models import Tentusscher, TentusscherEndo
 
 
@@ -106,6 +107,15 @@ class ActiveNew(Active):
     cond_sigma_fiber: Optional[float] = None
     cond_sigma_sheet: Optional[float] = None
     cond_sigma_sheet_normal: Optional[float] = None
+
+    @model_validator(mode="after")
+    def warn_on_init(self):
+        """Warn that ActiveNew is experimental."""
+        LOGGER.warning(
+            "ActiveNew is initialized. This material uses *EMMAT_005 which "
+            "requires LS-DYNA R16.2 or later."
+        )
+        return self
 
 
 class ActiveBeam(Active):

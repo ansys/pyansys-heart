@@ -80,7 +80,7 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         self._update_ep_settings(beam_pid)
         self._update_stimulation()
 
-        # ECG Output
+        # Add ECG Output
         if hasattr(self.model, "electrodes") and len(self.model.electrodes) != 0:
             self._update_ECG_coordinates()
 

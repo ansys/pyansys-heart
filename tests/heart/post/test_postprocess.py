@@ -64,7 +64,8 @@ def test_compute_thickness(get_left_ventricle, monkeypatch):
 
 
 @pytest.mark.requires_dpf
-def test_compute_strain(get_left_ventricle):
+def test_compute_strain(get_left_ventricle, monkeypatch):
+    monkeypatch.setenv("ANSYS_DPF_ACCEPT_LA", "Y")
     test_dir = get_left_ventricle[0]
     model = get_left_ventricle[1]
     d3plot = os.path.join(os.path.join(test_dir, "main", "d3plot"))

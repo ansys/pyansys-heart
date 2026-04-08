@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -29,8 +29,6 @@ Examples of material cards include Mat295, Mat077, MatNull.
 
 """
 
-import dataclasses
-
 # from importlib.resources import files
 from importlib.resources import path as resource_path
 
@@ -38,7 +36,7 @@ import numpy as np
 import pandas as pd
 
 from ansys.dyna.core.keywords import keywords
-from ansys.health.heart.settings.material.material import ActiveModel, Mat295
+from ansys.health.heart.settings.material.material import Mat295
 
 # import custom keywords in separate namespace
 from ansys.health.heart.writer import custom_keywords as custom_keywords
@@ -108,15 +106,15 @@ class MaterialHGOMyocardium(keywords.Mat295):
         setattr(self, "aopt", mat.aopt)
         setattr(self, "user_comment", f"nu deduced from kappa={mat.iso.kappa}")
         # iso
-        for field in dataclasses.fields(mat.iso):
-            value = getattr(mat.iso, field.name)
-            setattr(self, field.name, value)
+        # TODO: check if all fields are covered in the case of the pydantic model change.
+        for field_name, value in mat.iso.model_dump().items():
+            setattr(self, field_name, value)
 
         # aniso
         if mat.aniso is not None:
             self.atype = mat.aniso.atype
-            self.intype = mat.aniso.intype
-            self.nf = mat.aniso.nf
+            self.intype = mat.aniso._intype
+            self.nf = mat.aniso._nf
             self.ftype = mat.aniso.fibers[0]._ftype  # not used but must be defined
 
             self.a1 = mat.aniso.vec_a[0]
@@ -141,23 +139,22 @@ class MaterialHGOMyocardium(keywords.Mat295):
                 fiber_sheet.append(dct)
             self.anisotropic_settings = pd.DataFrame(fiber_sheet)
 
-            if mat.aniso.intype == 1:
+            if mat.aniso._intype == 1:
                 self.coupling_k1 = mat.aniso.k1fs
                 self.coupling_k2 = mat.aniso.k2fs
 
         # active
         if not ignore_active and mat.active is not None:
-            for field in dataclasses.fields(mat.active):
-                if field.type is ActiveModel:  # nested data of active model
-                    for nested_f in dataclasses.fields(mat.active.model):
-                        name = nested_f.name
-                        value = getattr(mat.active.model, name)
-                        setattr(self, name, value)
+            for field_name, field_value in mat.active.model_dump().items():
+                if field_name == "model":  # nested data of active model
+                    for (
+                        nested_field_name,
+                        nested_field_value,
+                    ) in mat.active.model.model_dump().items():
+                        setattr(self, nested_field_name, nested_field_value)
                 else:
                     # acdir, acid ....
-                    name = field.name
-                    value = getattr(mat.active, name)
-                    setattr(self, name, value)
+                    setattr(self, field_name, field_value)
 
 
 def active_curve(

@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -97,7 +97,7 @@ def _process_zerop_iteration_file(directory: str, model: HeartModel, filename: s
         "Left ventricle cavity": "left_ventricle",
         "Right ventricle cavity": "right_ventricle",
         "Left atrium cavity": "left_atrial",
-        "Right atrium cavity": "left_atrial",
+        "Right atrium cavity": "right_atrial",
     }
 
     volume_info = {}

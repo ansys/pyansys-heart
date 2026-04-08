@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -170,9 +170,7 @@ def define_his_bundle_bifurcation_node(
             return
         target_coord = av_coord
 
-    septum_point_ids = np.unique(
-        np.ravel(model.mesh.tetrahedrons[model.septum.get_element_ids(model.mesh)])
-    )
+    septum_point_ids = np.unique(model.septum._get_tetrahedrons(model.mesh))
 
     # remove nodes on surface, to make sure His bundle nodes are inside of septum
     septum_point_ids = np.setdiff1d(
@@ -271,7 +269,7 @@ def define_fascile_bundle_end_node(
 
 
 def define_full_conduction_system(
-    model: models.FullHeart | models.FourChamber,
+    model: models.FullHeart | models.FourChamber | models.BiVentricle,
     purkinje_folder: str,
     landmarks: LandMarks = None,
 ) -> tuple[list[ConductionPath], LandMarks]:
@@ -279,7 +277,7 @@ def define_full_conduction_system(
 
     Parameters
     ----------
-    model : models.FullHeart | models.FourChamber
+    model : models.FullHeart | models.FourChamber | models.BiVentricle
         Heart model.
     purkinje_folder : str
         Folder with LS-DYNA's Purkinje generation.
@@ -310,6 +308,10 @@ def define_full_conduction_system(
         model=model,
     )
 
+    if isinstance(model, models.BiVentricle):
+        return [left_purkinje, right_purkinje], landmarks
+
+    # Define other parts of the conduction system
     sa = define_sino_atrial_node(model, landmarks)
     av = define_atrio_ventricular_node(model, landmarks)
 

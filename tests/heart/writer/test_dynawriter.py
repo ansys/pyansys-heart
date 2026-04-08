@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -35,6 +35,7 @@ from ansys.health.heart.objects import (
 )
 import ansys.health.heart.parts as anatomy
 from ansys.health.heart.pre.conduction_path import ConductionPath, ConductionPathType
+from ansys.health.heart.settings.material.ep_material_factory import assign_default_ep_materials
 from ansys.health.heart.settings.settings import Mechanics, SimulationSettings, Stimulation
 import ansys.health.heart.writer as writers
 
@@ -128,7 +129,7 @@ def test_add_stimulation_keyword(_mock_model, solvertype, expected_kw):
     settings.load_defaults()
     settings.electrophysiology.analysis.solvertype = solvertype
     # set up stimulation
-    stimulation = Stimulation([1, 2])
+    stimulation = Stimulation(node_ids=[1, 2])
 
     writer = writers.ElectroMechanicsDynaWriter(model, settings)
 
@@ -166,22 +167,6 @@ def test_update_ep_settings(_mock_model, solvertype, expected_num_keywords):
     del writer
 
 
-def test_add_myocardial_nodeset_layer(_mock_model):
-    """Test adding myocardial nodeset layer."""
-    model = _mock_model
-    # add a dummy transmural direction.
-    model.mesh.point_data["transmural"] = model.mesh.points[:, -1] / np.max(
-        model.mesh.points[:, -1]
-    )
-
-    settings = SimulationSettings()
-    settings.load_defaults()
-
-    writer = writers.ElectroMechanicsDynaWriter(model, settings)
-    # assert node-set ids (no other nodesets present, so expecting 1,2,3)
-    assert writer._create_myocardial_nodeset_layers() == (1, 2, 3)
-
-
 @pytest.mark.xfail(reason="_update_create_fibers un-testable, needs refactoring.")
 def test_update_create_fibers(_mock_model):
     """Test updating the create fibers method."""
@@ -203,6 +188,8 @@ def test_update_use_purkinje(_mock_model: FullHeart):
     settings.load_defaults()
 
     writer = writers.ElectroMechanicsDynaWriter(model, settings)
+
+    assign_default_ep_materials(writer.model, "Monodomain")
 
     writer._update_use_Purkinje()
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -325,7 +325,9 @@ class _InputModel:
             ].items():
                 mask = np.isin(self.input_polydata["boundary-id"], boundary_id)
                 is_visited[mask] = True
-                polydata = self.input_polydata.extract_cells(mask).extract_surface()
+                polydata = self.input_polydata.extract_cells(mask).extract_surface(
+                    algorithm="dataset_surface"
+                )
 
                 # take on first value in list
                 if isinstance(boundary_id, list):

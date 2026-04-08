@@ -88,7 +88,7 @@ $#       r         t         f        cm        vc       vsr       vss      pkna
 $#      ko       nao       cao
        5.4     140.0       2.0
 $#     gk1       gkr       gks       gna      gbna      gcal      gbca       gto
-     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.294
+     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.073
 $#    gpca       gpk
     0.1238    0.0146
 $#    pnak        km      kmna     knaca      ksat     alpha     gamma      kmca
@@ -102,11 +102,11 @@ $#    vrel     vleak     vxfer    vmaxup       kup
 $#    bufc     kbufc     bufsr    kbufsf     bufss    kbufss
        0.2     0.001      10.0       0.3       0.4   0.00025
 $#       v        ki       nai       cai      cass      casr      rpri
-    -85.23    136.89     8.604  0.000126   0.00036      3.64    0.9073
+   -86.709     138.4    10.355   0.00013   0.00036     3.715    0.9068
 $#     xr1       xr2        xs         m         h         j         d         f
-   0.00621    0.4712    0.0095   0.00172    0.7444    0.7045 3.373e-05    0.7888
+   0.00448     0.476    0.0087   0.00155    0.7573    0.7225 3.164e-05    0.8009
 $#      f2     fcass         s         r
-    0.9755    0.9953  0.999998  2.42e-08
+    0.9778    0.9953    0.3212 2.235e-08
 *EM_EP_CELLMODEL_TENTUSSCHER
 $#     mid
         10
@@ -115,7 +115,7 @@ $#       r         t         f        cm        vc       vsr       vss      pkna
 $#      ko       nao       cao
        5.4     140.0       2.0
 $#     gk1       gkr       gks       gna      gbna      gcal      gbca       gto
-     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.294
+     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.073
 $#    gpca       gpk
     0.1238    0.0146
 $#    pnak        km      kmna     knaca      ksat     alpha     gamma      kmca
@@ -129,11 +129,11 @@ $#    vrel     vleak     vxfer    vmaxup       kup
 $#    bufc     kbufc     bufsr    kbufsf     bufss    kbufss
        0.2     0.001      10.0       0.3       0.4   0.00025
 $#       v        ki       nai       cai      cass      casr      rpri
-    -85.23    136.89     8.604  0.000126   0.00036      3.64    0.9073
+   -86.709     138.4    10.355   0.00013   0.00036     3.715    0.9068
 $#     xr1       xr2        xs         m         h         j         d         f
-   0.00621    0.4712    0.0095   0.00172    0.7444    0.7045 3.373e-05    0.7888
+   0.00448     0.476    0.0087   0.00155    0.7573    0.7225 3.164e-05    0.8009
 $#      f2     fcass         s         r
-    0.9755    0.9953  0.999998  2.42e-08
+    0.9778    0.9953    0.3212 2.235e-08
 *EM_EP_CELLMODEL_TENTUSSCHER
 $#     mid
         11
@@ -142,7 +142,7 @@ $#       r         t         f        cm        vc       vsr       vss      pkna
 $#      ko       nao       cao
        5.4     140.0       2.0
 $#     gk1       gkr       gks       gna      gbna      gcal      gbca       gto
-     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.294
+     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.073
 $#    gpca       gpk
     0.1238    0.0146
 $#    pnak        km      kmna     knaca      ksat     alpha     gamma      kmca
@@ -156,11 +156,11 @@ $#    vrel     vleak     vxfer    vmaxup       kup
 $#    bufc     kbufc     bufsr    kbufsf     bufss    kbufss
        0.2     0.001      10.0       0.3       0.4   0.00025
 $#       v        ki       nai       cai      cass      casr      rpri
-    -85.23    136.89     8.604  0.000126   0.00036      3.64    0.9073
+   -86.709     138.4    10.355   0.00013   0.00036     3.715    0.9068
 $#     xr1       xr2        xs         m         h         j         d         f
-   0.00621    0.4712    0.0095   0.00172    0.7444    0.7045 3.373e-05    0.7888
+   0.00448     0.476    0.0087   0.00155    0.7573    0.7225 3.164e-05    0.8009
 $#      f2     fcass         s         r
-    0.9755    0.9953  0.999998  2.42e-08
+    0.9778    0.9953    0.3212 2.235e-08
 *EM_EP_CELLMODEL_TENTUSSCHER
 $#     mid
         12
@@ -169,7 +169,7 @@ $#       r         t         f        cm        vc       vsr       vss      pkna
 $#      ko       nao       cao
        5.4     140.0       2.0
 $#     gk1       gkr       gks       gna      gbna      gcal      gbca       gto
-     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.294
+     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.073
 $#    gpca       gpk
     0.1238    0.0146
 $#    pnak        km      kmna     knaca      ksat     alpha     gamma      kmca
@@ -183,11 +183,11 @@ $#    vrel     vleak     vxfer    vmaxup       kup
 $#    bufc     kbufc     bufsr    kbufsf     bufss    kbufss
        0.2     0.001      10.0       0.3       0.4   0.00025
 $#       v        ki       nai       cai      cass      casr      rpri
-    -85.23    136.89     8.604  0.000126   0.00036      3.64    0.9073
+   -86.709     138.4    10.355   0.00013   0.00036     3.715    0.9068
 $#     xr1       xr2        xs         m         h         j         d         f
-   0.00621    0.4712    0.0095   0.00172    0.7444    0.7045 3.373e-05    0.7888
+   0.00448     0.476    0.0087   0.00155    0.7573    0.7225 3.164e-05    0.8009
 $#      f2     fcass         s         r
-    0.9755    0.9953  0.999998  2.42e-08
+    0.9778    0.9953    0.3212 2.235e-08
 *EM_EP_CELLMODEL_TENTUSSCHER
 $#     mid
         13
@@ -196,7 +196,7 @@ $#       r         t         f        cm        vc       vsr       vss      pkna
 $#      ko       nao       cao
        5.4     140.0       2.0
 $#     gk1       gkr       gks       gna      gbna      gcal      gbca       gto
-     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.294
+     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.073
 $#    gpca       gpk
     0.1238    0.0146
 $#    pnak        km      kmna     knaca      ksat     alpha     gamma      kmca
@@ -210,11 +210,11 @@ $#    vrel     vleak     vxfer    vmaxup       kup
 $#    bufc     kbufc     bufsr    kbufsf     bufss    kbufss
        0.2     0.001      10.0       0.3       0.4   0.00025
 $#       v        ki       nai       cai      cass      casr      rpri
-    -85.23    136.89     8.604  0.000126   0.00036      3.64    0.9073
+   -86.709     138.4    10.355   0.00013   0.00036     3.715    0.9068
 $#     xr1       xr2        xs         m         h         j         d         f
-   0.00621    0.4712    0.0095   0.00172    0.7444    0.7045 3.373e-05    0.7888
+   0.00448     0.476    0.0087   0.00155    0.7573    0.7225 3.164e-05    0.8009
 $#      f2     fcass         s         r
-    0.9755    0.9953  0.999998  2.42e-08
+    0.9778    0.9953    0.3212 2.235e-08
 *EM_EP_CELLMODEL_TENTUSSCHER
 $#     mid
         14
@@ -223,7 +223,7 @@ $#       r         t         f        cm        vc       vsr       vss      pkna
 $#      ko       nao       cao
        5.4     140.0       2.0
 $#     gk1       gkr       gks       gna      gbna      gcal      gbca       gto
-     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.294
+     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.073
 $#    gpca       gpk
     0.1238    0.0146
 $#    pnak        km      kmna     knaca      ksat     alpha     gamma      kmca
@@ -237,11 +237,11 @@ $#    vrel     vleak     vxfer    vmaxup       kup
 $#    bufc     kbufc     bufsr    kbufsf     bufss    kbufss
        0.2     0.001      10.0       0.3       0.4   0.00025
 $#       v        ki       nai       cai      cass      casr      rpri
-    -85.23    136.89     8.604  0.000126   0.00036      3.64    0.9073
+   -86.709     138.4    10.355   0.00013   0.00036     3.715    0.9068
 $#     xr1       xr2        xs         m         h         j         d         f
-   0.00621    0.4712    0.0095   0.00172    0.7444    0.7045 3.373e-05    0.7888
+   0.00448     0.476    0.0087   0.00155    0.7573    0.7225 3.164e-05    0.8009
 $#      f2     fcass         s         r
-    0.9755    0.9953  0.999998  2.42e-08
+    0.9778    0.9953    0.3212 2.235e-08
 *EM_EP_CELLMODEL_TENTUSSCHER
 $#     mid
         15
@@ -250,7 +250,7 @@ $#       r         t         f        cm        vc       vsr       vss      pkna
 $#      ko       nao       cao
        5.4     140.0       2.0
 $#     gk1       gkr       gks       gna      gbna      gcal      gbca       gto
-     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.294
+     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.073
 $#    gpca       gpk
     0.1238    0.0146
 $#    pnak        km      kmna     knaca      ksat     alpha     gamma      kmca
@@ -264,11 +264,11 @@ $#    vrel     vleak     vxfer    vmaxup       kup
 $#    bufc     kbufc     bufsr    kbufsf     bufss    kbufss
        0.2     0.001      10.0       0.3       0.4   0.00025
 $#       v        ki       nai       cai      cass      casr      rpri
-    -85.23    136.89     8.604  0.000126   0.00036      3.64    0.9073
+   -86.709     138.4    10.355   0.00013   0.00036     3.715    0.9068
 $#     xr1       xr2        xs         m         h         j         d         f
-   0.00621    0.4712    0.0095   0.00172    0.7444    0.7045 3.373e-05    0.7888
+   0.00448     0.476    0.0087   0.00155    0.7573    0.7225 3.164e-05    0.8009
 $#      f2     fcass         s         r
-    0.9755    0.9953  0.999998  2.42e-08
+    0.9778    0.9953    0.3212 2.235e-08
 *EM_EP_CELLMODEL_TENTUSSCHER
 $#     mid
         16
@@ -277,7 +277,7 @@ $#       r         t         f        cm        vc       vsr       vss      pkna
 $#      ko       nao       cao
        5.4     140.0       2.0
 $#     gk1       gkr       gks       gna      gbna      gcal      gbca       gto
-     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.294
+     5.405     0.153     0.392    14.838    0.0002  3.98e-05  0.000592     0.073
 $#    gpca       gpk
     0.1238    0.0146
 $#    pnak        km      kmna     knaca      ksat     alpha     gamma      kmca
@@ -291,9 +291,9 @@ $#    vrel     vleak     vxfer    vmaxup       kup
 $#    bufc     kbufc     bufsr    kbufsf     bufss    kbufss
        0.2     0.001      10.0       0.3       0.4   0.00025
 $#       v        ki       nai       cai      cass      casr      rpri
-    -85.23    136.89     8.604  0.000126   0.00036      3.64    0.9073
+   -86.709     138.4    10.355   0.00013   0.00036     3.715    0.9068
 $#     xr1       xr2        xs         m         h         j         d         f
-   0.00621    0.4712    0.0095   0.00172    0.7444    0.7045 3.373e-05    0.7888
+   0.00448     0.476    0.0087   0.00155    0.7573    0.7225 3.164e-05    0.8009
 $#      f2     fcass         s         r
-    0.9755    0.9953  0.999998  2.42e-08
+    0.9778    0.9953    0.3212 2.235e-08
 *END

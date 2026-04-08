@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -406,7 +406,7 @@ class _FluentMesh:
         if add_faces:
             # add faces.
             grid_faces = pv.UnstructuredGrid()
-            grid_faces.nodes = self.nodes
+            grid_faces.points = self.nodes
 
             face_zone_ids = np.concatenate([[fz.id] * fz.faces.shape[0] for fz in self.face_zones])
             faces = np.array(np.concatenate([fz.faces for fz in self.face_zones]), dtype=int)

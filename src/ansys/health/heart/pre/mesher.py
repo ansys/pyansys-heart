@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -520,7 +520,7 @@ def _mesh_fluid_cavities(
     workdir : str
         Working directory.
     remesh_caps : bool, default: True
-        whether to remesh the caps.
+        Whether to remesh the caps.
 
     Returns
     -------

@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -29,15 +29,16 @@ import json
 import os
 import pathlib
 import re
-from typing import Literal
+from typing import Literal, Tuple
 
 from deprecated import deprecated
 import numpy as np
 import pyvista as pv
+from scipy.spatial.transform import Rotation as Rotation
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
-from ansys.health.heart.exceptions import InvalidHeartModelError
+from ansys.health.heart.exceptions import InvalidHeartModelError, PartAlreadyExistsError
 from ansys.health.heart.landmarks import LandMarks
 from ansys.health.heart.objects import (
     Cap,
@@ -54,7 +55,7 @@ from ansys.health.heart.pre.conduction_path import (
 )
 from ansys.health.heart.pre.input import _InputModel
 import ansys.health.heart.pre.mesher as mesher
-from ansys.health.heart.settings.material.ep_material import EPMaterial
+import ansys.health.heart.settings.material.ep_material as ep_materials
 from ansys.health.heart.settings.material.material import (
     ISO,
     Mat295,
@@ -255,7 +256,7 @@ class HeartModel:
 
         #! TODO: non-functional flag. Remove or replace.
         self._add_blood_pool: bool = False
-        """Flag indicating whether a blood pool mesh is added. (Experimental)"""
+        """Flag indicating whether a blood pool mesh is added. (Experimental)."""
 
         self._input: _InputModel = None
         """Input model."""
@@ -285,6 +286,7 @@ class HeartModel:
         self._l4cv_axis: dict = None
         """l4cv axis."""
 
+        self.__nodeset_cellmodel: tuple[list[np.ndarray], list[ep_materials.Tentusscher]] = None
         return
 
     @property
@@ -296,6 +298,170 @@ class HeartModel:
     def conduction_mesh(self):
         """Conduction mesh."""
         return self._conduction_mesh
+
+    @property
+    def _nodeset_cellmodel(
+        self,
+    ) -> tuple[list[np.ndarray], list[ep_materials.Tentusscher]] | None:
+        """
+        Nodeset-based cell model assignment.
+
+        This attribute is used for defining space-varying cell models based on nodesets,
+        e.g. from endocardium to epicardium.
+
+        Notes
+        -----
+        If defined, it overwrites the cell model assignment based on part definitions.
+        """
+        return self.__nodeset_cellmodel
+
+    @_nodeset_cellmodel.setter
+    def _nodeset_cellmodel(
+        self, value: tuple[list[np.ndarray], list[ep_materials.Tentusscher]] | None
+    ):
+        if value is None:
+            self.__nodeset_cellmodel = None
+            return
+        if not isinstance(value, tuple) or len(value) != 2:
+            raise TypeError(
+                "_nodeset_cellmodel must be a tuple of (list[np.ndarray], list[Tentusscher])."
+            )
+        node_sets, cell_models = value
+        if not isinstance(node_sets, list) or not all(
+            isinstance(ns, np.ndarray) for ns in node_sets
+        ):
+            raise TypeError("First element of _nodeset_cellmodel must be a list of np.ndarray.")
+        if not isinstance(cell_models, list) or not all(
+            isinstance(cm, ep_materials.Tentusscher) for cm in cell_models
+        ):
+            raise TypeError(
+                "Second element of _nodeset_cellmodel must be a list of Tentusscher instances."
+            )
+        if len(node_sets) != len(cell_models):
+            raise ValueError(
+                "node_sets and cell_models must have the same length, "
+                f"got {len(node_sets)} and {len(cell_models)}."
+            )
+        self.__nodeset_cellmodel = value
+
+    def define_12lead_electrodes(self) -> None:
+        """Define the 12-lead ECG electrode positions based on the model geometry."""
+        # reference electrode positions
+        # positioned according to current clinical practice
+        reference_electrode_positions = np.array(
+            [
+                [-21, 1314, 117],  # V1
+                [21, 1314, 117],  # V2
+                [62, 1285, 124],  # V3
+                [104, 1262, 103],  # V4
+                [136, 1267, 73],  # V5
+                [156, 1273, 32],  # V6
+                [-153, 1458, 2],  # RA
+                [153, 1458, 2],  # LA
+                [-80, 1150, 34],  # RL
+                [80, 1150, 34],  # LL
+            ],
+            dtype=float,
+        )
+
+        # Reference anatomical landmarks
+        ref_apex = np.array([65, 1265, 72], dtype=float)
+        ref_mitral = np.array([28, 1310, -1.5], dtype=float)
+        ref_tricuspid = np.array([-10, 1305, 35], dtype=float)
+        ref_pulmonary = np.array([25, 1353, 22], dtype=float)
+
+        ref_landmarks = np.vstack([ref_apex, ref_tricuspid, ref_mitral, ref_pulmonary])
+
+        # Extraction of the corresponding anatomical landmarks from the model
+        self._extract_apex()
+        model_apex = np.array(self.left_ventricle.apex_points[1].xyz)
+
+        model_tricuspid = np.array(
+            next(cap.centroid for cap in self.all_caps if cap.name == "tricuspid-valve"),
+        )
+        model_mitral = np.array(
+            next(cap.centroid for cap in self.all_caps if cap.name == "mitral-valve"),
+        )
+        model_pulmonary = np.array(
+            next(cap.centroid for cap in self.all_caps if cap.name == "pulmonary-valve"),
+        )
+
+        model_landmarks = np.vstack([model_apex, model_tricuspid, model_mitral, model_pulmonary])
+
+        # Computation of the optimal rigid transformation
+        rotation, translation = HeartModel.rigid_transform_3d(ref_landmarks, model_landmarks)
+
+        aligned_electrodes = (rotation @ reference_electrode_positions.T).T + translation
+
+        # Instantiating Point objects for all electrodes and assign it
+        names = ["V1", "V2", "V3", "V4", "V5", "V6", "RA", "LA", "RL", "LL"]
+        self.electrodes = [Point(name=n, xyz=xyz) for n, xyz in zip(names, aligned_electrodes)]
+
+        return aligned_electrodes
+
+    @staticmethod
+    def rigid_transform_3d(
+        source_points: np.ndarray, target_points: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Compute the optimal rigid transformation that aligns source points to target points.
+
+        Uses singular value decomposition (SVD) of the cross-covariance matrix.
+
+        Parameters
+        ----------
+        source_points : np.ndarray
+            Source point set of shape (N, 3) with N >= 3 non-collinear points.
+        target_points : np.ndarray
+            Target point set of shape (N, 3) with N >= 3 non-collinear points.
+
+        Returns
+        -------
+        rotation : np.ndarray
+            Rotation matrix of shape (3, 3) with det(rotation) = +1.
+        translation : np.ndarray
+            Translation vector of shape (3,).
+
+        Raises
+        ------
+        ValueError
+            If source_points and target_points do not have the same shape, are not (N, 3) arrays,
+            or contain fewer than 3 points.
+        """
+        if (
+            source_points.shape != target_points.shape
+            or source_points.ndim != 2
+            or source_points.shape[1] != 3
+        ):
+            raise ValueError(
+                f"source_points and target_points must both have shape (N, 3), "
+                f"got {source_points.shape} and {target_points.shape}."
+            )
+        if source_points.shape[0] < 3:
+            raise ValueError(f"At least 3 points are required, got {source_points.shape[0]}.")
+
+        # Compute centroids
+        source_centroid = source_points.mean(axis=0)
+        target_centroid = target_points.mean(axis=0)
+
+        # Centre the point sets
+        source_centered = source_points - source_centroid
+        target_centered = target_points - target_centroid
+
+        # Cross-covariance matrix (3x3)
+        cross_covariance = source_centered.T @ target_centered
+
+        # SVD decomposition
+        u_mat, _, vt_mat = np.linalg.svd(cross_covariance)
+        rotation = vt_mat.T @ u_mat.T
+
+        # Correct reflection if det(rotation) = -1
+        if np.linalg.det(rotation) < 0:
+            vt_mat[-1, :] *= -1
+            rotation = vt_mat.T @ u_mat.T
+
+        # Translation
+        translation = target_centroid - rotation @ source_centroid
+        return rotation, translation
 
     def assign_conduction_paths(self, paths: ConductionPath | list[ConductionPath]):
         """Assign conduction paths to the model.
@@ -396,7 +562,7 @@ class HeartModel:
         name : str
             Part name.
         part_type : anatomy._PartType, default: anatomy._PartType.UNDEFINED
-            Type of the part. The default is ``anatomy._PartType.UNDEFINED``.
+            Type of the part to create.
 
         Returns
         -------
@@ -409,7 +575,7 @@ class HeartModel:
 
         if name in [p.name for p in self.parts]:
             LOGGER.error(f"Failed to create {name}. Name already exists.")
-            return None
+            raise PartAlreadyExistsError(f"Part {name} already exists.")
 
         new_part_id = self.mesh._unused_volume_id
 
@@ -711,8 +877,7 @@ class HeartModel:
         plot_raw_mesh : bool, default: False
             Whether to plot the streamlines on the raw mesh.
         n_seed_points : int, default: 1000
-            Number of seed points. While the default is ``1000``, using ``5000``
-            is recommended.
+            Number of seed points for mesh generation. Using ``5000`` is recommended.
 
         Examples
         --------
@@ -734,7 +899,9 @@ class HeartModel:
             )
             return None
         tubes = streamlines.tube()
-        plotter.add_mesh(mesh.extract_surface(), opacity=0.5, color="white")
+        plotter.add_mesh(
+            mesh.extract_surface(algorithm="dataset_surface"), opacity=0.5, color="white"
+        )
         plotter.add_mesh(tubes, color="white")
         plotter.show()
         return plotter
@@ -1444,13 +1611,21 @@ class HeartModel:
                                 break
 
                         cap_name = split.replace("-plane", "").replace("-inlet", "")
-                        cap.type = CapType(cap_name)
 
-                        if "atrium" in part.name and (
-                            cap.type in [CapType.TRICUSPID_VALVE, CapType.MITRAL_VALVE]
-                        ):
-                            cap_name = cap_name + "-atrium"
-                            cap.type = CapType(cap.type.value + "-atrium")
+                        try:
+                            cap.type = CapType(cap_name)
+
+                            if "atrium" in part.name and (
+                                cap.type in [CapType.TRICUSPID_VALVE, CapType.MITRAL_VALVE]
+                            ):
+                                cap_name = cap_name + "-atrium"
+                                cap.type = CapType(cap.type.value + "-atrium")
+                        except ValueError:
+                            LOGGER.warning(
+                                f"Could not map cap name {cap_name} to CapType enum - default "
+                                "to unknown cap type."
+                            )
+                            cap.type = CapType.UNKNOWN
 
                         cap.name = cap_name
 
@@ -1532,32 +1707,34 @@ class HeartModel:
         """Clean epicardial surfaces such that these use only nodes of the part."""
         for part in self.parts:
             self.mesh._set_global_ids()
-            global_node_ids_part = self.mesh.extract_cells(
-                part.get_element_ids(self.mesh)
-            ).point_data["_global-point-ids"]
+            element_ids = part.get_element_ids(self.mesh)
 
-            # ! The only information we use from surface here is the ID, not the mesh information.
-            # ! We need to go back to the central mesh to obtain an updated copy of
-            # ! the corresponding mesh.
+            if element_ids.shape[0] == 0:
+                LOGGER.debug(f"No elements for part {part.name}.")
+                continue
+
+            global_node_ids_part = self.mesh.extract_cells(element_ids).point_data[
+                "_global-point-ids"
+            ]
+
             for surface in part.surfaces:
                 if "epicardium" in surface.name:
                     # get the surface id.
                     surf_id = self.mesh._surface_name_to_id[surface.name]
-                    global_node_ids_surface = self.mesh.get_surface(surf_id).point_data[
-                        "_global-point-ids"
-                    ]
-                    mask = np.isin(global_node_ids_surface, global_node_ids_part)
-                    # do not use any faces that use a node not in the part.
-                    mask = np.all(np.isin(surface.triangles, np.argwhere(mask).flatten()), axis=1)
+                    surface = self.mesh.get_surface(surf_id)
+
+                    # do not use any faces that use a node that is not in the part.
+                    mask = np.all(np.isin(surface.triangles_global, global_node_ids_part), axis=1)
+
+                    if not np.any(mask):
+                        continue
 
                     LOGGER.debug(f"Removing {np.sum(np.invert(mask))} faces from {surface.name}.")
-                    surface.triangles = surface.triangles[mask, :]
+                    global_cell_ids_to_remove = surface.cell_data["_global-cell-ids"][
+                        np.invert(mask)
+                    ]
 
-                    # add updated mesh to global mesh.
-                    # TODO: could just change the _surface-ids in the cell data directly.
-                    # TODO: this basically appends the cells of surface at the end of Mesh.
-                    self.mesh.remove_surface(surf_id)
-                    self.mesh.add_surface(surface, int(surf_id), name=surface.name)
+                    self.mesh.cell_data["_surface-id"][global_cell_ids_to_remove] = np.nan
 
         return
 
@@ -1688,8 +1865,10 @@ class HeartModel:
         part.fiber = False
         part.active = False
         part.meca_material = stiff_material
-        # assign default EP material as for ventricles
-        part.ep_material = EPMaterial.Active()
+        # Assign Active EP material.
+        part.ep_material = ep_materials.Active(
+            sigma_fiber=0.5, sigma_sheet=0.1, sigma_sheet_normal=0.1, beta=140.0, cm=0.01
+        )
 
         return part
 
@@ -1830,7 +2009,7 @@ class FourChamber(HeartModel):
         # Assign a new part ID to the isolation part
         isolation.fiber = True
         isolation.active = False
-        isolation.ep_material = EPMaterial.Insulator()
+        isolation.ep_material = ep_materials.Insulator()
 
         return isolation
 
@@ -1891,7 +2070,7 @@ class FourChamber(HeartModel):
         ring.fiber = False
         ring.active = False
         # assign default EP material
-        ring.ep_material = EPMaterial.Active()
+        ring.ep_material = ep_materials.Active()
 
         return ring
 
@@ -1932,7 +2111,7 @@ class FullHeart(FourChamber):
         self.pulmonary_artery.fiber = False
         self.pulmonary_artery.active = False
 
-        self.aorta.ep_material = EPMaterial.Insulator()
-        self.pulmonary_artery.ep_material = EPMaterial.Insulator()
+        self.aorta.ep_material = ep_materials.Insulator()
+        self.pulmonary_artery.ep_material = ep_materials.Insulator()
 
         super().__init__(working_directory=working_directory)

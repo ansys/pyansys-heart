@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -58,8 +58,10 @@ def compute_surface_nodal_area_pyvista(surface: pv.PolyData) -> np.ndarray:
         cell_area[icell] = surface.GetCell(icell).ComputeArea()
         # cell_area[icell] = vtk_surface.GetCell(icell).ComputeArea()
 
-    # tris = get_tri_info_from_polydata(surface)[1]
-    tris = np.reshape(surface.faces, (surface.n_cells, 4))[:, 1:]
+    if surface.is_all_triangles:
+        tris = surface.regular_faces
+    else:
+        ValueError("Surface must be all triangles to compute nodal area.")
 
     ii = 0
     for points, area in zip(tris, cell_area):
@@ -211,10 +213,8 @@ def get_boundary_edges(surface: pv.PolyData) -> pv.MultiBlock:
         boundary_edges=True, non_manifold_edges=False, feature_edges=False, manifold_edges=False
     )
     # NOTE: is line ordering ensured for closed loops?
-    # use connectivity filter to find connected edges
-    edge_group = edge_group.connectivity()
-    # split by connectivity:
-    edge_groups = edge_group.split_bodies("RegionId")
+    # Split by connectivity.
+    edge_groups = edge_group.split_bodies()
 
     return edge_groups
 

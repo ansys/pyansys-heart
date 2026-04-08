@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -28,7 +28,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class ControlImplicitSolver(KeywordBase):
-    """LS-DYNA CONTROL_IMPLICIT_SOLVER keyword"""
+    """LS-DYNA CONTROL_IMPLICIT_SOLVER keyword."""
 
     keyword = "CONTROL"
     subkeyword = "IMPLICIT_SOLVER"

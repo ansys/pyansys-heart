@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -28,9 +28,11 @@ import pytest
 import pyvista as pv
 
 from ansys.health.heart.post.laplace_post import (
+    _compute_rotation_angle,
     compute_la_fiber_cs,
     compute_ra_fiber_cs,
     compute_ventricle_fiber_by_drbm,
+    orthogonalization,
 )
 from ansys.health.heart.settings.settings import AtrialFiber
 from tests.heart.conftest import get_assets_folder
@@ -45,14 +47,14 @@ def _set_env_vars(monkeypatch):
 def test_compute_la_fiber_cs(_set_env_vars):
     dir = os.path.join(get_assets_folder(), "post", "la_fiber")
 
-    setting = AtrialFiber()
-    setting.set_values(
-        {
+    setting = AtrialFiber(
+        **{
             "tau_mv": 0.65,
             "tau_lpv": 0.1,
             "tau_rpv": 0.65,
         }
     )
+
     input_grid = pv.read(os.path.join(dir, "la_input.vtu"))
     la_endo = pv.read(os.path.join(dir, "la_endo.vtk"))
 
@@ -70,9 +72,8 @@ def test_compute_la_fiber_cs(_set_env_vars):
 def test_compute_ra_fiber_cs(_set_env_vars):
     dir = os.path.join(get_assets_folder(), "post", "ra_fiber")
 
-    setting = AtrialFiber()
-    setting.set_values(
-        {
+    setting = AtrialFiber(
+        **{
             "tau_tv": 0.9,
             "tau_raw": 0.55,
             "tau_ct_minus": -0.18,
@@ -109,28 +110,69 @@ def test_compute_ventricle_fiber_by_drbm(_set_env_vars):
     ):
         # test no outflow tract
         res = compute_ventricle_fiber_by_drbm(".")
-        assert np.sum(res["label"] == 1) == 86210
+        assert np.sum(res["label"] == 1) == 96695
 
         assert res["label"][0] == 1
-        assert np.allclose(res["fiber"][0], np.array([0.03515216, 0.964732, 0.26087638]))
         assert res["label"][-1] == 2
-        assert np.allclose(res["fiber"][-1], np.array([0.70611833, 0.32320625, -0.63002748]))
+        assert np.isclose(np.min(res["alpha"]), -60, rtol=1e-1)
+        assert np.isclose(np.max(res["alpha"]), 90, rtol=1e-1)
+        assert np.allclose(res["fiber"][0], np.array([-0.07979692, 0.43617534, -0.89631664]))
+        assert np.allclose(res["fiber"][-1], np.array([0.33103764, 0.77190818, 0.54274473]))
 
         # test with outflow tract
         res = compute_ventricle_fiber_by_drbm(
             ".",
             settings={
-                "alpha_left": [-60, 60],
-                "alpha_right": [90, -25],
+                "alpha_left": [40, -40],
+                "alpha_right": [80, -25],
                 "alpha_ot": [90, 0],
                 "beta_left": [-20, 20],
                 "beta_right": [0, 20],
                 "beta_ot": [0, 0],
             },
         )
-        assert np.sum(res["label"] == 1) == 86210
+        assert np.sum(res["label"] == 1) == 96695
 
+        assert np.isclose(np.min(res["alpha"]), -40, rtol=1e-1)
+        assert np.isclose(np.max(res["alpha"]), 80, rtol=1e-1)
         assert res["label"][0] == 1
-        assert np.allclose(res["fiber"][0], np.array([0.03520965, 0.96476314, 0.26075345]))
         assert res["label"][-1] == 2
-        assert np.allclose(res["fiber"][-1], np.array([-0.70556093, 0.21479473, 0.67531252]))
+
+        assert np.allclose(res["fiber"][0], np.array([0.05671137, 0.61760931, -0.78443774]))
+        assert np.allclose(res["fiber"][-1], np.array([-0.26596645, -0.08034016, 0.9606286]))
+
+
+def test_orthogonalization():
+    """Test the orthogonalization function."""
+    # Create two non-parallel vectors for 5 cells
+    e_1 = np.tile(np.array([1, 0, 0]), (5, 1))
+    e_2 = np.tile(np.array([1, 1, 0]), (5, 1))
+
+    v1, v2, v3 = orthogonalization(e_1, e_2)
+
+    # Check shapes
+    assert v1.shape == (5, 3)
+    assert v2.shape == (5, 3)
+    assert v3.shape == (5, 3)
+
+    # Check normalization
+    np.testing.assert_allclose(np.linalg.norm(v1, axis=1), 1)
+    np.testing.assert_allclose(np.linalg.norm(v2, axis=1), 1)
+    np.testing.assert_allclose(np.linalg.norm(v3, axis=1), 1)
+
+    # Check orthogonality
+    np.testing.assert_allclose(np.einsum("ij,ij->i", v1, v2), 0, atol=1e-7)
+    np.testing.assert_allclose(np.einsum("ij,ij->i", v1, v3), 0, atol=1e-7)
+    np.testing.assert_allclose(np.einsum("ij,ij->i", v2, v3), 0, atol=1e-7)
+
+    # Check right-hand rule
+    np.testing.assert_allclose(np.cross(v1, v2), v3, atol=1e-7)
+
+
+def test_compute_rotation_angle():
+    transmural_distance = np.array([0, 0.5, 1])
+    angles = _compute_rotation_angle(transmural_distance, 60, -60)
+
+    # expected angles at transmural distances 0, 0.5, and 1
+    expected = np.array([60, 0, -60])
+    np.testing.assert_allclose(angles, expected)

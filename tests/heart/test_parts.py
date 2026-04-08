@@ -122,7 +122,7 @@ def _get_mock_mesh1():
     from pyvista.examples import load_tetbeam
 
     beam = load_tetbeam()
-    surface = beam.extract_surface()
+    surface = beam.extract_surface(algorithm="dataset_surface")
 
     mesh = Mesh()
     mesh.add_surface(surface, name="Left ventricle endocardium", id=1)
@@ -239,6 +239,19 @@ def _get_mock_mesh():
     return Mesh(grid)
 
 
+def test_get_node_ids_returns_correct_indices():
+    """Test get_node_ids returns correct indices based on _volume-id."""
+    # Setup: mesh with _volume-id array, and a part with a specific pid
+    mesh = _get_mock_mesh()
+    part = Part("TestPart")
+
+    part.pid = 2
+    # Should return indices where _volume-id == 2
+    result = part.get_node_ids(mesh)
+    expected = np.array([1, 2, 4, 5])  # Nodes of the second tetrahedron
+    assert np.array_equal(result, expected)
+
+
 def test_get_element_ids_returns_correct_indices():
     """Test get_element_ids returns correct indices based on _volume-id."""
     # Setup: mesh with _volume-id array, and a part with a specific pid
@@ -316,7 +329,7 @@ def test_set_from_dict_caps_with_unknown_type():
     from pyvista.examples import load_tetbeam
 
     beam = load_tetbeam()
-    surface = beam.extract_surface()
+    surface = beam.extract_surface(algorithm="dataset_surface")
     mesh.add_surface(surface, name="unknown_cap_type", id=100)
     mesh.add_surface(surface, name="invalid-cap", id=101)
 

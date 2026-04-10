@@ -214,14 +214,11 @@ jobs:
         env:
           PYFLUENT_UI_MODE: "hidden_gui"
           PYFLUENT_CONTAINER_INSECURE_MODE: 1
-          COVERAGE_FILE: ${{ matrix.python-version == env.MAIN_PYTHON_VERSION && format('.coverage.{0}', matrix.tests.name) || '' }}
         run: |
           uv tool run tox -e tests -- -m "${{ matrix.tests.markers }}" -vv
 
       - name: Run Tox
         if: matrix.tests.needs_dpf
-        env:
-          COVERAGE_FILE: ${{ matrix.python-version == env.MAIN_PYTHON_VERSION && format('.coverage.{0}', matrix.tests.name) || '' }}
         run: |
           uv tool run tox -e tests -x testenv.deps+="-e dpf-standalone/v${{ env.ANSYS_VERSION }}" -- -m "${{ matrix.tests.markers }}" -vv
 
@@ -230,9 +227,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: ${{ matrix.tests.name }}-coverage
-          path: |
-            .coverage.${{ matrix.tests.name }}
-            .cov/tests/xml
+          path: .cov/tests/coverage.xml
           retention-days: 7
 
   codecov:
@@ -240,12 +235,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: tests
     steps:
-      - name: "Set up uv"
-        uses: astral-sh/setup-uv@eac588ad8def6316056a12d4907a9d4d84ff7a3b # v7.3.0
-        with:
-          python-version: ${{ env.MAIN_PYTHON_VERSION }}
-          activate-environment: "true"
-
       - name: Download all coverage artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
@@ -253,22 +242,10 @@ jobs:
           path: coverage-artifacts
           merge-multiple: false
 
-      - name: Install coverage
-        run: |
-          uv pip install coverage[toml]
-
-      - name: Combine coverage files
-        run: |
-          # Copy all .coverage.* binary files from artifact subdirectories into the cwd
-          find coverage-artifacts -name '.coverage.*' -exec cp {} . \;
-          coverage combine
-          coverage xml -o coverage.xml
-          coverage report
-
       - name: "Upload coverage reports to Codecov"
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
-          files: coverage.xml
+          directory: coverage-artifacts
           token: ${{ secrets.CODECOV_TOKEN }}
 
   build-library:

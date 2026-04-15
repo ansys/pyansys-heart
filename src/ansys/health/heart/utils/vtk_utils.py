@@ -182,10 +182,12 @@ def find_cells_close_to_nodes(
         sphere = pv.Sphere(radius=radius, center=point)
 
         # Use Boolean intersection to find cells that intersect with the sphere
-        selection = mesh.select_enclosed_points(sphere, tolerance=0.0)
+        selection = mesh.select_interior_points(
+            sphere, method="cell_locator", locator_tolerance=0.0
+        )
 
         # Get the indices of the cells
-        selected_points = selection.point_data["SelectedPoints"].nonzero()[0]
+        selected_points = selection.point_data["selected_points"].nonzero()[0]
         cells_within_sphere = mesh.extract_points(selected_points).cell_data["vtkOriginalCellIds"]
 
         # Store unique cell indices

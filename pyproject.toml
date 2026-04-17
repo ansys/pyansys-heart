@@ -9,18 +9,18 @@ version = "0.16.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.rst"
 requires-python = ">=3.10,<4"
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
 maintainers = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Information Analysis",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.13"
 ]
 
 dependencies = [
@@ -40,7 +40,7 @@ dependencies = [
     "rich>=13.9.4",
     "scipy<=1.15.3",
     "vtk>=9.1.0,<9.7,!=9.4.0,!=9.4.1",
-    "pydantic>=2.0.0",
+    "pydantic>=2.0.0"
 ]
 
 # Optional dependencies:
@@ -64,7 +64,7 @@ doc = [
 ]
 tests = [
     "pytest==9.0.2",
-    "pytest-cov==7.0.0",
+    "pytest-cov==7.0.0"
 ]
 
 [project.urls]

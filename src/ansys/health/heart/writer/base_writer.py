@@ -505,7 +505,7 @@ class BaseDynaWriter:
         return include_files
 
     def include_to_main(self, file_list: list[str] | str = []) -> None:
-        """Add *INCLUDE keywords into the main decl.
+        """Add ``*INCLUDE`` keywords into the main deck.
 
         Parameters
         ----------

@@ -99,7 +99,7 @@ def add_nodes_to_kw(nodes: np.ndarray, node_kw: keywords.Node, offset: int = 0) 
 def add_beams_to_kw(
     beams: np.ndarray, beam_kw: keywords.ElementBeam, pid: int, offset: int = 0
 ) -> keywords.ElementBeam:
-    """Add beams to an existing *ELEMENT_BEAM keyword.
+    """Add beams to an existing ``*ELEMENT_BEAM`` keyword.
 
     Notes
     -----
@@ -257,7 +257,7 @@ def create_element_solid_keyword(
     part_id: np.ndarray,
     element_type: str = "tetra",
 ) -> keywords.ElementSolid:
-    """Format the *ELEMENT_SOLID keyword with the provided input.
+    """Format the ``*ELEMENT_SOLID`` keyword with the provided input.
 
     Parameters
     ----------
@@ -304,7 +304,7 @@ def create_element_solid_ortho_keyword(
     part_id: np.ndarray,
     element_type: str = "tetra",
 ) -> keywords.ElementSolidOrtho:
-    """Format the *ELEMENT_SOLID_ORTHO keyword with the provided input.
+    """Format the ``*ELEMENT_SOLID_ORTHO`` keyword with the provided input.
 
     Parameters
     ----------
@@ -468,7 +468,7 @@ def get_list_of_used_ids(keyword_db: Deck, keyword_str: str) -> np.ndarray:
 
     Notes
     -----
-    For example, for *SECTION, you would get *PART and *MAT IDs.
+    For example, for ``*SECTION``, you would get ``*PART`` and ``*MAT`` IDs.
 
     Parameters
     ----------

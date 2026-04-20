@@ -60,6 +60,10 @@ def test_import_mesher_success(monkeypatch):
     """Test that _import_mesher returns the mesher module when it is importable."""
     import sys
 
+    # Block fluent to prove the test does not depend on ansys-fluent-core.
+    monkeypatch.setitem(sys.modules, "ansys.fluent", None)
+    monkeypatch.setitem(sys.modules, "ansys.fluent.core", None)
+
     mock_mesher = mock.MagicMock()
     monkeypatch.setitem(sys.modules, "ansys.health.heart.pre.mesher", mock_mesher)
 

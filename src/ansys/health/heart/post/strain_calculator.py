@@ -64,15 +64,38 @@ class AhaStrainCalculator:
     def compute_longitudinal_radial_strain(
         self, time_array: np.ndarray | list = None, vtk_dir: pathlib.Path | str = None
     ) -> tuple[np.ndarray, np.ndarray]:
-        """
-        Compute longitudinal and radial strain.
+        """Compute longitudinal and radial strain.
+
+         Longitudinal and radial strain (V_i and H_i) values are saved with
+         the following format:
+
+        P1---H1---P2---H2---P3----H3--P4---H4---P5---H5---P6---H6---P1
+        |          |         |         |         |         |         |
+        |          |         |         |         |         |         |
+        V1   S4   V2    S5  V3    S6  V4    S1  V5   S2   V6   S3   V1
+        |          |         |         |         |         |         |
+        |          |         |         |         |         |         |
+        P7---H7---P8---H8---P9----H9--P10--H10--P11--H11--P12--H12--P7
+        |          |         |         |         |         |         |
+        |          |         |         |         |         |         |
+        V7  S10   V8   S11  V9   S12  V10  S7   V11  S8   V12  S9   V7
+        |          |         |         |         |         |         |
+        |          |         |         |         |         |         |
+        P13--H13--P14--H14--P15--H15--P16--H16--P17--H17--P18--H18--P13
+            P19---H19---P20---H20---P21---H21---P22---H22---P19
+            |           |           |           |           |
+            |           |           |           |           |
+            V13  S15   V14   S16   V15   S13   V16   S14   V13
+            |           |           |           |           |
+            |           |           |           |           |
+            P23---H23---P24---H24---P25---H25---P26---H26---P23
 
         Parameters
         ----------
-        time_array: np.ndarray | list, optional
-            Array of time points to compute strain at. If None, use all time points.
-        vtk_dir: pathlib.Path | str, optional
-            Directory to save VTK files. If None, do not save VTK files.
+        time_array : np.ndarray | list, optional
+            Array of time points to compute strain at. If None, all time points are used.
+        vtk_dir : pathlib.Path | str, optional
+            Directory to save VTK files. If None, no VTK files are saved.
 
         Returns
         -------
@@ -125,30 +148,6 @@ class AhaStrainCalculator:
         h_strain = (hlength_array - hlength_array[0]) / hlength_array[0]
         v_strain = (vlength_array - vlength_array[0]) / vlength_array[0]
 
-        """
-        save strain values with the following format:
-
-        P1---H1---P2---H2---P3----H3--P4---H4---P5---H5---P6---H6---P1
-        |          |         |         |         |         |         |
-        |          |         |         |         |         |         |
-        V1   S4   V2    S5  V3    S6  V4    S1  V5   S2   V6   S3   V1
-        |          |         |         |         |         |         |
-        |          |         |         |         |         |         |
-        P7---H7---P8---H8---P9----H9--P10--H10--P11--H11--P12--H12--P7
-        |          |         |         |         |         |         |
-        |          |         |         |         |         |         |
-        V7  S10   V8   S11  V9   S12  V10  S7   V11  S8   V12  S9   V7
-        |          |         |         |         |         |         |
-        |          |         |         |         |         |         |
-        P13--H13--P14--H14--P15--H15--P16--H16--P17--H17--P18--H18--P13
-            P19---H19---P20---H20---P21---H21---P22---H22---P19
-            |           |           |           |           |
-            |           |           |           |           |
-            V13  S15   V14   S16   V15   S13   V16   S14   V13
-            |           |           |           |           |
-            |           |           |           |           |
-            P23---H23---P24---H24---P25---H25---P26---H26---P23
-        """
         # longitudinal strain
         # seg 17 is always 0
         aha_l_strain = np.zeros((len(time_array), 17))

@@ -74,6 +74,28 @@ def test_save_model():
         assert os.path.isfile(expected_info_path)
 
 
+def test_remove_part_updates_part_info():
+    """Test that remove_part also removes the part from _part_info."""
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
+        model = models.BiVentricle(working_directory=workdir)
+
+        # Build _part_info so all parts are registered.
+        model._get_parts_info()
+        assert "Septum" in model._part_info
+
+        # Remove the septum part.
+        model.remove_part("Septum")
+
+        # _part_info should no longer contain the removed part.
+        assert "Septum" not in model._part_info
+
+        # Saving and reloading should not bring the part back.
+        mesh_path, info_path = model.save_model(os.path.join(workdir, "test.vtu"))
+        with open(info_path, "r") as f:
+            saved_info = json.load(f)
+        assert "Septum" not in saved_info
+
+
 @pytest.mark.parametrize(
     "model_type,expected_part_names",
     [

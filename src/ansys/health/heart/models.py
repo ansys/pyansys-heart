@@ -546,6 +546,7 @@ class HeartModel:
     # TODO: There is overlap with the input module.
     def _get_parts_info(self):
         """Get the ID to the model map that allows reconstructing the model from a mesh object."""
+        self._part_info = {}
         for part in self.parts:
             self._part_info.update(part._to_dict())
         return self._part_info
@@ -808,12 +809,12 @@ class HeartModel:
 
     def remove_part(self, part_name: str) -> None:
         """Remove a part with a specific name from the model."""
-        keys = self.__dict__.keys()
-        for key in keys:
+        for key in list(self.__dict__.keys()):
             attribute = getattr(self, key)
             if isinstance(attribute, anatomy.Part):
                 if part_name == attribute.name:
                     delattr(self, key)
+                    self._part_info.pop(part_name, None)
                     return
         return
 

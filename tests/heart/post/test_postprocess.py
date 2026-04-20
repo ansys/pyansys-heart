@@ -24,6 +24,7 @@
 
 import os
 import shutil
+import tempfile
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -75,6 +76,13 @@ def test_compute_strain(get_left_ventricle, monkeypatch):
     assert l_strain.shape == (2, 17)
     assert l_strain[1, 1] == pytest.approx(0.000386, abs=1e-3)
     assert c_strain[1, 1] == pytest.approx(-0.00183, abs=1e-3)
+
+    # test vtk files should be created
+    with tempfile.TemporaryDirectory() as vtk_dir:
+        c.compute_longitudinal_radial_strain(vtk_dir=vtk_dir)
+        assert os.path.isfile(os.path.join(vtk_dir, "endo_0.vtp"))
+        assert os.path.isfile(os.path.join(vtk_dir, "hlines_0.vtp"))
+        assert os.path.isfile(os.path.join(vtk_dir, "vlines_0.vtp"))
 
 
 @pytest.mark.requires_dpf

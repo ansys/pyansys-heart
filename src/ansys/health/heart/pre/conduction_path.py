@@ -704,7 +704,7 @@ def _create_path_in_solid(
 
     # extract region
     cell_center = mesh.cell_centers()
-    ids = np.where(cell_center.select_enclosed_points(sphere)["SelectedPoints"])[0]
+    ids = np.where(cell_center.select_interior_points(sphere)["SelectedPoints"])[0]
     sub_mesh = mesh.extract_cells(ids)
 
     # search shortes path across cells

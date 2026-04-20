@@ -43,7 +43,9 @@ Software
 
 .. note::
 
-  Ansys Fluent is required for meshing. Also note that the postprocessor module requires the Ansys DPF server. A compatible Ansys DPF Server comes with an
+  Ansys Fluent is required for meshing. The meshing dependencies are not included by default and
+  can be installed with ``pip install ansys-health-heart[meshing]``.
+  Also note that the postprocessor module requires the Ansys DPF server. A compatible Ansys DPF Server comes with an
   installation of Ansys 2025 R2 or 2024 R1. If for some reason either version cannot be installed the following standalone DPF Servers are compatible with PyAnsys - Heart:
 
   .. list-table:: **Compatible DPF Standalone versions**

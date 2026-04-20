@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -36,7 +36,7 @@ import yaml
 
 from ansys.health.heart import LOG as LOGGER, __version__
 from ansys.health.heart.objects import Cap, CapType, Cavity, Mesh, Point, SurfaceMesh
-from ansys.health.heart.settings.material.ep_material import EPMaterial
+import ansys.health.heart.settings.material.ep_material as ep_materials
 from ansys.health.heart.settings.material.material import MechanicalMaterialModel
 
 
@@ -111,6 +111,63 @@ class Part:
 
         return np.argwhere(mesh.cell_data["_volume-id"] == self.pid).flatten()
 
+    def get_node_ids(self, mesh: Mesh = None) -> np.ndarray:
+        """Get node IDs that make up the part.
+
+        Parameters
+        ----------
+        mesh : Mesh, default: None
+            The mesh object where to get the node IDs from.
+
+        Returns
+        -------
+        np.ndarray
+            Array of node IDs that make up the part.
+        """
+        # Get node IDs from the cells that belong to this part
+        node_ids = self._get_tetrahedrons(mesh).flatten()
+        return np.unique(node_ids)
+
+    def _get_tetrahedrons(self, mesh: Mesh) -> np.ndarray:
+        """Get tetrahedrons that make up the part.
+
+        Parameters
+        ----------
+        mesh : Mesh
+            The mesh object from which to extract tetrahedrons.
+
+        Returns
+        -------
+        np.ndarray
+            Array of tetrahedrons with shape (n_tetrahedrons, 4) containing global
+            point IDs from the mesh that make up each tetrahedral cell. Returns
+            empty array if no tetrahedrons are found for this part.
+
+        Examples
+        --------
+        >>> part = Part("Left ventricle")
+        >>> part.pid = 1
+        >>> tetrahedrons = part.get_tetrahedrons(mesh)
+        >>> print(f"Part has {len(tetrahedrons)} tetrahedral elements")
+        """
+        # Get element IDs for this part (indices into full mesh.cell_data arrays)
+        element_ids = self.get_element_ids(mesh)
+
+        if len(element_ids) == 0:
+            LOGGER.debug(f"No elements found for part '{self.name}' (PID={self.pid}).")
+            return np.empty((0, 4), dtype=int)
+
+        # Find which tetrahedrons belong to this part
+        mask = np.isin(mesh._global_tetrahedron_ids, element_ids)
+
+        if not np.any(mask):
+            LOGGER.debug(f"No tetrahedral elements found for part '{self.name}' (PID={self.pid}).")
+            return np.empty((0, 4), dtype=int)
+
+        # Extract tetrahedrons - mesh.tetrahedrons contains only tetrahedral cells
+        # with global point IDs preserved
+        return mesh.tetrahedrons[mask, :]
+
     @property
     @deprecated(
         """`element_ids` as an attribute is deprecated. Use `part.get_element_ids(mesh)` instead.
@@ -137,10 +194,10 @@ class Part:
         self.active: bool = False
         """Flag indicating if active stress is established."""
 
-        self.meca_material: MechanicalMaterialModel = MechanicalMaterialModel.DummyMaterial()
+        self.meca_material: MechanicalMaterialModel = None
         """Material model to assign in the simulator."""
 
-        self.ep_material: EPMaterial = EPMaterial.DummyMaterial()
+        self.ep_material: ep_materials.EPMaterialModel = None
         """EP material model to assign in the simulator."""
 
     def __str__(self) -> str:
@@ -270,7 +327,15 @@ class Part:
 
                 for cap_name, cap_id in part_data.get("caps", {}).items():
                     #! note that we assume cap name equals cap type here.
-                    cap = Cap(cap_name, cap_type=CapType(cap_name))
+                    try:
+                        cap_type = CapType(cap_name)
+                    except ValueError as e:
+                        LOGGER.warning(
+                            f"Invalid cap type: {cap_name}. {e}. Defaulting to UNKNOWN cap type."
+                        )
+                        cap_type = CapType.UNKNOWN
+
+                    cap = Cap(cap_name, cap_type=cap_type)
                     cap._mesh = mesh.get_surface(cap_id)
                     part.caps.append(cap)
 
@@ -336,7 +401,7 @@ class Artery(Part):
 
         self.wall: SurfaceMesh = SurfaceMesh(name="{0} wall".format(self.name))
 
-        self.ep_material = EPMaterial.Insulator()
+        self.ep_material = ep_materials.Insulator()
         """EP material model for the artery part."""
 
 

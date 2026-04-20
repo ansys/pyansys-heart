@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -125,10 +125,8 @@ model.plot_mesh(show_edges=False)
 # Plot the endocardial surface of the left ventricle.
 model.left_ventricle.endocardium.plot(show_edges=True, color="r")
 
-# Loop over all cavities and plot them in a single window with PyVista.
+# Use Pyvista to plot all cavity surfaces.
 import pyvista as pv
 
-cavities = pv.PolyData()
-for c in model.cavities:
-    cavities += c.surface
-cavities.plot(show_edges=True)
+all_cavities: pv.PolyData = pv.merge([c.surface for c in model.cavities])
+all_cavities.plot(show_edges=True)

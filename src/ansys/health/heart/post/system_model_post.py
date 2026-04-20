@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -181,15 +181,15 @@ class SystemModelPost:
         s = SimulationSettings()
         s.load(os.path.join(self.dir, "simulation_settings.yml"))
         l_ed_pressure = (
-            s.mechanics.boundary_conditions.end_diastolic_cavity_pressure.left_ventricle.to(
-                "kilopascal"
-            ).m
+            s.mechanics.boundary_conditions.end_diastolic_cavity_pressure.get("left_ventricle")
+            .to("kilopascal")
+            .m
         )
         if self.model_type == "BV":
             r_ed_pressure = (
-                s.mechanics.boundary_conditions.end_diastolic_cavity_pressure.right_ventricle.to(
-                    "kilopascal"
-                ).m
+                s.mechanics.boundary_conditions.end_diastolic_cavity_pressure.get("right_ventricle")
+                .to("kilopascal")
+                .m
             )
 
         # get EOD volume

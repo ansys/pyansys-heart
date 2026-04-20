@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -33,7 +33,7 @@ import pyvista as pv
 
 from ansys.health.heart import LOG as LOGGER
 from ansys.health.heart.objects import Mesh, SurfaceMesh
-from ansys.health.heart.settings.material.ep_material import EPMaterial
+from ansys.health.heart.settings.material.ep_material import EPMaterialModel, Insulator
 
 
 class ConductionPathType(Enum):
@@ -83,8 +83,8 @@ class ConductionPath:
         mesh: Mesh,
         id: int,
         is_connected: np.ndarray,
-        relying_surface: pv.PolyData | SurfaceMesh,
-        material: EPMaterial = EPMaterial.DummyMaterial(),
+        relying_surface: pv.PolyData,
+        material: EPMaterialModel | Insulator | None = None,
         up_path: ConductionPath | None = None,
         down_path: ConductionPath | None = None,
     ):
@@ -103,7 +103,7 @@ class ConductionPath:
             Mask array of points connected to the solid mesh.
         relying_surface : pv.PolyData|SurfaceMesh
             Surface mesh that the conduction path relies on.
-        material : EPMaterial, default: EPMaterial.DummyMaterial()
+        material : EPMaterial, default: None
             EP Material property.
         up_path : ConductionPath | None, default: None
             Upstream conduction path. Its closest point connects to the first point of this path.
@@ -226,8 +226,8 @@ class ConductionPath:
         Parameters
         ----------
         show_plotter : bool, default: True
-            If True, immediately show the plot window. If False, return the plotter
-            object for further modification (e.g., adding more meshes).
+            Whether to immediately show the plot window. If ``False``, return the plotter
+            object for further modification (such as adding more meshes).
 
         Returns
         -------
@@ -274,7 +274,7 @@ class ConductionPath:
 
         Notes
         -----
-        PMJ resistance is controlled by pmjres in *EM_EP_PURKINJE_NETWORK2.
+        PMJ resistance is controlled by pmjres in ``*EM_EP_PURKINJE_NETWORK2``.
         """
         # TODO: make sure we do not create path with length of 0
         if merge_with not in ("node", "cell"):
@@ -415,9 +415,6 @@ class ConductionPath:
             Length of the line element in case of refinement.
         center : bool, default: False
             Whether to use a geodesic path through the centers of the surface cells.
-            Length of the line element in case of refinement.
-        center : bool, default: False
-            If True, the geodesic path passes through the centers of the surface cells.
 
         Returns
         -------
@@ -426,19 +423,16 @@ class ConductionPath:
         """
         # Check element types
         if isinstance(base_mesh, pv.PolyData):
-            cell_types = np.unique(base_mesh.faces.reshape(-1, base_mesh.faces[0] + 1)[:, 0])
-            if not np.all(cell_types == 3):  # 3 = triangle
-                LOGGER.error(
-                    "Base mesh contains non-triangle elements. Only triangles are supported."
-                )
-                return
+            if not base_mesh.is_all_triangles:
+                message = "Base mesh contains non-triangle elements. Only triangles are supported."
+                LOGGER.error(message)
+                raise ValueError(message)
         else:
             cell_types = np.unique(base_mesh.celltypes)
             if not np.all(cell_types == pv.CellType.TETRA):
-                LOGGER.error(
-                    "Base mesh contains non-tetrahedral elements. Only tetras are supported."
-                )
-                return
+                message = "Base mesh contains non-tetrahedral elements. Only tetras are supported."
+                LOGGER.error(message)
+                raise ValueError(message)
 
         if isinstance(base_mesh, pv.PolyData):
             under_surface = base_mesh

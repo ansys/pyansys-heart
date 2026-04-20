@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -28,7 +28,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmEpCreatefiberorientation(KeywordBase):
-    """LS-DYNA EM_EP_CREATEFIBERORIENTATION keyword"""
+    """LS-DYNA EM_EP_CREATEFIBERORIENTATION keyword."""
 
     keyword = "EM"
     subkeyword = "EP_CREATEFIBERORIENTATION"

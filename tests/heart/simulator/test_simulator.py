@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -207,6 +207,8 @@ def test_base_simulator_load_default_settings():
 def test_base_simulator_fiber(_mocked_methods):
     """Test ventricle fiber methods."""
     mock_model = mock.MagicMock()
+    from ansys.health.heart.settings.settings import FibersDRBM
+
     mock_model.mesh = pyvista_examples.load_hexbeam()
     mock_model.mesh.cell_data["fiber"] = np.zeros((mock_model.mesh.n_cells, 3), dtype=float)
     mock_model.mesh.cell_data["sheet"] = np.zeros((mock_model.mesh.n_cells, 3), dtype=float)
@@ -234,7 +236,7 @@ def test_base_simulator_fiber(_mocked_methods):
                 "ansys.health.heart.simulator.BaseSimulator._compute_fibers_drbm",
             ) as mock_drbm:
                 simulator.dyna_settings.dynatype = "smp"
-                simulator.compute_fibers(method="D-RBM")
+                simulator.compute_fibers(fiber_settings=FibersDRBM())
 
             mock_drbm.assert_called_once()
 
@@ -276,6 +278,7 @@ def test_run_dyna(settings):
         ("main-mechanics1", "zero-pressure", False, True),
     ],
 )
+@mock.patch("ansys.health.heart.simulator.MechanicsSimulator._assign_default_materials")
 @mock.patch("ansys.health.heart.simulator.MechanicsSimulator._run_dyna")
 @mock.patch("ansys.health.heart.simulator.mech_post")
 @mock.patch("ansys.health.heart.simulator.MechanicsSimulator._write_main_simulation_files")
@@ -283,6 +286,7 @@ def test_mechanics_simulator_simulate(
     mock_write_main,
     mock_mech_post,
     mock_run_dyna,
+    mock_assign_materials,
     folder_name,
     zerop_folder,
     auto_post,
@@ -318,6 +322,7 @@ def test_mechanics_simulator_simulate(
 
         mock_run_dyna.assert_called_once()
         mock_write_main.assert_called_once()
+        mock_assign_materials.assert_called_once()
         if auto_post:
             mock_mech_post.assert_called_once()
         else:
@@ -326,6 +331,7 @@ def test_mechanics_simulator_simulate(
         mock_mech_post.reset_mock()
         mock_run_dyna.reset_mock()
         mock_write_main.reset_mock()
+        mock_assign_materials.reset_mock()
 
         if initial_stress:
             # TODO: assert if correct file is copied by confirming hash. Will need
@@ -337,7 +343,12 @@ def test_mechanics_simulator_simulate(
 @mock.patch("ansys.health.heart.simulator.MechanicsSimulator._run_dyna")
 @mock.patch("ansys.health.heart.simulator.mech_post")
 @mock.patch("ansys.health.heart.simulator.MechanicsSimulator._write_main_simulation_files")
-def test_call_with_user_k(mock_write_main, mock_mech_post, mock_run_dyna, mechanics_simulator):
+def test_call_with_user_k(
+    mock_write_main,
+    mock_mech_post,
+    mock_run_dyna,
+    mechanics_simulator: simulators.MechanicsSimulator,
+):
     with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
         user_file = os.path.join(tempdir, "user.k")
         with open(user_file, "w") as tmpfile:
@@ -345,7 +356,11 @@ def test_call_with_user_k(mock_write_main, mock_mech_post, mock_run_dyna, mechan
 
         mechanics_simulator.root_directory = tempdir
         mechanics_simulator.initial_stress = False
-        mechanics_simulator.simulate(extra_k_files=[user_file])
+
+        with mock.patch(
+            "ansys.health.heart.simulator.MechanicsSimulator._assign_default_materials"
+        ):
+            mechanics_simulator.simulate(extra_k_files=[user_file])
 
         mock_write_main.assert_called_once_with(
             folder_name="main-mechanics", extra_k_files=[user_file]
@@ -425,3 +440,49 @@ def test_update_conduction_paths(mock_multiblock, surface_type):
     mock_path.deform_to_surface.assert_called_once_with(mock_surface)
     # Check assign_conduction_paths called with new_paths
     mock_model.assign_conduction_paths.assert_called_once_with([mock_path])
+
+
+def test_validate_ep_materials():
+    """Validate _validate_materials behavior for EP and mechanical materials."""
+    from ansys.health.heart.exceptions import MissingMaterialError
+    from ansys.health.heart.settings.material.ep_material import EPMaterialModel
+    from ansys.health.heart.settings.material.material import MechanicalMaterialModel
+
+    model = mock.MagicMock()
+    model.workdir = os.getcwd()
+
+    # Case 1: part missing ep_material -> ValueError
+    part1 = mock.MagicMock()
+    part1.name = "part1"
+    part1.ep_material = None
+    model.parts = [part1]
+    model.conduction_paths = []
+
+    with pytest.raises(ValueError, match=r"Part part1 does not have an EP material"):
+        simulators._validate_materials_of_model(model, requires_mechanical_material=False)
+
+    # Case 2: part has ep_material, conduction path missing -> MissingMaterialError
+    part1.ep_material = EPMaterialModel()
+    cp = mock.MagicMock()
+    cp.name = "cp1"
+    cp.ep_material = None
+    model.conduction_paths = [cp]
+
+    with pytest.raises(MissingMaterialError):
+        simulators._validate_materials_of_model(model, requires_mechanical_material=False)
+
+    # Case 3: all have ep_material -> no exception
+    cp.ep_material = EPMaterialModel()
+    model.conduction_paths = [cp]
+    # should not raise
+    simulators._validate_materials_of_model(model, requires_mechanical_material=False)
+
+    # Mechanical material checks
+    # Case 4: missing mechanical material -> MissingMaterialError
+    part1.meca_material = None
+    with pytest.raises(MissingMaterialError):
+        simulators._validate_materials_of_model(model, requires_ep_material=False)
+
+    # Case 5: mechanical material present -> no exception
+    part1.meca_material = MechanicalMaterialModel()
+    simulators._validate_materials_of_model(model)

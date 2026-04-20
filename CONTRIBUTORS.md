@@ -11,6 +11,7 @@
 * [Jorge Martínez](https://github.com/jorgepiloto)
 * [Karim El Houari](https://github.com/KarimElHouari)
 * [Kathy Pippert](https://github.com/PipKat)
+* [Maelys Bouchaibi](https://github.com/MaelysBouchaibiAnsys)
 * [Maxime Rey](https://github.com/MaxJPRey)
 * [Muhammed Adedigba](https://github.com/moe-ad)
 * [ocrabb](https://github.com/ocrabb)

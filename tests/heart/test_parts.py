@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -25,7 +25,7 @@ import pytest
 import pyvista as pv
 
 from ansys.health.heart import __version__
-from ansys.health.heart.objects import Cap, Cavity, Mesh, SurfaceMesh
+from ansys.health.heart.objects import Cap, CapType, Cavity, Mesh, SurfaceMesh
 from ansys.health.heart.parts import (
     Artery,
     Atrium,
@@ -122,7 +122,7 @@ def _get_mock_mesh1():
     from pyvista.examples import load_tetbeam
 
     beam = load_tetbeam()
-    surface = beam.extract_surface()
+    surface = beam.extract_surface(algorithm="dataset_surface")
 
     mesh = Mesh()
     mesh.add_surface(surface, name="Left ventricle endocardium", id=1)
@@ -239,6 +239,19 @@ def _get_mock_mesh():
     return Mesh(grid)
 
 
+def test_get_node_ids_returns_correct_indices():
+    """Test get_node_ids returns correct indices based on _volume-id."""
+    # Setup: mesh with _volume-id array, and a part with a specific pid
+    mesh = _get_mock_mesh()
+    part = Part("TestPart")
+
+    part.pid = 2
+    # Should return indices where _volume-id == 2
+    result = part.get_node_ids(mesh)
+    expected = np.array([1, 2, 4, 5])  # Nodes of the second tetrahedron
+    assert np.array_equal(result, expected)
+
+
 def test_get_element_ids_returns_correct_indices():
     """Test get_element_ids returns correct indices based on _volume-id."""
     # Setup: mesh with _volume-id array, and a part with a specific pid
@@ -287,3 +300,226 @@ def test_get_element_ids_returns_empty_if_volume_id_missing(caplog):
     assert any(
         "Mesh does not contain '_volume-id' cell data." in m for m in caplog.text.splitlines()
     )
+
+
+def test_set_from_dict_caps_with_unknown_type():
+    """Test _set_from_dict can handle caps with unknown/invalid cap types."""
+    # Setup: create a test dictionary with an invalid cap type
+    part_name = "Left ventricle"
+    test_dict = {
+        part_name: {
+            "part-id": 42,
+            "part-type": "ventricle",
+            "surfaces": {
+                "Left ventricle endocardium": 1,
+                "Left ventricle epicardium": 2,
+            },
+            "_version": "0.15.dev0",
+            "caps": {
+                "unknown_cap_type": 100,  # This should trigger the unknown cap handling
+                "invalid-cap": 101,  # Another invalid cap type
+            },
+        }
+    }
+
+    # Create a mock mesh with the required surfaces and cap surfaces
+    mesh = _get_mock_mesh1()
+
+    # Add cap surfaces to the mesh for testing
+    from pyvista.examples import load_tetbeam
+
+    beam = load_tetbeam()
+    surface = beam.extract_surface(algorithm="dataset_surface")
+    mesh.add_surface(surface, name="unknown_cap_type", id=100)
+    mesh.add_surface(surface, name="invalid-cap", id=101)
+
+    # Act: reconstruct part from dictionary
+    part = Part._set_from_dict(test_dict, mesh=mesh)
+
+    # Assert: part should be created successfully
+    assert isinstance(part, Ventricle)
+    assert part.name == part_name
+    assert part.pid == 42
+
+    # Assert: caps should be created with UNKNOWN type
+    assert len(part.caps) == 2
+
+    for cap in part.caps:
+        assert cap.type == CapType.UNKNOWN
+        assert cap._mesh is not None
+        assert cap.name in ["unknown_cap_type", "invalid-cap"]
+
+
+def _get_mock_mesh_with_mixed_cells():
+    """Create a mock mesh with mixed cell types (triangles and tetrahedra)."""
+    points = np.array(
+        [
+            # Points for tetrahedra
+            [0, 0, 0],  # 0
+            [1, 0, 0],  # 1
+            [0, 1, 0],  # 2
+            [0, 0, 1],  # 3
+            [2, 0, 0],  # 4
+            [2, 1, 0],  # 5
+            [2, 0, 1],  # 6
+            [2, 1, 1],  # 7
+            [4, 0, 0],  # 8
+            [4, 1, 0],  # 9
+            [4, 0, 1],  # 10
+        ],
+        dtype=np.float32,
+    )
+
+    # Create cells: mix of triangles and tetrahedra (tetrahedra NOT at beginning)
+    cells = [
+        3,
+        0,
+        1,
+        2,  # Triangle 1 (surface element)
+        3,
+        4,
+        5,
+        6,  # Triangle 2 (surface element)
+        4,
+        0,
+        1,
+        2,
+        3,  # Tetrahedron 1 - Part 1
+        4,
+        4,
+        5,
+        6,
+        7,  # Tetrahedron 2 - Part 2
+        3,
+        8,
+        9,
+        10,  # Triangle 3 (surface element)
+        4,
+        8,
+        9,
+        10,
+        3,  # Tetrahedron 3 - Part 1
+    ]
+
+    celltypes = [
+        pv.CellType.TRIANGLE,
+        pv.CellType.TRIANGLE,
+        pv.CellType.TETRA,
+        pv.CellType.TETRA,
+        pv.CellType.TRIANGLE,
+        pv.CellType.TETRA,
+    ]
+
+    ugrid = pv.UnstructuredGrid(cells, celltypes, points)
+    mesh = Mesh(ugrid)
+
+    # Assign volume IDs: tetrahedra at cell indices 2, 3, 5
+    mesh.cell_data["_volume-id"] = np.array([np.nan, np.nan, 1.0, 2.0, np.nan, 1.0])
+
+    return mesh
+
+
+def test_get_tetrahedrons_with_mixed_cell_types():
+    """Test _get_tetrahedrons correctly extracts tetrahedra from mixed cell mesh."""
+    mesh = _get_mock_mesh_with_mixed_cells()
+
+    # Test Part 1 (should get 2 tetrahedra)
+    part1 = Part("Part 1")
+    part1.pid = 1
+
+    tets1 = part1._get_tetrahedrons(mesh)
+
+    # Should return 2 tetrahedra
+    assert tets1.shape == (2, 4), f"Expected shape (2, 4), got {tets1.shape}"
+
+    # Verify it contains the correct point IDs
+    expected_tets1 = np.array([[0, 1, 2, 3], [8, 9, 10, 3]])
+    assert np.array_equal(tets1, expected_tets1), f"Expected {expected_tets1}, got {tets1}"
+
+
+def test_get_tetrahedrons_with_single_part():
+    """Test _get_tetrahedrons with a single part."""
+    mesh = _get_mock_mesh_with_mixed_cells()
+
+    # Test Part 2 (should get 1 tetrahedron)
+    part2 = Part("Part 2")
+    part2.pid = 2
+
+    tets2 = part2._get_tetrahedrons(mesh)
+
+    # Should return 1 tetrahedron
+    assert tets2.shape == (1, 4), f"Expected shape (1, 4), got {tets2.shape}"
+
+    # Verify it contains the correct point IDs
+    expected_tets2 = np.array([[4, 5, 6, 7]])
+    assert np.array_equal(tets2, expected_tets2), f"Expected {expected_tets2}, got {tets2}"
+
+
+def test_get_tetrahedrons_with_no_tetrahedra():
+    """Test _get_tetrahedrons returns empty array when part has no tetrahedra."""
+    mesh = _get_mock_mesh_with_mixed_cells()
+
+    # Test non-existent part
+    part_empty = Part("Empty Part")
+    part_empty.pid = 99
+
+    tets_empty = part_empty._get_tetrahedrons(mesh)
+
+    # Should return empty array with correct shape
+    assert tets_empty.shape == (0, 4), f"Expected shape (0, 4), got {tets_empty.shape}"
+
+
+def test_get_tetrahedrons_preserves_global_point_ids():
+    """Test _get_tetrahedrons preserves global point IDs."""
+    mesh = _get_mock_mesh_with_mixed_cells()
+
+    part1 = Part("Part 1")
+    part1.pid = 1
+
+    tets = part1._get_tetrahedrons(mesh)
+
+    # Use tetrahedra to access mesh points
+    tet_points = mesh.points[tets[0]]
+
+    # Verify we can correctly access the point coordinates
+    expected_first_point = np.array([0, 0, 0], dtype=np.float32)
+    assert np.allclose(tet_points[0], expected_first_point), (
+        f"Expected {expected_first_point}, got {tet_points[0]}"
+    )
+
+
+def test_get_tetrahedrons_all_tetrahedra_mesh():
+    """Test _get_tetrahedrons with mesh containing only tetrahedra."""
+    # Create mesh with only tetrahedra (no mixed cell types)
+    points = np.array(
+        [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1], [2, 0, 0], [2, 1, 0], [2, 0, 1], [2, 1, 1]],
+        dtype=np.float32,
+    )
+
+    cells = [
+        4,
+        0,
+        1,
+        2,
+        3,  # Tetrahedron 1
+        4,
+        4,
+        5,
+        6,
+        7,  # Tetrahedron 2
+    ]
+
+    celltypes = [pv.CellType.TETRA, pv.CellType.TETRA]
+
+    ugrid = pv.UnstructuredGrid(cells, celltypes, points)
+    mesh = Mesh(ugrid)
+    mesh.cell_data["_volume-id"] = np.array([1.0, 1.0])
+
+    # Test getting all tetrahedra
+    part = Part("Test Part")
+    part.pid = 1
+
+    tets = part._get_tetrahedrons(mesh)
+
+    assert tets.shape == (2, 4), f"Expected shape (2, 4), got {tets.shape}"
+    assert len(mesh.tetrahedrons) == 2, "Mesh should have 2 tetrahedra"

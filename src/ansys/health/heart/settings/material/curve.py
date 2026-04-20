@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -22,10 +22,17 @@
 
 """Module for active stress curve."""
 
-from typing import Literal
+from typing import Literal, Tuple
 
-import matplotlib.pyplot as plt
 import numpy as np
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_serializer,
+    field_validator,
+    model_validator,
+)
 
 from ansys.health.heart import LOG as LOGGER
 
@@ -38,10 +45,10 @@ def strocchi_active(t_end=800, t_act=0) -> tuple[np.ndarray, np.ndarray]:
 
     Parameters
     ----------
-    t_end : int, optional
-        heart beat period, by default 800
-    t_act : int, optional
-        start time, by default 0
+    t_end : int, default: 800
+        Heart beat period.
+    t_act : int, default: 0
+        Start time.
 
     Returns
     -------
@@ -76,8 +83,8 @@ def kumaraswamy_active(t_end=1000) -> tuple[np.ndarray, np.ndarray]:
 
     Parameters
     ----------
-    t_end : int, optional
-        heart beat duration, by default 1000
+    t_end : int, default: 1000
+        Heart beat duration.
 
     Returns
     -------
@@ -106,10 +113,10 @@ def constant_ca2(tb: float = 800, ca2ionm: float = 4.35) -> tuple[np.ndarray, np
 
     Parameters
     ----------
-    tb : float, optional
-        heart beat period, by default 800
-    ca2ionm : : float, optional
-        amplitude which equals ca2ionm in MAT_295
+    tb : float, default: 800
+        Heart beat period.
+    ca2ionm : float, default: 4.35
+        Amplitude, which equals ca2ionm in MAT_295.
 
     Returns
     -------
@@ -126,145 +133,127 @@ def constant_ca2(tb: float = 800, ca2ionm: float = 4.35) -> tuple[np.ndarray, np
     return (t, v)
 
 
-class ActiveCurve:
-    """Active stress or Ca2+ curve."""
+class ActiveCurve(BaseModel):
+    """Pydantic-backed ActiveCurve."""
 
-    def __init__(
-        self,
-        func: tuple[np.ndarray, np.ndarray],
-        type: Literal["stress", "ca2"] = "ca2",
-        threshold: float = 0.5e-6,
-        n: int = 5,
-    ) -> None:
-        """Define a curve for active behavior of MAT295.
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-        Parameters
-        ----------
-        func : tuple[np.ndarray, np.ndarray]
-            (time, stress or ca2) array for one heart beat
-        type : Literal[&quot;stress&quot;, &quot;ca2&quot;], optional
-            type of curve, by default "ca2"
-        threshold : float, optional
-            threshold of des/active active stress, by default 0.5e-6.
-        n : int, optional
-            No. of heart beat will be written for LS-DYNA, by default 5
+    func: Tuple[np.ndarray, np.ndarray] = None
+    type: Literal["stress", "ca2"] = "ca2"
+    threshold: float = 0.5e-6
+    n_beat: int = 5
 
-        Notes
-        -----
-        - If type=='stress', threshold is always 0.5e-6 and ca2+ will be shifted up with 1.0e-6
-        except t=0. This ensures a continuous activation during simulation.
-        """
-        self.type = type
-        self.n_beat = n
+    # Derived values. exclude these from
+    # json serialization.
+    time: np.ndarray | None = Field(default=None, exclude=True)
+    t_beat: float | None = Field(default=None, exclude=True)
+    ca2: np.ndarray | None = Field(default=None, exclude=True)
+    stress: np.ndarray | None = Field(default=None, exclude=True)
 
-        if type == "stress":
-            LOGGER.warning("Threshold will be reset.")
-            threshold = 0.5e-6
-        self.threshold = threshold
+    @field_validator("func", mode="before")
+    def _func_validator(cls, v):  # noqa: N805
+        """Accept lists/tuples or numpy arrays and return tuple[np.ndarray, np.ndarray]."""
+        if v is None:
+            raise ValueError("func must be provided as (time, values) arrays")
 
-        self.time = func[0]
-        self.t_beat = self.time[-1]
+        # Expect a sequence of length 2
+        if not (isinstance(v, (list, tuple)) and len(v) == 2):
+            raise ValueError("func must be a tuple/list of (time, values)")
 
-        if self.type == "ca2":
-            self.ca2 = func[1]
+        t, y = v
+        t_arr = np.asarray(t)
+        y_arr = np.asarray(y)
+
+        if t_arr.ndim != 1 or y_arr.ndim != 1:
+            raise ValueError("func arrays must be 1-dimensional")
+        if t_arr.shape != y_arr.shape:
+            raise ValueError("func arrays must have the same shape")
+        if t_arr.size == 0:
+            raise ValueError("func arrays must not be empty")
+        if np.any(np.diff(t_arr) <= 0):
+            raise ValueError("func time array must be strictly increasing")
+
+        return (t_arr, y_arr)
+
+    @model_validator(mode="after")
+    def _post_init(self):
+        # preserve public API names used by callers
+        self.time = self.func[0]
+        self.t_beat = float(self.time[-1])
+
+        if self.type == "stress":
+            # reset threshold as current implementation does
+            self.threshold = 0.5e-6
+            self.stress = self.func[1]
+            self.ca2 = self._stress_to_ca2(self.stress)
+        else:
+            self.ca2 = self.func[1]
             self.stress = None
-        elif self.type == "stress":
-            self.stress = func[1]
-            self.ca2 = self._stress_to_ca2(func[1])
 
+        # run the same checks
         self._check_threshold()
+        return self
+
+    # optional: serialize numpy arrays to lists for model_dump / JSON
+    @field_serializer("func")
+    def _serialize_func(self, func: tuple[np.ndarray, np.ndarray], info):
+        if isinstance(func[0], np.ndarray) and isinstance(func[1], np.ndarray):
+            return (func[0].tolist(), func[1].tolist())
+        else:
+            LOGGER.error("Failed to serialize func")
+            return None
 
     def _check_threshold(self):
-        # maybe better to check it cross 1 or 2 times
         if np.max(self.ca2) < self.threshold or np.min(self.ca2) > self.threshold:
             raise ValueError("Threshold must cross ca2+ curve at least once")
 
-    @property
-    def dyna_input(self):
-        """Return x,y input for k files."""
-        return self._repeat((self.time, self.ca2))
-
-    def plot_time_vs_ca2(self):
-        """Plot Ca2+ with threshold."""
-        fig, ax = plt.subplots(figsize=(8, 4))
-        t, v = self._repeat((self.time, self.ca2))
-        ax.plot(t, v, label="Ca2+")
-        ax.hlines(self.threshold, xmin=t[0], xmax=t[-1], label="threshold", colors="red")
-        ax.set_xlabel("time (ms)")
-        ax.set_ylabel("Ca2+")
-        # ax.set_title('Ca2+')
-        ax.legend()
-        return fig
-
-    def plot_time_vs_stress(self):
-        """Plot stress."""
-        if self.stress is None:
-            LOGGER.error("Only support stress curve.")
-            # self._estimate_stress()
-            return None
-        t, v = self._repeat((self.time, self.stress))
-        fig, ax = plt.subplots(figsize=(8, 4))
-        ax.plot(t, v)
-        ax.set_xlabel("time (ms)")
-        ax.set_ylabel("Normalized active stress")
-        # ax.set_title('Ca2+')
-        # ax.legend()
-        return fig
-
-    def _stress_to_ca2(self, stress):
+    def _stress_to_ca2(self, stress: np.ndarray) -> np.ndarray:
         if np.min(stress) < 0 or np.max(stress) > 1.0:
-            LOGGER.error("Stress curve is not between 0-1.")
             raise ValueError("Stress curve must be between 0-1.")
-
-        # assuming actype=3, eta=0; n=1; Ca2+50=1
         ca2 = 1 / (1 - 0.999 * stress) - 1
-
-        # offset about threshold
         ca2[0] = 0.0
         ca2[1:] += 2 * self.threshold
-
         return ca2
 
-    def _repeat(self, curve):
+    def _repeat(self, curve: Tuple[np.ndarray, np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
         t = np.copy(curve[0])
         v = np.copy(curve[1])
-
         for ii in range(1, self.n_beat):
             t = np.append(t, curve[0][1:] + ii * self.t_beat)
             v = np.append(v, curve[1][1:])
         return (t, v)
 
-    def _estimate_stress(self):
-        # TODO: only with 1
-        # TODO: @wenfengye ensure ruff compatibility, see the noqa's
-        ca2ionmax = 4.35
-        ca2ion = 4.35
-        n = 2
-        mr = 1048.9
-        dtmax = 150
-        tr = -1429
-        # Range of L 1.78-1.91
-        L = 1.85  # noqa N806
-        l0 = 1.58
-        b = 4.75
-        lam = 1
-        cf = (np.exp(b * (lam * L - l0)) - 1) ** 0.5
-        ca2ion50 = ca2ionmax / cf
-        dtr = mr * lam * L + tr
-        self.stress = np.zeros(self.ca2.shape)
-        for i, t in enumerate(self.time):
-            if t < dtmax:
-                w = np.pi * t / dtmax
-            elif dtmax <= t <= dtmax + dtr:
-                w = np.pi * (t - dtmax + dtr) / dtr
-            else:
-                w = 0
-            c = 0.5 * (1 - np.cos(w))
-            self.stress[i] = c * ca2ion**n / (ca2ion**n + ca2ion50**n)
+    @property
+    def dyna_input(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Return LS-DYNA input arrays."""
+        return self._repeat((self.time, self.ca2))
 
+    def plot_time_vs_ca2(self):
+        """Plot time vs ca2."""
+        import matplotlib.pyplot as plt
 
-if __name__ == "__main__":
-    a = ActiveCurve(constant_ca2(), threshold=0.1, type="ca2")
-    # a = Ca2Curve(unit_constant_ca2(), type="ca2")
-    a.plot_time_vs_ca2()
-    a.plot_time_vs_stress()
+        t, v = self.dyna_input
+        fig, ax = plt.subplots()
+        ax.plot(t, v, label="ca2")
+        ax.axhline(self.threshold, color="r", linestyle="--", label="threshold")
+        ax.set_xlabel("Time (ms)")
+        ax.set_ylabel("Ca2+")
+        ax.set_title("Active Ca2+ Curve")
+        ax.legend()
+        return fig
+
+    def plot_time_vs_stress(self):
+        """Plot time vs stress."""
+        if self.type != "stress":
+            raise ValueError("Curve type is not 'stress', cannot plot stress.")
+
+        import matplotlib.pyplot as plt
+
+        t, v = self._repeat((self.time, self.stress))
+        fig, ax = plt.subplots()
+        ax.plot(t, v, label="stress")
+        ax.set_xlabel("Time (ms)")
+        ax.set_ylabel("Stress (normalized)")
+        ax.set_title("Active Stress Curve")
+        ax.legend()
+        return fig

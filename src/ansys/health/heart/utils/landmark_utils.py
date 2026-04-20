@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -109,19 +109,44 @@ def compute_aha17(
     """
     aha_ids = np.full(len(model.mesh.tetrahedrons), np.nan)
 
-    # get lv elements
+    if not isinstance(model, HeartModel):
+        raise TypeError("Model must be an instance of HeartModel.")
+
+    # get elements of the left ventricle
     try:
         ele_ids = np.hstack(
-            (
-                model.left_ventricle.get_element_ids(model.mesh),
-                model.septum.get_element_ids(model.mesh),
-            )
+            [
+                model.mesh._global_tetrahedron_ids[
+                    np.isin(
+                        model.mesh._global_tetrahedron_ids,
+                        model.left_ventricle.get_element_ids(model.mesh),
+                    )
+                ],
+                model.mesh._global_tetrahedron_ids[
+                    np.isin(
+                        model.mesh._global_tetrahedron_ids,
+                        model.septum.get_element_ids(model.mesh),
+                    )
+                ],
+            ]
+        )
+        tetrahedrons = np.vstack(
+            [
+                model.left_ventricle._get_tetrahedrons(model.mesh),
+                model.septum._get_tetrahedrons(model.mesh),
+            ]
         )
     except AttributeError:
-        ele_ids = np.hstack(model.left_ventricle.get_element_ids(model.mesh))
+        tetrahedrons = model.left_ventricle._get_tetrahedrons(model.mesh)
+        ele_ids = model.mesh._global_tetrahedron_ids[
+            np.isin(
+                model.mesh._global_tetrahedron_ids,
+                model.left_ventricle.get_element_ids(model.mesh),
+            )
+        ]
 
     # element's center
-    elem_center = np.mean(model.mesh.points[model.mesh.tetrahedrons[ele_ids]], axis=1)
+    elem_center = np.mean(model.mesh.points[tetrahedrons], axis=1)
 
     # anatomical points
     for cap in model.left_ventricle.caps:
@@ -165,7 +190,7 @@ def compute_aha17(
     # aha17 label assignment
     label = np.full(len(elem_center), np.nan)
     for i, n in enumerate(elem_center):
-        # This part contains valves, do not considered by AHA17
+        # This part contains valves, do not consider for 17 segments.
         if np.dot(n - p_highest, mv_center - p_highest) > 0:
             continue
         # Basal: segment 1 2 3 4 5 6
@@ -237,7 +262,7 @@ def compute_aha17(
     return aha_ids
 
 
-@deprecated(reason="Using gradient from UVC to get better results.")
+@deprecated(reason="Use gradient from UVC to get better results.")
 def compute_element_cs(
     model: HeartModel, short_axis: dict, aha_element: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:

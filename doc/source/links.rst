@@ -18,7 +18,7 @@
 .. _tox: https://tox.wiki/en/stable/
 .. _Sphinx: https://www.sphinx-doc.org/en/master/
 .. _Sphinx-Gallery: https://sphinx-gallery.github.io/stable/index.html
-.. _reStructuredText: https://docutils.sourceforge.io/rst.html
+.. _reStructuredText: https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
 .. _Markdown: https://www.markdownguide.org/
 .. _Python documentation: https://docs.python.org/3/library/venv.html
 
@@ -30,7 +30,7 @@
 
 .. _PyAnsys Heart repository: https://github.com/ansys/pyansys-heart
 .. _PyAnsys Heart Issues: https://github.com/ansys/pyansys-heart/issues
-.. _PyAnsys Heart Dscussions: https://github.com/ansys/pyansys-heart/discussions
+.. _PyAnsys Heart Discussions: https://github.com/ansys/pyansys-heart/discussions
 .. _PyAnsys Heart documentation: https://heart.health.docs.pyansys.com/version/stable/index.html
 .. _PyAnsys Heart labels: https://github.com/ansys/pyansys-heart/labels
 .. _PyAnsys Heart release page: https://github.com/ansys/pyansys-heart/releases

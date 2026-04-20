@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -81,7 +81,7 @@ def test_cell_ids_inside_enclosed_surface():
     """Test finding cell ids inside a given surface."""
     # box = pv.Box(bounds=(-0.1, 0.1, -0.1, 0.1, -0.1, 1.0))
     mesh = examples.load_tetbeam()
-    surface = mesh.extract_surface()
+    surface = mesh.extract_surface(algorithm="dataset_surface")
 
     assert np.all(cell_ids_inside_enclosed_surface(mesh, surface) == np.arange(0, mesh.n_cells))
 

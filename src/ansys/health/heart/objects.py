@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -24,6 +24,7 @@
 
 from __future__ import annotations
 
+from abc import ABC
 import copy
 from enum import Enum
 import json
@@ -87,7 +88,7 @@ def _get_fill_data(
 
 
 def _get_global_cell_ids(mesh: pv.UnstructuredGrid, celltype: pv.CellType) -> np.ndarray:
-    """Get the global cell iID of a given cell type.
+    """Get the global cell IDs of a given cell type.
 
     Parameters
     ----------
@@ -169,24 +170,16 @@ def _convert_int64_to_int32(
     return mesh
 
 
-# TODO: Deprecate
-class Feature:
-    """Feature class."""
+class _BaseObject(ABC):
+    """Abstract object class."""
 
     def __init__(self, name: str = None) -> None:
-        #! This class can be deprecated.
         self.name = name
-        """Name of feature."""
-        self.type = None
-        """Type of feature."""
+        """Name."""
         self._node_set_id: int = None
-        """Nodeset ID associated with feature."""
+        """Nodeset ID associated with object."""
         self._seg_set_id: int = None
-        """Segment set ID associated with feature."""
-        self.pid: int = None
-        """Part ID associated with feature."""
-
-        pass
+        """Segment set ID associated with object."""
 
 
 class SurfaceMesh(pv.PolyData):
@@ -234,8 +227,14 @@ class SurfaceMesh(pv.PolyData):
     @property
     def triangles(self):
         """Triangular faces of the surface ``num_faces`` x 3."""
-        faces = np.reshape(self.faces, (self.n_cells, 3 + 1))[:, 1:]
-        return faces
+        if self.n_cells == 0:
+            return np.empty((0, 3), dtype=int)
+
+        if self.is_all_triangles:
+            return self.regular_faces
+
+        else:
+            raise ValueError("Not all faces in the mesh are triangles.")
 
     @triangles.setter
     def triangles(self, value: np.ndarray):
@@ -346,7 +345,7 @@ class SurfaceMesh(pv.PolyData):
         return self
 
 
-class Cavity(Feature):
+class Cavity(_BaseObject):
     """Cavity class."""
 
     def __init__(self, surface: SurfaceMesh = None, centroid: np.ndarray = None, name=None) -> None:
@@ -409,7 +408,7 @@ class CapType(Enum):
     """Cap with unknown association."""
 
 
-class Cap(Feature):
+class Cap(_BaseObject):
     """Cap class."""
 
     @property
@@ -458,6 +457,9 @@ class Cap(Feature):
         """Centroid of the cap ID (in case centroid node is created)."""
         self._mesh: SurfaceMesh = None
 
+        self._pid: int = None
+        """Part ID associated with the cap."""
+
         if cap_type is None or isinstance(cap_type, CapType):
             self.type = cap_type
         else:
@@ -466,7 +468,7 @@ class Cap(Feature):
         return
 
 
-class Point(Feature):
+class Point(_BaseObject):
     """Point class, which can be used to collect relevant points in the mesh."""
 
     def __init__(self, name: str = None, xyz: np.ndarray = None, node_id: int = None) -> None:
@@ -727,7 +729,7 @@ class Mesh(pv.UnstructuredGrid):
                     continue
                 mesh.point_data[name] = fill_data
 
-        merged = pv.merge((self, mesh), merge_points=merge_points, main_has_priority=False)
+        merged = pv.merge((self, mesh), merge_points=merge_points)
         super().__init__(merged)
         return self
 
@@ -1047,7 +1049,7 @@ class Mesh(pv.UnstructuredGrid):
             PolyData representation of the lines to add.
         id : int
             ID of the surface to add. This ID is tracked as ``_line-id``.
-        name : str, optional
+        name : str, default: None
             Name of the added lines. The added lines are not tracked by default.
         """
         if not id:
@@ -1090,12 +1092,16 @@ class Mesh(pv.UnstructuredGrid):
         """
         if sid in list(self._surface_id_to_name.keys()):
             return SurfaceMesh(
-                self._get_submesh(sid, scalar="_surface-id").extract_surface(),
+                self._get_submesh(sid, scalar="_surface-id").extract_surface(
+                    algorithm="dataset_surface"
+                ),
                 name=self._surface_id_to_name[sid],
                 id=sid,
             )
         else:
-            return self._get_submesh(sid, scalar="_surface-id").extract_surface()
+            return self._get_submesh(sid, scalar="_surface-id").extract_surface(
+                algorithm="dataset_surface"
+            )
 
     def get_surface_by_name(self, name: str) -> Union[pv.PolyData, SurfaceMesh]:
         # ?: Return SurfaceMesh instead of PolyData?
@@ -1108,7 +1114,9 @@ class Mesh(pv.UnstructuredGrid):
 
     def get_lines(self, sid: int) -> pv.PolyData:
         """Get lines as a PyVista polydata object."""
-        return self._get_submesh(sid, scalar="_line-id").extract_surface()
+        return self._get_submesh(sid, scalar="_line-id").extract_surface(
+            algorithm="dataset_surface"
+        )
 
     def get_lines_by_name(self, name: str) -> pv.PolyData:
         """Get the lines associated with a given name."""

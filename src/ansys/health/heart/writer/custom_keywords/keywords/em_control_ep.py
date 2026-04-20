@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -25,7 +25,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmControlEp(KeywordBase):
-    """LS-DYNA EM_CONTROL_EP keyword"""
+    """LS-DYNA EM_CONTROL_EP keyword."""
 
     keyword = "EM"
     subkeyword = "CONTROL_EP"

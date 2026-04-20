@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -185,9 +185,11 @@ def _find_endo_epicardial_regions(
                 sub_sub_geoms += [sub_sub_geom]
 
             sub_sub_geoms.sort(
-                key=lambda x: (x.bounds[1] - x.bounds[0])
-                * (x.bounds[3] - x.bounds[2])
-                * (x.bounds[5] - x.bounds[4]),
+                key=lambda x: (
+                    (x.bounds[1] - x.bounds[0])
+                    * (x.bounds[3] - x.bounds[2])
+                    * (x.bounds[5] - x.bounds[4])
+                ),
                 reverse=False,
             )
 
@@ -369,7 +371,7 @@ def _smooth_boundary_edges(
         print("Processing " + id_to_label_map[surf_id])
 
         mask = surface_mesh.cell_data["surface-id"] == surf_id
-        sub_surface = surface_mesh.extract_cells(mask).extract_surface()
+        sub_surface = surface_mesh.extract_cells(mask).extract_surface(algorithm="dataset_surface")
         # get edges
         edges = sub_surface.extract_feature_edges(
             boundary_edges=True, non_manifold_edges=False, feature_edges=False, manifold_edges=False
@@ -377,7 +379,7 @@ def _smooth_boundary_edges(
         conn = edges.connectivity()
         for region_id in np.unique(conn.cell_data["RegionId"]):
             mask1 = conn.cell_data["RegionId"] == region_id
-            edges = conn.extract_cells(mask1).extract_surface()
+            edges = conn.extract_cells(mask1).extract_surface(algorithm="dataset_surface")
 
             # only project if we have a manifold edge.
             # NOTE: this doesn't seem to do much.
@@ -626,4 +628,31 @@ _Rodero2021_labels = {
     "Right superior pulmonary vein inlet": 15,
     "Superior vena cava inlet": 16,
     "Inferior vena cava inlet": 17,
+}
+
+# Rodero2021 left atrial appendage landmarks. These landmarks are used as input
+# to compute the fibers on the left atrium.
+right_atrium_appendage_landmarks = {
+    "Rodero2021": {
+        1: [39, 29, 98],
+        2: [37, 41, 103],
+        3: [39, 60, 99],
+        4: [33, 34, 102],
+        5: [25, 44, 91],
+        6: [26, 36, 86],
+        7: [33, 28, 91],
+        8: [35, 39, 94],
+        9: [39, 27, 100],
+        10: [33, 36, 96],
+        11: [30, 50, 91],
+        12: [28, 42, 93],
+        13: [27, 46, 89],
+        14: [44, 23, 101],
+        15: [37, 32, 88],
+        16: [36, 39, 98],
+        17: [28, 30, 94],
+        18: [26, 30, 83],
+        19: [39, 33, 88],
+        20: [32, 38, 95],
+    }
 }

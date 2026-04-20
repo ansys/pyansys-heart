@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -72,23 +72,23 @@ def _get_beam_model(
     from pyvista import examples
 
     if cell_type == "triangles":
-        testmodel = examples.load_tetbeam().extract_surface()
+        testmodel = examples.load_tetbeam().extract_surface(algorithm="dataset_surface")
         return testmodel
 
     if "tets" in cell_type:
         testmodel = examples.load_tetbeam()
         if "triangles" in cell_type:
-            testmodel = testmodel + testmodel.extract_surface()
+            testmodel = testmodel + testmodel.extract_surface(algorithm="dataset_surface")
         return testmodel
 
     if cell_type == "quads":
-        testmodel = examples.load_hexbeam().extract_surface()
+        testmodel = examples.load_hexbeam().extract_surface(algorithm="dataset_surface")
         return testmodel
 
     if "hex" in cell_type:
         testmodel = examples.load_hexbeam()
         if "quads" in cell_type:
-            testmodel = testmodel + testmodel.extract_surface()
+            testmodel = testmodel + testmodel.extract_surface(algorithm="dataset_surface")
         return testmodel
 
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -52,6 +52,7 @@ from pathlib import Path
 
 from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models
+from ansys.health.heart.settings.settings import FibersDRBM
 from ansys.health.heart.simulator import DynaSettings, EPSimulator
 
 # Set the working directory and path to the model. This example assumes that there is a
@@ -102,13 +103,25 @@ simulator = EPSimulator(
 # Load the default settings.
 simulator.settings.load_defaults()
 
+simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
+
 ###############################################################################
 # Compute fiber orientation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~
 # Compute fiber orientation and plot the fibers on the entire model.
 
-# Compute ventricular fibers.
-simulator.compute_fibers(method="D-RBM")
+# Import the appendage landmarks.
+from ansys.health.heart.pre.database_utils import right_atrium_appendage_landmarks
+
+# Get the right atrium appendage landmark of the first case of Rodero2021.
+right_atrium_appendage_coordinates = right_atrium_appendage_landmarks.get("Rodero2021").get(1)
+
+# Initialize the D-RBM fiber settings.
+d_rbm_settings = FibersDRBM()
+print(d_rbm_settings)
+
+# Compute ventricular fibers using the D-RBM method.
+simulator.compute_fibers(fiber_settings=d_rbm_settings)
 
 # Compute atrial fibers.
 simulator.model.right_atrium.active = True
@@ -116,7 +129,7 @@ simulator.model.left_atrium.active = True
 simulator.model.right_atrium.fiber = True
 simulator.model.left_atrium.fiber = True
 simulator.compute_left_atrial_fiber()
-simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
+simulator.compute_right_atrial_fiber(appendage=right_atrium_appendage_coordinates)
 simulator.model.plot_fibers(n_seed_points=1000)
 
 ###############################################################################
@@ -139,7 +152,5 @@ simulator.model.plot_purkinje()
 # Start the main electrophysiology simulation. This uses the previously computed fiber orientation
 # and Purkinje network to set up and run the LS-DYNA model.
 
-
 # Compute the Eikonal solution. This only computes the activation time.
-simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
 simulator.simulate(folder_name="main-ep-ReactionEikonal")

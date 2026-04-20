@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -46,11 +46,17 @@ set it up for a coupled electromechanical simulation.
 import os
 from pathlib import Path
 
+import numpy as np
 from pint import Quantity
 
 from ansys.health.heart.examples import get_preprocessed_fullheart
 import ansys.health.heart.models as models
-from ansys.health.heart.settings.material.ep_material import EPMaterial
+from ansys.health.heart.settings.material.cell_models import (
+    TentusscherEndo,
+    TentusscherEpi,
+    TentusscherMid,
+)
+import ansys.health.heart.settings.material.ep_material_factory as ep_material_factory
 from ansys.health.heart.settings.material.material import ISO, Mat295
 from ansys.health.heart.simulator import DynaSettings, EPMechanicsSimulator
 
@@ -98,14 +104,24 @@ simulator = EPMechanicsSimulator(
 # Load default simulation settings.
 simulator.settings.load_defaults()
 
+# Use the ReactionEikonal solver for the electrophysiology simulation.
+simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
+
 ###############################################################################
 # Compute the fiber orientation
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Compute the fiber orientation on the entire model.
+
+# Import the appendage landmarks.
+from ansys.health.heart.pre.database_utils import right_atrium_appendage_landmarks
+
+# Get the right atrium appendage landmark of the first case of Rodero2021.
+right_atrium_appendage_coordinates = right_atrium_appendage_landmarks.get("Rodero2021").get(1)
 
 # Compute fiber orientation in the ventricles and atria.
 simulator.compute_fibers()
 simulator.compute_left_atrial_fiber()
-simulator.compute_right_atrial_fiber(appendage=[39, 29, 98])
+simulator.compute_right_atrial_fiber(appendage=right_atrium_appendage_coordinates)
 
 # Switch the atria to active.
 simulator.model.left_atrium.fiber = True
@@ -126,13 +142,34 @@ stiff_iso = Mat295(rho=0.001, iso=ISO(itype=-1, beta=2, kappa=10, mu1=0.1, alpha
 ring.meca_material = stiff_iso
 
 # Assign the default EP material
-ring.ep_material = EPMaterial.Active()
+ring.ep_material = ep_material_factory.get_default_myocardium_material(
+    simulator.settings.electrophysiology.analysis.solvertype
+)
 
 # plot the mesh
 simulator.model.plot_mesh()
 
 # Compute UHCs (Universal Heart Coordinates).
 simulator.compute_uhc()
+
+# Extract nodes in the endocardium, mid-myocardium, and epicardium based by transmural coordinate.
+# Values from experimental data. See:
+# https://www.frontiersin.org/articles/10.3389/fphys.2019.00580/full
+values = simulator.model.mesh.point_data["transmural"]
+
+th_endo = simulator.settings.electrophysiology.layers["percent_endo"].m
+percent_mid = simulator.settings.electrophysiology.layers["percent_mid"].m
+th_mid = th_endo + percent_mid
+
+endo_nodes = (np.nonzero(np.logical_and(values >= 0, values < th_endo)))[0]
+mid_nodes = (np.nonzero(np.logical_and(values >= th_endo, values < th_mid)))[0]
+epi_nodes = (np.nonzero(np.logical_and(values >= th_mid, values <= 1)))[0]
+
+# Define cell model for each layer and assign to the corresponding nodesets.
+simulator.model._nodeset_cellmodel = (
+    [endo_nodes, mid_nodes, epi_nodes],
+    [TentusscherEndo(), TentusscherMid(), TentusscherEpi()],
+)
 
 # Extract elements close to the valves and assign these a passive material.
 simulator.model.create_stiff_ventricle_base(stiff_material=stiff_iso)
@@ -176,9 +213,6 @@ simulator.model.save_model(os.path.join(workdir, "heart_fib_beam.vtu"))
 # .. note::
 #    A constant pressure is prescribed to the atria.
 #    No circulation system is coupled with the atria.
-
-# Use the ReactionEikonal solver for the electrophysiology simulation.
-simulator.settings.electrophysiology.analysis.solvertype = "ReactionEikonal"
 
 # Start main simulation. The ``auto_post`` option is set to ``False`` to avoid
 # automatic postprocessing.

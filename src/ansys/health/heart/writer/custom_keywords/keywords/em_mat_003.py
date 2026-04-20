@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -28,7 +28,7 @@ from ansys.dyna.core.lib.keyword_base import KeywordBase
 
 
 class EmMat003(KeywordBase):
-    """LS-DYNA EM_MAT_003 keyword"""
+    """LS-DYNA EM_MAT_003 keyword."""
 
     keyword = "EM"
     subkeyword = "MAT_003"

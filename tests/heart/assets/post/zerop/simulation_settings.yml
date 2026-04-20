@@ -7,28 +7,6 @@ Simulation Settings:
       dt_d3plot: 20.0 millisecond
       dt_icvout: 5.0 millisecond
       global_damping: 0.1 / millisecond
-    material:
-      myocardium:
-        isotropic:
-          rho: 0.001 gram / millimeter ** 3
-          nu: 0.499
-          k1: 0.0023599999999999997 megapascal
-          k2: 1.75 dimensionless
-        anisotropic:
-          k1f: 0.00049 megapascal
-          k2f: 9.01 dimensionless
-        active:
-          beat_time: 800 millisecond
-          taumax: 0.125 megapascal
-          ss: 0.0
-          sn: 0.0
-      passive:
-        type: NeoHook
-        rho: 0.001 gram / millimeter ** 3
-        itype: -1
-        mu1: 0.1 megapascal
-        alpha1: 2
-      cap: null
     boundary_conditions:
       robin:
         ventricle:
@@ -71,30 +49,6 @@ Simulation Settings:
         initial_value:
           part: 0.0019998358112249997 megapascal
   electrophysiology:
-    material:
-      myocardium:
-        velocity_fiber: 0.7 millimeter / millisecond
-        velocity_sheet: 0.2 millimeter / millisecond
-        velocity_sheet_normal: 0.2 millimeter / millisecond
-        sigma_fiber: 0.5 millisiemens / millimeter
-        sigma_sheet: 0.1 millisiemens / millimeter
-        sigma_sheet_normal: 0.1 millisiemens / millimeter
-        sigma_passive: 1.0 millisiemens / millimeter
-        beta: 140 / millimeter
-        cm: 0.01 microfarad / millimeter ** 2
-        lambda: 0.2 dimensionless
-        percent_endo: 0.17 dimensionless
-        percent_mid: 0.41 dimensionless
-      atrium: null
-      cap: null
-      beam:
-        velocity: 1 millimeter / millisecond
-        sigma: 1 millisiemens / millimeter
-        beta: 140 / millimeter
-        cm: 0.01 microfarad / millimeter ** 2
-        lambda: 0.2 dimensionless
-        pmjrestype: 1 dimensionless
-        pmjres: 0.001 / millisiemens
     analysis:
       end_time: 800 millisecond
       dtmin: 0.0 millisecond

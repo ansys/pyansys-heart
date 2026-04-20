@@ -1,4 +1,4 @@
-# Copyright (C) 2023 - 2025 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2023 - 2026 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -78,8 +78,8 @@ def generate_pvloop(f: str, out_dir: str, t_to_keep: float = 800) -> None:
         Path to the binout file.
     out_dir : str
         Directory to save the file to.
-    t_to_keep : float, optional
-        Time to keep from the end. The default is ``800``, which is the last heart beat.
+    t_to_keep : float, default: 800
+        Time to keep from the end (last heart beat).
     """
     icvout = ICVoutReader(f)
     n_cv = len(icvout._icv_ids)

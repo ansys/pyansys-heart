@@ -20,7 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Module for computing heart anatomical landmarks."""
+"""Module for computing heart anatomical landmarks.
+
+This module provides utilities for computing heart anatomical landmarks including:
+- Long and short axes of the left ventricle
+- AHA17 segment landmarks and segmentation
+- Coordinate systems for strain calculations
+"""
 
 from typing import Literal
 
@@ -59,18 +65,21 @@ def compute_anatomy_axis(
     tuple[dict, dict, dict]
         4CV, 2CV, and short-axis. Each dictionary contains ``center`` and ``normal``.
     """
-    # long 4CAV axis: cross apex, mitral and aortic valve centers
+    # Compute 4-chamber view (4CV) axis from cardiac valves and apex
+    # This is the long axis passing through mitral and aortic valves
     center = np.mean(np.array([av_center, mv_center, apex]), axis=0)
     normal = np.cross(av_center - apex, mv_center - apex)
     l4cv_axis = {"center": center, "normal": normal / np.linalg.norm(normal)}
 
-    # short axis: from mitral valve center to apex
+    # Compute short axis perpendicular to the long axis
+    # The axis runs from the mitral valve center toward the apex
     sh_axis = apex - mv_center
-    # center is  highest possible point but avoid to cut aortic valve plane
+    # Place the center at a fraction of the distance to avoid cutting through valve plane
     center = mv_center + first_cut_short_axis * sh_axis
     short_axis = {"center": center, "normal": sh_axis / np.linalg.norm(sh_axis)}
 
-    # long 2CAV axis: normal to 4cav axe and pass mv center and apex
+    # Compute 2-chamber view (2CV) axis perpendicular to both 4CV and short axes
+    # This axis passes through mitral valve center and apex
     center = np.mean(np.array([mv_center, apex]), axis=0)
     p1 = center + 10 * l4cv_axis["normal"]
     p2 = mv_center
@@ -84,14 +93,11 @@ def compute_anatomy_axis(
 def compute_aha17_points(
     model: HeartModel, short_axis: dict, long_axis: dict, surface: pv.PolyData = None
 ) -> list[np.ndarray]:
-    """Compute AHA17 landmarks for the left ventricle.
+    """Compute 26 AHA17 landmark points on the left ventricle surface.
 
-    The AHA17 landmarks are defined by
-    - 26 points
-    - 26 horizontal lines
-    - 16 vertical lines
-
-    They split left ventricle into 17 segments as follow:
+    The AHA17 landmark points define the geometry for the 17-segment model of the left ventricle.
+    These 26 points are distributed across three levels (basal, mid, apical) and are located
+    at specific angular positions around the circumference.
 
     P1---H1---P2---H2---P3----H3--P4---H4---P5---H5---P6---H6---P1
     |          |         |         |         |         |         |
@@ -114,54 +120,51 @@ def compute_aha17_points(
            |           |           |           |           |
           P23---H23---P24---H24---P25---H25---P26---H26---P23
 
-    Parameters
-    ----------
     model : HeartModel
-        Heart model.
+        Heart model containing the left ventricle geometry.
     short_axis : dict
-        Short axis.
+        Short axis definition with 'center' and 'normal' keys.
     long_axis : dict
-        Long axis.
-    surface : pv.PolyData, default: None
-        Surface to be evaluated, only endocardium is supported.
-        If not given, the endocardium from heart model is used.
+        Long axis (4CV) definition with 'center' and 'normal' keys.
+    surface : pv.PolyData, optional
+        Endocardial surface on which to compute landmarks. If None, the endocardium from
+        the heart model is used.
 
     Returns
     -------
-    tuple[np.ndarray, list[pv.PolyData], list[pv.PolyData]]
-        List of coordinates of the landmarks
-
-        List of horizontal lines
-
-        List of vertical lines
+    list[np.ndarray]
+        List of 26 landmark point coordinates on the endocardial surface.
     """
-    # Note: epicardium is not supported because it's incomplete for more than left ventricle model
+    # Note: Epicardium is not supported because it may be incomplete for certain model types
     if surface is None:
         surface: pv.PolyData = model.left_ventricle.endocardium
 
-    # get anatomical points
+    # Calculate longitudinal levels (basal, mid, apical) and apex points along the short axis
     p_basal, p_mid, p_apical, apex_endo, apex_epi = _calculate_longitudinal_points(
         model, short_axis
     )
+    # Calculate rotation axes for circumferential segmentation boundaries
     axe_60, axe_120, axe_180, axe_45, axe_135 = _calculate_rotation_axis(short_axis, long_axis)
 
-    # define points for the segments
+    # Compute landmark points for each level
     points = []
 
+    # Basal and mid-cavity: 6 points each at different angular positions (60° spacing)
     for center in [p_basal, p_mid, p_apical]:
         for normal in [-axe_60, -axe_120, axe_180, axe_60, axe_120, -axe_180]:
+            # Ray trace from the level center in each angular direction to find surface intersection
             point = surface.copy().ray_trace(center, center + 1e3 * normal, first_point=True)[0]
             if point.size == 0:
                 raise ValueError("Cannot find point on surface from basal, mid, or apical.")
             else:
                 points.append(point)
 
+    # Apical region: 4 points at each level (45° and 135° angles)
     for center in [p_apical, apex_endo]:
         for normal in [-axe_45, -axe_135, axe_45, axe_135]:
+            # Ray trace to find apical landmark points
             point = surface.copy().ray_trace(center, center + 1e3 * normal, first_point=True)[0]
             if point.size == 0:
-                # surface.save("debug_endo.vtp")
-                # pv.Line(center, center + 1e2 * normal).save("debug_points.vtp")
                 raise ValueError("Cannot find point on surface from apical or apex.")
             else:
                 points.append(point)
@@ -172,26 +175,28 @@ def compute_aha17_points(
 def compute_aha17_lines(
     surface: pv.PolyData, points: list[np.ndarray]
 ) -> tuple[list[pv.PolyData], list[pv.PolyData]]:
-    """Compute AHA 17 lines.
+    """Compute AHA 17 segment horizontal and vertical lines.
 
     Parameters
     ----------
     surface : pv.PolyData
-        The surface to project the l
-        lines onto.
+        The endocardial surface to project the lines onto.
     points : list[np.ndarray]
-        The list of points defining the lines.
+        The list of AHA17 landmark points defining the lines.
 
     Returns
     -------
     tuple[list[pv.PolyData], list[pv.PolyData]]
-        The horizontal and vertical lines.
+        Tuple of horizontal and vertical line segments projected onto the surface.
     """
+    # Calculate segment centers for line projection (mean of points in each group)
     p_basal = np.mean(np.array(points[0:6]), axis=0)
     p_mid = np.mean(np.array(points[6:12]), axis=0)
     p_apical = np.mean(np.array(points[12:22]), axis=0)
     apex_endo = np.mean(np.array(points[22:25]), axis=0)
 
+    # Create horizontal (circumferential) lines at each level
+    # Basal level horizontal lines
     hline = [
         _project_line_segment(surface, p_basal, points[0], points[1]),
         _project_line_segment(surface, p_basal, points[1], points[2]),
@@ -221,6 +226,8 @@ def compute_aha17_lines(
         _project_line_segment(surface, apex_endo, points[25], points[22]),
     ]
 
+    # Create vertical (longitudinal) lines connecting levels
+    # These lines span from basal through mid to apical levels
     vline = [
         _project_line_segment(surface, p_basal, points[0], points[6]),
         _project_line_segment(surface, p_basal, points[1], points[7]),
@@ -252,33 +259,33 @@ def compute_aha17_lines(
 def _project_line_segment(
     surf: pv.PolyData, center: np.ndarray, p1: np.ndarray, p2: np.ndarray
 ) -> pv.PolyData:
-    """Project a line segment onto a surface.
+    """Project a line segment onto a surface using ray tracing.
 
     Parameters
     ----------
     surf : pv.PolyData
-        The surface to project onto.
+        The surface onto which the line segment is projected.
     center : np.ndarray
-        The center point of the projection.
+        The center point used as the ray origin for tracing.
     p1 : np.ndarray
-        The first point of the line segment.
+        The starting point of the line segment.
     p2 : np.ndarray
-        The second point of the line segment.
+        The ending point of the line segment.
 
     Returns
     -------
     pv.PolyData
-        The projected line segment.
+        A spline curve representing the projected line segment on the surface.
     """
     segment_points = np.linspace(p1, p2, num=10)
 
-    # Project each point
+    # Project each point onto the surface using ray tracing from the center point
     projected_points = []
 
     for pt in segment_points:
+        # Ray trace from center point through each segment point to find surface intersection
         start = center
-        end = center + 100.0 * (pt - center)
-        # NOTE: copy() is needed, or ray_trace will fail after several times of calling
+        end = center + 1.0e3 * (pt - center)
         intersection = surf.copy().ray_trace(start, end, first_point=True)[0]
         if intersection.size == 0:
             # pv.PolyData([p1, p2, center,pt]).save("debug_points.vtp")
@@ -291,14 +298,28 @@ def _project_line_segment(
 
     projected_points = np.array(projected_points)
 
-    # Create curve
+    # Create a smooth curve through the projected points
     projected_line = pv.Spline(projected_points, n_points=len(projected_points))
 
     return projected_line
 
 
 def _calculate_longitudinal_points(model, short_axis):
-    """Define landmarks along the short axis."""
+    """Calculate basal, mid, and apical landmarks along the short axis.
+
+    Parameters
+    ----------
+    model : HeartModel
+        Heart model containing the left ventricle geometry.
+    short_axis : dict
+        Short axis information with 'center' and 'normal' keys defining the axis orientation.
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        Basal center, mid-cavity center, apical center, endocardial apex, and epicardial apex.
+    """
+    # Extract endocardial and epicardial apex coordinates from the model
     for apex in model.left_ventricle.apex_points:
         if "endocardium" in apex.name:
             surface = model.left_ventricle.endocardium
@@ -307,14 +328,15 @@ def _calculate_longitudinal_points(model, short_axis):
             surface = model.left_ventricle.epicardium
             apex_ep = surface.points[np.where(surface["_global-point-ids"] == apex.node_id)[0][0]]
 
+    # Define three longitudinal levels along the short axis from basal to apical
     p_basal = short_axis["center"]
     p_mid = 1 / 3 * (apex_ep - p_basal) + p_basal
     p_apical = 2 / 3 * (apex_ep - p_basal) + p_basal
 
-    # to have a flat segment 17, project endocardical apex point on short axis
+    # Project endocardial apex onto the short axis to create a flat apical segment (segment 17)
+    # This ensures the endocardial apex point lies on the short axis plane
     x = apex_ed - apex_ep
     y = p_basal - apex_ep
-    # slightly move the apex upper so it can be projected to surface
     apex_ed = 1.5 * y * np.dot(x, y) / np.dot(y, y) + apex_ep
     return p_basal, p_mid, p_apical, apex_ed, apex_ep
 
@@ -385,30 +407,33 @@ def compute_aha17(
             )
         ]
 
-    # element's center
+    # Extract element center coordinates for segmentation
     elem_center = np.mean(model.mesh.points[tetrahedrons], axis=1)
 
-    # anatomical points
+    # Extract key anatomical landmarks and planes used for segmentation
+    # Mitral valve center
     for cap in model.left_ventricle.caps:
         if cap.type == CapType.MITRAL_VALVE:
             mv_center = cap.centroid
+    # Apical points on endocardium and epicardium
     for apex in model.left_ventricle.apex_points:
         if "endocardium" in apex.name:
             apex_ed = apex.xyz
         elif "epicardium" in apex.name:
             apex_ep = apex.xyz
 
-    # short axis
+    # Define reference cutting planes using short and long axes
     short_normal = short_axis["normal"]
     p_highest = short_axis["center"]
 
-    # define reference cut plane
+    # Create segmentation reference plane by rotating the long axis around the short axis
+    # This defines the starting point for the 6 basal/mid segments and 4 apical segments
     if p_junction is not None:
-        # CASIS definition: LV and RV junction point
+        # LV-RV junction points provided, use them to define segment 1 boundary (CASIS definition)
         vec = (p_junction - p_highest) / np.linalg.norm(p_junction - p_highest)
         axe_60 = Rotation.from_rotvec(np.radians(90) * short_normal).apply(vec)
     else:
-        # default: rotate 60 from long axis
+        # Default: rotate 60 degrees from the 4CV (long) axis
         long_axis = l4cv_axis["normal"]
         axe_60 = Rotation.from_rotvec(np.radians(60) * short_normal).apply(  # noqa:E501
             long_axis
@@ -419,21 +444,23 @@ def compute_aha17(
     axe_45 = Rotation.from_rotvec(np.radians(-15) * short_normal).apply(axe_60)
     axe_135 = Rotation.from_rotvec(np.radians(90) * short_normal).apply(axe_45)
 
+    # Calculate three longitudinal levels for segmentation (1/3 and 2/3 along the apex direction)
     p1_3 = 1 / 3 * (apex_ep - p_highest) + p_highest
     p2_3 = 2 / 3 * (apex_ep - p_highest) + p_highest
 
-    # to have a flat segment 17, project endocardical apex point on short axis
+    # Project endocardial apex onto the short axis plane for a flat apical cap (segment 17)
+    # This ensures segment 17 is perpendicular to the long axis
     x = apex_ed - apex_ep
     y = p_highest - apex_ep
     apex_ed = y * np.dot(x, y) / np.dot(y, y) + apex_ep
 
-    # aha17 label assignment
+    # Assign AHA17 segment labels to each element based on its position
     label = np.full(len(elem_center), np.nan)
     for i, n in enumerate(elem_center):
-        # This part contains valves, do not consider for 17 segments.
+        # Skip elements basal to the reference plane (typically containing valves)
         if np.dot(n - p_highest, mv_center - p_highest) > 0:
             continue
-        # Basal: segment 1 2 3 4 5 6
+        # Basal level: segments 1, 2, 3, 4, 5, 6
         elif np.dot(n - p1_3, mv_center - p1_3) >= 0:
             if np.dot(n - p1_3, axe_60) >= 0:
                 if np.dot(n - p1_3, axe_120) >= 0:
@@ -451,7 +478,7 @@ def compute_aha17(
                         label[i] = 2
                 else:
                     label[i] = 3
-        # Mid cavity: segment 7 8 9 10 11 12
+        # Mid cavity level: segments 7, 8, 9, 10, 11, 12
         elif np.dot(n - p2_3, mv_center - p2_3) >= 0:
             if np.dot(n - p1_3, axe_60) >= 0:
                 if np.dot(n - p1_3, axe_120) >= 0:
@@ -469,7 +496,7 @@ def compute_aha17(
                         label[i] = 8
                 else:
                     label[i] = 9
-        # Apical
+        # Apical level: segments 13, 14, 15, 16, and optionally 17
         else:
             if seg == 17:
                 if np.dot(n - apex_ed, apex_ep - apex_ed) >= 0:
@@ -503,10 +530,24 @@ def compute_aha17(
 
 
 def _calculate_rotation_axis(short: dict, long: dict):
+    """Calculate rotation axes for AHA segment boundaries.
+
+    Parameters
+    ----------
+    short : dict
+        Short axis information with 'normal' key defining the rotation axis.
+    long : dict
+        Long axis (4CV) information with 'normal' key defining the reference direction.
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+        Five rotation axes at 60°, 120°, 180°, 45°, and 135° angles used for segmentation.
+    """
     short_normal = short["normal"]
 
-    # define reference cut plane
-    # default: rotate 60 from long axis
+    # Calculate reference axes by rotating the long axis around the short axis normal
+    # These define the boundaries between the 6 basal/mid and 4 apical segments
     long_axis = long["normal"]
     axe_60 = Rotation.from_rotvec(np.radians(60) * short_normal).apply(  # noqa:E501
         long_axis

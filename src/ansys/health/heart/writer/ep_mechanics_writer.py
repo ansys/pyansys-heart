@@ -80,6 +80,10 @@ class ElectroMechanicsDynaWriter(MechanicsDynaWriter, ElectrophysiologyDynaWrite
         self._update_ep_settings(beam_pid)
         self._update_stimulation()
 
+        # Add ECG Output
+        if hasattr(self.model, "electrodes") and len(self.model.electrodes) != 0:
+            self._update_ECG_coordinates()
+
         # coupling parameters
         coupling_str = (
             "*EM_CONTROL_COUPLING\n$    THCPL     SMCPL    THLCID    SMLCID\n         1         0\n"

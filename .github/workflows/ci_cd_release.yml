@@ -69,6 +69,7 @@ jobs:
           operating-system: ${{ matrix.os }}
           python-version: ${{ matrix.python-version }}
           check-licenses: true
+          target: meshing # ensures meshing dependencies are included in the wheelhouse build
 
   doc-build:
     name: "Build documentation"

@@ -70,7 +70,10 @@ tests = [
     "pytest-cov==7.0.0"
 ]
 all = [
-    "ansys-health-heart[meshing,doc,tests]",
+    "ansys-health-heart[meshing]",
+]
+dev = [
+    "ansys-health-heart[all,doc,tests]",
 ]
 
 [project.urls]

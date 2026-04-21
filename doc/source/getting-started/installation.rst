@@ -29,6 +29,21 @@ Then, install PyAnsys Heart:
 
     python -m pip install ansys-health-heart
 
+.. note::
+
+    The meshing module (which depends on ``ansys-fluent-core``) is not included by default.
+    If you need meshing capabilities, install with the ``meshing`` extra:
+
+    .. code:: bash
+
+        python -m pip install ansys-health-heart[meshing]
+
+    To install all optional dependencies:
+
+    .. code:: bash
+
+        python -m pip install ansys-health-heart[all]
+
 Install from GitHub source code
 -------------------------------
 

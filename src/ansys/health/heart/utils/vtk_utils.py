@@ -146,7 +146,7 @@ def cell_ids_inside_enclosed_surface(
         centroids = source
     else:
         centroids = source.cell_centers()
-    centroids = centroids.select_interior_points(surface, check_surface=True)
+    centroids = centroids.select_enclosed_points(surface, tolerance=tolerance, check_surface=True)
     cell_ids_inside = np.where(centroids.point_data["SelectedPoints"] == 1)[0]
     return cell_ids_inside
 

@@ -795,7 +795,7 @@ def mesh_from_manifold_input_model(
             # use centroid of first cell to find which input part it belongs to.
             centroid = pv.PolyData(np.mean(mesh.nodes[cz.cells[0, :], :], axis=0))
             if np.all(
-                centroid.select_interior_points(surface, check_surface=False).point_data[
+                centroid.select_enclosed_points(surface, check_surface=False).point_data[
                     "SelectedPoints"
                 ]
             ):

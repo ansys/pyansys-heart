@@ -173,7 +173,7 @@ def _find_endo_epicardial_regions(
         # split myocardial surfaces
         if "myocardium" in label and "interface" not in label:
             mask = geom_all.cell_data["tags"] == tag
-            sub_geom = geom_all.extract_cells(mask).extract_geometry()
+            sub_geom = geom_all.extract_cells(mask).extract_surface(algorithm=None)
             sub_geom = sub_geom.connectivity()
 
             # get connected regions and sort by bounding box volume
@@ -181,7 +181,7 @@ def _find_endo_epicardial_regions(
             for region_id in np.unique(sub_geom.cell_data["RegionId"]):
                 sub_sub_geom = sub_geom.extract_cells(
                     sub_geom.cell_data["RegionId"] == region_id
-                ).extract_geometry()
+                ).extract_surface(algorithm=None)
                 sub_sub_geoms += [sub_sub_geom]
 
             sub_sub_geoms.sort(
@@ -489,7 +489,7 @@ def get_compatible_input(
 
     # extract surface of mesh - this is used to find the endo and epicardial
     # regions
-    mesh_surface = mesh.extract_geometry()
+    mesh_surface = mesh.extract_surface(algorithm=None)
 
     # find the endo and epicardial regions
     mesh_surface, new_tag_to_label = _find_endo_epicardial_regions(mesh_surface, tags_to_label)

@@ -54,7 +54,6 @@ from ansys.health.heart.pre.conduction_path import (
     ConductionPath,
 )
 from ansys.health.heart.pre.input import _InputModel
-import ansys.health.heart.pre.mesher as mesher
 import ansys.health.heart.settings.material.ep_material as ep_materials
 from ansys.health.heart.settings.material.material import (
     ISO,
@@ -63,6 +62,18 @@ from ansys.health.heart.settings.material.material import (
 )
 import ansys.health.heart.utils.connectivity as connectivity
 import ansys.health.heart.utils.vtk_utils as vtk_utils
+
+
+def _import_mesher():
+    """Lazily import the mesher module, raising a clear error if dependencies are missing."""
+    try:
+        import ansys.health.heart.pre.mesher as mesher
+    except ModuleNotFoundError as e:
+        raise ModuleNotFoundError(
+            "The meshing module requires 'ansys-fluent-core' which is not installed. "
+            "Install it with: pip install ansys-health-heart[meshing]"
+        ) from e
+    return mesher
 
 
 def _get_axis_from_field_data(
@@ -669,6 +680,8 @@ class HeartModel:
         default to the global mesh size. This is an experimental setting. Any wrap
         sizes given as input arguments are ignored when the wrapper is not used.
         """
+        mesher = _import_mesher()
+
         if not path_to_fluent_mesh:
             path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")
 
@@ -734,6 +747,8 @@ class HeartModel:
             return
 
         LOGGER.info("Meshing fluid cavities...")
+
+        mesher = _import_mesher()
 
         # mesh the fluid cavities
         fluid_mesh = mesher._mesh_fluid_cavities(

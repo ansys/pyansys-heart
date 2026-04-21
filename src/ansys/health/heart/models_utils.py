@@ -374,6 +374,7 @@ def define_full_conduction_system(
     left_bundle.up_path = his_left
     left_bundle.down_path = left_purkinje
 
+    # create complete endocardial surface for the right ventricle
     surface_ids = [model.right_ventricle.endocardium.id, model.right_ventricle.septum.id]
     endo_surface = model.mesh.get_surface(surface_ids)
 

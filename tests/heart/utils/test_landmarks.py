@@ -28,6 +28,8 @@ import pytest
 import ansys.health.heart.models as models
 from ansys.health.heart.utils.landmark_utils import (
     compute_aha17,
+    compute_aha17_lines,
+    compute_aha17_points,
     compute_anatomy_axis,
     compute_element_cs,
 )
@@ -81,14 +83,41 @@ def test_compute_aha17(model):
     }
 
     aha_ids = compute_aha17(model, short, l4cv)
-    # solid = model.mesh.extract_cells_by_type(10)
-    # solid.cell_data["aha"] = aha_ids
-    # solid.save("aha.vtk")
+    solid = model.mesh.extract_cells_by_type(10)
+    solid.cell_data["aha"] = aha_ids
+    solid.save("aha.vtk")
 
     assert np.sum(aha_ids == 10) == 10591
     assert np.sum(aha_ids == 12) == 11220
     assert np.sum(aha_ids == 17) == 2526
     assert np.sum(np.isnan(aha_ids)) == 361818
+
+
+def test_compute_aha17_landmarks(model):
+    # note give l2cv
+    l2cv = {
+        "center": np.array([42.8065945, 105.236255, 367.91265619]),
+        "normal": np.array([0.57496125, 0.67530147, -0.46193883]),
+    }
+    short = {
+        "center": np.array([26.07305844, 125.37379059, 376.52369382]),
+        "normal": np.array([0.60711636, -0.73061828, -0.31242063]),
+    }
+    coords = compute_aha17_points(model, short, l2cv)
+    assert np.allclose(coords[0], np.array([5.5856953, 113.95523, 363.41443]))
+
+    # np.savetxt("points.txt", np.array(coords))
+    # hlines = pv.MultiBlock(hline)
+    # hlines.save("hlines.vtm")
+    # vlines = pv.MultiBlock(vline)
+    # vlines.save("vlines.vtm")
+
+    hline, vline = compute_aha17_lines(model.left_ventricle.endocardium, coords)
+
+    assert pytest.approx(hline[0].length, abs=0.1) == 31.6
+    assert pytest.approx(hline[10].length, abs=0.1) == 29.8
+    assert pytest.approx(vline[0].length, abs=0.1) == 26.9
+    assert pytest.approx(vline[10].length, abs=0.1) == 26.4
 
 
 def test_compute_element_cs(model):

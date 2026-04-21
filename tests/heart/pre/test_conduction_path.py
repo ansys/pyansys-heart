@@ -248,7 +248,7 @@ def simple_conduction_path():
     surface = pv.PolyData(surface_points, faces=surface_faces)
 
     # Create a simple line mesh (2 points, 1 line)
-    line_points = np.array([[1, 1, 0], [0.3, 0.3, 0]])
+    line_points = np.array([[0, 1, 0], [0.3, 0.3, 0]])
     line_lines = np.array([2, 0, 1])
     mesh = pv.PolyData(line_points, lines=line_lines)
     is_connected = np.array([0, 0])
@@ -288,8 +288,24 @@ def test_add_pmj_path_node(simple_conduction_path):
     assert np.array_equal(cp.is_connected, np.array([0, 1, 0]))
 
 
+def test_update_to_surface(simple_conduction_path):
+    """Test update to surface."""
+    cp: ConductionPath = simple_conduction_path
+
+    surface_points = np.array([[0, 0, 0], [2, 0, 0], [0, 2, 0]])
+    surface_faces = np.hstack([[3, 0, 1, 2]])
+    surface = pv.PolyData(surface_points, faces=surface_faces)
+
+    cp.deform_to_surface(surface)
+    assert np.allclose(cp.mesh.points[0], np.array([0, 2, 0]))
+    assert np.allclose(cp.mesh.points[1], np.array([0.6, 0.6, 0]))
+
+
 def test_create_path_on_surface_center():
-    """Test conductionbeams can be initialized correctly on a pyvista sphere with 3 keypoints."""
+    """
+    Test that conduction beams can be initialized correctly
+    on a PyVista sphere with three keypoints.
+    """
     # Create a sphere mesh
     sphere = pv.Sphere(radius=1.0, theta_resolution=30, phi_resolution=30)
     # Define 3 keypoints on the sphere surface

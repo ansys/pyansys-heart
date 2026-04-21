@@ -56,6 +56,21 @@ def test_set_workdir(monkeypatch):
         assert workdir == os.path.join(tempdir, "test2")
 
 
+def test_import_mesher_missing_dependency(monkeypatch):
+    """Test that _import_mesher raises a clear error when ansys-fluent-core is missing."""
+    import sys
+
+    for key in list(sys.modules):
+        if "ansys.health.heart.pre.mesher" in key or "ansys.fluent" in key:
+            monkeypatch.delitem(sys.modules, key)
+
+    monkeypatch.setitem(sys.modules, "ansys.fluent", None)
+    monkeypatch.setitem(sys.modules, "ansys.fluent.core", None)
+
+    with pytest.raises(ModuleNotFoundError, match="pip install ansys-health-heart\\[meshing\\]"):
+        models._import_mesher()
+
+
 def test_save_model():
     """Test dumping of model to disk."""
 
@@ -72,6 +87,28 @@ def test_save_model():
 
         assert os.path.isfile(expected_mesh_path)
         assert os.path.isfile(expected_info_path)
+
+
+def test_remove_part_updates_part_info():
+    """Test that remove_part also removes the part from _part_info."""
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
+        model = models.BiVentricle(working_directory=workdir)
+
+        # Build _part_info so all parts are registered.
+        model._get_parts_info()
+        assert "Septum" in model._part_info
+
+        # Remove the septum part.
+        model.remove_part("Septum")
+
+        # _part_info should no longer contain the removed part.
+        assert "Septum" not in model._part_info
+
+        # Saving and reloading should not bring the part back.
+        mesh_path, info_path = model.save_model(os.path.join(workdir, "test.vtu"))
+        with open(info_path, "r") as f:
+            saved_info = json.load(f)
+        assert "Septum" not in saved_info
 
 
 @pytest.mark.parametrize(

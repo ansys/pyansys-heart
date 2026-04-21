@@ -25,7 +25,6 @@ classifiers = [
 
 dependencies = [
     "ansys-dpf-core>=0.13.6,!=0.14.0,<0.15",
-    "ansys-fluent-core==0.38.0",
     "ansys.dyna.core>=0.7.1,<0.10",
     "deprecated>=1.2.18",
     "h5py>=3.6.0",
@@ -40,7 +39,8 @@ dependencies = [
     "rich>=13.9.4",
     "scipy<=1.15.3",
     "vtk>=9.1.0,<9.7,!=9.4.0,!=9.4.1",
-    "pydantic>=2.0.0"
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0.0"
 ]
 
 # Optional dependencies:
@@ -62,9 +62,18 @@ doc = [
     "sphinxcontrib-video==0.4.2",
     "trame-vtk==2.11.3"
 ]
+meshing = [
+    "ansys-fluent-core==0.38.0",
+]
 tests = [
     "pytest==9.0.2",
     "pytest-cov==7.0.0"
+]
+all = [
+    "ansys-health-heart[meshing]",
+]
+dev = [
+    "ansys-health-heart[all,doc,tests]",
 ]
 
 [project.urls]

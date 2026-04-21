@@ -431,10 +431,11 @@ def test_update_conduction_paths(mock_multiblock, surface_type):
 
     mock_model.conduction_paths = [mock_path]
 
-    with mock.patch.object(shutil, "which", return_value=1):
-        simulator = simulators.EPMechanicsSimulator(mock_model, dyna_settings=None)
-        simulator.model = mock_model
-        simulator.update_conduction_paths()
+    with mock.patch("pathlib.Path.is_file", return_value=True):
+        with mock.patch.object(shutil, "which", return_value=""):  # bypass check lsdyna path
+            simulator = simulators.EPMechanicsSimulator(mock_model, dyna_settings=None)
+            simulator.model = mock_model
+            simulator.update_conduction_paths()
 
     # Check deform_to_surface called with updated surface
     mock_path.deform_to_surface.assert_called_once_with(mock_surface)

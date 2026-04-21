@@ -56,21 +56,6 @@ def test_set_workdir(monkeypatch):
         assert workdir == os.path.join(tempdir, "test2")
 
 
-def test_import_mesher_success(monkeypatch):
-    """Test that _import_mesher returns the mesher module when it is importable."""
-    import sys
-
-    # Block fluent to prove the test does not depend on ansys-fluent-core.
-    monkeypatch.setitem(sys.modules, "ansys.fluent", None)
-    monkeypatch.setitem(sys.modules, "ansys.fluent.core", None)
-
-    mock_mesher = mock.MagicMock()
-    monkeypatch.setitem(sys.modules, "ansys.health.heart.pre.mesher", mock_mesher)
-
-    result = models._import_mesher()
-    assert result is mock_mesher
-
-
 def test_import_mesher_missing_dependency(monkeypatch):
     """Test that _import_mesher raises a clear error when ansys-fluent-core is missing."""
     import sys

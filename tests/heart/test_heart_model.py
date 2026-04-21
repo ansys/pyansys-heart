@@ -56,6 +56,21 @@ def test_set_workdir(monkeypatch):
         assert workdir == os.path.join(tempdir, "test2")
 
 
+def test_import_mesher_missing_dependency(monkeypatch):
+    """Test that _import_mesher raises a clear error when ansys-fluent-core is missing."""
+    import sys
+
+    for key in list(sys.modules):
+        if "ansys.health.heart.pre.mesher" in key or "ansys.fluent" in key:
+            monkeypatch.delitem(sys.modules, key)
+
+    monkeypatch.setitem(sys.modules, "ansys.fluent", None)
+    monkeypatch.setitem(sys.modules, "ansys.fluent.core", None)
+
+    with pytest.raises(ModuleNotFoundError, match="pip install ansys-health-heart\\[meshing\\]"):
+        models._import_mesher()
+
+
 def test_save_model():
     """Test dumping of model to disk."""
 

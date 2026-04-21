@@ -28,9 +28,9 @@ import ansys.fluent.core as pyfluent
 from ansys.health.heart.pre.mesher import _get_supported_fluent_version
 
 # marks all tests with the 'requires_fluent' tag after this line
-pytestmark = pytest.mark.requires_fluent
 
 
+@pytest.mark.requires_fluent
 def test_launch_fluent():
     """Launch pyfluent in meshing mode and check health."""
     try:

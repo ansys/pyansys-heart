@@ -101,7 +101,7 @@ class ConductionPath:
             ID of the conduction path.
         is_connected : np.ndarray
             Mask array of points connected to the solid mesh.
-        relying_surface : pv.PolyData
+        relying_surface : pv.PolyData|SurfaceMesh
             Surface mesh that the conduction path relies on.
         material : EPMaterial, default: None
             EP Material property.
@@ -308,6 +308,73 @@ class ConductionPath:
         self.mesh = pmj_mesh
         self.is_connected = is_connected
         self._assign_data()
+
+        return self
+
+    def _compute_relative_coord(self) -> list[tuple[int, np.ndarray]]:
+        """
+        Compute barycentric coordinates of the mesh points relative to the relying surface.
+
+        Returns
+        -------
+        list[tuple[int, np.ndarray]]
+            List of tuples containing cell ID and barycentric coordinates
+            for each point in the mesh.
+        """
+        bary_info = []
+        for pt in self.mesh.points:
+            cell_id = self.relying_surface.find_containing_cell(pt)
+            if cell_id < 0:
+                LOGGER.warning(
+                    f"Point {pt} is not contained in the relying surface. Use closest cell search."
+                )
+                cell_id = self.relying_surface.find_closest_cell(pt)
+
+            cell = self.relying_surface.get_cell(cell_id)
+            verts = self.relying_surface.points[cell.point_ids]
+            # Compute barycentric coordinates
+            v0, v1, v2 = verts
+            a = pt - v0
+            # Solve for barycentric coordinates (u, v)
+            u, v = np.linalg.lstsq(np.column_stack((v1 - v0, v2 - v0)), a, rcond=None)[0]
+            w = 1 - u - v
+            bary_info.append((cell_id, np.array([w, u, v])))
+        return bary_info
+
+    def deform_to_surface(self, surface: pv.PolyData) -> ConductionPath | None:
+        """Deform the conduction path to a new surface.
+
+        Parameters
+        ----------
+        surface : pv.PolyData
+            New surface to deform the conduction path to.
+
+        Returns
+        -------
+        ConductionPath | None
+           Updated conduction path if successful, None otherwise.
+        """
+        if not np.array_equal(surface.faces, self.relying_surface.faces):
+            LOGGER.error(f"New surface  does not match the relying surface of {self.name}.")
+            return
+
+        try:
+            bary_info = self._compute_relative_coord()
+        except ValueError as e:
+            LOGGER.error(
+                f"Failed to compute barycentric coordinates for {self.name} on the surface: {e}"
+            )
+            return
+
+        # Map each mesh point to the new surface using barycentric coordinates
+        new_points = self.mesh.points.copy()
+        for i, (cell_id, bary) in enumerate(bary_info):
+            verts = surface.get_cell(cell_id).points
+            new_pt = bary[0] * verts[0] + bary[1] * verts[1] + bary[2] * verts[2]
+            new_points[i] = new_pt
+
+        self.mesh.points = new_points
+        self.relying_surface = surface
 
         return self
 
@@ -731,21 +798,26 @@ def _create_path_in_solid(
             tetras[:, [0, 2, 3]],
             tetras[:, [1, 2, 3]],
         )
-    )  # TODO: replace by pv extract_surface()
+    )
+
     segment = []
     for i, j in zip(ids[0:-1], ids[1:]):
         for tri in triangles:
             if i in tri and j in tri:
                 segment.append(tri)
-                break
+                break  # keeping only one triangle per line is enough
     segment = np.array(segment)
 
-    surf = SurfaceMesh(
-        name="his_bundle_segment",  # NOTE
-        triangles=segment,
-        nodes=sub_mesh.points,
+    surf = pv.PolyData(
+        sub_mesh.points,
+        np.hstack([np.insert(segment[i], 0, 3) for i in range(segment.shape[0])]),
     )
-    return path, surf
+
+    # keep global point IDs as a necessary property for the surface mesh
+    surf.point_data["_global-point-ids"] = sub_mesh.point_data["_global-point-ids"]
+    surf = surf.clean()  # remove unused nodes
+
+    return path, SurfaceMesh(surf)
 
 
 def _mesh_to_nx_graph(mesh: pv.UnstructuredGrid) -> nx.Graph:

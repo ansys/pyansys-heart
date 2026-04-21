@@ -24,6 +24,7 @@
 
 import os
 import shutil
+import tempfile
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -61,6 +62,27 @@ def test_compute_thickness(get_left_ventricle, monkeypatch):
     assert lines[0]["time"] == 0
     assert lines[0]["label"][0] == 1
     assert lines[0]["thickness"][0] == pytest.approx(6.75, abs=0.1)
+
+
+@pytest.mark.requires_dpf
+def test_compute_strain(get_left_ventricle, monkeypatch):
+    monkeypatch.setenv("ANSYS_DPF_ACCEPT_LA", "Y")
+    test_dir = get_left_ventricle[0]
+    model = get_left_ventricle[1]
+    d3plot = os.path.join(os.path.join(test_dir, "main", "d3plot"))
+
+    c = AhaStrainCalculator(model, d3plot)
+    l_strain, c_strain = c.compute_longitudinal_radial_strain()
+    assert l_strain.shape == (2, 17)
+    assert l_strain[1, 1] == pytest.approx(0.000386, abs=1e-3)
+    assert c_strain[1, 1] == pytest.approx(-0.00183, abs=1e-3)
+
+    # test vtk files should be created
+    with tempfile.TemporaryDirectory() as vtk_dir:
+        c.compute_longitudinal_radial_strain(vtk_dir=vtk_dir)
+        assert os.path.isfile(os.path.join(vtk_dir, "endo_0.vtp"))
+        assert os.path.isfile(os.path.join(vtk_dir, "hlines_0.vtp"))
+        assert os.path.isfile(os.path.join(vtk_dir, "vlines_0.vtp"))
 
 
 @pytest.mark.requires_dpf

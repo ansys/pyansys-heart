@@ -227,6 +227,13 @@ def mech_post(directory: str, model: HeartModel) -> None:
     out_dir = os.path.join(directory, "post", "lrc_strain")
     os.makedirs(out_dir, exist_ok=True)
     aha_strain = AhaStrainCalculator(model, d3plot_file=os.path.join(directory, "d3plot"))
-    aha_strain.compute_aha_strain(out_dir, write_vtk=True, t_to_keep=last_cycle_duration)
+    # aha_strain.compute_aha_strain(out_dir, write_vtk=True, t_to_keep=last_cycle_duration)
+
+    l_strain, c_strain = aha_strain.compute_longitudinal_radial_strain(
+        time_array=exporter.save_time, vtk_dir=out_dir
+    )
+
+    np.savetxt(os.path.join(out_dir, "longitudinal_strain.csv"), l_strain)
+    np.savetxt(os.path.join(out_dir, "circumferential_strain.csv"), c_strain)
 
     return

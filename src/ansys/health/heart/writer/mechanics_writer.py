@@ -569,7 +569,7 @@ class MechanicsDynaWriter(BaseDynaWriter):
         # remove nodes with scale factor = 0
         ventricles_epi_reduce = ventricles_epi.threshold(
             value=[0.0001, 1], scalars="scale factor"
-        ).extract_geometry()  # keep as polydata
+        ).extract_surface(algorithm=None)  # keep as polydata
 
         k = scale * robin_settings["ventricle"]["stiffness"].to("MPa/mm").m
         self.kw_database.pericardium.extend(

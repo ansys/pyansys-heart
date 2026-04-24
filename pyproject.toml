@@ -66,7 +66,7 @@ meshing = [
     "ansys-fluent-core==0.38.0",
 ]
 tests = [
-    "pytest==9.0.2",
+    "pytest==9.0.3",
     "pytest-cov==7.0.0"
 ]
 all = [

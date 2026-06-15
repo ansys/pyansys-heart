@@ -244,6 +244,7 @@ linkcheck_ignore = [
     "https://royalsocietypublishing.org/*",
     "https://doi.org/*",
     "https://matplotlib.org/*",
+    "https://www.sphinx-doc.org/*",
     # Requires sign-in
     f"https://github.com/{user_repo}/*",
     "https://support.ansys.com/Home/HomePage",

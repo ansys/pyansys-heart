@@ -125,7 +125,6 @@ def compute_aha17_points(
 
     Parameters
     ----------
-
     model : HeartModel
         Heart model containing the left ventricle geometry.
     short_axis : dict

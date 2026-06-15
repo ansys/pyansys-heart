@@ -1988,7 +1988,7 @@ class FourChamber(HeartModel):
             ventricles["_global-point-ids"], atrial["_global-point-ids"]
         )
 
-        # Find tetra cells containing interface nodes - use global tetrahedron IDs
+        # Find tetra cells containing the interface nodes - use global tetrahedron IDs
         # since self.mesh contains cells other than tetrahedrons (e.g., triangles for surfaces)
         local_tetra_ids = np.where(np.any(np.isin(self.mesh.tetrahedrons, interface_nids), axis=1))[
             0

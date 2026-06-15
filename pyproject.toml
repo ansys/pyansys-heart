@@ -41,8 +41,11 @@ dependencies = [
     "vtk>=9.1.0,<9.7,!=9.4.0,!=9.4.1",
     "pydantic>=2.0.0",
     "pyyaml>=6.0.0", 
-    "rich-rst<2.0",
-    "zipp<4.0",
+    "certifi==2026.4.22",
+    "click==8.3.3",
+    "cyclopts==4.11.0",
+    "fonttools==4.62.1",
+    "grpcio==1.80.0"
 ]
 
 # Optional dependencies:

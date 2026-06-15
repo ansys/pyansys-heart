@@ -23,6 +23,7 @@
 """Module for computing heart anatomical landmarks.
 
 This module provides utilities for computing heart anatomical landmarks including:
+
 - Long and short axes of the left ventricle
 - AHA17 segment landmarks and segmentation
 - Coordinate systems for strain calculations
@@ -99,27 +100,31 @@ def compute_aha17_points(
     These 26 points are distributed across three levels (basal, mid, apical) and are located
     at specific angular positions around the circumference.
 
-    P1---H1---P2---H2---P3----H3--P4---H4---P5---H5---P6---H6---P1
-    |          |         |         |         |         |         |
-    |          |         |         |         |         |         |
-    V1   S4   V2    S5  V3    S6  V4    S1  V5   S2   V6   S3   V1
-    |          |         |         |         |         |         |
-    |          |         |         |         |         |         |
-    P7---H7---P8---H8---P9----H9--P10--H10--P11--H11--P12--H12--P7
-    |          |         |         |         |         |         |
-    |          |         |         |         |         |         |
-    V7  S10   V8   S11  V9   S12  V10  S7   V11  S8   V12  S9   V7
-    |          |         |         |         |         |         |
-    |          |         |         |         |         |         |
-    P13--H13--P14--H14--P15--H15--P16--H16--P17--H17--P18--H18--P13
-          P19---H19---P20---H20---P21---H21---P22---H22---P19
-           |           |           |           |           |
-           |           |           |           |           |
-           V13  S15   V14   S16   V15   S13   V16   S14   V13
-           |           |           |           |           |
-           |           |           |           |           |
-          P23---H23---P24---H24---P25---H25---P26---H26---P23
+    Segment layout diagram::
 
+        P1---H1---P2---H2---P3----H3--P4---H4---P5---H5---P6---H6---P1
+        |          |         |         |         |         |         |
+        |          |         |         |         |         |         |
+        V1   S4   V2    S5  V3    S6  V4    S1  V5   S2   V6   S3   V1
+        |          |         |         |         |         |         |
+        |          |         |         |         |         |         |
+        P7---H7---P8---H8---P9----H9--P10--H10--P11--H11--P12--H12--P7
+        |          |         |         |         |         |         |
+        |          |         |         |         |         |         |
+        V7  S10   V8   S11  V9   S12  V10  S7   V11  S8   V12  S9   V7
+        |          |         |         |         |         |         |
+        |          |         |         |         |         |         |
+        P13--H13--P14--H14--P15--H15--P16--H16--P17--H17--P18--H18--P13
+              P19---H19---P20---H20---P21---H21---P22---H22---P19
+               |           |           |           |           |
+               |           |           |           |           |
+               V13  S15   V14   S16   V15   S13   V16   S14   V13
+               |           |           |           |           |
+               |           |           |           |           |
+              P23---H23---P24---H24---P25---H25---P26---H26---P23
+
+    Parameters
+    ----------
     model : HeartModel
         Heart model containing the left ventricle geometry.
     short_axis : dict
@@ -542,7 +547,7 @@ def _calculate_rotation_axis(short: dict, long: dict):
     Returns
     -------
     tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]
-        Five rotation axes at 60°, 120°, 180°, 45°, and 135° angles used for segmentation.
+        Five rotation axes at 60, 120, 180, 45, and 135 degree angles used for segmentation.
     """
     short_normal = short["normal"]
 

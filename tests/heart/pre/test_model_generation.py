@@ -112,7 +112,7 @@ def _get_inputs(model_type: Union[models.BiVentricle, models.FullHeart]):
     return (input_polydata, part_definitions, ref_stats, mesh_file)
 
 
-def test__create_atrioventricular_isolation():
+def test_create_atrioventricular_isolation():
     inputs = _get_inputs(models.FullHeart)
     input_vtp = inputs[0]
     part_definitions = inputs[1]

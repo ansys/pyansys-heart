@@ -99,7 +99,7 @@ def test_to_vtk():
     vtk_object = mesh._to_vtk(add_cells=True, add_faces=True)
 
     # both triangles and tetra present
-    assert list(vtk_object.cells_dict.keys()) == [int(pv.CellType.TRIANGLE), int(pv.CellType.TETRA)]
+    assert sorted(list(vtk_object.cells_dict.keys())) == [int(pv.CellType.TRIANGLE), int(pv.CellType.TETRA)]
     assert vtk_object.n_cells == 42  # interior cells are also generated
 
     return

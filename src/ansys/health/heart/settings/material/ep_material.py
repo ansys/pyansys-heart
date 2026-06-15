@@ -64,7 +64,7 @@ class Insulator(EPMaterialModel):
     """
     Insulator material.
 
-    Will use *EMMAT_001 with mtype=1.
+    Will use \*EM_MAT_001 with mtype=1.
     """
 
     sigma_fiber: float = 0.0
@@ -78,7 +78,7 @@ class Passive(EPMaterialModel):
     """
     Hold data for a passive EP material.
 
-    Will use *EMMAT_001 or *EMMAT_003 but no cell model associated with it.
+    Will use \*EM_MAT_001 or \*EM_MAT_003 but no cell model associated with it.
     """
 
 
@@ -86,7 +86,7 @@ class Active(EPMaterialModel):
     """
     Hold data for an active EP material.
 
-    Use *EMMAT_003 with mtype=2, associated with a cell model.
+    Use \*EM_MAT_003 with mtype=2, associated with a cell model.
     """
 
     cm: Optional[float] = 0.01
@@ -97,7 +97,7 @@ class Active(EPMaterialModel):
 
 class ActiveNew(Active):
     """
-    Same with :class:`Active` except use *EMMAT_005.
+    Same with :class:`Active` except use \*EMMAT_005.
 
     In Eikonal-reaction model, it uses anisotropic conductivity tensor
     for ECG computation.
@@ -112,7 +112,7 @@ class ActiveNew(Active):
     def warn_on_init(self):
         """Warn that ActiveNew is experimental."""
         LOGGER.warning(
-            "ActiveNew is initialized. This material uses *EMMAT_005 which "
+            "ActiveNew is initialized. This material uses \*EM_MAT_005 which "
             "requires LS-DYNA R16.2 or later."
         )
         return self
@@ -122,7 +122,7 @@ class ActiveBeam(Active):
     """
     Hold data for conduction beam's active EP material.
 
-    Will use *EMMAT_001 with mtype=2, associated with a cell model same to the endocardium.
+    Will use \*EM_MAT_001 with mtype=2, associated with a cell model same to the endocardium.
     """
 
     cell_model: Tentusscher = TentusscherEndo()

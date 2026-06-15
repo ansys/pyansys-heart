@@ -44,14 +44,13 @@ class AhaStrainCalculator:
     """Compute longitudinal, radial, and circumferential strain for the left ventricle."""
 
     def __init__(self, model: HeartModel, d3plot_file):
-        """
-        Initialize the AHA strain calculator.
+        """Initialize the AHA strain calculator.
 
         Parameters
         ----------
-        model: HeartModel
+        model : HeartModel
             Heart model object.
-        d3plot_file: Path.Path
+        d3plot_file : pathlib.Path | str
             Path to the d3plot header file.
         """
         self.model = model
@@ -66,29 +65,29 @@ class AhaStrainCalculator:
     ) -> tuple[np.ndarray, np.ndarray]:
         """Compute longitudinal and radial strain.
 
-         Longitudinal and radial strain (V_i and H_i) values are saved with
-         the following format:
+        Longitudinal and radial strain (V_i and H_i) values are saved with
+        the following format::
 
-        P1---H1---P2---H2---P3----H3--P4---H4---P5---H5---P6---H6---P1
-        |          |         |         |         |         |         |
-        |          |         |         |         |         |         |
-        V1   S4   V2    S5  V3    S6  V4    S1  V5   S2   V6   S3   V1
-        |          |         |         |         |         |         |
-        |          |         |         |         |         |         |
-        P7---H7---P8---H8---P9----H9--P10--H10--P11--H11--P12--H12--P7
-        |          |         |         |         |         |         |
-        |          |         |         |         |         |         |
-        V7  S10   V8   S11  V9   S12  V10  S7   V11  S8   V12  S9   V7
-        |          |         |         |         |         |         |
-        |          |         |         |         |         |         |
-        P13--H13--P14--H14--P15--H15--P16--H16--P17--H17--P18--H18--P13
-            P19---H19---P20---H20---P21---H21---P22---H22---P19
-            |           |           |           |           |
-            |           |           |           |           |
-            V13  S15   V14   S16   V15   S13   V16   S14   V13
-            |           |           |           |           |
-            |           |           |           |           |
-            P23---H23---P24---H24---P25---H25---P26---H26---P23
+            P1---H1---P2---H2---P3----H3--P4---H4---P5---H5---P6---H6---P1
+            |          |         |         |         |         |         |
+            |          |         |         |         |         |         |
+            V1   S4   V2    S5  V3    S6  V4    S1  V5   S2   V6   S3   V1
+            |          |         |         |         |         |         |
+            |          |         |         |         |         |         |
+            P7---H7---P8---H8---P9----H9--P10--H10--P11--H11--P12--H12--P7
+            |          |         |         |         |         |         |
+            |          |         |         |         |         |         |
+            V7  S10   V8   S11  V9   S12  V10  S7   V11  S8   V12  S9   V7
+            |          |         |         |         |         |         |
+            |          |         |         |         |         |         |
+            P13--H13--P14--H14--P15--H15--P16--H16--P17--H17--P18--H18--P13
+                P19---H19---P20---H20---P21---H21---P22---H22---P19
+                |           |           |           |           |
+                |           |           |           |           |
+                V13  S15   V14   S16   V15   S13   V16   S14   V13
+                |           |           |           |           |
+                |           |           |           |           |
+                P23---H23---P24---H24---P25---H25---P26---H26---P23
 
         Parameters
         ----------
@@ -344,19 +343,18 @@ class AhaStrainCalculator:
                 "`compute_longitudinal_radial_strain` instead."""
     )
     def compute_aha_strain_at(self, frame: int = 0, out_dir: pathlib.Path = None) -> np.ndarray:
-        """
-        Export AHA strain and/or save a VTK file for a given frame.
+        """Export AHA strain and/or save a VTK file for a given frame.
 
         Parameters
         ----------
-        frame: int, default: 0
+        frame : int, default: 0
             Frame number to compute strain.
-        out_dir: pathlib.Path, default: None
+        out_dir : pathlib.Path, default: None
             Directory to save VTK file to. No VTK file is saved by default.
 
         Returns
         -------
-        np.ndarry
+        np.ndarray
             AHA LRC strain matrix (17 * 3).
         """
         element_lrc, aha_lrc, element_lrc_averaged = self._compute_myocardial_strain(frame)
@@ -387,19 +385,20 @@ class AhaStrainCalculator:
     def _compute_myocardial_strain(
         self, at_frame, reference=None
     ) -> tuple[list[float], list[float], list[float]]:
-        """
-        Compute left ventricle myocardial strain.
+        """Compute left ventricle myocardial strain.
 
         Parameters
         ----------
-        at_frame: int
-        reference: not used
+        at_frame : int
+            Frame number used to evaluate the deformation gradient.
+        reference : Any, optional
+            Reserved argument. Currently not used.
 
         Returns
         -------
-        return1: [nelem * 3] elemental LRC strain.
-        return2: [17 * 3] AHA17 LRC strain.
-        return3: [nelem * 3] elemental LRC strain averaged from AHA17.
+        tuple[np.ndarray, np.ndarray, np.ndarray]
+            Elemental LRC strain array, AHA17 LRC strain array, and elemental
+            LRC strain averaged from AHA17 labels.
         """
         if reference is not None:
             raise NotImplementedError
@@ -453,8 +452,9 @@ class AhaStrainCalculator:
 
         Parameters
         ----------
-        ax : axes
-        data : list of int and float
+        ax : matplotlib.axes.Axes
+            Matplotlib polar axes used for plotting the bullseye.
+        data : list[int | float] | np.ndarray
             Intensity values for each of the 17 segments.
 
         Notes

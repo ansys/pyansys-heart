@@ -39,12 +39,22 @@ import yaml
 
 import ansys.health.heart.models as models
 from ansys.health.heart.models_utils import define_full_conduction_system
+from ansys.health.heart.parts import Part
 from ansys.health.heart.pre.database_utils import get_compatible_input
-from ansys.health.heart.settings.material.ep_material_factory import assign_default_ep_materials
-from ansys.health.heart.settings.material.material_factory import assign_default_mechanics_materials
+import ansys.health.heart.settings.material.ep_material as ep_materials
+from ansys.health.heart.settings.material.ep_material_factory import (
+    assign_default_ep_materials,
+)
+from ansys.health.heart.settings.material.material_factory import (
+    assign_default_mechanics_materials,
+)
 from ansys.health.heart.utils.download import unpack_case
 import ansys.health.heart.writer as writers
-from tests.heart.common import compare_stats_mesh, compare_stats_names, compare_stats_volumes
+from tests.heart.common import (
+    compare_stats_mesh,
+    compare_stats_names,
+    compare_stats_volumes,
+)
 from tests.heart.conftest import get_assets_folder
 from tests.heart.end2end.compare_k import read_file
 
@@ -100,6 +110,31 @@ def _get_inputs(model_type: Union[models.BiVentricle, models.FullHeart]):
         part_definitions = json.load(f)
 
     return (input_polydata, part_definitions, ref_stats, mesh_file)
+
+
+def test_create_atrioventricular_isolation():
+    inputs = _get_inputs(models.FullHeart)
+    input_vtp = inputs[0]
+    part_definitions = inputs[1]
+    mesh_file = inputs[3]
+
+    # global workdir
+    workdir = tempfile.TemporaryDirectory(prefix=".pyansys-heart").name
+
+    model: models.HeartModel = models.FullHeart(working_directory=workdir)
+    model.load_input(input_vtp, part_definitions, "boundary-id")
+
+    model.mesh.load_mesh(mesh_file)
+    model.update()
+    model._create_atrioventricular_isolation()
+
+    assert any(name == "Atrioventricular isolation" for name in model.part_names)
+    p: Part = [part for part in model.parts if part.name == "Atrioventricular isolation"][0]
+    assert p.ep_material == ep_materials.Insulator()
+    eids = p.get_element_ids(model.mesh)
+    assert len(eids) == 6298
+    connected = model.mesh.extract_cells(eids).connectivity()
+    assert connected["RegionId"].max() == 0
 
 
 # Set up testing parameter combinations
@@ -323,7 +358,8 @@ def test_writers(extract_model, writer_class):
         ep_coupled = False
 
     if isinstance(writer.model, models.FourChamber) and isinstance(
-        writer, (writers.ElectroMechanicsDynaWriter, writers.ElectrophysiologyDynaWriter)
+        writer,
+        (writers.ElectroMechanicsDynaWriter, writers.ElectrophysiologyDynaWriter),
     ):
         writer.model._create_atrioventricular_isolation()
 
@@ -430,7 +466,8 @@ def test_writers_after_load_model(extract_model, writer_class):
             ep_coupled = False
 
         if isinstance(writer.model, models.FourChamber) and isinstance(
-            writer, (writers.ElectroMechanicsDynaWriter, writers.ElectrophysiologyDynaWriter)
+            writer,
+            (writers.ElectroMechanicsDynaWriter, writers.ElectrophysiologyDynaWriter),
         ):
             writer.model._create_atrioventricular_isolation()
 

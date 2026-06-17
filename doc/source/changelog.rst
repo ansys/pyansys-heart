@@ -7,6 +7,35 @@ Release notes
 
 .. towncrier release notes start
 
+`0.16.1 <https://github.com/ansys/pyansys-heart/releases/tag/v0.16.1>`_ (June 17, 2026)
+=======================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Fixed
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Ventricle atrial isolation part
+          - `#1377 <https://github.com/ansys/pyansys-heart/pull/1377>`_
+
+        * - Apply fixes for failing doc build
+          - `#1378 <https://github.com/ansys/pyansys-heart/pull/1378>`_
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Limit upper version of pyvista to <0.48
+          - `#1376 <https://github.com/ansys/pyansys-heart/pull/1376>`_
+
+
 `0.16.0 <https://github.com/ansys/pyansys-heart/releases/tag/v0.16.0>`_ (April 21, 2026)
 ========================================================================================
 

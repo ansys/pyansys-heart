@@ -29,11 +29,12 @@ import json
 import os
 import pathlib
 import re
-from typing import Literal
+from typing import Literal, Tuple
 
 from deprecated import deprecated
 import numpy as np
 import pyvista as pv
+from scipy.spatial.transform import Rotation as Rotation
 import yaml
 
 from ansys.health.heart import LOG as LOGGER
@@ -53,7 +54,6 @@ from ansys.health.heart.pre.conduction_path import (
     ConductionPath,
 )
 from ansys.health.heart.pre.input import _InputModel
-import ansys.health.heart.pre.mesher as mesher
 import ansys.health.heart.settings.material.ep_material as ep_materials
 from ansys.health.heart.settings.material.material import (
     ISO,
@@ -62,6 +62,18 @@ from ansys.health.heart.settings.material.material import (
 )
 import ansys.health.heart.utils.connectivity as connectivity
 import ansys.health.heart.utils.vtk_utils as vtk_utils
+
+
+def _import_mesher():
+    """Lazily import the mesher module, raising a clear error if dependencies are missing."""
+    try:
+        import ansys.health.heart.pre.mesher as mesher
+    except ModuleNotFoundError as e:
+        raise ModuleNotFoundError(
+            "The meshing module requires 'ansys-fluent-core' which is not installed. "
+            "Install it with: pip install ansys-health-heart[meshing]"
+        ) from e
+    return mesher
 
 
 def _get_axis_from_field_data(
@@ -285,6 +297,7 @@ class HeartModel:
         self._l4cv_axis: dict = None
         """l4cv axis."""
 
+        self.__nodeset_cellmodel: tuple[list[np.ndarray], list[ep_materials.Tentusscher]] = None
         return
 
     @property
@@ -296,6 +309,170 @@ class HeartModel:
     def conduction_mesh(self):
         """Conduction mesh."""
         return self._conduction_mesh
+
+    @property
+    def _nodeset_cellmodel(
+        self,
+    ) -> tuple[list[np.ndarray], list[ep_materials.Tentusscher]] | None:
+        """
+        Nodeset-based cell model assignment.
+
+        This attribute is used for defining space-varying cell models based on nodesets,
+        e.g. from endocardium to epicardium.
+
+        Notes
+        -----
+        If defined, it overwrites the cell model assignment based on part definitions.
+        """
+        return self.__nodeset_cellmodel
+
+    @_nodeset_cellmodel.setter
+    def _nodeset_cellmodel(
+        self, value: tuple[list[np.ndarray], list[ep_materials.Tentusscher]] | None
+    ):
+        if value is None:
+            self.__nodeset_cellmodel = None
+            return
+        if not isinstance(value, tuple) or len(value) != 2:
+            raise TypeError(
+                "_nodeset_cellmodel must be a tuple of (list[np.ndarray], list[Tentusscher])."
+            )
+        node_sets, cell_models = value
+        if not isinstance(node_sets, list) or not all(
+            isinstance(ns, np.ndarray) for ns in node_sets
+        ):
+            raise TypeError("First element of _nodeset_cellmodel must be a list of np.ndarray.")
+        if not isinstance(cell_models, list) or not all(
+            isinstance(cm, ep_materials.Tentusscher) for cm in cell_models
+        ):
+            raise TypeError(
+                "Second element of _nodeset_cellmodel must be a list of Tentusscher instances."
+            )
+        if len(node_sets) != len(cell_models):
+            raise ValueError(
+                "node_sets and cell_models must have the same length, "
+                f"got {len(node_sets)} and {len(cell_models)}."
+            )
+        self.__nodeset_cellmodel = value
+
+    def define_12lead_electrodes(self) -> None:
+        """Define the 12-lead ECG electrode positions based on the model geometry."""
+        # reference electrode positions
+        # positioned according to current clinical practice
+        reference_electrode_positions = np.array(
+            [
+                [-21, 1314, 117],  # V1
+                [21, 1314, 117],  # V2
+                [62, 1285, 124],  # V3
+                [104, 1262, 103],  # V4
+                [136, 1267, 73],  # V5
+                [156, 1273, 32],  # V6
+                [-153, 1458, 2],  # RA
+                [153, 1458, 2],  # LA
+                [-80, 1150, 34],  # RL
+                [80, 1150, 34],  # LL
+            ],
+            dtype=float,
+        )
+
+        # Reference anatomical landmarks
+        ref_apex = np.array([65, 1265, 72], dtype=float)
+        ref_mitral = np.array([28, 1310, -1.5], dtype=float)
+        ref_tricuspid = np.array([-10, 1305, 35], dtype=float)
+        ref_pulmonary = np.array([25, 1353, 22], dtype=float)
+
+        ref_landmarks = np.vstack([ref_apex, ref_tricuspid, ref_mitral, ref_pulmonary])
+
+        # Extraction of the corresponding anatomical landmarks from the model
+        self._extract_apex()
+        model_apex = np.array(self.left_ventricle.apex_points[1].xyz)
+
+        model_tricuspid = np.array(
+            next(cap.centroid for cap in self.all_caps if cap.name == "tricuspid-valve"),
+        )
+        model_mitral = np.array(
+            next(cap.centroid for cap in self.all_caps if cap.name == "mitral-valve"),
+        )
+        model_pulmonary = np.array(
+            next(cap.centroid for cap in self.all_caps if cap.name == "pulmonary-valve"),
+        )
+
+        model_landmarks = np.vstack([model_apex, model_tricuspid, model_mitral, model_pulmonary])
+
+        # Computation of the optimal rigid transformation
+        rotation, translation = HeartModel.rigid_transform_3d(ref_landmarks, model_landmarks)
+
+        aligned_electrodes = (rotation @ reference_electrode_positions.T).T + translation
+
+        # Instantiating Point objects for all electrodes and assign it
+        names = ["V1", "V2", "V3", "V4", "V5", "V6", "RA", "LA", "RL", "LL"]
+        self.electrodes = [Point(name=n, xyz=xyz) for n, xyz in zip(names, aligned_electrodes)]
+
+        return aligned_electrodes
+
+    @staticmethod
+    def rigid_transform_3d(
+        source_points: np.ndarray, target_points: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Compute the optimal rigid transformation that aligns source points to target points.
+
+        Uses singular value decomposition (SVD) of the cross-covariance matrix.
+
+        Parameters
+        ----------
+        source_points : np.ndarray
+            Source point set of shape (N, 3) with N >= 3 non-collinear points.
+        target_points : np.ndarray
+            Target point set of shape (N, 3) with N >= 3 non-collinear points.
+
+        Returns
+        -------
+        rotation : np.ndarray
+            Rotation matrix of shape (3, 3) with det(rotation) = +1.
+        translation : np.ndarray
+            Translation vector of shape (3,).
+
+        Raises
+        ------
+        ValueError
+            If source_points and target_points do not have the same shape, are not (N, 3) arrays,
+            or contain fewer than 3 points.
+        """
+        if (
+            source_points.shape != target_points.shape
+            or source_points.ndim != 2
+            or source_points.shape[1] != 3
+        ):
+            raise ValueError(
+                f"source_points and target_points must both have shape (N, 3), "
+                f"got {source_points.shape} and {target_points.shape}."
+            )
+        if source_points.shape[0] < 3:
+            raise ValueError(f"At least 3 points are required, got {source_points.shape[0]}.")
+
+        # Compute centroids
+        source_centroid = source_points.mean(axis=0)
+        target_centroid = target_points.mean(axis=0)
+
+        # Centre the point sets
+        source_centered = source_points - source_centroid
+        target_centered = target_points - target_centroid
+
+        # Cross-covariance matrix (3x3)
+        cross_covariance = source_centered.T @ target_centered
+
+        # SVD decomposition
+        u_mat, _, vt_mat = np.linalg.svd(cross_covariance)
+        rotation = vt_mat.T @ u_mat.T
+
+        # Correct reflection if det(rotation) = -1
+        if np.linalg.det(rotation) < 0:
+            vt_mat[-1, :] *= -1
+            rotation = vt_mat.T @ u_mat.T
+
+        # Translation
+        translation = target_centroid - rotation @ source_centroid
+        return rotation, translation
 
     def assign_conduction_paths(self, paths: ConductionPath | list[ConductionPath]):
         """Assign conduction paths to the model.
@@ -380,6 +557,7 @@ class HeartModel:
     # TODO: There is overlap with the input module.
     def _get_parts_info(self):
         """Get the ID to the model map that allows reconstructing the model from a mesh object."""
+        self._part_info = {}
         for part in self.parts:
             self._part_info.update(part._to_dict())
         return self._part_info
@@ -502,6 +680,8 @@ class HeartModel:
         default to the global mesh size. This is an experimental setting. Any wrap
         sizes given as input arguments are ignored when the wrapper is not used.
         """
+        mesher = _import_mesher()
+
         if not path_to_fluent_mesh:
             path_to_fluent_mesh = os.path.join(self.workdir, "simulation_mesh.msh.h5")
 
@@ -567,6 +747,8 @@ class HeartModel:
             return
 
         LOGGER.info("Meshing fluid cavities...")
+
+        mesher = _import_mesher()
 
         # mesh the fluid cavities
         fluid_mesh = mesher._mesh_fluid_cavities(
@@ -642,12 +824,12 @@ class HeartModel:
 
     def remove_part(self, part_name: str) -> None:
         """Remove a part with a specific name from the model."""
-        keys = self.__dict__.keys()
-        for key in keys:
+        for key in list(self.__dict__.keys()):
             attribute = getattr(self, key)
             if isinstance(attribute, anatomy.Part):
                 if part_name == attribute.name:
                     delattr(self, key)
+                    self._part_info.pop(part_name, None)
                     return
         return
 
@@ -733,7 +915,9 @@ class HeartModel:
             )
             return None
         tubes = streamlines.tube()
-        plotter.add_mesh(mesh.extract_surface(), opacity=0.5, color="white")
+        plotter.add_mesh(
+            mesh.extract_surface(algorithm="dataset_surface"), opacity=0.5, color="white"
+        )
         plotter.add_mesh(tubes, color="white")
         plotter.show()
         return plotter
@@ -1821,9 +2005,12 @@ class FourChamber(HeartModel):
             ventricles["_global-point-ids"], atrial["_global-point-ids"]
         )
 
-        interface_eids = np.where(np.any(np.isin(self.mesh.tetrahedrons, interface_nids), axis=1))[
+        # Find tetra cells containing the interface nodes - use global tetrahedron IDs
+        # since self.mesh contains cells other than tetrahedrons (e.g., triangles for surfaces)
+        local_tetra_ids = np.where(np.any(np.isin(self.mesh.tetrahedrons, interface_nids), axis=1))[
             0
         ]
+        interface_eids = self.mesh._global_tetrahedron_ids[local_tetra_ids]
         # interface elements on atrial part
         interface_eids = np.intersect1d(interface_eids, a_ele)
 

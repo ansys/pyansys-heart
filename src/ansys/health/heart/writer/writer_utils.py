@@ -54,7 +54,7 @@ def create_node_keyword(nodes: np.ndarray, offset: int = 0) -> keywords.Node:
 
 
 def add_nodes_to_kw(nodes: np.ndarray, node_kw: keywords.Node, offset: int = 0) -> keywords.Node:
-    """Add nodes to an existing *NODE keyword.
+    """Add nodes to an existing ``*NODE`` keyword.
 
     Notes
     -----
@@ -273,7 +273,7 @@ def create_element_solid_keyword(
     Returns
     -------
     keywords.ElementSolid
-        Formatted *ELEMENT_SOLID keyword.
+        Formatted ``*ELEMENT_SOLID`` keyword.
     """
     kw = keywords.ElementSolid()
     df = pd.DataFrame(columns=kw.elements)
@@ -324,7 +324,7 @@ def create_element_solid_ortho_keyword(
     Returns
     -------
     keywords.ElementSolidOrtho
-        Formatted *ELEMENT_SOLID_ORTHO keyword.
+        Formatted ``*ELEMENT_SOLID_ORTHO`` keyword.
     """
     kw = keywords.ElementSolidOrtho()
 

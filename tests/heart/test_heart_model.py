@@ -35,6 +35,7 @@ from pyvista import examples
 import ansys.health.heart.models as models
 from ansys.health.heart.objects import Mesh
 from ansys.health.heart.parts import _PartType
+from ansys.health.heart.settings.material.cell_models import Tentusscher
 
 
 def test_set_workdir(monkeypatch):
@@ -55,6 +56,21 @@ def test_set_workdir(monkeypatch):
         assert workdir == os.path.join(tempdir, "test2")
 
 
+def test_import_mesher_missing_dependency(monkeypatch):
+    """Test that _import_mesher raises a clear error when ansys-fluent-core is missing."""
+    import sys
+
+    for key in list(sys.modules):
+        if "ansys.health.heart.pre.mesher" in key or "ansys.fluent" in key:
+            monkeypatch.delitem(sys.modules, key)
+
+    monkeypatch.setitem(sys.modules, "ansys.fluent", None)
+    monkeypatch.setitem(sys.modules, "ansys.fluent.core", None)
+
+    with pytest.raises(ModuleNotFoundError, match="pip install ansys-health-heart\\[meshing\\]"):
+        models._import_mesher()
+
+
 def test_save_model():
     """Test dumping of model to disk."""
 
@@ -71,6 +87,28 @@ def test_save_model():
 
         assert os.path.isfile(expected_mesh_path)
         assert os.path.isfile(expected_info_path)
+
+
+def test_remove_part_updates_part_info():
+    """Test that remove_part also removes the part from _part_info."""
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as workdir:
+        model = models.BiVentricle(working_directory=workdir)
+
+        # Build _part_info so all parts are registered.
+        model._get_parts_info()
+        assert "Septum" in model._part_info
+
+        # Remove the septum part.
+        model.remove_part("Septum")
+
+        # _part_info should no longer contain the removed part.
+        assert "Septum" not in model._part_info
+
+        # Saving and reloading should not bring the part back.
+        mesh_path, info_path = model.save_model(os.path.join(workdir, "test.vtu"))
+        with open(info_path, "r") as f:
+            saved_info = json.load(f)
+        assert "Septum" not in saved_info
 
 
 @pytest.mark.parametrize(
@@ -331,3 +369,59 @@ def test_create_stiff_ventricle_base():
     assert np.all(part_element_ids == np.arange(180, 200))
     # Check whether the left ventricle part has the correct number of cells
     assert len(model.left_ventricle.get_element_ids(model.mesh)) == total_num_cells - 20
+
+
+class TestNodesetCellmodel:
+    """Unit tests for the HeartModel._nodeset_cellmodel property."""
+
+    def setup_method(self):
+        """Create a fresh HeartModel for each test."""
+        self.model = models.HeartModel()
+
+    def _make_valid(self, n=2):
+        """Return a valid (node_sets, cell_models) tuple of length n."""
+        node_sets = [np.array([0, 1, 2]) for _ in range(n)]
+        cell_models = [Tentusscher() for _ in range(n)]
+        return node_sets, cell_models
+
+    # --- default state ---
+
+    def test_default_is_none(self):
+        """_nodeset_cellmodel is None on a fresh model."""
+        assert self.model._nodeset_cellmodel is None
+
+    # --- valid assignments ---
+
+    def test_valid_assignment(self):
+        """A correctly typed tuple is accepted and stored."""
+        node_sets, cell_models = self._make_valid(3)
+        self.model._nodeset_cellmodel = (node_sets, cell_models)
+        result = self.model._nodeset_cellmodel
+        assert result is not None
+        assert result[0] is node_sets
+        assert result[1] is cell_models
+
+    # --- type errors: outer container ---
+
+    def test_raises_if_not_tuple(self):
+        """Passing a list instead of tuple raises TypeError."""
+        node_sets, cell_models = self._make_valid()
+        with pytest.raises(TypeError, match="tuple"):
+            self.model._nodeset_cellmodel = [node_sets, cell_models]
+
+    # --- type errors: node_sets element ---
+
+    def test_raises_if_node_set_elements_not_ndarray(self):
+        """node_sets containing non-ndarray entries raises TypeError."""
+        _, cell_models = self._make_valid(1)
+        with pytest.raises(TypeError, match="list of np.ndarray"):
+            self.model._nodeset_cellmodel = ([[0, 1, 2]], cell_models)
+
+    # --- length mismatch ---
+
+    def test_raises_if_length_mismatch(self):
+        """node_sets and cell_models of different lengths raises ValueError."""
+        node_sets, _ = self._make_valid(3)
+        _, cell_models = self._make_valid(2)
+        with pytest.raises(ValueError, match="same length"):
+            self.model._nodeset_cellmodel = (node_sets, cell_models)

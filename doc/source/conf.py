@@ -244,11 +244,15 @@ linkcheck_ignore = [
     "https://royalsocietypublishing.org/*",
     "https://doi.org/*",
     "https://matplotlib.org/*",
+    "https://www.sphinx-doc.org/*",
     # Requires sign-in
     f"https://github.com/{user_repo}/*",
     "https://support.ansys.com/Home/HomePage",
     # Pages generated at build time
     r"../examples/",
+    # Zenodo blocks crawling
+    r"https://zenodo.org/records/3890034",
+    r"https://zenodo.org/records/4590294",
 ]
 
 # Final cleanup at exit

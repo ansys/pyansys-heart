@@ -173,7 +173,7 @@ def _find_endo_epicardial_regions(
         # split myocardial surfaces
         if "myocardium" in label and "interface" not in label:
             mask = geom_all.cell_data["tags"] == tag
-            sub_geom = geom_all.extract_cells(mask).extract_geometry()
+            sub_geom = geom_all.extract_cells(mask).extract_surface(algorithm=None)
             sub_geom = sub_geom.connectivity()
 
             # get connected regions and sort by bounding box volume
@@ -181,13 +181,15 @@ def _find_endo_epicardial_regions(
             for region_id in np.unique(sub_geom.cell_data["RegionId"]):
                 sub_sub_geom = sub_geom.extract_cells(
                     sub_geom.cell_data["RegionId"] == region_id
-                ).extract_geometry()
+                ).extract_surface(algorithm=None)
                 sub_sub_geoms += [sub_sub_geom]
 
             sub_sub_geoms.sort(
-                key=lambda x: (x.bounds[1] - x.bounds[0])
-                * (x.bounds[3] - x.bounds[2])
-                * (x.bounds[5] - x.bounds[4]),
+                key=lambda x: (
+                    (x.bounds[1] - x.bounds[0])
+                    * (x.bounds[3] - x.bounds[2])
+                    * (x.bounds[5] - x.bounds[4])
+                ),
                 reverse=False,
             )
 
@@ -369,7 +371,7 @@ def _smooth_boundary_edges(
         print("Processing " + id_to_label_map[surf_id])
 
         mask = surface_mesh.cell_data["surface-id"] == surf_id
-        sub_surface = surface_mesh.extract_cells(mask).extract_surface()
+        sub_surface = surface_mesh.extract_cells(mask).extract_surface(algorithm="dataset_surface")
         # get edges
         edges = sub_surface.extract_feature_edges(
             boundary_edges=True, non_manifold_edges=False, feature_edges=False, manifold_edges=False
@@ -377,7 +379,7 @@ def _smooth_boundary_edges(
         conn = edges.connectivity()
         for region_id in np.unique(conn.cell_data["RegionId"]):
             mask1 = conn.cell_data["RegionId"] == region_id
-            edges = conn.extract_cells(mask1).extract_surface()
+            edges = conn.extract_cells(mask1).extract_surface(algorithm="dataset_surface")
 
             # only project if we have a manifold edge.
             # NOTE: this doesn't seem to do much.
@@ -487,7 +489,7 @@ def get_compatible_input(
 
     # extract surface of mesh - this is used to find the endo and epicardial
     # regions
-    mesh_surface = mesh.extract_geometry()
+    mesh_surface = mesh.extract_surface(algorithm=None)
 
     # find the endo and epicardial regions
     mesh_surface, new_tag_to_label = _find_endo_epicardial_regions(mesh_surface, tags_to_label)

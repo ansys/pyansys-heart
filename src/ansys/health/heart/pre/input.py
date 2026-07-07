@@ -139,7 +139,16 @@ class _InputBoundary(pv.PolyData):
         name: str = "",
     ) -> None:
         super().__init__(
-            var_inp, faces, n_faces, lines, n_lines, strips, n_strips, deep, force_ext, force_float
+            var_inp,
+            faces,
+            n_faces=n_faces,
+            n_lines=n_lines,
+            n_strips=n_strips,
+            lines=lines,
+            strips=strips,
+            deep=deep,
+            force_ext=force_ext,
+            force_float=force_float,
         )
         self.id = id
         """Boundary ID."""
@@ -325,7 +334,9 @@ class _InputModel:
             ].items():
                 mask = np.isin(self.input_polydata["boundary-id"], boundary_id)
                 is_visited[mask] = True
-                polydata = self.input_polydata.extract_cells(mask).extract_surface()
+                polydata = self.input_polydata.extract_cells(mask).extract_surface(
+                    algorithm="dataset_surface"
+                )
 
                 # take on first value in list
                 if isinstance(boundary_id, list):

@@ -7,6 +7,243 @@ Release notes
 
 .. towncrier release notes start
 
+`0.16.1 <https://github.com/ansys/pyansys-heart/releases/tag/v0.16.1>`_ (June 17, 2026)
+=======================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Fixed
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Ventricle atrial isolation part
+          - `#1377 <https://github.com/ansys/pyansys-heart/pull/1377>`_
+
+        * - Apply fixes for failing doc build
+          - `#1378 <https://github.com/ansys/pyansys-heart/pull/1378>`_
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Limit upper version of pyvista to <0.48
+          - `#1376 <https://github.com/ansys/pyansys-heart/pull/1376>`_
+
+
+`0.16.0 <https://github.com/ansys/pyansys-heart/releases/tag/v0.16.0>`_ (April 21, 2026)
+========================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Added
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Update conductionpath
+          - `#1147 <https://github.com/ansys/pyansys-heart/pull/1147>`_
+
+        * - New aha strain
+          - `#1212 <https://github.com/ansys/pyansys-heart/pull/1212>`_
+
+        * - Add helper method for extracting tetra for a part
+          - `#1285 <https://github.com/ansys/pyansys-heart/pull/1285>`_
+
+        * - Define 12-lead ECG electrode positions
+          - `#1341 <https://github.com/ansys/pyansys-heart/pull/1341>`_
+
+        * - Add EMMAT005, Tentusscher for atrial and beam
+          - `#1342 <https://github.com/ansys/pyansys-heart/pull/1342>`_
+
+        * - Make installing meshing dependencies optional
+          - `#1361 <https://github.com/ansys/pyansys-heart/pull/1361>`_
+
+
+  .. tab-item:: Fixed
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Mock Windows to Windows Subsystem for Linux path
+          - `#1274 <https://github.com/ansys/pyansys-heart/pull/1274>`_
+
+        * - Bug in removing face
+          - `#1281 <https://github.com/ansys/pyansys-heart/pull/1281>`_
+
+        * - Fix typo in cavity name mapping in post processing
+          - `#1288 <https://github.com/ansys/pyansys-heart/pull/1288>`_
+
+        * - Excessive VTK obbtree messages
+          - `#1302 <https://github.com/ansys/pyansys-heart/pull/1302>`_
+
+        * - Skip zenodo link check
+          - `#1343 <https://github.com/ansys/pyansys-heart/pull/1343>`_
+
+        * - Define space varying cell model
+          - `#1344 <https://github.com/ansys/pyansys-heart/pull/1344>`_
+
+        * - Add ecg output in ep-meca coupling
+          - `#1351 <https://github.com/ansys/pyansys-heart/pull/1351>`_
+
+        * - Remove part from part_info
+          - `#1358 <https://github.com/ansys/pyansys-heart/pull/1358>`_
+
+
+  .. tab-item:: Documentation
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Clean up doc build
+          - `#1326 <https://github.com/ansys/pyansys-heart/pull/1326>`_
+
+        * - Update \`\`CONTRIBUTORS.md\`\` with the latest contributors
+          - `#1349 <https://github.com/ansys/pyansys-heart/pull/1349>`_
+
+
+  .. tab-item:: Test
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Add asset to repo for testing purposes
+          - `#1290 <https://github.com/ansys/pyansys-heart/pull/1290>`_
+
+
+  .. tab-item:: Dependencies
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Support vtk 9.4.2, 9.5.x and pyvista up to 0.47
+          - `#1205 <https://github.com/ansys/pyansys-heart/pull/1205>`_
+
+        * - Bump pytest from 8.4.2 to 9.0.0
+          - `#1276 <https://github.com/ansys/pyansys-heart/pull/1276>`_
+
+        * - Numpy limit
+          - `#1278 <https://github.com/ansys/pyansys-heart/pull/1278>`_
+
+        * - Bump pypandoc from 1.15 to 1.16.2
+          - `#1283 <https://github.com/ansys/pyansys-heart/pull/1283>`_
+
+        * - Bump pytest from 9.0.1 to 9.0.2
+          - `#1294 <https://github.com/ansys/pyansys-heart/pull/1294>`_
+
+        * - Bump trame-vtk from 2.10.0 to 2.10.2
+          - `#1301 <https://github.com/ansys/pyansys-heart/pull/1301>`_
+
+        * - Bump the docs-deps group across 1 directory with 5 updates
+          - `#1305 <https://github.com/ansys/pyansys-heart/pull/1305>`_
+
+        * - Bump trame-vtk from 2.10.2 to 2.11.1
+          - `#1320 <https://github.com/ansys/pyansys-heart/pull/1320>`_
+
+        * - Bump ansys-fluent-core from 0.37.2 to 0.38.0
+          - `#1339 <https://github.com/ansys/pyansys-heart/pull/1339>`_
+
+        * - Bump trame-vtk from 2.11.1 to 2.11.3
+          - `#1345 <https://github.com/ansys/pyansys-heart/pull/1345>`_
+
+        * - Bump pypandoc from 1.16.2 to 1.17
+          - `#1347 <https://github.com/ansys/pyansys-heart/pull/1347>`_
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Add Python 3.13 to ci/cd workflows
+          - `#1178 <https://github.com/ansys/pyansys-heart/pull/1178>`_
+
+        * - Update CHANGELOG for v0.15.0
+          - `#1272 <https://github.com/ansys/pyansys-heart/pull/1272>`_
+
+        * - Bump version to 0.16.dev0
+          - `#1273 <https://github.com/ansys/pyansys-heart/pull/1273>`_
+
+        * - Bump the actions group across 1 directory with 6 updates
+          - `#1282 <https://github.com/ansys/pyansys-heart/pull/1282>`_, `#1319 <https://github.com/ansys/pyansys-heart/pull/1319>`_
+
+        * - Limit upper limit of ansys-fluent-core
+          - `#1287 <https://github.com/ansys/pyansys-heart/pull/1287>`_
+
+        * - Temporary pin ansys-fluent-core to 0.35.0
+          - `#1289 <https://github.com/ansys/pyansys-heart/pull/1289>`_
+
+        * - Update missing or outdated files
+          - `#1291 <https://github.com/ansys/pyansys-heart/pull/1291>`_
+
+        * - Bump the actions group with 3 updates
+          - `#1296 <https://github.com/ansys/pyansys-heart/pull/1296>`_
+
+        * - Update CHANGELOG for v0.15.1
+          - `#1325 <https://github.com/ansys/pyansys-heart/pull/1325>`_
+
+        * - Hanging doc build
+          - `#1327 <https://github.com/ansys/pyansys-heart/pull/1327>`_
+
+        * - Upload coverage when releasing
+          - `#1330 <https://github.com/ansys/pyansys-heart/pull/1330>`_
+
+        * - Bump the actions group with 2 updates
+          - `#1331 <https://github.com/ansys/pyansys-heart/pull/1331>`_
+
+        * - Add dependabot cooldown settings
+          - `#1335 <https://github.com/ansys/pyansys-heart/pull/1335>`_
+
+        * - Bump the actions group across 1 directory with 5 updates
+          - `#1348 <https://github.com/ansys/pyansys-heart/pull/1348>`_
+
+        * - Relax upper limit of VTK to 9.6
+          - `#1353 <https://github.com/ansys/pyansys-heart/pull/1353>`_
+
+        * - Update license metadata in pyproject.toml
+          - `#1357 <https://github.com/ansys/pyansys-heart/pull/1357>`_
+
+        * - Address PyVista \`extract_geometry\` deprecation warnings
+          - `#1359 <https://github.com/ansys/pyansys-heart/pull/1359>`_
+
+        * - Bump the actions group across 1 directory with 7 updates
+          - `#1360 <https://github.com/ansys/pyansys-heart/pull/1360>`_
+
+
+  .. tab-item:: Miscellaneous
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Calls to faces property
+          - `#1275 <https://github.com/ansys/pyansys-heart/pull/1275>`_
+
+        * - Bump copyright year
+          - `#1303 <https://github.com/ansys/pyansys-heart/pull/1303>`_
+
+        * - Use Zenodo API for downloading input data
+          - `#1308 <https://github.com/ansys/pyansys-heart/pull/1308>`_
+
+        * - Fix pyvista deprecation warning
+          - `#1350 <https://github.com/ansys/pyansys-heart/pull/1350>`_
+
+        * - Replace pyvista deprecated method
+          - `#1352 <https://github.com/ansys/pyansys-heart/pull/1352>`_
+
+
 `0.15.1 <https://github.com/ansys/pyansys-heart/releases/tag/v0.15.1>`_ (February 12, 2026)
 ===========================================================================================
 

@@ -1,104 +1,114 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
+requires = ["flit_core >=3.2,<4"]
 
 [project]
 # Check https://flit.readthedocs.io/en/latest/pyproject_toml.html for all available sections
-name = "ansys-health-heart"
-version = "0.16.dev0"
+authors = [{name = "ANSYS, Inc.", email = "pyansys.core@ansys.com"}]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
 description = "Python framework for heart modeling using ANSYS tools."
+license = "MIT"
+license-files = ["LICENSE"]
+maintainers = [{name = "ANSYS, Inc.", email = "pyansys.core@ansys.com"}]
+name = "ansys-health-heart"
 readme = "README.rst"
 requires-python = ">=3.10,<4"
-license = { file = "LICENSE" }
-authors = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
-maintainers = [{ name = "ANSYS, Inc.", email = "pyansys.core@ansys.com" }]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Science/Research",
-    "Topic :: Scientific/Engineering :: Information Analysis",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-]
+version = "0.16.1"
 
 dependencies = [
-    "ansys-dpf-core>=0.13.6,!=0.14.0,<0.15",
-    "ansys-fluent-core==0.37.2",
-    "ansys.dyna.core>=0.7.1,<0.10",
-    "deprecated>=1.2.18",
-    "h5py>=3.6.0",
-    "httpx>=0.27.2",
-    "matplotlib>=3.10.1",
-    "natsort>=8.4.0",
-    "networkx>=3.2.1",
-    "numpy<3",
-    "pandas<=3.0.0",
-    "pint>=0.24.4",
-    "pyvista>=0.46.5",
-    "rich>=13.9.4",
-    "scipy<=1.15.3",
-    "vtk>=9.1.0,<9.6,!=9.4.0,!=9.4.1",
-    "pydantic>=2.0.0",
+  "ansys-dpf-core>=0.13.6,!=0.14.0,<0.15",
+  "ansys.dyna.core>=0.7.1,<0.10",
+  "deprecated>=1.2.18",
+  "h5py>=3.6.0",
+  "httpx>=0.27.2",
+  "matplotlib>=3.10.1",
+  "natsort>=8.4.0",
+  "networkx>=3.2.1",
+  "numpy<3",
+  "pandas<=3.0.0",
+  "pint>=0.24.4",
+  "pyvista>=0.46.5,<0.48",
+  "rich>=13.9.4",
+  "scipy<=1.15.3",
+  "vtk>=9.1.0,<9.7,!=9.4.0,!=9.4.1",
+  "pydantic>=2.0.0",
+  "pyyaml>=6.0.0",
+  "requests>2.34.0",
 ]
 
 # Optional dependencies:
 [project.optional-dependencies]
+all = [
+  "ansys-health-heart[meshing]",
+]
+dev = [
+  "ansys-health-heart[all,doc,tests]",
+]
 doc = [
-    "ansys-sphinx-theme[autoapi]==1.5.2",
-    "jupyter_sphinx==0.5.3",
-    "myst-parser==4.0.1",
-    "nbsphinx==0.9.7",
-    "numpydoc==1.8.0",
-    "pyvista[jupyter]>=0.46.5",
-    "pypandoc==1.16.2",
-    "sphinx==8.1.3",
-    "sphinx-autodoc-typehints==3.0.1",
-    "sphinx-copybutton==0.5.2",
-    "sphinx-gallery==0.19.0",
-    "sphinx-jinja==2.0.2",
-    "sphinx_design",
-    "sphinxcontrib-video==0.4.1",
-    "trame-vtk==2.11.1"
+  "ansys-sphinx-theme[autoapi]==1.7.0",
+  "jupyter_sphinx==0.5.3",
+  "myst-parser==4.0.1",
+  "nbsphinx==0.9.8",
+  "numpydoc==1.10.0",
+  "pyvista[jupyter]>=0.46.5",
+  "pypandoc==1.17",
+  "sphinx==8.1.3",
+  "sphinx-autodoc-typehints==3.0.1",
+  "sphinx-copybutton==0.5.2",
+  "sphinx-gallery==0.20.0",
+  "sphinx-jinja==2.0.2",
+  "sphinx_design",
+  "sphinxcontrib-video==0.4.2",
+  "trame-vtk==2.11.3",
+]
+meshing = [
+  "ansys-fluent-core==0.38.0",
 ]
 tests = [
-    "pytest==9.0.2",
-    "pytest-cov==7.0.0",
+  "pytest==9.0.2",
+  "pytest-cov==7.0.0",
 ]
 
 [project.urls]
-source = "https://github.com/ansys/pyansys-heart"
-issues = "https://github.com/ansys/pyansys-heart/issues"
 documentation = "https://heart.health.docs.pyansys.com/"
+issues = "https://github.com/ansys/pyansys-heart/issues"
 releases = "https://github.com/ansys/pyansys-heart/releases"
+source = "https://github.com/ansys/pyansys-heart"
 
 [tool.flit.module]
 name = "ansys.health.heart"
 
 [tool.ruff]
-line-length = 100
-fix = true
 extend-exclude = ["src/ansys/health/heart/writer/custom_keywords/**"]
+fix = true
+line-length = 100
 
 [tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
 docstring-code-format = true
 docstring-code-line-length = "dynamic"
+indent-style = "space"
+quote-style = "double"
 
 [tool.ruff.lint]
-select = [
-    "E",    # pycodestyle, see https://docs.astral.sh/ruff/rules/#pycodestyle-e-w
-    "D",    # pydocstyle, see https://docs.astral.sh/ruff/rules/#pydocstyle-d
-    "F",    # pyflakes, see https://docs.astral.sh/ruff/rules/#pyflakes-f
-    "I",    # isort, see https://docs.astral.sh/ruff/rules/#isort-i
-    "N",    # pep8-naming, see https://docs.astral.sh/ruff/rules/#pep8-naming-n
-    "TD",   # flake8-todos, https://docs.astral.sh/ruff/rules/#flake8-todos-td
-]
 ignore = [
-    "TD002", # Missing author in TODOs comment
-    "TD003", # Missing links in TODOs comment
+  "TD002", # Missing author in TODOs comment
+  "TD003", # Missing links in TODOs comment
+]
+select = [
+  "E", # pycodestyle, see https://docs.astral.sh/ruff/rules/#pycodestyle-e-w
+  "D", # pydocstyle, see https://docs.astral.sh/ruff/rules/#pydocstyle-d
+  "F", # pyflakes, see https://docs.astral.sh/ruff/rules/#pyflakes-f
+  "I", # isort, see https://docs.astral.sh/ruff/rules/#isort-i
+  "N", # pep8-naming, see https://docs.astral.sh/ruff/rules/#pep8-naming-n
+  "TD", # flake8-todos, https://docs.astral.sh/ruff/rules/#flake8-todos-td
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -125,20 +135,19 @@ source = ["ansys.health.heart"]
 show_missing = true
 
 [tool.pytest.ini_options]
+markers = ["extract_models", "requires_fluent", "k_file_writer", "requires_dpf"]
 pythonpath = ["."]
 testpaths = ["tests"]
-markers = ["extract_models", "requires_fluent", "k_file_writer", "requires_dpf"]
-tmp_path_retention_count = 0                                      # do not keep the temporary path that is created
-tmp_path_retention_policy = "none"                                # directories always removed, regardless of outcome
-
+tmp_path_retention_count = 0 # do not keep the temporary path that is created
+tmp_path_retention_policy = "none" # directories always removed, regardless of outcome
 
 [tool.towncrier]
 directory = "doc/source/changelog"
 filename = "doc/source/changelog.rst"
-template = "doc/source/changelog/template.jinja"
-start_string = ".. towncrier release notes start\n"
-title_format = "`{version} <https://github.com/ansys/pyansys-heart/releases/tag/v{version}>`_ ({project_date})"
 issue_format = "`#{issue} <https://github.com/ansys/pyansys-heart/pull/{issue}>`_"
+start_string = ".. towncrier release notes start\n"
+template = "doc/source/changelog/template.jinja"
+title_format = "`{version} <https://github.com/ansys/pyansys-heart/releases/tag/v{version}>`_ ({project_date})"
 
 [[tool.towncrier.type]]
 directory = "added"
@@ -179,4 +188,3 @@ showcontent = true
 directory = "miscellaneous"
 name = "Miscellaneous"
 showcontent = true
-

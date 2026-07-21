@@ -3,7 +3,7 @@ PyAnsys Heart
 
 .. warning::
 
-   This public repository is deprecated and will not receive further public updates; ongoing development continues as part of next-generation cardiac simulation solutions. See `Project Deprecation Notice <https://github.com/ansys/pyansys-heart/issues/1386>`_ for more information.
+   This public repository is deprecated and will not receive further public updates; Ongoing development continues within Synopsys as part of next-generation cardiac simulation solutions. See `Project Deprecation Notice <https://github.com/ansys/pyansys-heart/issues/1386>`_ for more information.
 
 |pyansys| |python| |pypi| |GH-CI| |MIT| |ruff| |pre-commit|
 

@@ -138,8 +138,9 @@ show_missing = true
 markers = ["extract_models", "requires_fluent", "k_file_writer", "requires_dpf"]
 pythonpath = ["."]
 testpaths = ["tests"]
-tmp_path_retention_count = 0 # do not keep the temporary path that is created
-tmp_path_retention_policy = "none" # directories always removed, regardless of outcome
+markers = ["extract_models", "requires_fluent", "k_file_writer", "requires_dpf"]
+tmp_path_retention_count = 0                                      # do not keep the temporary path that is created
+tmp_path_retention_policy = "none"                                # directories always removed, regardless of outcome
 
 [tool.towncrier]
 directory = "doc/source/changelog"
@@ -148,15 +149,16 @@ issue_format = "`#{issue} <https://github.com/ansys/pyansys-heart/pull/{issue}>`
 start_string = ".. towncrier release notes start\n"
 template = "doc/source/changelog/template.jinja"
 title_format = "`{version} <https://github.com/ansys/pyansys-heart/releases/tag/v{version}>`_ ({project_date})"
+issue_format = "`#{issue} <https://github.com/ansys/pyansys-heart/pull/{issue}>`_"
+
+[[tool.towncrier.type]]
+directory = "breaking"
+name = "Breaking"
+showcontent = true
 
 [[tool.towncrier.type]]
 directory = "added"
 name = "Added"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "changed"
-name = "Changed"
 showcontent = true
 
 [[tool.towncrier.type]]
@@ -167,11 +169,6 @@ showcontent = true
 [[tool.towncrier.type]]
 directory = "documentation"
 name = "Documentation"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "test"
-name = "Test"
 showcontent = true
 
 [[tool.towncrier.type]]
@@ -187,4 +184,24 @@ showcontent = true
 [[tool.towncrier.type]]
 directory = "miscellaneous"
 name = "Miscellaneous"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "test"
+name = "Test"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "changed"
+name = "Changed"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "test"
+name = "Test"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "changed"
+name = "Changed"
 showcontent = true

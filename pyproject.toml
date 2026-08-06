@@ -7,7 +7,7 @@ build-backend = "flit_core.buildapi"
 name = "ansys-health-heart"
 version = "0.16.dev0"
 description = "Python framework for heart modeling using ANSYS tools."
-readme = "README.rst"
+readme = "README.md"
 requires-python = ">=3.10,<4"
 license = "MIT"
 license-files = ["LICENSE"]
@@ -47,7 +47,7 @@ dependencies = [
 # Optional dependencies:
 [project.optional-dependencies]
 doc = [
-    "ansys-sphinx-theme[autoapi]==1.7.0",
+    "ansys-sphinx-theme[autoapi]==1.10.0",
     "jupyter_sphinx==0.5.3",
     "myst-parser==4.0.1",
     "nbsphinx==0.9.8",
@@ -189,4 +189,3 @@ showcontent = true
 directory = "miscellaneous"
 name = "Miscellaneous"
 showcontent = true
-

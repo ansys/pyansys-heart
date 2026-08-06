@@ -38,6 +38,12 @@ html_theme_options = {
     "github_url": "https://github.com/ansys/pyansys-heart",
     "show_prev_next": False,
     "show_breadcrumbs": True,
+    "announcement_banner": [
+        {
+            "message": "This project is archived and no longer maintained.",
+            "type": "warning",
+        },
+    ],
     "additional_breadcrumbs": [
         ("PyAnsys Health", "https://health.docs.pyansys.com/"),
     ],

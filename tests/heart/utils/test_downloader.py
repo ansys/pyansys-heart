@@ -275,3 +275,16 @@ def test_download_case_http_error_handling():
                     "Strocchi2020", 1, Path(tempdir), validate_hash=False
                 )
                 assert result is None
+
+
+def test_download_case_metadata_request_error_handling():
+    """Test that API request errors are handled gracefully."""
+    import httpx
+
+    with tempfile.TemporaryDirectory(prefix=".pyansys-heart") as tempdir:
+        with mock.patch(
+            "httpx.get",
+            side_effect=httpx.ReadTimeout("The read operation timed out", request=mock.MagicMock()),
+        ):
+            result = download_case_from_zenodo("Strocchi2020", 1, Path(tempdir))
+            assert result is None

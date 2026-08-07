@@ -197,7 +197,7 @@ def download_case_from_zenodo(
         LOGGER.debug(f"Expected size: {expected_size / 1024 / 1024:.2f} MB")
         LOGGER.debug(f"API checksum: {api_checksum}")
 
-    except (FileNotFoundError, ValueError, httpx.HTTPStatusError) as e:
+    except (FileNotFoundError, ValueError, httpx.HTTPStatusError, httpx.RequestError) as e:
         LOGGER.error(f"Failed to get download URL: {e}")
         return None
 

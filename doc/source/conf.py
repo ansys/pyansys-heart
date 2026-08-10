@@ -40,7 +40,10 @@ html_theme_options = {
     "show_breadcrumbs": True,
     "announcement_banner": [
         {
-            "message": "This project is archived and no longer maintained.",
+            "message": (
+                "This project is archived and no longer maintained. "
+                "Contact: pyansys-core@synopsis.com."
+            ),
             "type": "warning",
         },
     ],

@@ -14,6 +14,8 @@
 > - Issues will be closed
 > - The repository will be archived
 >
+> For questions, contact [pyansys-core@synopsis.com](mailto:pyansys-core@synopsis.com).
+>
 > Thank you to everyone who contributed, used, or supported this project!
 
 [![PyAnsys](https://img.shields.io/badge/Py-Ansys-ffc107.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAABDklEQVQ4jWNgoDfg5mD8vE7q/3bpVyskbW0sMRUwofHD7Dh5OBkZGBgW7/3W2tZpa2tLQEOyOzeEsfumlK2tbVpaGj4N6jIs1lpsDAwMJ278sveMY2BgCA0NFRISwqkhyQ1q/Nyd3zg4OBgYGNjZ2ePi4rB5loGBhZnhxTLJ/9ulv26Q4uVk1NXV/f///////69du4Zdg78lx//t0v+3S88rFISInD59GqIH2esIJ8G9O2/XVwhjzpw5EAam1xkkBJn/bJX+v1365hxxuCAfH9+3b9/+////48cPuNehNsS7cDEzMTAwMMzb+Q2u4dOnT2vWrMHu9ZtzxP9vl/69RVpCkBlZ3N7enoDXBwEAAA+YYitOilMVAAAAAElFTkSuQmCC)](https://docs.pyansys.com/)
@@ -47,4 +49,4 @@ Descriptions follow for each documentation section:
 - [Contribute](https://heart.health.docs.pyansys.com/version/stable/contributing.html): Provides guidelines and instructions on how to contribute based on your role in the project.
 - [Release notes](https://heart.health.docs.pyansys.com/version/stable/changelog.html): Provides a summary of notable changes for each version of PyAnsys Heart. It helps you keep track of updates, bug fixes, new features, and improvements made to the project over time.
 
-On the [PyAnsys Heart Issues](https://github.com/ansys/pyansys-heart/issues) page, you can create issues to report bugs and request new features. On the [PyAnsys Heart Discussions](https://github.com/ansys/pyansys-heart/discussions) page or the [Discussions](https://discuss.ansys.com/) page on the Ansys Developer portal, you can post questions, share ideas, and get community feedback. To reach the project support team, email [pyansys.core@ansys.com](mailto:pyansys.core@ansys.com).
+On the [PyAnsys Heart Issues](https://github.com/ansys/pyansys-heart/issues) page, you can create issues to report bugs and request new features. On the [PyAnsys Heart Discussions](https://github.com/ansys/pyansys-heart/discussions) page or the [Discussions](https://discuss.ansys.com/) page on the Ansys Developer portal, you can post questions, share ideas, and get community feedback. To reach the project support team, email [pyansys-core@synopsis.com](mailto:pyansys-core@synopsis.com).

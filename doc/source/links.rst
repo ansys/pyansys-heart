@@ -1,7 +1,7 @@
 .. Pyansys
 
 .. _PyAnsys: https://docs.pyansys.com
-.. _pyansys_core: pyansys.core@ansys.com
+.. _pyansys_core: pyansys-core@synopsis.com
 
 .. Ansys
 
@@ -38,4 +38,3 @@
 .. Other links
 
 .. _Contributor Covenant Code of Conduct: https://www.contributor-covenant.org/version/2/1/code_of_conduct/
-

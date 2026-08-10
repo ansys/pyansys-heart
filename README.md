@@ -5,7 +5,7 @@
 > **This repository is no longer maintained as of 2026-08-06**
 >
 > This public repository is deprecated and will not receive further public
-> updates. Ongoing development continues within Synopsis as part of
+> updates. Ongoing development continues within Synopsys as part of
 > next-generation cardiac simulation solutions.
 >
 > **What this means**

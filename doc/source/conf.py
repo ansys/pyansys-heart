@@ -254,6 +254,8 @@ linkcheck_ignore = [
     "https://doi.org/*",
     "https://matplotlib.org/*",
     "https://www.sphinx-doc.org/*",
+    # Public PDF on LSTC FTP returns 403 to automated link checkers
+    "https://ftp.lstc.com/anonymous/outgoing/support/PAPERS/mat_295_formulation_public.pdf",
     # Requires sign-in
     f"https://github.com/{user_repo}/*",
     "https://support.ansys.com/Home/HomePage",

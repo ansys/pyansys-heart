@@ -1,7 +1,7 @@
 .. Pyansys
 
 .. _PyAnsys: https://docs.pyansys.com
-.. _pyansys_core: pyansys-core@synopsys.com
+.. _pyansys_core: pyansys-core@synopsis.com
 
 .. Ansys
 

@@ -42,6 +42,7 @@ html_theme_options = {
         {
             "message": (
                 "This project is archived and no longer maintained as of "
+                "This repository is no longer maintained and archived as of"
                 "2026-08-12. Contact: pyansys-core@synopsys.com."
             ),
             "type": "warning",

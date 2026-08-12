@@ -41,9 +41,8 @@ html_theme_options = {
     "announcement_banner": [
         {
             "message": (
-                "This project is archived and no longer maintained as of "
-                "This repository is no longer maintained and archived as of"
-                "2026-08-12. Contact: pyansys-core@synopsys.com."
+                "This repository is no longer maintained and was archived on "
+                "2026-08-12. For questions, contact pyansys-core@synopsys.com."
             ),
             "type": "warning",
         },

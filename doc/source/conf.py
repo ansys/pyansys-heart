@@ -38,6 +38,15 @@ html_theme_options = {
     "github_url": "https://github.com/ansys/pyansys-heart",
     "show_prev_next": False,
     "show_breadcrumbs": True,
+    "announcement_banner": [
+        {
+            "message": (
+                "This repository is no longer maintained and was archived on "
+                "2026-08-12. For questions, contact pyansys-core@synopsys.com."
+            ),
+            "type": "warning",
+        },
+    ],
     "additional_breadcrumbs": [
         ("PyAnsys Health", "https://health.docs.pyansys.com/"),
     ],
@@ -245,6 +254,8 @@ linkcheck_ignore = [
     "https://doi.org/*",
     "https://matplotlib.org/*",
     "https://www.sphinx-doc.org/*",
+    # Public PDF on LSTC FTP returns 403 to automated link checkers
+    "https://ftp.lstc.com/anonymous/outgoing/support/PAPERS/mat_295_formulation_public.pdf",
     # Requires sign-in
     f"https://github.com/{user_repo}/*",
     "https://support.ansys.com/Home/HomePage",

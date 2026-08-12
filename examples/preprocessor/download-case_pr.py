@@ -54,7 +54,9 @@ from ansys.health.heart.utils.download import download_case_from_zenodo, unpack_
 download_dir = Path.home() / "pyansys-heart" / "downloads"
 tar_file = download_case_from_zenodo("Rodero2021", 1, download_dir, overwrite=True)
 
-# Unpack the tar file and get the path to the input .vtk/.case file.
-path = unpack_case(tar_file)
-
-print(path)
+if tar_file is None:
+    print("Unable to download case from Zenodo. Skipping unpack in this run.")
+else:
+    # Unpack the tar file and get the path to the input .vtk/.case file.
+    path = unpack_case(tar_file)
+    print(path)

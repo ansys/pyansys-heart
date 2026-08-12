@@ -5,7 +5,7 @@ requires = ["flit_core >=3.2,<4"]
 [project]
 # Check https://flit.readthedocs.io/en/latest/pyproject_toml.html for all available sections
 name = "ansys-health-heart"
-version = "0.16.dev0"
+version = "0.16.2"
 description = "Python framework for heart modeling using ANSYS tools."
 readme = "README.md"
 requires-python = ">=3.10,<4"
@@ -22,14 +22,6 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
 ]
-description = "Python framework for heart modeling using ANSYS tools."
-license = "MIT"
-license-files = ["LICENSE"]
-maintainers = [{name = "ANSYS, Inc.", email = "pyansys.core@ansys.com"}]
-name = "ansys-health-heart"
-readme = "README.rst"
-requires-python = ">=3.10,<4"
-version = "0.16.1"
 
 dependencies = [
   "ansys-dpf-core>=0.13.6,!=0.14.0,<0.15",

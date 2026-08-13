@@ -7,6 +7,42 @@ Release notes
 
 .. towncrier release notes start
 
+`0.16.2 <https://github.com/ansys/pyansys-heart/releases/tag/v0.16.2>`_ (August 13, 2026)
+=========================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Added
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Add archive warnings
+          - `#1395 <https://github.com/ansys/pyansys-heart/pull/1395>`_
+
+
+  .. tab-item:: Dependencies
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Bump the docs-deps group with 2 updates
+          - `#1388 <https://github.com/ansys/pyansys-heart/pull/1388>`_
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Bump the actions group across 1 directory with 17 updates
+          - `#1394 <https://github.com/ansys/pyansys-heart/pull/1394>`_
+
+
 `0.16.1 <https://github.com/ansys/pyansys-heart/releases/tag/v0.16.1>`_ (June 17, 2026)
 =======================================================================================
 

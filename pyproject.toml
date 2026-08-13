@@ -148,7 +148,6 @@ issue_format = "`#{issue} <https://github.com/ansys/pyansys-heart/pull/{issue}>`
 start_string = ".. towncrier release notes start\n"
 template = "doc/source/changelog/template.jinja"
 title_format = "`{version} <https://github.com/ansys/pyansys-heart/releases/tag/v{version}>`_ ({project_date})"
-issue_format = "`#{issue} <https://github.com/ansys/pyansys-heart/pull/{issue}>`_"
 
 [[tool.towncrier.type]]
 directory = "breaking"
@@ -186,11 +185,6 @@ name = "Miscellaneous"
 showcontent = true
 
 [[tool.towncrier.type]]
-directory = "test"
-name = "Test"
-showcontent = true
-
-[[tool.towncrier.type]]
 directory = "changed"
 name = "Changed"
 showcontent = true
@@ -198,9 +192,4 @@ showcontent = true
 [[tool.towncrier.type]]
 directory = "test"
 name = "Test"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "changed"
-name = "Changed"
 showcontent = true

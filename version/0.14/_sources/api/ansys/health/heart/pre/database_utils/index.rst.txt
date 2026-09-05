@@ -1,0 +1,113 @@
+
+
+
+
+
+
+The ``database_utils.py`` module
+================================
+
+.. py:module:: ansys.health.heart.pre.database_utils
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: database_utils
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~get_compatible_input`
+            - Extract a preprocessor-compatible input surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Some helper methods to process cases from Strocchi and Rodero databases.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: get_compatible_input(mesh_path: str, model_type: Literal['FullHeart', 'FourChamber', 'BiVentricle', 'LeftVentricle'] = 'FullHeart', database: str = 'Rodero2021') -> tuple[pyvista.PolyData, dict]
+
+   
+   Extract a preprocessor-compatible input surface.
+
+
+   :Parameters:
+
+       **mesh_path** : :class:`python:str`
+           Path to the input mesh (UnstructuredGrid or MultiBlock).
+
+       **model_type** : :class:`python:str`, default: ``'FullHeart'``
+           Type of model to extract. Options are ``'FullHeart'``, ``'FourChamber'``,
+           ``'BiVentricle'``, and ``'LeftVentricle'``.
+
+       **database** : :class:`python:str`, default: ``'Rodero2021'``
+           Database name. Options are ``'Rodero2021'`` and ``'Strocchi2020'``.
+
+
+
+   :Returns:
+
+       :obj:`Tuple`\[:obj:`pv.PolyData`, :class:`python:dict`]
+           Preprocessor-compatible polydata object and dictionary with part definitions.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

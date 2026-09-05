@@ -1,0 +1,229 @@
+
+
+
+
+
+
+The ``mesher.py`` module
+========================
+
+.. py:module:: ansys.heart.preprocessor.mesher
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: mesher
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~mesh_fluid_cavities`
+            - Mesh the fluid cavities.
+
+
+          * - :py:obj:`~mesh_from_manifold_input_model`
+            - Create mesh from good-quality manifold input model.
+
+
+          * - :py:obj:`~mesh_from_non_manifold_input_model`
+            - Generate mesh from a non-manifold poor quality input model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module contains methods for interaction with Fluent meshing.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: mesh_fluid_cavities(fluid_boundaries: List[ansys.heart.core.objects.SurfaceMesh], caps: List[ansys.heart.core.objects.SurfaceMesh], workdir: str, remesh_caps: bool = True) -> ansys.heart.core.helpers.fluenthdf5.FluentMesh
+
+   
+   Mesh the fluid cavities.
+
+
+   :Parameters:
+
+       **fluid_boundaries** : :obj:`List`\[:obj:`SurfaceMesh`]
+           List of fluid boundaries used for meshing.
+
+       **caps** : :obj:`List`\[:obj:`SurfaceMesh`]
+           List of caps that close each of the cavities.
+
+       **workdir** : :class:`python:str`
+           Working directory
+
+       **remesh_caps** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Flag indicating whether to remesh the caps, by default True
+
+
+
+   :Returns:
+
+       :obj:`Path`
+           Path to the .msh.h5 volume mesh.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: mesh_from_manifold_input_model(model: ansys.heart.preprocessor.input._InputModel, workdir: Union[str, pathlib.Path], path_to_output: Union[str, pathlib.Path], mesh_size: float = 2.0, overwrite_existing_mesh: bool = True) -> ansys.heart.core.helpers.fluenthdf5.FluentMesh
+
+   
+   Create mesh from good-quality manifold input model.
+
+
+   :Parameters:
+
+       **model** : :obj:`_InputModel`
+           Input model.
+
+       **workdir** : :obj:`Union`\[:class:`python:str`, :obj:`Path`]
+           Working directory.
+
+       **path_to_output** : :obj:`Union`\[:class:`python:str`, :obj:`Path`]
+           Path to the resulting Fluent mesh file.
+
+       **mesh_size** : :class:`python:float`, :obj:`optional`
+           Uniform mesh size to use for both wrapping and filling the volume, by default 2.0
+
+
+
+   :Returns:
+
+       :obj:`FluentMesh`
+           The volume mesh with cell and face zones.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: mesh_from_non_manifold_input_model(model: ansys.heart.preprocessor.input._InputModel, workdir: Union[str, pathlib.Path], path_to_output: Union[str, pathlib.Path], global_mesh_size: float = 2.0, _global_wrap_size: float = 1.5, overwrite_existing_mesh: bool = True, mesh_size_per_part: dict = None, _wrap_size_per_part: dict = None) -> ansys.heart.core.helpers.fluenthdf5.FluentMesh
+
+   
+   Generate mesh from a non-manifold poor quality input model.
+
+
+   :Parameters:
+
+       **model** : :obj:`_InputModel`
+           Input model.
+
+       **workdir** : :obj:`Union`\[:class:`python:str`, :obj:`Path`]
+           Working directory.
+
+       **path_to_output** : :obj:`Union`\[:class:`python:str`, :obj:`Path`]
+           Path to the resulting Fluent mesh file.
+
+       **global_mesh_size** : :class:`python:float`, :obj:`optional`
+           Uniform mesh size to use for all volumes and surfaces, by default 2.0
+
+       **_global_wrap_size** : :class:`python:float`, :obj:`optional`
+           Global size used by the wrapper to reconstruct the geometry, by default 1.5
+
+       **overwrite_existing_mesh** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Flag indicating whether to overwrite an existing mesh, by default True
+
+       **mesh_size_per_part** : :class:`python:dict`, :obj:`optional`
+           Dictionary specifying the mesh size that should be used for each part, by default None
+
+       **_wrap_size_per_part** : :class:`python:dict`, :obj:`optional`
+           Dictionary specifying the mesh size that should be used to wrap each part, by default None
+
+
+
+   :Returns:
+
+       :obj:`FluentMesh`
+           The volume mesh with cell and face zones.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Uses Fluent wrapping technology to wrap the individual parts first to create manifold
+   parts. Consequently wrap the entire model and use the manifold parts to split the
+   wrapped model into the different cell zones.
+
+   When specifying a mesh size per part, you can do that by either specifying that for all
+   parts, or for specific parts. The default mesh size will be used for any part not listed
+   in the dictionary. This also applies to the wrapping step. The user can control the wrap size
+   per part, or on a global level. By default a size of 1.5 mm is used: but is not guaranteed to
+   give good results.
+
+   Note that a post-wrap remesh is triggered if the wrap size is not equal to the target mesh size.
+   Remeshing may fail if the target mesh size deviates too much from the wrap size.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

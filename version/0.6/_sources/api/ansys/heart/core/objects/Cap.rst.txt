@@ -1,0 +1,165 @@
+
+
+:class:`Cap`
+============
+
+.. py:class:: ansys.heart.core.objects.Cap(name: str = None, node_ids: Union[List[int], numpy.ndarray] = [])
+
+   Bases: :py:obj:`Feature`
+
+
+   
+   Cap class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Cap
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+   .. tab-item:: Properties
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~global_node_ids_edge`
+            - Global node ids of the edge of the cap.
+          * - :py:attr:`~global_centroid_id`
+            - Global centroid id.
+          * - :py:attr:`~centroid`
+            - Centroid of cap.
+          * - :py:attr:`~cap_normal`
+            - Compute mean normal of cap.
+
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.objects import Cap
+
+Property detail
+---------------
+.. py:property:: global_node_ids_edge
+   
+   Global node ids of the edge of the cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: global_centroid_id
+   
+   Global centroid id.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: centroid
+   
+   Centroid of cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: cap_normal
+   
+   Compute mean normal of cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+

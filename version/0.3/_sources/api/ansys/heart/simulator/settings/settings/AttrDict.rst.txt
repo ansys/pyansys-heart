@@ -1,0 +1,57 @@
+
+
+
+
+AttrDict
+========
+
+.. py:class:: AttrDict(*args, **kwargs)
+   :canonical: ansys.heart.simulator.settings.settings.AttrDict
+
+
+
+Bases: :py:obj:`dict`
+
+
+   Dict subclass whose entries can be accessed by attributes as well as normally.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.settings import AttrDict
+
+
+
+
+

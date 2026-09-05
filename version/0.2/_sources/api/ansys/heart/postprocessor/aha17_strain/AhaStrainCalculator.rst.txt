@@ -1,0 +1,219 @@
+
+
+
+
+AhaStrainCalculator
+===================
+
+.. py:class:: AhaStrainCalculator(model: ansys.heart.preprocessor.models.HeartModel, d3plot_file)
+   :canonical: ansys.heart.postprocessor.aha17_strain.AhaStrainCalculator
+
+
+
+
+
+   Compute Longitudinal, Radial, Circumferential strain for left ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: AhaStrainCalculator
+.. tab-set::
+
+
+
+    .. tab-item:: Methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~compute_aha_strain`
+            - Compute and save AHA 17 segment strain values.
+          * - :py:attr:`~compute_aha_strain_at`
+            - Export AHA strain and/or save vtk file for a given frame.
+
+
+
+
+    .. tab-item:: Static methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~bullseye_plot`
+            - Bullseye representation for the left ventricle.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.postprocessor.aha17_strain import AhaStrainCalculator
+
+
+
+
+Method detail
+-------------
+.. py:method:: compute_aha_strain(out_dir: str, write_vtk: bool = False, t_to_keep: float = 100000000000.0) -> numpy.ndarray
+
+   
+   Compute and save AHA 17 segment strain values.
+
+
+   :Parameters:
+
+       **out_dir** : :class:`python:str`
+           Output directory where the segments are saved.
+
+       **write_vtk** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Flag indicating whether to save the VTK file, by default False
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Average strain values for each of the 17 segments.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_aha_strain_at(frame: int = 0, out_dir: pathlib.Path = None) -> numpy.ndarray
+
+   
+   Export AHA strain and/or save vtk file for a given frame.
+
+
+   :Parameters:
+
+       **frame: int**
+           at this frame, by default 0.
+
+       **out_dir: pathlib.Path**
+           folder where vtk files are saved, by default not save.
+
+   :Returns:
+
+       :obj:`np.ndarry`
+           AHA LRC strain matrix (17 * 3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: bullseye_plot(ax, data, seg_bold=None, cmap=None, norm=None)
+   :staticmethod:
+
+   
+   Bullseye representation for the left ventricle.
+
+   Based on:
+   https://matplotlib.org/stable/gallery/specialty_plots/leftventricle_bulleye.html#sphx-glr-gallery-specialty-plots-leftventricle-bulleye-py
+
+   :Parameters:
+
+       **ax** : :obj:`axes`
+           ..
+
+       **data** : :class:`python:list` :obj:`of` :class:`python:int` :obj:`and` :class:`python:float`
+           The intensity values for each of the 17 segments
+
+       **seg_bold** : :class:`python:list` :obj:`of` :class:`python:int`, :obj:`optional`
+           A list with the segments to highlight
+
+       **cmap** : :obj:`ColorMap` or :data:`python:None`, :obj:`optional`
+           Optional argument to set the desired colormap
+
+       **norm** : :obj:`Normalize` or :data:`python:None`, :obj:`optional`
+           Optional argument to normalize data into the [0.0, 1.0] range
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   This function creates the 17 segment model for the left ventricle according
+   to the American Heart Association (AHA) [Rf8dda8abfd1e-1]_
+
+   .. rubric:: References
+
+   .. [Rf8dda8abfd1e-1] M. D. Cerqueira, N. J. Weissman, V. Dilsizian, A. K. Jacobs,
+       S. Kaul, W. K. Laskey, D. J. Pennell, J. A. Rumberger, T. Ryan,
+       and M. S. Verani, "Standardized myocardial segmentation and
+       nomenclature for tomographic imaging of the heart",
+       Circulation, vol. 105, no. 4, pp. 539-542, 2002.
+
+   .. only:: latex
+
+      [Rf8dda8abfd1e-1]_
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

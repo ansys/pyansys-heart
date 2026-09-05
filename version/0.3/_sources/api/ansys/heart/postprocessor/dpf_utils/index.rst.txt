@@ -1,0 +1,99 @@
+
+
+
+
+
+The ``dpf_utils.py`` module
+===========================
+
+.. py:module:: ansys.heart.postprocessor.dpf_utils
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: dpf_utils
+.. tab-set::
+
+
+
+    .. tab-item:: Interfaces
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~ICVoutReader`
+            - Read control volume data from binout.
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~D3plotReader`
+            - Use DPF to parse d3plot.
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🝆 ICVoutReader<ICVoutReader>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🝆 D3plotReader<D3plotReader>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+D3plot parser using Ansys-dpf.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

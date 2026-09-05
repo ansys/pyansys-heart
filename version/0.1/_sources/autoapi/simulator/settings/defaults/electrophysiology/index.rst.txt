@@ -1,0 +1,66 @@
+:py:mod:`simulator.settings.defaults.electrophysiology`
+=======================================================
+
+.. py:module:: simulator.settings.defaults.electrophysiology
+
+.. autoapi-nested-parse::
+
+   Module contains default values for electrophysiology simulations.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+.. py:data:: heart
+
+   
+   Generic analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: analysis
+
+   
+   Material settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: material
+
+   
+

@@ -1,0 +1,62 @@
+
+
+
+
+
+
+:class:`MechanicalMaterialModel`
+================================
+
+.. toctree::
+   :hidden:
+
+    /api/ansys/health/heart/settings/material/material/MechanicalMaterialModel.DummyMaterial
+
+.. py:class:: ansys.health.heart.settings.material.material.MechanicalMaterialModel
+
+   
+   Base class for all mechanical material model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.material import MechanicalMaterialModel
+
+
+
+
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+    ansys.health.heart.settings.material.material.MechanicalMaterialModel.DummyMaterial
+
+
+
+

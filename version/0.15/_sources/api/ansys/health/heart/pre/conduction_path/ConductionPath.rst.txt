@@ -1,0 +1,461 @@
+
+
+
+
+
+
+:class:`ConductionPath`
+=======================
+
+
+.. py:class:: ansys.health.heart.pre.conduction_path.ConductionPath(name: ConductionPathType, mesh: ansys.health.heart.objects.Mesh, id: int, is_connected: numpy.ndarray, relying_surface: pyvista.PolyData, material: ansys.health.heart.settings.material.ep_material.EPMaterialModel | ansys.health.heart.settings.material.ep_material.Insulator | None = None, up_path: ConductionPath | None = None, down_path: ConductionPath | None = None)
+
+   
+   Conduction path class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+.. py:currentmodule:: ConductionPath
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_terminal_nodes`
+            - Get the terminal nodes of the conduction path.
+          * - :py:attr:`~get_terminal_coordinates`
+            - Get the nodal coordinates of the terminal nodes.
+          * - :py:attr:`~plot`
+            - Plot the conduction path with its underlying surface.
+          * - :py:attr:`~add_pmj_path`
+            - Add Purkinje-Myocardial Junction branches to the current conduction path.
+
+
+   .. tab-item:: Properties
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~up_path`
+            - Get upstream conduction path.
+          * - :py:attr:`~down_path`
+            - Get downstream conduction path.
+          * - :py:attr:`~length`
+            - Length of the conduction path.
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~name`
+            - 
+          * - :py:attr:`~mesh`
+            - 
+          * - :py:attr:`~id`
+            - 
+          * - :py:attr:`~is_connected`
+            - 
+          * - :py:attr:`~relying_surface`
+            - 
+          * - :py:attr:`~ep_material`
+            - 
+
+
+   .. tab-item:: Static methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~create_from_keypoints`
+            - Create a conduction path on a base mesh through a set of keypoints.
+          * - :py:attr:`~create_from_k_file`
+            - Build conduction path from LS-DYNA k-file.
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.pre.conduction_path import ConductionPath
+
+Property detail
+---------------
+
+.. py:property:: up_path
+   :type: ConductionPath | None
+
+
+   
+   Get upstream conduction path.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: down_path
+   :type: ConductionPath | None
+
+
+   
+   Get downstream conduction path.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: length
+
+   
+   Length of the conduction path.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: name
+
+.. py:attribute:: mesh
+
+.. py:attribute:: id
+
+.. py:attribute:: is_connected
+
+.. py:attribute:: relying_surface
+
+.. py:attribute:: ep_material
+   :value: None
+
+
+
+
+Method detail
+-------------
+
+.. py:method:: get_terminal_nodes() -> numpy.ndarray
+
+   
+   Get the terminal nodes of the conduction path.
+
+
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Array of terminal node indices.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   The terminal nodes are the points that are referenced only once
+   in the line segments.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_terminal_coordinates() -> numpy.ndarray
+
+   
+   Get the nodal coordinates of the terminal nodes.
+
+
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Nx3 array with the coordinates of the terminal nodes.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: plot(show_plotter: bool = True) -> pyvista.Plotter | None
+
+   
+   Plot the conduction path with its underlying surface.
+
+   This method creates a PyVista plotter, adds the relying surface (in semi-transparent white)
+   and the conduction path (as a line), and either shows the plot or returns the plotter
+   for further customization.
+
+   :Parameters:
+
+       **show_plotter** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:True`
+           Whether to immediately show the plot window. If ``False``, return the plotter
+           object for further modification (such as adding more meshes).
+
+
+
+   :Returns:
+
+       **plotter** : :obj:`pyvista.Plotter` or :data:`python:None`
+           The PyVista plotter object if ``show_plotter`` is False, otherwise None.
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> plotter = conduction_path.plot(show_plotter=False)
+   >>> plotter.add_mesh(other_mesh, color="red")
+   >>> plotter.show()
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: add_pmj_path(pmj_list: list[int], merge_with: Literal['node', 'cell'] = 'cell') -> ConductionPath
+
+   
+   Add Purkinje-Myocardial Junction branches to the current conduction path.
+
+
+   :Parameters:
+
+       **pmj_list** : :class:`python:list`\[:class:`python:int`]
+           Indices of points to create a Purkinje-Myocardial Junction.
+
+       **merge_with** : :obj:`Literal`\['node','cell'], default: 'cell'
+           Whether to merge with a neighbor node (1 split) or cell (3 splits).
+
+
+
+   :Returns:
+
+       :obj:`ConductionPath`
+           The updated conduction path.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   PMJ resistance is controlled by pmjres in *EM_EP_PURKINJE_NETWORK2.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: create_from_keypoints(name: ConductionPathType, keypoints: list[numpy.ndarray], id: int, base_mesh: pyvista.PolyData | pyvista.UnstructuredGrid, connection: Literal['first'] | None = None, line_length: float | None = 1.5, center: bool = False) -> ConductionPath
+   :staticmethod:
+
+
+   
+   Create a conduction path on a base mesh through a set of keypoints.
+
+
+   :Parameters:
+
+       **name** : :obj:`ConductionPathType`
+           Name of the conduction path.
+
+       **keypoints** : :class:`python:list`\[:obj:`np.ndarray <numpy.ndarray>`]
+           Keypoints used to construct the path on the base mesh.
+
+       **id** : :class:`python:int`
+           ID of the conduction path.
+
+       **base_mesh** : :obj:`pv.PolyData` | :obj:`pv.UnstructuredGrid`
+           Base mesh where the conduction path is created. If ``PolyData``, the
+           result is a geodesic path on the surface. If ``pv.UnstructuredGrid``, the
+           result is the shortest path in the solid.
+
+       **connection** : :obj:`Literal`\["first"] | :data:`python:None`, default: :data:`python:None`
+           If "first", the first point of the path is marked as connected to the solid mesh.
+           If None, no points are marked as connected.
+
+       **line_length** : :class:`python:float` | :data:`python:None`, default: 1.5
+           Length of the line element in case of refinement.
+
+       **center** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:False`
+           Whether to use a geodesic path through the centers of the surface cells.
+
+
+
+   :Returns:
+
+       :obj:`ConductionPath`
+           The created conduction path.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   To add PMJ (Purkinje-Myocardial Junction) points, use the :meth:`add_pmj_path` method
+   after creating the path.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: create_from_k_file(name: ConductionPathType, k_file: str, id: int, base_mesh: pyvista.PolyData, model, merge_apex: bool = True) -> ConductionPath
+   :staticmethod:
+
+
+   
+   Build conduction path from LS-DYNA k-file.
+
+
+   :Parameters:
+
+       **name** : :obj:`ConductionPathType`
+           Conduction path name.
+
+       **k_file** : :class:`python:str`
+           Path to LS-DYNA k-file.
+
+       **id** : :class:`python:int`
+           ID of the conduction path.
+
+       **base_mesh** : :obj:`pv.PolyData`
+           Surface mesh that the conduction path is relying on.
+
+       **model** : :obj:`HeartModel`
+           HeartModel object.
+
+       **merge_apex** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:True`
+           Whether to merge the apex node with the solid mesh.
+
+
+
+   :Returns:
+
+       :obj:`ConductionPath`
+           Conduction path.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

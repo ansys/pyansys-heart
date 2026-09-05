@@ -1,0 +1,922 @@
+.. _ref_release_notes:
+
+Release notes
+#############
+
+.. vale off
+
+.. towncrier release notes start
+
+`0.15.1 <https://github.com/ansys/pyansys-heart/releases/tag/v0.15.1>`_ (February 12, 2026)
+===========================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Fixed
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Limit allowed versions of pydyna
+          - `#1313 <https://github.com/ansys/pyansys-heart/pull/1313>`_
+
+
+  .. tab-item:: Documentation
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Fix broken link-check for restructured text
+          - `#1322 <https://github.com/ansys/pyansys-heart/pull/1322>`_
+
+
+  .. tab-item:: Dependencies
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Bump ansys-fluent-core from 0.35.0 to 0.37.1
+          - `#1297 <https://github.com/ansys/pyansys-heart/pull/1297>`_
+
+        * - Remove ansys-units from dependencies
+          - `#1309 <https://github.com/ansys/pyansys-heart/pull/1309>`_
+
+        * - Bump ansys-fluent-core from 0.37.1 to 0.37.2
+          - `#1321 <https://github.com/ansys/pyansys-heart/pull/1321>`_
+
+
+`0.15.0 <https://github.com/ansys/pyansys-heart/releases/tag/v0.15.0>`_ (November 06, 2025)
+===========================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Added
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Add right atrium appendage landmarks
+          - `#1202 <https://github.com/ansys/pyansys-heart/pull/1202>`_
+
+        * - Use pydantic for materials
+          - `#1233 <https://github.com/ansys/pyansys-heart/pull/1233>`_
+
+        * - Allow unknown caps in model
+          - `#1261 <https://github.com/ansys/pyansys-heart/pull/1261>`_
+
+        * - Rework ventricular fiber settings
+          - `#1264 <https://github.com/ansys/pyansys-heart/pull/1264>`_
+
+
+  .. tab-item:: Fixed
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Import of LaunchMode
+          - `#1208 <https://github.com/ansys/pyansys-heart/pull/1208>`_
+
+        * - Fix ansys-fluent-core
+          - `#1210 <https://github.com/ansys/pyansys-heart/pull/1210>`_
+
+        * - Improve subprocess
+          - `#1211 <https://github.com/ansys/pyansys-heart/pull/1211>`_
+
+        * - D-RBM fiber generation
+          - `#1227 <https://github.com/ansys/pyansys-heart/pull/1227>`_
+
+        * - Missing conduction system for biventricle models
+          - `#1231 <https://github.com/ansys/pyansys-heart/pull/1231>`_
+
+        * - Link-check for ansys downloads
+          - `#1247 <https://github.com/ansys/pyansys-heart/pull/1247>`_
+
+
+  .. tab-item:: Documentation
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Update ``contributors.md`` with the latest contributors
+          - `#1190 <https://github.com/ansys/pyansys-heart/pull/1190>`_
+
+        * - Update LICENSE and AUTHORS file
+          - `#1199 <https://github.com/ansys/pyansys-heart/pull/1199>`_
+
+        * - Update docstrings of settings
+          - `#1267 <https://github.com/ansys/pyansys-heart/pull/1267>`_
+
+        * - Standardize docstrings
+          - `#1268 <https://github.com/ansys/pyansys-heart/pull/1268>`_
+
+        * - Standardization of docstrings
+          - `#1271 <https://github.com/ansys/pyansys-heart/pull/1271>`_
+
+
+  .. tab-item:: Dependencies
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Exclude vtk 9.4
+          - `#1180 <https://github.com/ansys/pyansys-heart/pull/1180>`_
+
+        * - Bump trame-vtk from 2.9.0 to 2.9.1
+          - `#1191 <https://github.com/ansys/pyansys-heart/pull/1191>`_
+
+        * - Relax ansys-dpf-core dep
+          - `#1201 <https://github.com/ansys/pyansys-heart/pull/1201>`_
+
+        * - Bump lower limit of ansys-fluent-core to 0.34.2
+          - `#1214 <https://github.com/ansys/pyansys-heart/pull/1214>`_
+
+        * - Bump pytest from 8.4.1 to 8.4.2
+          - `#1228 <https://github.com/ansys/pyansys-heart/pull/1228>`_
+
+        * - Bump pytest-cov from 6.2.1 to 7.0.0
+          - `#1237 <https://github.com/ansys/pyansys-heart/pull/1237>`_
+
+        * - Bump trame-vtk from 2.9.1 to 2.10.0
+          - `#1253 <https://github.com/ansys/pyansys-heart/pull/1253>`_
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Update changelog for v0.14.0
+          - `#1177 <https://github.com/ansys/pyansys-heart/pull/1177>`_
+
+        * - Bump dev version to 0.15dev0
+          - `#1179 <https://github.com/ansys/pyansys-heart/pull/1179>`_
+
+        * - Update changelog for v0.14.1
+          - `#1183 <https://github.com/ansys/pyansys-heart/pull/1183>`_
+
+        * - Bump the actions group with 2 updates
+          - `#1192 <https://github.com/ansys/pyansys-heart/pull/1192>`_, `#1235 <https://github.com/ansys/pyansys-heart/pull/1235>`_
+
+        * - Update CHANGELOG for v0.14.2
+          - `#1200 <https://github.com/ansys/pyansys-heart/pull/1200>`_
+
+        * - Bump the actions group with 3 updates
+          - `#1204 <https://github.com/ansys/pyansys-heart/pull/1204>`_
+
+        * - Add security jobs
+          - `#1213 <https://github.com/ansys/pyansys-heart/pull/1213>`_
+
+        * - Update CHANGELOG for v0.14.3
+          - `#1225 <https://github.com/ansys/pyansys-heart/pull/1225>`_
+
+        * - Bump the actions group across 1 directory with 5 updates
+          - `#1230 <https://github.com/ansys/pyansys-heart/pull/1230>`_
+
+        * - Bump ansys/actions from 10.1.0 to 10.1.2 in the actions group
+          - `#1248 <https://github.com/ansys/pyansys-heart/pull/1248>`_
+
+        * - Ensure consistent isort behavior between ruff and pre-commit
+          - `#1251 <https://github.com/ansys/pyansys-heart/pull/1251>`_
+
+        * - Use index-url on vtk-osmesa
+          - `#1255 <https://github.com/ansys/pyansys-heart/pull/1255>`_
+
+
+  .. tab-item:: Miscellaneous
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Improve try except pass
+          - `#1209 <https://github.com/ansys/pyansys-heart/pull/1209>`_
+
+        * - Refactor objects.py for maintainability
+          - `#1216 <https://github.com/ansys/pyansys-heart/pull/1216>`_
+
+        * - Landmark management
+          - `#1217 <https://github.com/ansys/pyansys-heart/pull/1217>`_
+
+        * - Use pydantic-based modules for materials
+          - `#1242 <https://github.com/ansys/pyansys-heart/pull/1242>`_
+
+        * - Use pydantic-based materials module
+          - `#1244 <https://github.com/ansys/pyansys-heart/pull/1244>`_
+
+        * - Add a material factory module
+          - `#1246 <https://github.com/ansys/pyansys-heart/pull/1246>`_
+
+        * - Simplify default material models
+          - `#1256 <https://github.com/ansys/pyansys-heart/pull/1256>`_
+
+        * - Remove material settings from settings class
+          - `#1257 <https://github.com/ansys/pyansys-heart/pull/1257>`_
+
+        * - Use pydantic for the settings module
+          - `#1259 <https://github.com/ansys/pyansys-heart/pull/1259>`_
+
+        * - Cleanup test structure
+          - `#1262 <https://github.com/ansys/pyansys-heart/pull/1262>`_
+
+
+`0.14.3 <https://github.com/ansys/pyansys-heart/releases/tag/v0.14.3>`_ (August 28, 2025)
+=========================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Added
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - add purkinje myocardium junction
+          - `#1130 <https://github.com/ansys/pyansys-heart/pull/1130>`_
+
+        * - Refactor and improve zerop post
+          - `#1166 <https://github.com/ansys/pyansys-heart/pull/1166>`_
+
+        * - Support pim fluent launch mode
+          - `#1188 <https://github.com/ansys/pyansys-heart/pull/1188>`_
+
+
+  .. tab-item:: Fixed
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Improve surface id check in cavity creation
+          - `#959 <https://github.com/ansys/pyansys-heart/pull/959>`_
+
+        * - Fixes for pyvista 0.45 compatibility
+          - `#1063 <https://github.com/ansys/pyansys-heart/pull/1063>`_
+
+        * - Assign unique surface ids to cavities and patches
+          - `#1156 <https://github.com/ansys/pyansys-heart/pull/1156>`_
+
+        * - Purkinje on ventricle base
+          - `#1162 <https://github.com/ansys/pyansys-heart/pull/1162>`_
+
+        * - Atrial ventricular isolation
+          - `#1164 <https://github.com/ansys/pyansys-heart/pull/1164>`_
+
+        * - Fix issues introduced by refactoring post processing of stress free results
+          - `#1167 <https://github.com/ansys/pyansys-heart/pull/1167>`_
+
+        * - Missing input files when Fluent is launched in PIM Mode
+          - `#1189 <https://github.com/ansys/pyansys-heart/pull/1189>`_
+
+        * - Data files for examples
+          - `#1223 <https://github.com/ansys/pyansys-heart/pull/1223>`_
+
+
+  .. tab-item:: Documentation
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Add examples for a user-defined conduction system
+          - `#1132 <https://github.com/ansys/pyansys-heart/pull/1132>`_
+
+        * - Remove reference to wsl in all examples
+          - `#1157 <https://github.com/ansys/pyansys-heart/pull/1157>`_
+
+        * - Update prerequisites to include 2025 r2
+          - `#1175 <https://github.com/ansys/pyansys-heart/pull/1175>`_
+
+
+  .. tab-item:: Dependencies
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - update numpy requirement from <=2.2.5 to <=2.2.6
+          - `#1115 <https://github.com/ansys/pyansys-heart/pull/1115>`_
+
+        * - bump ansys-sphinx-theme[autoapi] from 1.4.4 to 1.5.1 in the docs-deps group
+          - `#1128 <https://github.com/ansys/pyansys-heart/pull/1128>`_
+
+        * - bump pytest from 8.3.5 to 8.4.0
+          - `#1134 <https://github.com/ansys/pyansys-heart/pull/1134>`_
+
+        * - Bump pytest-cov from 6.1.1 to 6.2.1
+          - `#1143 <https://github.com/ansys/pyansys-heart/pull/1143>`_
+
+        * - Bump pytest from 8.4.0 to 8.4.1
+          - `#1151 <https://github.com/ansys/pyansys-heart/pull/1151>`_
+
+        * - Bump trame-vtk from 2.8.17 to 2.9.0
+          - `#1158 <https://github.com/ansys/pyansys-heart/pull/1158>`_
+
+        * - Relax httpx version
+          - `#1181 <https://github.com/ansys/pyansys-heart/pull/1181>`_
+
+        * - Avoid ansys-dpf-core 0.14.0
+          - `#1198 <https://github.com/ansys/pyansys-heart/pull/1198>`_
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - update CHANGELOG for v0.13.0
+          - `#1111 <https://github.com/ansys/pyansys-heart/pull/1111>`_
+
+        * - bump version
+          - `#1113 <https://github.com/ansys/pyansys-heart/pull/1113>`_
+
+        * - bump ansys/actions from 9.0.2 to 9.0.9 in the actions group
+          - `#1114 <https://github.com/ansys/pyansys-heart/pull/1114>`_
+
+        * - update CHANGELOG for v0.13.1
+          - `#1118 <https://github.com/ansys/pyansys-heart/pull/1118>`_
+
+        * - update CHANGELOG for v0.13.2
+          - `#1121 <https://github.com/ansys/pyansys-heart/pull/1121>`_
+
+        * - bump the actions group with 2 updates
+          - `#1126 <https://github.com/ansys/pyansys-heart/pull/1126>`_
+
+        * - Bump ansys/actions from 9.0.11 to 10.0.8 in the actions group
+          - `#1135 <https://github.com/ansys/pyansys-heart/pull/1135>`_
+
+        * - Update changelog for v0.13.3
+          - `#1145 <https://github.com/ansys/pyansys-heart/pull/1145>`_
+
+        * - Bump the actions group across 1 directory with 2 updates
+          - `#1152 <https://github.com/ansys/pyansys-heart/pull/1152>`_
+
+        * - Use monkeypatch to set environment variables in tests
+          - `#1155 <https://github.com/ansys/pyansys-heart/pull/1155>`_
+
+        * - Use dpf 25r2 for all ci/cd workflows
+          - `#1171 <https://github.com/ansys/pyansys-heart/pull/1171>`_
+
+        * - Fluent 25r2 image compatibility for ci workflows
+          - `#1173 <https://github.com/ansys/pyansys-heart/pull/1173>`_, `#1174 <https://github.com/ansys/pyansys-heart/pull/1174>`_
+
+
+  .. tab-item:: Miscellaneous
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - refactor part for maintainability
+          - `#1106 <https://github.com/ansys/pyansys-heart/pull/1106>`_
+
+        * - refactor and cleanup models.py
+          - `#1124 <https://github.com/ansys/pyansys-heart/pull/1124>`_
+
+        * - refactor and cleanup parts
+          - `#1127 <https://github.com/ansys/pyansys-heart/pull/1127>`_
+
+        * - Refactor save/load model
+          - `#1148 <https://github.com/ansys/pyansys-heart/pull/1148>`_
+
+        * - Deprecate element_ids attribute in part class
+          - `#1150 <https://github.com/ansys/pyansys-heart/pull/1150>`_
+
+        * - Improve error handling
+          - `#1193 <https://github.com/ansys/pyansys-heart/pull/1193>`_
+
+        * - Improve unpacking tarball
+          - `#1194 <https://github.com/ansys/pyansys-heart/pull/1194>`_
+
+        * - Improve calls to subprocess
+          - `#1195 <https://github.com/ansys/pyansys-heart/pull/1195>`_
+
+        * - Replace exit by exceptions
+          - `#1197 <https://github.com/ansys/pyansys-heart/pull/1197>`_
+
+        * - Add precision to float formatting
+          - `#1218 <https://github.com/ansys/pyansys-heart/pull/1218>`_
+
+
+`0.13.3 <https://github.com/ansys/pyansys-heart/releases/tag/v0.13.3>`_ (June 17, 2025)
+=======================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Added
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - add support for v252
+          - `#1123 <https://github.com/ansys/pyansys-heart/pull/1123>`_
+
+
+  .. tab-item:: Fixed
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - bump ansys-sphinx-theme
+          - `#1102 <https://github.com/ansys/pyansys-heart/pull/1102>`_
+
+        * - support python 3.10
+          - `#1120 <https://github.com/ansys/pyansys-heart/pull/1120>`_
+
+        * - fix broken tests
+          - `#1129 <https://github.com/ansys/pyansys-heart/pull/1129>`_
+
+
+  .. tab-item:: Documentation
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - update contributing.rst
+          - `#1105 <https://github.com/ansys/pyansys-heart/pull/1105>`_
+
+        * - add acknowledgments
+          - `#1110 <https://github.com/ansys/pyansys-heart/pull/1110>`_
+
+        * - fix links in README
+          - `#1116 <https://github.com/ansys/pyansys-heart/pull/1116>`_
+
+        * - update install instructions
+          - `#1117 <https://github.com/ansys/pyansys-heart/pull/1117>`_
+
+        * - update the badges in readme
+          - `#1119 <https://github.com/ansys/pyansys-heart/pull/1119>`_
+
+        * - fix links
+          - `#1122 <https://github.com/ansys/pyansys-heart/pull/1122>`_
+
+        * - remove explicitly setting fluent version in example
+          - `#1131 <https://github.com/ansys/pyansys-heart/pull/1131>`_
+
+        * - Improve instructions on prerequisites page
+          - `#1144 <https://github.com/ansys/pyansys-heart/pull/1144>`_
+
+
+  .. tab-item:: Dependencies
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - update scipy requirement from <=1.15.2 to <=1.15.3
+          - `#1108 <https://github.com/ansys/pyansys-heart/pull/1108>`_
+
+        * - Bump trame-vtk from 2.8.15 to 2.8.17
+          - `#1137 <https://github.com/ansys/pyansys-heart/pull/1137>`_
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - bump the actions group across 1 directory with 3 updates
+          - `#1088 <https://github.com/ansys/pyansys-heart/pull/1088>`_
+
+        * - bump version to 0.13.dev0
+          - `#1096 <https://github.com/ansys/pyansys-heart/pull/1096>`_
+
+        * - update CHANGELOG for v0.12.1
+          - `#1100 <https://github.com/ansys/pyansys-heart/pull/1100>`_
+
+        * - update CHANGELOG for v0.12.2
+          - `#1104 <https://github.com/ansys/pyansys-heart/pull/1104>`_
+
+        * - release to public pypi
+          - `#1112 <https://github.com/ansys/pyansys-heart/pull/1112>`_
+
+
+  .. tab-item:: Miscellaneous
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - refactor dyna writer to improve maintainability
+          - `#1101 <https://github.com/ansys/pyansys-heart/pull/1101>`_
+
+        * - refactor and further cleanup for release
+          - `#1109 <https://github.com/ansys/pyansys-heart/pull/1109>`_
+
+
+`0.12.2 <https://github.com/ansys/pyansys-heart/releases/tag/v0.12.2>`_ (May 08, 2025)
+======================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Added
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - closed system
+          - `#1021 <https://github.com/ansys/pyansys-heart/pull/1021>`_
+
+        * - technical review
+          - `#1037 <https://github.com/ansys/pyansys-heart/pull/1037>`_
+
+        * - improve-EP-default-conduction
+          - `#1069 <https://github.com/ansys/pyansys-heart/pull/1069>`_
+
+        * - allow passing additional keyword arguments to launch_fluent
+          - `#1095 <https://github.com/ansys/pyansys-heart/pull/1095>`_
+
+
+  .. tab-item:: Fixed
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - modify beam mesh doc strings
+          - `#1030 <https://github.com/ansys/pyansys-heart/pull/1030>`_
+
+        * - remove wheelhouse from doc/source/_static dir
+          - `#1032 <https://github.com/ansys/pyansys-heart/pull/1032>`_
+
+        * - follow ansys.health namespace
+          - `#1036 <https://github.com/ansys/pyansys-heart/pull/1036>`_
+
+        * - documentation build
+          - `#1039 <https://github.com/ansys/pyansys-heart/pull/1039>`_
+
+        * - run examples in pipelines
+          - `#1040 <https://github.com/ansys/pyansys-heart/pull/1040>`_
+
+        * - fall back to mpiexec when mpirun is not found
+          - `#1050 <https://github.com/ansys/pyansys-heart/pull/1050>`_
+
+        * - avoid pyvista 0.45
+          - `#1060 <https://github.com/ansys/pyansys-heart/pull/1060>`_
+
+        * - adding EM_CONTROL_TIMESTEP to fiber generation decks
+          - `#1071 <https://github.com/ansys/pyansys-heart/pull/1071>`_
+
+        * - mutable default
+          - `#1072 <https://github.com/ansys/pyansys-heart/pull/1072>`_
+
+        * - force update node mesh ID in laplacewriter
+          - `#1079 <https://github.com/ansys/pyansys-heart/pull/1079>`_
+
+        * - convert int64 data to int32 for visualization
+          - `#1097 <https://github.com/ansys/pyansys-heart/pull/1097>`_
+
+        * - changelog actions version in release ci
+          - `#1099 <https://github.com/ansys/pyansys-heart/pull/1099>`_
+
+
+  .. tab-item:: Documentation
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - overall review
+          - `#1043 <https://github.com/ansys/pyansys-heart/pull/1043>`_
+
+        * - link to documentation is broken
+          - `#1046 <https://github.com/ansys/pyansys-heart/pull/1046>`_
+
+        * - execute all examples nightly doc build
+          - `#1054 <https://github.com/ansys/pyansys-heart/pull/1054>`_
+
+        * - update atrial fiber example
+          - `#1064 <https://github.com/ansys/pyansys-heart/pull/1064>`_
+
+        * - update user guide and expose pre, post and simulator api docs
+          - `#1065 <https://github.com/ansys/pyansys-heart/pull/1065>`_
+
+        * - interactive plots in examples
+          - `#1073 <https://github.com/ansys/pyansys-heart/pull/1073>`_
+
+        * - edits based on skimming rendered doc
+          - `#1075 <https://github.com/ansys/pyansys-heart/pull/1075>`_
+
+        * - add left ventricle mechanical example
+          - `#1076 <https://github.com/ansys/pyansys-heart/pull/1076>`_
+
+        * - add basic ep postprocessor example
+          - `#1080 <https://github.com/ansys/pyansys-heart/pull/1080>`_
+
+        * - fix interactive plots in doc build
+          - `#1086 <https://github.com/ansys/pyansys-heart/pull/1086>`_
+
+        * - cleanup and fixes for examples
+          - `#1087 <https://github.com/ansys/pyansys-heart/pull/1087>`_
+
+        * - switch to ReactionEikonal for ep-mechanics example
+          - `#1090 <https://github.com/ansys/pyansys-heart/pull/1090>`_
+
+        * - reduce size of vtksz for doc build
+          - `#1091 <https://github.com/ansys/pyansys-heart/pull/1091>`_
+
+
+  .. tab-item:: Dependencies
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - update flit-core requirement from <3.11,>=3.2 to >=3.2,<4
+          - `#1025 <https://github.com/ansys/pyansys-heart/pull/1025>`_
+
+        * - bump pytest-cov from 6.0.0 to 6.1.1
+          - `#1026 <https://github.com/ansys/pyansys-heart/pull/1026>`_
+
+        * - update numpy requirement from <=2.2.4 to <=2.2.5
+          - `#1059 <https://github.com/ansys/pyansys-heart/pull/1059>`_
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - update CHANGELOG for v0.11.0
+          - `#1023 <https://github.com/ansys/pyansys-heart/pull/1023>`_
+
+        * - bump version to 0.12.dev0
+          - `#1033 <https://github.com/ansys/pyansys-heart/pull/1033>`_
+
+        * - bump the actions group across 1 directory with 4 updates
+          - `#1034 <https://github.com/ansys/pyansys-heart/pull/1034>`_
+
+        * - bump ansys/actions from 9.0.0 to 9.0.2 in the actions group
+          - `#1048 <https://github.com/ansys/pyansys-heart/pull/1048>`_
+
+        * - use intelmpi on runner for doc build
+          - `#1061 <https://github.com/ansys/pyansys-heart/pull/1061>`_
+
+        * - update nightly and release doc builds
+          - `#1070 <https://github.com/ansys/pyansys-heart/pull/1070>`_
+
+        * - only run release workflow on tag push
+          - `#1098 <https://github.com/ansys/pyansys-heart/pull/1098>`_
+
+
+  .. tab-item:: Miscellaneous
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - standardize type hints for ``pre``, ``post``, and ``utils`` subpackages
+          - `#1018 <https://github.com/ansys/pyansys-heart/pull/1018>`_
+
+        * - remove unused and outdated method
+          - `#1035 <https://github.com/ansys/pyansys-heart/pull/1035>`_
+
+        * - improve how conduction paths and their data are managed
+          - `#1041 <https://github.com/ansys/pyansys-heart/pull/1041>`_
+
+        * - consolidate _BeamsMesh functionality into Mesh
+          - `#1042 <https://github.com/ansys/pyansys-heart/pull/1042>`_
+
+        * - only print LS-DYNA stdout to debug level
+          - `#1081 <https://github.com/ansys/pyansys-heart/pull/1081>`_
+
+        * - deprecate update parts
+          - `#1089 <https://github.com/ansys/pyansys-heart/pull/1089>`_
+
+
+`0.11.0 <https://github.com/ansys/pyansys-heart/releases/tag/v0.11.0>`_ (April 07, 2025)
+========================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Added
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - add changelog actions and changelog documentation
+          - `#908 <https://github.com/ansys/pyansys-heart/pull/908>`_
+
+        * - handle incompressibility consistently
+          - `#909 <https://github.com/ansys/pyansys-heart/pull/909>`_
+
+        * - refactor-beam-networks
+          - `#932 <https://github.com/ansys/pyansys-heart/pull/932>`_
+
+        * - add D-RBM method for left ventricle model
+          - `#933 <https://github.com/ansys/pyansys-heart/pull/933>`_
+
+        * - compute ventricle thickening
+          - `#945 <https://github.com/ansys/pyansys-heart/pull/945>`_
+
+        * - set stiffness damping
+          - `#980 <https://github.com/ansys/pyansys-heart/pull/980>`_
+
+        * - add module for custom exceptions
+          - `#990 <https://github.com/ansys/pyansys-heart/pull/990>`_
+
+        * - Append user k files
+          - `#992 <https://github.com/ansys/pyansys-heart/pull/992>`_
+
+
+  .. tab-item:: Fixed
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - add-EMCONTROLTIMESTEP-in-ep
+          - `#922 <https://github.com/ansys/pyansys-heart/pull/922>`_
+
+        * - fix cap types and cap type check
+          - `#935 <https://github.com/ansys/pyansys-heart/pull/935>`_
+
+        * - refactor part id assignment post wrap
+          - `#946 <https://github.com/ansys/pyansys-heart/pull/946>`_
+
+        * - syntax error
+          - `#950 <https://github.com/ansys/pyansys-heart/pull/950>`_
+
+        * - tox file correction and improvement
+          - `#956 <https://github.com/ansys/pyansys-heart/pull/956>`_
+
+        * - `test_ep_postprocessor` tests on Github runner
+          - `#971 <https://github.com/ansys/pyansys-heart/pull/971>`_
+
+        * - reassign part ids when no orphan cells are found
+          - `#983 <https://github.com/ansys/pyansys-heart/pull/983>`_
+
+        * - shutil.which for wsl
+          - `#995 <https://github.com/ansys/pyansys-heart/pull/995>`_
+
+        * - pinned versions for direct dependencies
+          - `#996 <https://github.com/ansys/pyansys-heart/pull/996>`_
+
+
+  .. tab-item:: Documentation
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Cleanup
+          - `#923 <https://github.com/ansys/pyansys-heart/pull/923>`_
+
+        * - add the landing page
+          - `#949 <https://github.com/ansys/pyansys-heart/pull/949>`_
+
+        * - refactor user guide and getting started
+          - `#955 <https://github.com/ansys/pyansys-heart/pull/955>`_
+
+        * - contributing guide improvement
+          - `#961 <https://github.com/ansys/pyansys-heart/pull/961>`_
+
+        * - update docstrings and standardize periods
+          - `#991 <https://github.com/ansys/pyansys-heart/pull/991>`_
+
+
+  .. tab-item:: Dependencies
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - bump tox from 4.24.1 to 4.24.2
+          - `#910 <https://github.com/ansys/pyansys-heart/pull/910>`_
+
+        * - bump ansys-dpf-core from 0.13.4 to 0.13.6
+          - `#912 <https://github.com/ansys/pyansys-heart/pull/912>`_
+
+        * - cleanup dependencies list
+          - `#913 <https://github.com/ansys/pyansys-heart/pull/913>`_
+
+        * - bump ansys-fluent-core from 0.29.0 to 0.30.0
+          - `#940 <https://github.com/ansys/pyansys-heart/pull/940>`_
+
+        * - update numpy requirement from <=2.2.3 to <=2.2.4
+          - `#941 <https://github.com/ansys/pyansys-heart/pull/941>`_
+
+        * - bump the docs-deps group across 1 directory with 2 updates
+          - `#954 <https://github.com/ansys/pyansys-heart/pull/954>`_
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - self hosted runner
+          - `#904 <https://github.com/ansys/pyansys-heart/pull/904>`_
+
+        * - workflow improvements
+          - `#951 <https://github.com/ansys/pyansys-heart/pull/951>`_
+
+        * - mark and cleanup tests that require dpf
+          - `#981 <https://github.com/ansys/pyansys-heart/pull/981>`_
+
+        * - release to private pypi
+          - `#1019 <https://github.com/ansys/pyansys-heart/pull/1019>`_
+
+
+  .. tab-item:: Miscellaneous
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - clean up deprecated dump model
+          - `#914 <https://github.com/ansys/pyansys-heart/pull/914>`_
+
+        * - volume meshing and mesher module
+          - `#915 <https://github.com/ansys/pyansys-heart/pull/915>`_
+
+        * - name of Material 295
+          - `#918 <https://github.com/ansys/pyansys-heart/pull/918>`_
+
+        * - cleanup and introduce new environment variables to manage automation
+          - `#919 <https://github.com/ansys/pyansys-heart/pull/919>`_
+
+        * - volume meshing and mesher module (#915)
+          - `#921 <https://github.com/ansys/pyansys-heart/pull/921>`_
+
+        * - create misc module
+          - `#924 <https://github.com/ansys/pyansys-heart/pull/924>`_
+
+        * - rename landmarks module to landmark_utils
+          - `#927 <https://github.com/ansys/pyansys-heart/pull/927>`_
+
+        * - move slerp methods to misc
+          - `#930 <https://github.com/ansys/pyansys-heart/pull/930>`_
+
+        * - download module
+          - `#934 <https://github.com/ansys/pyansys-heart/pull/934>`_
+
+        * - rename custom keywords and keywords_module
+          - `#936 <https://github.com/ansys/pyansys-heart/pull/936>`_
+
+        * - uhcwriter
+          - `#937 <https://github.com/ansys/pyansys-heart/pull/937>`_
+
+        * - rename vtkmethods to vtk_utils
+          - `#938 <https://github.com/ansys/pyansys-heart/pull/938>`_
+
+        * - cleanup paths in examples
+          - `#943 <https://github.com/ansys/pyansys-heart/pull/943>`_
+
+        * - mecha writer clean up
+          - `#944 <https://github.com/ansys/pyansys-heart/pull/944>`_
+
+        * - add method to get fluent ui-mode
+          - `#957 <https://github.com/ansys/pyansys-heart/pull/957>`_
+
+        * - move symbols to dpf utils and cleanup
+          - `#960 <https://github.com/ansys/pyansys-heart/pull/960>`_
+
+        * - replace wget by httpx
+          - `#962 <https://github.com/ansys/pyansys-heart/pull/962>`_
+
+        * - cleanup and refactor preprocessor module
+          - `#969 <https://github.com/ansys/pyansys-heart/pull/969>`_
+
+        * - rename helpers subpackage and downloader module
+          - `#970 <https://github.com/ansys/pyansys-heart/pull/970>`_
+
+        * - dynain file in mechanical simulator
+          - `#977 <https://github.com/ansys/pyansys-heart/pull/977>`_
+
+        * - boundary type and anatomy axis exception
+          - `#988 <https://github.com/ansys/pyansys-heart/pull/988>`_
+
+        * - remove deprecated arguments and methods
+          - `#998 <https://github.com/ansys/pyansys-heart/pull/998>`_
+
+        * - move packages to core
+          - `#1014 <https://github.com/ansys/pyansys-heart/pull/1014>`_
+
+        * - change structure of tests
+          - `#1017 <https://github.com/ansys/pyansys-heart/pull/1017>`_
+
+
+.. vale on

@@ -1,0 +1,252 @@
+
+
+
+
+
+
+:class:`FourChamber`
+====================
+
+
+.. py:class:: ansys.health.heart.models.FourChamber(working_directory: pathlib.Path | str = None)
+
+   Bases: :py:obj:`HeartModel`
+
+
+   
+   Model of the left/right ventricle and left/right atrium.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: FourChamber
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~create_atrial_stiff_ring`
+            - Create a part for solids close to the atrial caps.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~left_ventricle`
+            - Left ventricle part.
+          * - :py:attr:`~right_ventricle`
+            - Right ventricle part.
+          * - :py:attr:`~septum`
+            - Septum.
+          * - :py:attr:`~left_atrium`
+            - Left atrium part.
+          * - :py:attr:`~right_atrium`
+            - Right atrium part.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.models import FourChamber
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: left_ventricle
+   :type:  ansys.health.heart.parts.Ventricle
+
+   
+   Left ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: right_ventricle
+   :type:  ansys.health.heart.parts.Ventricle
+
+   
+   Right ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: septum
+   :type:  ansys.health.heart.parts.Septum
+
+   
+   Septum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: left_atrium
+   :type:  ansys.health.heart.parts.Atrium
+
+   
+   Left atrium part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: right_atrium
+   :type:  ansys.health.heart.parts.Atrium
+
+   
+   Right atrium part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: create_atrial_stiff_ring(radius: float = 2) -> None | ansys.health.heart.parts.Part
+
+   
+   Create a part for solids close to the atrial caps.
+
+
+   :Parameters:
+
+       **radius** : :obj:`foat`, default: 2
+           Influence region.
+
+
+
+   :Returns:
+
+       :obj:`Union`\[:data:`python:None`, :obj:`anatomy.Part`]
+           Part of atrial rings if created.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Part created is passive and isotropic. The material must be defined.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

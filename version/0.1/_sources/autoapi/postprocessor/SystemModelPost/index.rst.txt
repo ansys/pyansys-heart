@@ -1,0 +1,383 @@
+:py:mod:`postprocessor.SystemModelPost`
+=======================================
+
+.. py:module:: postprocessor.SystemModelPost
+
+.. autoapi-nested-parse::
+
+   Module for postprocessing system model data.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   postprocessor.SystemModelPost.Pressure
+   postprocessor.SystemModelPost.Flow
+   postprocessor.SystemModelPost.Volume
+   postprocessor.SystemModelPost.SystemState
+   postprocessor.SystemModelPost.ZeroDSystem
+   postprocessor.SystemModelPost.SystemModelPost
+
+
+
+
+.. py:class:: Pressure
+
+
+   
+   System state for pressure.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: cavity
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: artery
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: venous
+      :type: numpy.ndarray
+
+      
+
+
+.. py:class:: Flow
+
+
+   
+   System state for flow.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: cavity
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: artery
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: venous
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: peripheral
+      :type: numpy.ndarray
+
+      
+
+
+.. py:class:: Volume
+
+
+   
+   System state for volume.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: cavity
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: artery
+      :type: numpy.ndarray
+
+      
+
+   .. py:attribute:: venous
+      :type: numpy.ndarray
+
+      
+
+
+.. py:class:: SystemState
+
+
+   
+   System state including pressure, flow, volume.
+
+   Notes: future use.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: pressure
+      :type: Pressure
+
+      
+
+   .. py:attribute:: flow
+      :type: Flow
+
+      
+
+   .. py:attribute:: volume
+      :type: Volume
+
+      
+
+
+.. py:class:: ZeroDSystem(csv_path, ed_state, name='')
+
+
+   
+   0D circulation system model (for one cavity).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:method:: integrate_volume(v0, t, q)
+      :staticmethod:
+
+      
+      Integrate cavity's volume.
+
+
+      :Parameters:
+
+          **v0: float, volume at time of 0**
+              ..
+
+          **t: time array**
+              ..
+
+          **q: flow array**
+              ..
+
+      :Returns:
+
+          :obj:`volume` :obj:`array <numpy.ndarray>`
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: SystemModelPost(dir)
+
+
+   
+   Class for post-processing system model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:method:: get_ejection_fraction(t_start=0, t_end=100000000000.0)
+
+      
+      Compute ejection fraction at a given time interval.
+
+
+      :Parameters:
+
+          **t_start: start time**
+              ..
+
+          **t_end: end time**
+              ..
+
+      :Returns:
+
+          :obj:`Ejection` :obj:`fraction`
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: plot_pv_loop(t_start=0, t_end=100000000000.0, show_ed=True, ef=[None, None])
+
+      
+      Plot PV loop.
+
+
+      :Parameters:
+
+          **ef: Default None, else plot ejection fraction in legend.**
+              ..
+
+          **show_ed: Default False, else plot ED state**
+              ..
+
+          **t_start: start time**
+              ..
+
+          **t_end: end time**
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: plot_pressure_flow_volume(cavity: ZeroDSystem, t_start: float = 0, t_end: float = 1000000.0)
+      :staticmethod:
+
+      
+      Plot pressure/flow/volume curves.
+
+
+      :Parameters:
+
+          **cavity: ZeroDSystem,**
+              ..
+
+          **t_end: start time**
+              ..
+
+          **t_start: end time**
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

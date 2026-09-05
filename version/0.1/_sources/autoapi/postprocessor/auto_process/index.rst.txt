@@ -1,0 +1,211 @@
+:py:mod:`postprocessor.auto_process`
+====================================
+
+.. py:module:: postprocessor.auto_process
+
+.. autoapi-nested-parse::
+
+   Script used to post process simulations automatically.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   postprocessor.auto_process.zerop_post
+   postprocessor.auto_process.mech_post
+   postprocessor.auto_process.read_uvc
+   postprocessor.auto_process.orthogonalization
+   postprocessor.auto_process.get_gradient
+   postprocessor.auto_process.compute_la_fiber_cs
+   postprocessor.auto_process.compute_ra_fiber_cs
+
+
+
+.. py:function:: zerop_post(directory, model)
+
+   
+   Post-process zeropressure folder.
+
+
+   :Parameters:
+
+       **directory: where d3plot files locate**
+           ..
+
+       **model: Heart model**
+           ..
+
+   :Returns:
+
+       :obj:`Dictionary` :obj:`of` :obj:`stress` :obj:`free` :obj:`simulation` report.
+           ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: mech_post(directory: pathlib.Path, model)
+
+   
+   Post-process Main mechanical simulation folder.
+
+
+   :Parameters:
+
+       **directory: where d3plot files locate**
+           ..
+
+       **model: HeartModel**
+           ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: read_uvc(directory)
+
+   
+   Read UVC from d3plot files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: orthogonalization(grid) -> pyvista.UnstructuredGrid
+
+   
+   Gram–Schmidt orthogonalization.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_gradient(directory, field_list: List[str]) -> pyvista.UnstructuredGrid
+
+   
+   Read thermal fields from d3plot and compute gradient.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: compute_la_fiber_cs(directory) -> pyvista.UnstructuredGrid
+
+   
+   Compute left atrium fibers coordinate system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: compute_ra_fiber_cs(directory) -> pyvista.UnstructuredGrid
+
+   
+   Compute right atrium fibers coordinate system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

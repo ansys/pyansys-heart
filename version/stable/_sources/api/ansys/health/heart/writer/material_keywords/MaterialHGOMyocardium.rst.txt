@@ -1,0 +1,49 @@
+
+
+
+
+
+
+:class:`MaterialHGOMyocardium`
+==============================
+
+
+.. py:class:: ansys.health.heart.writer.material_keywords.MaterialHGOMyocardium(id: int, mat: ansys.health.heart.settings.material.material.Mat295, ignore_active: bool = False)
+
+   Bases: :py:obj:`ansys.dyna.core.keywords.keywords.Mat295`
+
+
+   
+   HGO material model, which is derived from Mat295.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.material_keywords import MaterialHGOMyocardium
+
+
+
+
+

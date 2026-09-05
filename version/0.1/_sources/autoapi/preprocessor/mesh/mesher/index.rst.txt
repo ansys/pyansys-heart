@@ -1,0 +1,61 @@
+:py:mod:`preprocessor.mesh.mesher`
+==================================
+
+.. py:module:: preprocessor.mesh.mesher
+
+.. autoapi-nested-parse::
+
+   Module contains methods for interaction with Fluent meshing.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   preprocessor.mesh.mesher.mesh_heart_model_by_fluent
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   preprocessor.mesh.mesher.LOGGER
+
+
+.. py:data:: LOGGER
+
+   
+
+.. py:function:: mesh_heart_model_by_fluent(path_to_stl_directory: str, path_to_output: str, mesh_size: float = 2.0, add_blood_pool: bool = False, show_gui: bool = False)
+
+   
+   Use Fluent meshing to wrap the surface and create tetrahedral volume mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

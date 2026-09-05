@@ -1,0 +1,293 @@
+
+
+:class:`Purkinje`
+=================
+
+.. py:class:: ansys.heart.simulator.settings.settings.Purkinje
+
+   Bases: :py:obj:`Settings`
+
+
+   
+   Class for keeping track of purkinje settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Purkinje
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~node_id_origin_left`
+            - Left Purkinje origin id.
+          * - :py:attr:`~node_id_origin_right`
+            - Right Purkinje origin id.
+          * - :py:attr:`~edgelen`
+            - Edge length.
+          * - :py:attr:`~ngen`
+            - Number of generations.
+          * - :py:attr:`~nbrinit`
+            - Number of beams from origin point.
+          * - :py:attr:`~nsplit`
+            - Number of splits at each leaf.
+          * - :py:attr:`~pmjtype`
+            - Purkinje muscle junction type.
+          * - :py:attr:`~pmjradius`
+            - Purkinje muscle junction radius.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.settings import Purkinje
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: node_id_origin_left
+   :type:  int
+   :value: None
+
+
+   
+   Left Purkinje origin id.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: node_id_origin_right
+   :type:  int
+   :value: None
+
+
+   
+   Right Purkinje origin id.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: edgelen
+   :type:  pint.Quantity
+   :value: 0
+
+
+   
+   Edge length.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: ngen
+   :type:  pint.Quantity
+   :value: 0
+
+
+   
+   Number of generations.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: nbrinit
+   :type:  pint.Quantity
+   :value: 0
+
+
+   
+   Number of beams from origin point.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: nsplit
+   :type:  pint.Quantity
+   :value: 0
+
+
+   
+   Number of splits at each leaf.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: pmjtype
+   :type:  pint.Quantity
+   :value: 0
+
+
+   
+   Purkinje muscle junction type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: pmjradius
+   :type:  pint.Quantity
+   :value: 0
+
+
+   
+   Purkinje muscle junction radius.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

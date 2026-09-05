@@ -1,0 +1,134 @@
+
+
+
+
+
+The ``material.py`` module
+==========================
+
+.. py:module:: ansys.heart.simulator.settings.material.material
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: material
+.. tab-set::
+
+
+
+    .. tab-item:: Interfaces
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~ISO`
+            - Isotropic module of MAT_295.
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~ANISO`
+            - Anisotropic module of MAT_295.
+
+
+          * - :py:attr:`~ActiveModel`
+            - Abstract class for different active models.
+
+
+          * - :py:attr:`~ACTIVE`
+            - Active module of MAT_295.
+
+
+          * - :py:attr:`~MechanicalMaterialModel`
+            - Base class for all mechanical material model.
+
+
+          * - :py:attr:`~MAT295`
+            - Hold data for MAT_295.
+
+
+          * - :py:attr:`~NeoHookean`
+            - Passive isotropic material.
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🝆 ISO<ISO>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🝆 ANISO<ANISO>
+    🝆 ActiveModel<ActiveModel>
+    🝆 ACTIVE<ACTIVE>
+    🝆 MechanicalMaterialModel<MechanicalMaterialModel>
+    🝆 MAT295<MAT295>
+    🝆 NeoHookean<NeoHookean>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Material module.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

@@ -1,0 +1,231 @@
+:orphan:
+
+Examples
+========
+These examples show how to use the ``preprocessor`` and ``simulator`` modules
+to preprocess and consume heart models. Examples include electrophysiology and mechanics.
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+
+Preprocessor examples
+=====================
+These examples show how to use the ``preprocessor`` module
+to generate different kinds of heart models, including a
+biventricular, four-chamber heart model and a full-heart model.
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Generate atrial fibers">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_compute-atrial-fibers_pr_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_compute-atrial-fibers_pr.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Generate atrial fibers</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Define materials">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_demo-material_pr_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_demo-material_pr.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Define materials</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Download a PyAnsys Heart-compatible case from Zenodo">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_download-case_pr_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_download-case_pr.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Download a PyAnsys Heart-compatible case from Zenodo</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Create a full-heart model">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_preprocess-fullheart_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_preprocess-fullheart.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Create a full-heart model</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+
+Simulator examples
+==================
+These examples show how to use the ``simulator`` module
+to consume preprocessed models, consequently using them to run various simulations.
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Run a full-heart EP mechanics simulation">
+
+.. only:: html
+
+  .. image:: /examples/simulator/images/thumb/sphx_glr_ep-mechanics-simulator-fullheart_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_simulator_ep-mechanics-simulator-fullheart.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Run a full-heart EP mechanics simulation</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Run a full-heart electrophysiology simulation">
+
+.. only:: html
+
+  .. image:: /examples/simulator/images/thumb/sphx_glr_ep-simulator-fullheart_rodero_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_simulator_ep-simulator-fullheart_rodero.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Run a full-heart electrophysiology simulation</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="- Generate a left-ventricle model from a labeled surface. - Set up the model for mechanical simulation:">
+
+.. only:: html
+
+  .. image:: /examples/simulator/images/thumb/sphx_glr_mechanics-simulator-leftventricle_pr_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_simulator_mechanics-simulator-leftventricle_pr.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Run a left ventricle mechanical simulation</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+
+Postprocessor examples
+======================
+These examples show how to use the ``postprocessor`` module
+to postprocess cardiac simulations.
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Postprocess a Reaction-Eikonal model.">
+
+.. only:: html
+
+  .. image:: /examples/postprocessor/images/thumb/sphx_glr_ep-postprocess-reaction-eikonal_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_postprocessor_ep-postprocess-reaction-eikonal.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Postprocess a Reaction-Eikonal model.</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+   :includehidden:
+
+
+   /examples/preprocessor/index.rst
+   /examples/simulator/index.rst
+   /examples/postprocessor/index.rst
+
+
+
+.. only:: html
+
+ .. rst-class:: sphx-glr-signature
+
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_

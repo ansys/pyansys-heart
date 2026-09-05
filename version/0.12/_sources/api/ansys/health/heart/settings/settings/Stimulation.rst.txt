@@ -1,0 +1,145 @@
+
+
+
+
+
+
+:class:`Stimulation`
+====================
+
+.. py:class:: ansys.health.heart.settings.settings.Stimulation
+
+   Bases: :py:obj:`Settings`
+
+
+   
+   Stimulation settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: Stimulation
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~node_ids`
+            - 
+          * - :py:attr:`~t_start`
+            - 
+          * - :py:attr:`~period`
+            - 
+          * - :py:attr:`~duration`
+            - 
+          * - :py:attr:`~amplitude`
+            - 
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__setattr__`
+            - Set attributes.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import Stimulation
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: node_ids
+   :type:  List[int]
+   :value: None
+
+
+.. py:attribute:: t_start
+   :type:  pint.Quantity
+
+.. py:attribute:: period
+   :type:  pint.Quantity
+
+.. py:attribute:: duration
+   :type:  pint.Quantity
+
+.. py:attribute:: amplitude
+   :type:  pint.Quantity
+
+
+
+Method detail
+-------------
+
+.. py:method:: __setattr__(__name: str, __value) -> None
+
+   
+   Set attributes.
+
+
+   :Parameters:
+
+       **__name** : :class:`python:str`
+           Attribute name.
+
+       **__value** : :obj:`_type_`
+           Attribute value.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

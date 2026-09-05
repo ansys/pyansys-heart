@@ -1,0 +1,191 @@
+
+
+
+
+
+
+:class:`Stimulation`
+====================
+
+
+.. py:class:: ansys.health.heart.settings.settings.Stimulation(/, **data: Any)
+
+   Bases: :py:obj:`BaseSettings`
+
+
+   
+   Stimulation settings for electrophysiology simulations.
+
+   Defines electrical stimulation parameters including timing, location,
+   and amplitude for cardiac electrophysiology simulations.
+
+   :Parameters:
+
+       **node_ids** : :class:`python:list`\[:class:`python:int`] | :data:`python:None`, default: :data:`python:None`
+           List of node IDs where stimulation is applied.
+
+       **t_start** : :obj:`Quantity`, default: :obj:`Quantity`\(0.0, "ms")
+           Start time of stimulation.
+
+       **period** : :obj:`Quantity`, default: :obj:`Quantity`\(800, "ms")
+           Period between stimulation cycles.
+
+       **duration** : :obj:`Quantity`, default: :obj:`Quantity`\(2, "ms")
+           Duration of each stimulation pulse.
+
+       **amplitude** : :obj:`Quantity`, default: :obj:`Quantity`\(50, "uF/mm^3")
+           Stimulation amplitude.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> from pint import Quantity
+   >>> stim = Stimulation(
+   ...     node_ids=[1, 2, 3],
+   ...     t_start=Quantity(10, "ms"),
+   ...     period=Quantity(800, "ms"),
+   ...     duration=Quantity(2, "ms"),
+   ...     amplitude=Quantity(50, "uF/mm^3"),
+   ... )
+   >>> print(stim.node_ids)
+   [1, 2, 3]
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: Stimulation
+
+Overview
+--------
+
+.. tab-set::
+
+
+   .. tab-item:: Constructors
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~validate_node_ids`
+            - Validate and convert node_ids to list of integers.
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~node_ids`
+            - 
+          * - :py:attr:`~t_start`
+            - 
+          * - :py:attr:`~period`
+            - 
+          * - :py:attr:`~duration`
+            - 
+          * - :py:attr:`~amplitude`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import Stimulation
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: node_ids
+   :type:  list[int] | None
+   :value: None
+
+
+.. py:attribute:: t_start
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: period
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: duration
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: amplitude
+   :type:  pint.Quantity
+   :value: None
+
+
+
+
+Method detail
+-------------
+
+.. py:method:: validate_node_ids(v: Any) -> list[int] | None
+   :classmethod:
+
+
+   
+   Validate and convert node_ids to list of integers.
+
+
+   :Parameters:
+
+       **v** : :obj:`Any`
+           Input value to validate.
+
+
+
+   :Returns:
+
+       :class:`python:list`\[:class:`python:int`] | :data:`python:None`
+           Validated list of integer node IDs or None.
+
+
+
+
+   :Raises:
+
+       :obj:`ValueError`
+           If node_ids cannot be converted to list of integers.
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

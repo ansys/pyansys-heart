@@ -1,0 +1,115 @@
+
+
+
+
+
+
+:class:`Mechanics`
+==================
+
+
+.. py:class:: ansys.health.heart.settings.settings.Mechanics(/, **data: Any)
+
+   Bases: :py:obj:`BaseSettings`
+
+
+   
+   Class for keeping track of mechanical simulation settings.
+
+   Complete mechanical simulation configuration including analysis parameters,
+   boundary conditions, and system model settings.
+
+   :Parameters:
+
+       **analysis** : :obj:`Analysis`, default: :obj:`Analysis`\()
+           Generic analysis settings for time stepping and output.
+
+       **boundary_conditions** : :obj:`BoundaryConditions`, default: :obj:`BoundaryConditions`\()
+           Boundary condition specifications and parameters.
+
+       **system** : :obj:`SystemModel`, default: :obj:`SystemModel`\()
+           System model settings and configurations.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> mechanics = Mechanics()
+   >>> mechanics.analysis.end_time = Quantity(1000, "ms")
+   >>> mechanics.boundary_conditions.robin = {"stiffness": 1.0}
+   >>> print(mechanics.analysis.end_time)
+   1000.0 millisecond
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Mechanics
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~analysis`
+            - 
+          * - :py:attr:`~boundary_conditions`
+            - 
+          * - :py:attr:`~system`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import Mechanics
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: analysis
+   :type:  Analysis
+   :value: None
+
+
+.. py:attribute:: boundary_conditions
+   :type:  BoundaryConditions
+   :value: None
+
+
+.. py:attribute:: system
+   :type:  SystemModel
+   :value: None
+
+
+
+
+
+

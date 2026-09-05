@@ -1,0 +1,48 @@
+
+
+
+
+
+
+:class:`SupportedDPFServerNotFoundError`
+========================================
+
+.. py:exception:: ansys.heart.core.exceptions.SupportedDPFServerNotFoundError
+
+   Bases: :py:obj:`Exception`
+
+
+   
+   Exception raised when no supported DPF server is found.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.exceptions import SupportedDPFServerNotFoundError
+
+
+
+
+

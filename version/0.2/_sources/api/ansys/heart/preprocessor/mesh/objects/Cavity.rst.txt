@@ -1,0 +1,260 @@
+
+
+
+
+Cavity
+======
+
+.. py:class:: Cavity(surface: SurfaceMesh = None, centroid: numpy.ndarray = None, name=None)
+   :canonical: ansys.heart.preprocessor.mesh.objects.Cavity
+
+
+
+Bases: :py:obj:`Feature`
+
+
+   Cavity class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: Cavity
+.. tab-set::
+
+
+
+    .. tab-item:: Methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~compute_volume`
+            - Compute the volume of the (enclosed) cavity.
+          * - :py:attr:`~compute_centroid`
+            - Compute the centroid of the cavity.
+
+
+    .. tab-item:: Properties
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~volume`
+            - Volume of the cavity.
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~type`
+            - Type.
+          * - :py:attr:`~surface`
+            - Surface mesh making up the cavity.
+          * - :py:attr:`~centroid`
+            - Centroid of the cavity.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.mesh.objects import Cavity
+
+
+Property detail
+---------------
+.. py:property:: volume
+   :canonical: ansys.heart.preprocessor.mesh.objects.Cavity.volume
+   :type: None
+
+
+   
+   Volume of the cavity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: type
+   :value: 'cavity'
+
+   
+   Type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: surface
+   :type: SurfaceMesh
+
+   
+   Surface mesh making up the cavity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: centroid
+   :type: numpy.ndarray
+
+   
+   Centroid of the cavity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+Method detail
+-------------
+.. py:method:: compute_volume() -> float
+
+   
+   Compute the volume of the (enclosed) cavity.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   - Writes stl and computes volume from stl
+   - Assumes normals are pointing inwards
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_centroid()
+
+   
+   Compute the centroid of the cavity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

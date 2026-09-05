@@ -1,0 +1,814 @@
+
+
+
+
+
+
+The ``vtkmethods.py`` module
+============================
+
+.. py:module:: ansys.heart.preprocessor.mesh.vtkmethods
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: vtkmethods
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~write_vtkdata_to_vtkfile`
+            - Write a vtk unstructured grid object to vtk file.
+
+
+          * - :py:obj:`~vtk_surface_to_stl`
+            - Write stl from vtk surface mesh (polydata).
+
+
+          * - :py:obj:`~get_tetra_info_from_unstructgrid`
+            - Get tetrahedron nodes, connectivity and cell/point data.
+
+
+          * - :py:obj:`~get_tri_info_from_polydata`
+            - Get connectivity, celldata and point data info from polydata object.
+
+
+          * - :py:obj:`~add_vtk_array`
+            - Add vtk array to vtk polydata or unstructured grid object.
+
+
+          * - :py:obj:`~create_vtk_polydata_from_points`
+            - Create VTK PolyData object from set of points.
+
+
+          * - :py:obj:`~remove_duplicate_nodes`
+            - Find and removes duplicate nodes and remaps element definitions.
+
+
+          * - :py:obj:`~compute_surface_nodal_area_pyvista`
+            - Compute an average nodal area by summing surface areas of connected elements.
+
+
+          * - :py:obj:`~add_normals_to_polydata`
+            - Add normals to the vtk.vtkPolyData object.
+
+
+          * - :py:obj:`~extrude_polydata`
+            - Extrude a given polydata surface in a given direction.
+
+
+          * - :py:obj:`~create_vtk_surface_triangles`
+            - Create vtkPolyData object from array of points and array of triangles.
+
+
+          * - :py:obj:`~cell_ids_inside_enclosed_surface`
+            - Tag any cells that are inside an enclosed surface.
+
+
+          * - :py:obj:`~get_connected_regions`
+            - Find the connected regions.
+
+
+          * - :py:obj:`~vtk_cutter`
+            - Cut a vtk polydata by a plane.
+
+
+          * - :py:obj:`~find_cells_close_to_nodes`
+            - Find cell IDs close to nodes.
+
+
+          * - :py:obj:`~get_boundary_edges`
+            - Get the boundary edges from an input surface.
+
+
+          * - :py:obj:`~get_boundary_edge_loops`
+            - Get the closed/open boundary edge loops of a surface mesh.
+
+
+          * - :py:obj:`~get_patches_delaunay`
+            - Patch boundary edges with a delaunay algorithm.
+
+
+          * - :py:obj:`~get_patches_with_centroid`
+            - Patch boundary edges with a custom algorithm using a central node.
+
+
+          * - :py:obj:`~are_connected`
+            - Check whether two PolyData or UnstructuredGrids are connected.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module contains methods for mesh operations related to the vtk library.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], fname: str)
+
+   
+   Write a vtk unstructured grid object to vtk file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: vtk_surface_to_stl(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], filename: str, solid_name: str = None) -> None
+
+   
+   Write stl from vtk surface mesh (polydata).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_tetra_info_from_unstructgrid(vtk_grid: vtk.vtkUnstructuredGrid, get_all_data: bool = True, deep_copy: bool = False) -> Tuple[numpy.ndarray, numpy.ndarray, dict, dict]
+
+   
+   Get tetrahedron nodes, connectivity and cell/point data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_tri_info_from_polydata(vtk_polydata: vtk.vtkPolyData, get_all_data: bool = True, deep_copy: bool = False) -> Tuple[numpy.ndarray, numpy.ndarray, dict, dict]
+
+   
+   Get connectivity, celldata and point data info from polydata object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Assumes triangular elements
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: add_vtk_array(polydata: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid], data: numpy.array, name: str, data_type: str = 'cell', array_type: Union[int, float] = float)
+
+   
+   Add vtk array to vtk polydata or unstructured grid object.
+
+
+   :Parameters:
+
+       **polydata** : :obj:`Union`\[:obj:`vtk.vtkPolyData`, :obj:`vtk.vtkUnstructuredGrid`]
+           vtk object
+
+       **data** : :obj:`np.array`
+           input data. Can be either 1d array or 2d array
+
+       **name** : :class:`python:str`
+           name of data field
+
+       **data_type** : :class:`python:str`, :obj:`optional`
+           Type of data; either "cell" or "point", by default "cell"
+
+       **array_type** : :obj:`Union`\[:class:`python:int`, :class:`python:float`], :obj:`optional`
+           Type of array to add, by default float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_vtk_polydata_from_points(points: numpy.ndarray) -> vtk.vtkPolyData
+
+   
+   Create VTK PolyData object from set of points.
+
+
+   :Parameters:
+
+       **points** : :obj:`np.array`
+           Point coordinates Nx3
+
+
+
+   :Returns:
+
+       :obj:`vtk.vtkPolyData`
+           vtkPolyData object
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   To visualize in ParaView render the points as Gaussian Points
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: remove_duplicate_nodes(nodes: numpy.ndarray, elements: numpy.ndarray, tolerance: float = 1e-07) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   
+   Find and removes duplicate nodes and remaps element definitions.
+
+
+   :Parameters:
+
+       **nodes** : :obj:`np.ndarray <numpy.ndarray>`
+           Array with nodal coordinates
+
+       **elements** : :obj:`np.ndarray <numpy.ndarray>`
+           Array with element definition
+
+       **tolerance: float**
+           Tolerance - the same for each coordinate
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: compute_surface_nodal_area_pyvista(surface: pyvista.PolyData) -> numpy.ndarray
+
+   
+   Compute an average nodal area by summing surface areas of connected elements.
+
+
+   :Parameters:
+
+       **vtk_surface** : :obj:`vtk.vtkPolyData`
+           Vtk object describing the object
+
+
+
+   :Returns:
+
+       :obj:`np.array`
+           Numpy array with nodal areas of length number of points
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Adds the partial areas of connected elements/cells to each node.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: add_normals_to_polydata(vtk_polydata: vtk.vtkPolyData, return_normals: bool = False) -> Union[vtk.vtkPolyData, Optional[Tuple[numpy.ndarray, numpy.ndarray]]]
+
+   
+   Add normals to the vtk.vtkPolyData object.
+
+
+   :Parameters:
+
+       **vtk_polydata** : :obj:`vtk.vtkPolyData`
+           Input surface.
+
+       **return_normals** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Return the cell and point normals as numpy arrays, by default False.
+
+
+
+   :Returns:
+
+       **vtk_polydata** : :obj:`vtk.vtkPolyData`
+           Vtk surface with cell and point normals added.
+
+       **(cell_normals, point_normals)** : (:obj:`np.ndarray <numpy.ndarray>`, :obj:`np.ndarray <numpy.ndarray>`), :obj:`optional`
+           Cell normals and point normals, only provided if return_normals=True
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: extrude_polydata(vtk_surface: vtk.vtkPolyData, extrude_by: float = 1, extrude_direction: numpy.array = np.empty(0)) -> vtk.vtkPolyData
+
+   
+   Extrude a given polydata surface in a given direction.
+
+
+   :Parameters:
+
+       **vtk_surface** : :obj:`vtk.vtkPolyData`
+           Surface to extrude
+
+       **extrude_by** : :class:`python:float`, :obj:`optional`
+           Extrude by this much, by default 1
+
+       **extrude_direction** : :obj:`np.array`, :obj:`optional`
+           Direction of extrusion, should have three components if not specified
+           extrudes in normal direction
+
+
+
+   :Returns:
+
+       :obj:`vtk.vtkPolyData`
+           Extruded vtkPolyData object
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_vtk_surface_triangles(points: numpy.ndarray, triangles: numpy.ndarray, clean=True) -> vtk.vtkPolyData
+
+   
+   Create vtkPolyData object from array of points and array of triangles.
+
+
+   :Parameters:
+
+       **points** : :obj:`np.array`
+           Nx3 array of point coordinates
+
+       **triangles** : :obj:`np.array`
+           Mx3 array of triangle definitions
+
+       **clean** : :obj:`Boolean`, :data:`python:True` :obj:`by` :obj:`default`
+           use vtkCleanPolyData Filter to remove unused nodes, etc.
+           But may have unexpected behavior...
+
+
+
+   :Returns:
+
+       :obj:`vtk.vtkPolyData`
+           VTK Object PolyData object describing the surface
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: cell_ids_inside_enclosed_surface(vtk_source: vtk.vtkUnstructuredGrid, vtk_surface: vtk.vtkPolyData) -> numpy.ndarray
+
+   
+   Tag any cells that are inside an enclosed surface.
+
+
+   :Parameters:
+
+       **vtk_source** : :obj:`vtk.vtkUnstructuredGrid`
+           Source VTK object of which to check the whether the cells are inside/outside
+           the specified surface
+
+       **vtk_surface** : :obj:`vtk.vtkPolyData`
+           Enclosed surface
+
+
+
+   :Returns:
+
+       :obj:`vtk.vtkUnstructuredGrid`
+           VTK object with additional cell data indicating whether
+           the cell is in/outside the provided surface
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_connected_regions(nodes: numpy.ndarray, triangles: numpy.ndarray, return_vtk_object: bool = False) -> numpy.ndarray
+
+   
+   Find the connected regions.
+
+
+   :Parameters:
+
+       **nodes** : :obj:`np.ndarray <numpy.ndarray>`
+           NumNodes x 3 array with point coordinates
+
+       **triangles** : :obj:`np.ndarray <numpy.ndarray>`
+           NumTriangles x 3 array with triangle definitions
+
+       **return_vtk_object** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Flag indicating whether to return the vtk (surface) object, by default False
+
+
+
+   :Returns:
+
+       :obj:`np.array`
+           Array with region ids
+
+       :obj:`vtk.vtkPolyData`
+           VTK Object with region ids
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData
+
+   
+   Cut a vtk polydata by a plane.
+
+
+   :Parameters:
+
+       **vtk_polydata: vtk polydata**
+           ..
+
+       **cut_plane: dictionary contains key: 'center' and 'normal'**
+           ..
+
+
+
+   :Returns:
+
+       :obj:`vtkpolydata`
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: find_cells_close_to_nodes(mesh: pyvista.UnstructuredGrid, node_ids: list[int], radius: float = 2) -> numpy.ndarray
+
+   
+   Find cell IDs close to nodes.
+
+
+   :Parameters:
+
+       **mesh** : :obj:`pv.UnstructuredGrid`
+           target mesh
+
+       **node_ids** : :class:`python:list`\[:class:`python:int`]
+           node IDs
+
+       **radius** : :class:`python:float`, :obj:`optional`
+           influence radius, by default 2
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           cell IDs
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_boundary_edges(surface: pyvista.PolyData) -> pyvista.MultiBlock
+
+   
+   Get the boundary edges from an input surface.
+
+
+   :Parameters:
+
+       **surface** : :obj:`pv.PolyData`
+           Surface to check for boundary edges.
+
+
+
+   :Returns:
+
+       :obj:`pv.MultiBlock`
+           Multi-block data, where each block represents connected edges.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_boundary_edge_loops(surface: pyvista.PolyData, remove_open_edge_loops: bool = True, return_types: bool = False) -> dict
+
+   
+   Get the closed/open boundary edge loops of a surface mesh.
+
+
+   :Parameters:
+
+       **surface** : :obj:`pv.PolyData`
+           Surface mesh to check for boundary edges
+
+       **remove_open_edge_loops** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Removes open edge loops from the return dictionary, by default True
+
+
+
+   :Returns:
+
+       :class:`python:dict`
+           dictionary with the edges that make up the open/closed loop
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_patches_delaunay(surface: pyvista.PolyData, closed_only: bool = True) -> List[pyvista.PolyData]
+
+   
+   Patch boundary edges with a delaunay algorithm.
+
+
+   :Parameters:
+
+       **surface** : :obj:`pv.PolyData`
+           Surface with boundary edges for which to find patches.
+
+       **closed_only** : :ref:`bool <python:bltin-boolean-values>`
+           Flag indicating whether to return patches for closed loops of boundary edges,
+           by default True
+
+
+
+   :Returns:
+
+       :obj:`List`\[:obj:`pv.PolyData`]
+           List of patches that close the open surface.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_patches_with_centroid(surface: pyvista.PolyData, closed_only: bool = True) -> List[pyvista.PolyData]
+
+   
+   Patch boundary edges with a custom algorithm using a central node.
+
+
+   :Parameters:
+
+       **surface** : :obj:`pv.PolyData`
+           Surface with boundary edges for which to find patches.
+
+       **closed_only** : :ref:`bool <python:bltin-boolean-values>`
+           Flag indicating whether to return patches for closed loops of boundary edges,
+           by default True
+
+
+
+   :Returns:
+
+       :obj:`List`\[:obj:`pv.PolyData`]
+           List of patches that close the open surface.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Edges need to be sorted properly for this method to return sensible patches.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: are_connected(mesh1: Union[pyvista.PolyData, pyvista.UnstructuredGrid], mesh2: Union[pyvista.PolyData, pyvista.UnstructuredGrid])
+
+   
+   Check whether two PolyData or UnstructuredGrids are connected.
+
+
+   :Parameters:
+
+       **mesh1** : :obj:`Union`\[:obj:`pv.PolyData`, :obj:`pv.UnstructuredGrid`]
+           First mesh.
+
+       **mesh2** : :obj:`Union`\[:obj:`pv.PolyData`, :obj:`pv.UnstructuredGrid`]
+           Second mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

@@ -1,0 +1,761 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>User guide &#8212; PyAnsys Heart</title>
+  
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/ansys_sphinx_theme.css?v=0909a4fa" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://www.nerdfonts.com/assets/css/webfont.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=7c3339d6" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+
+  <!-- Include desired assets -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  
+
+  
+    <link href="../_static/css/breadcrumbs.css" rel="stylesheet" />
+  
+    <script src="../_static/documentation_options.js?v=d714ba09"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user-guide/index';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://heart.health.docs.pyansys.com/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.10';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../_static/ansys-favicon.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Preprocessor" href="prepocessor.html" />
+    <link rel="prev" title="Installation" href="../getting-started/installation.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.10.1" />
+  <link rel="canonical" href="https://heart.health.docs.pyansys.com/version/stable/user-guide/index.html" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="https://docs.pyansys.com/">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/pyansys_logo_transparent_black.png" class="logo__image only-light" alt="PyAnsys Heart - Home"/>
+    <img src="../_static/pyansys_logo_transparent_white.png" class="logo__image only-dark pst-js-only" alt="PyAnsys Heart - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting-started/index.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+</div>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+</div>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+  
+    <div id="announcement_msg"></div>
+<script>
+  fetch("announcement.html")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(
+      (text) => (document.getElementById("announcement_msg").innerHTML = text),
+    )
+    .catch((error) => console.error(`Fetch problem: ${error.message}`));
+</script>
+  
+
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting-started/index.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="prepocessor.html">Preprocessor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writer.html">Writer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simulator.html">Simulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessor.html">Postprocessor</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+         
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="https://docs.pyansys.com/" class="nav-link">PyAnsys</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a
+        href="../index.html"
+        class="nav-link"
+        aria-label="Home"
+      >
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+      
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">User guide</span></li>
+    
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <div class="toctree-wrapper compound">
+</div>
+<section id="user-guide">
+<h1>User guide<a class="headerlink" href="#user-guide" title="Link to this heading">#</a></h1>
+<section id="pyansys-heart-overview">
+<h2>PyAnsys Heart overview<a class="headerlink" href="#pyansys-heart-overview" title="Link to this heading">#</a></h2>
+<p>This section provides a brief review of key techniques in cardiac modeling. A list of references is also provided.</p>
+<p>It is assumed that the reader has a basic knowledge on LS-DYNA usage. However, it is encouraged to read the <a class="reference internal" href="#ls-dyna-manuals">LS-DYNA manuals</a> for a comprehensive understanding of the modeling process.</p>
+<section id="anatomy-generation">
+<h3>Anatomy generation<a class="headerlink" href="#anatomy-generation" title="Link to this heading">#</a></h3>
+<p>Currently <em>PyAnsys Heart</em> supports generating electrophysiology, electro-mechanical and mechanical models from 24 pathological (<a class="reference internal" href="#strocchi-et-al">Strocchi et al.</a>) and 20 healthy (<a class="reference internal" href="#rodero-et-al">Rodero et al.</a>) hearts.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Input .case and .vtk files for both repositories can be found here:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://zenodo.org/records/3890034">https://zenodo.org/records/3890034</a></p></li>
+<li><p><a class="reference external" href="https://zenodo.org/records/4590294">https://zenodo.org/records/4590294</a></p></li>
+</ul>
+</div>
+<p>These .vtk and .case files are processed into a compatible input format where the naming and ids of the surfaces are inferred from the part ids and consequently written to an input .vtp file and .json file.
+These input files are then further processed into a HeartModel that contains the various relevant anatomical features (left ventricle, right ventricle, endo- and epicardium, and cavities). This
+HeartModel is a Python object that is then further processed (add physics) and exported as a LS-DYNA model.</p>
+</section>
+<section id="brief-theory">
+<h3>Brief theory<a class="headerlink" href="#brief-theory" title="Link to this heading">#</a></h3>
+<p>Some anatomical details are difficult to capture with medical imaging techniques but are crucial for physical simulations. Fortunately, some rule-based methods proposed in the literature are included in <em>PyAnsys Heart</em>.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>Conduction System:</strong></dt><dd><p>Atrial fibers can be generated by a rule-based method published in <a class="reference internal" href="#piersanti-et-al">Piersanti et al.</a>. Unlike ventricular fibers, which rely on the keyword <code class="docutils literal notranslate"><span class="pre">*EM_EP_CREATEFIBERORIENTATION</span></code> in LS-DYNA, this algorithm is implemented in <em>PyAnsys Heart</em> by solving multiple (thermal) Laplace’s equations in LS-DYNA.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>UHC:</strong></dt><dd><p>A consistent Universal Heart Coordinates (UHC) system can be convenient for landmark determination, data transferring, etc. A universal ventricular coordinate system presented in <a class="reference internal" href="#bayer-et-al-2">Bayer et al.2</a> is implemented. A universal coordinate system for atria, as presented in <a class="reference internal" href="#roney-et-al">Roney et al.</a>, is to be implemented.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="electrophysiology">
+<h3>Electrophysiology<a class="headerlink" href="#electrophysiology" title="Link to this heading">#</a></h3>
+<p>This section introduces cardiac electrophysiology modeling in <em>PyAnsys Heart</em>.
+Three options are available to model electrical propagation in <em>PyAnsys Heart</em> (see <cite>simulator.settings.settings.epanalysis.solvertype</cite>): <cite>Monodomain</cite> (<code class="docutils literal notranslate"><span class="pre">*EM_CONTROL</span></code> with EMSOL=11 in LS-DYNA), <cite>Eikonal</cite> (<code class="docutils literal notranslate"><span class="pre">*EM_CONTROL</span></code> with EMSOL=14 in LS-DYNA) and <cite>ReactionEikonal</cite> model (<code class="docutils literal notranslate"><span class="pre">*EM_CONTROL</span></code> with EMSOL=15 in LS-DYNA).</p>
+<ul>
+<li><dl>
+<dt>Monodomain:</dt><dd><p>The Monodomain model is a reaction-diffusion model and is a simplification of the Bidomain model <a class="reference internal" href="#potse-et-al">Potse et al.</a>. In LS-DYNA, the ‘passive’ electrical material properties (electrical conductivity, membrane capacitance, surface/volume ratio) corresponding to the Monodomain model are set in <code class="docutils literal notranslate"><span class="pre">*EM_MAT_003</span></code> for the myocardium and <code class="docutils literal notranslate"><span class="pre">*EM_MAT_001</span></code> for the beams of the conduction system. These are to be completed with ‘active’ properties using a cell model (see ‘cell model’ section).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>LS-DYNA offers the possibility of using either the Bidomain, Monodomain, or a mix of
+both models but only the Monodomain is exposed in <em>PyAnsys Heart</em> for now.</p>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Eikonal:</dt><dd><p>In this case only the activation time is computed, no cell model is used.
+Here, the ‘passive’ electrical material properties are also set with <code class="docutils literal notranslate"><span class="pre">*EM_MAT_003</span></code> for 3D tissue and <code class="docutils literal notranslate"><span class="pre">*EM_MAT_001</span></code> for the beams of the conduction system.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Reaction Eikonal:</dt><dd><p>The Reaction Eikonal model first computes the activation time on each node, then it assigns action potential curves to each node with a time delay that corresponds to the activation time. Passive properties are the same as those described in the pure Eikonal model.</p>
+</dd>
+</dl>
+</li>
+<li><dl>
+<dt>cell model:</dt><dd><p>The cell model used <em>PyAnsys Heart</em> is the <a class="reference internal" href="#tentusscher-et-al">TenTusscher et al.</a> model, other models are to be added in the future.
+When UHCs are computed, the transmural coordinate is used to distinguish between endo-, epi- and mid- myocardium layers using the corresponding version of the TenTusscher model.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>LS-DYNA supports other cell models and user defined models, see the <cite>*EM_EP</cite> collection of keywords in <a class="reference internal" href="#ls-dyna-manuals">LS-DYNA manuals</a>.</p>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Stimulation:</dt><dd><p>Tissue stimulation is set by default on the SA node in a four-chamber model and in the left and right apex in case of a left ventricle or biventricular model. However, users can define their own stimulation origin and profile (see the <cite>Stimulation definition example</cite>).</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="mechanics">
+<h2>Mechanics<a class="headerlink" href="#mechanics" title="Link to this heading">#</a></h2>
+<p>This section explains the key elements in cardiac mechanical models and their default options in <em>PyAnsys Heart</em>.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Material:</dt><dd><p>Cardiac tissue mechanics is modeled using <a class="reference internal" href="#mat-295">MAT_295</a>, which consists of two components: passive and active. By default, the passive component is represented by the <cite>Holzapfel</cite>-type model for both isotropic and anisotropic properties. For the active component, the <cite>Guccione</cite> model (ACTYPE=1) is used for mechanical models, while the <cite>Hunter</cite> model (ACTYPE=3) is employed for electromechanical models.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Boundary conditions:</dt><dd><p>Boundary conditions are considered following the approach presented in <a class="reference internal" href="#strocchi-et-al">Strocchi et al.</a>. Robin-type conditions are applied at the heart’s valve regions, depending on the specific model constructed. Additionally, the pericardium’s effect is accounted for by adding springs and dampers at the epicardium. For the ventricles, the stiffness of springs is scaled from different locations to constrain the motion primarily at the apex region.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Circulation model</dt><dd><p>Many papers have described the coupling between 3D heart models and 0D circulation models, such as those by <a class="reference internal" href="#agustin-et-al">Agustin et al.</a>. LS-DYNA uses <code class="docutils literal notranslate"><span class="pre">CONTROL_VOLUME</span></code> related keywords to achieve this coupling. By default, <em>PyAnsys Heart</em> provides a simple open-loop model. Specifically, a 2-element Windkessel model is applied to the left and right ventricle. If atria are present, atrioventricular valves are represented by a diode model, and a constant venous inflow is set for both atria. If no atrium is present, a constant venous pressure (preload) is set.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Stress free configuration</dt><dd><p>It is assumed that the input geometry is in the state of end-diastole. To account for the initial stress from the end-diastolic pressure, the stress-free configuration is computed using the keyword <cite>*CONTROL_REFERENCE_CONFIGURATION</cite>. Then, the pressure is reapplied to the stress-free geometry, and a “virtual” end-diastolic mesh with the initial stress is exported. This mesh and initial stress is subsequently used in the final simulation.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<p><span class="target" id="ls-dyna-manuals">LS-DYNA manuals</span>: <a class="reference external" href="https://lsdyna.ansys.com/manuals/">https://lsdyna.ansys.com/manuals/</a></p>
+<p><span class="target" id="mat-295">MAT_295</span>: <a class="reference external" href="https://ftp.lstc.com/anonymous/outgoing/support/PAPERS/mat_295_formulation_public.pdf">https://ftp.lstc.com/anonymous/outgoing/support/PAPERS/mat_295_formulation_public.pdf</a></p>
+<p><span class="target" id="bayer-et-al">Bayer et al.</span>: Bayer, J.D., Blake, R. C., Plank, G., and Trayanova, N. A., “A novel rule-based algorithm for assigning myocardial fiber orientation to computational heart models,” Annals of biomedical engineering, 40(10), 2243-2254 (2012)</p>
+<p><span class="target" id="costabal-et-al">Costabal et al.</span>: Costabal, Francisco Sahli, Daniel E. Hurtado, and Ellen Kuhl. “Generating Purkinje networks in the human heart.” Journal of biomechanics 49.12 (2016): 2455-2465.</p>
+<p><span class="target" id="strocchi-et-al">Strocchi et al.</span>: Strocchi, Marina, et al. “Simulating ventricular systolic motion in a four-chamber heart model with spatially varying robin boundary conditions to model the effect of the pericardium.” Journal of Biomechanics 101 (2020): 109645.</p>
+<p><span class="target" id="piersanti-et-al">Piersanti et al.</span>: Piersanti, Roberto, et al. “Modeling cardiac muscle fibers in ventricular and atrial electrophysiology simulations.” Computer Methods in Applied Mechanics and Engineering 373 (2021): 113468.</p>
+<p><span class="target" id="roney-et-al">Roney et al.</span>: Roney, Caroline H., et al., “Universal atrial coordinates applied to visualisation, registration and construction of patient specific meshes.” Medical image analysis 55 (2019): 65-75.</p>
+<p><span class="target" id="bayer-et-al-2">Bayer et al.2</span>: Bayer, Jason, et al. “Universal ventricular coordinates: A generic framework for describing position within the heart and transferring data.” Medical image analysis 45 (2018): 83-93.</p>
+<p><span class="target" id="agustin-et-al">Agustin et al.</span>: Augustin, Christoph M., et al. “A computationally efficient physiologically comprehensive 3D-0D closed-loop model of the heart and circulation.” Computer methods in applied mechanics and engineering 386 (2021): 114092.</p>
+<p><span class="target" id="potse-et-al">Potse et al.</span>: Potse, M., Dube, B., Richer, J., Vinet, A., Gulrajani, R.: A comparison of monodomain and bidomain reaction-diffusion models for action potential propagation in the human heart. IEEE Transactions on Biomedical Engineering 53(12), 2425- 2435 (dec 2006).</p>
+<p><span class="target" id="tentusscher-et-al">TenTusscher et al.</span>: Ten Tusscher, K. H., &amp; Panfilov, A. V. (2006). Alternans and spiral breakup in a human ventricular tissue model. American Journal of Physiology-Heart and Circulatory Physiology, 291(3), H1088-H1100.</p>
+<p><span class="target" id="rodero-et-al">Rodero et al.</span>: Rodero, C., et al. (2021). Virtual cohort of adult healthy four-chamber heart meshes from CT images. In PLOS Computational Biology (1.0.0).</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pyansys-heart-overview">PyAnsys Heart overview</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#anatomy-generation">Anatomy generation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#brief-theory">Brief theory</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#electrophysiology">Electrophysiology</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mechanics">Mechanics</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#references">References</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+<!-- If there is no fix edit button function, use the PyData edit-this-button-->
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <ul class="this-page-menu">
+      <li><a href="../_sources/user-guide/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+
+  <!-- Include desired assets -->
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.min.js"></script>
+
+<script>
+// Passing the search options to the search.js file
+const SEARCH_OPTIONS = JSON.parse('{"keys": ["title", "text"], "limit": 10, "threshold": 0.2}');
+const SEARCH_FILE = "../_static/search.json";
+</script>
+
+
+<script src="../_static/js/search.js"></script>
+  
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright (c) 2025 ANSYS, Inc. All rights reserved.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.1.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the
+  <a href="https://sphinxdocs.ansys.com/version/stable/index.html"
+    >Ansys Sphinx Theme</a
+  >
+  1.3.2. <br />Last updated on
+  <span id="ast_build_date"></span>
+</p>
+<script>
+  var options = { day: "numeric", month: "long", year: "numeric" };
+  var ast_lastModifiedDate = new Date(document.lastModified);
+  var ast_build_date = ast_lastModifiedDate.toLocaleDateString("en-US", options);
+  document.getElementById("ast_build_date").innerHTML = ast_build_date;
+</script></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

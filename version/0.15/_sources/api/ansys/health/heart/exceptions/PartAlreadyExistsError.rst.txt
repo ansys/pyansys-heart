@@ -1,0 +1,49 @@
+
+
+
+
+
+
+:class:`PartAlreadyExistsError`
+===============================
+
+
+.. py:exception:: ansys.health.heart.exceptions.PartAlreadyExistsError
+
+   Bases: :py:obj:`ValueError`
+
+
+   
+   Exception raised when a part already exists.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.exceptions import PartAlreadyExistsError
+
+
+
+
+

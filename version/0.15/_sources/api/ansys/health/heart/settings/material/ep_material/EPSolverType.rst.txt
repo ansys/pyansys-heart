@@ -1,0 +1,93 @@
+
+
+
+
+
+
+:class:`EPSolverType`
+=====================
+
+
+.. py:class:: ansys.health.heart.settings.material.ep_material.EPSolverType(*args, **kwds)
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   
+   Enumeration of EP solver types.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: EPSolverType
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~MONODOMAIN`
+            - 
+          * - :py:attr:`~EIKONAL`
+            - 
+          * - :py:attr:`~REACTION_EIKONAL`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.ep_material import EPSolverType
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: MONODOMAIN
+   :value: 'Monodomain'
+
+
+.. py:attribute:: EIKONAL
+   :value: 'Eikonal'
+
+
+.. py:attribute:: REACTION_EIKONAL
+   :value: 'ReactionEikonal'
+
+
+
+
+
+

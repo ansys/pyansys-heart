@@ -1,0 +1,112 @@
+
+
+
+
+
+
+The ``utils`` package
+=========================
+
+.. py:module:: ansys.heart.core.utils
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: utils
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.core.utils.connectivity`
+            - Module containing methods for mesh connectivity.
+
+
+          * - :py:obj:`~ansys.heart.core.utils.download`
+            - Module containing methods to download cases from public databases.
+
+
+          * - :py:obj:`~ansys.heart.core.utils.fluent_reader`
+            - Module containing functions to read/write fluent meshes in HDF5 format.
+
+
+          * - :py:obj:`~ansys.heart.core.utils.landmark_utils`
+            - Module for computing heart anatomical landmarks.
+
+
+          * - :py:obj:`~ansys.heart.core.utils.vtk_utils`
+            - Module contains methods for mesh operations related to the vtk library.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> connectivity</api/ansys/heart/core/utils/connectivity/index>
+    <span class="nf nf-fa-file"></span> download</api/ansys/heart/core/utils/download/index>
+    <span class="nf nf-fa-file"></span> fluent_reader</api/ansys/heart/core/utils/fluent_reader/index>
+    <span class="nf nf-fa-file"></span> landmark_utils</api/ansys/heart/core/utils/landmark_utils/index>
+    <span class="nf nf-fa-file"></span> vtk_utils</api/ansys/heart/core/utils/vtk_utils/index>
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+
+Subpackage containing various utils.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+

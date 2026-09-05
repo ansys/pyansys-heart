@@ -1,0 +1,189 @@
+
+
+
+
+
+
+:class:`Purkinje`
+=================
+
+
+.. py:class:: ansys.health.heart.settings.settings.Purkinje(/, **data: Any)
+
+   Bases: :py:obj:`BaseSettings`
+
+
+   
+   Class for keeping track of Purkinje settings.
+
+   Defines parameters for Purkinje network generation and electrical
+   properties including geometry, branching, and junction characteristics.
+
+   :Parameters:
+
+       **node_id_origin_left** : :class:`python:int` | :data:`python:None`, default: :data:`python:None`
+           Left Purkinje origin node ID.
+
+       **node_id_origin_right** : :class:`python:int` | :data:`python:None`, default: :data:`python:None`
+           Right Purkinje origin node ID.
+
+       **edgelen** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "mm")
+           Edge length for Purkinje segments.
+
+       **ngen** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "dimensionless")
+           Number of generations in the network.
+
+       **nbrinit** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "dimensionless")
+           Number of initial branches from origin.
+
+       **nsplit** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "dimensionless")
+           Number of splits at each leaf.
+
+       **pmjtype** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "dimensionless")
+           Purkinje muscle junction type identifier.
+
+       **pmjradius** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "mm")
+           Purkinje muscle junction radius.
+
+       **pmjrestype** : :obj:`Quantity`, default: :obj:`Quantity`\(1, "dimensionless")
+           Purkinje muscle junction resistance type.
+
+       **pmjres** : :obj:`Quantity`, default: :obj:`Quantity`\(0.001, "1/mS")
+           Purkinje muscle junction resistance value.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> from pint import Quantity
+   >>> purkinje = Purkinje(
+   ...     node_id_origin_left=1,
+   ...     node_id_origin_right=2,
+   ...     edgelen=Quantity(1.0, "mm"),
+   ...     ngen=Quantity(5, "dimensionless"),
+   ... )
+   >>> print(purkinje.node_id_origin_left)
+   1
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Purkinje
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~node_id_origin_left`
+            - 
+          * - :py:attr:`~node_id_origin_right`
+            - 
+          * - :py:attr:`~edgelen`
+            - 
+          * - :py:attr:`~ngen`
+            - 
+          * - :py:attr:`~nbrinit`
+            - 
+          * - :py:attr:`~nsplit`
+            - 
+          * - :py:attr:`~pmjtype`
+            - 
+          * - :py:attr:`~pmjradius`
+            - 
+          * - :py:attr:`~pmjrestype`
+            - 
+          * - :py:attr:`~pmjres`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import Purkinje
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: node_id_origin_left
+   :type:  int | None
+   :value: None
+
+
+.. py:attribute:: node_id_origin_right
+   :type:  int | None
+   :value: None
+
+
+.. py:attribute:: edgelen
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: ngen
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: nbrinit
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: nsplit
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: pmjtype
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: pmjradius
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: pmjrestype
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: pmjres
+   :type:  pint.Quantity
+   :value: None
+
+
+
+
+
+

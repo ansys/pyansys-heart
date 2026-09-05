@@ -1,0 +1,108 @@
+
+
+
+
+
+
+The ``exceptions.py`` module
+============================
+
+.. py:module:: ansys.heart.core.exceptions
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: exceptions
+.. tab-set::
+
+
+
+
+
+
+    .. tab-item:: Exceptions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.core.exceptions.LSDYNATerminationError`
+            - Exception raised when `Normal Termination` is not found in the LS-DYNA logs.
+
+
+          * - :py:obj:`~ansys.heart.core.exceptions.DatabaseNotSupportedError`
+            - Exception raised when the database is not supported.
+
+
+          * - :py:obj:`~ansys.heart.core.exceptions.SupportedDPFServerNotFoundError`
+            - Exception raised when no supported DPF server is found.
+
+
+          * - :py:obj:`~ansys.heart.core.exceptions.SupportedFluentVersionNotFoundError`
+            - Exception raised when no supported Fluent version is found.
+
+
+          * - :py:obj:`~ansys.heart.core.exceptions.InvalidInputModelTypeError`
+            - Exception raised when the input heart model type is invalid.
+
+
+          * - :py:obj:`~ansys.heart.core.exceptions.InvalidHeartModelError`
+            - Exception raised when the heart model is invalid.
+
+
+          * - :py:obj:`~ansys.heart.core.exceptions.LSDYNANotFoundError`
+            - LSDYNA executable not found.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-md-lightning_bolt"></span> LSDYNATerminationError</api/ansys/heart/core/exceptions/LSDYNATerminationError>
+    <span class="nf nf-md-lightning_bolt"></span> DatabaseNotSupportedError</api/ansys/heart/core/exceptions/DatabaseNotSupportedError>
+    <span class="nf nf-md-lightning_bolt"></span> SupportedDPFServerNotFoundError</api/ansys/heart/core/exceptions/SupportedDPFServerNotFoundError>
+    <span class="nf nf-md-lightning_bolt"></span> SupportedFluentVersionNotFoundError</api/ansys/heart/core/exceptions/SupportedFluentVersionNotFoundError>
+    <span class="nf nf-md-lightning_bolt"></span> InvalidInputModelTypeError</api/ansys/heart/core/exceptions/InvalidInputModelTypeError>
+    <span class="nf nf-md-lightning_bolt"></span> InvalidHeartModelError</api/ansys/heart/core/exceptions/InvalidHeartModelError>
+    <span class="nf nf-md-lightning_bolt"></span> LSDYNANotFoundError</api/ansys/heart/core/exceptions/LSDYNANotFoundError>
+
+
+
+
+
+
+
+Description
+-----------
+
+Custom exceptions for the PyAnsys-Heart package.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

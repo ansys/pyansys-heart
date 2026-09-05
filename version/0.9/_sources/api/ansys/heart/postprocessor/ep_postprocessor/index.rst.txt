@@ -1,0 +1,80 @@
+
+
+
+
+
+
+The ``ep_postprocessor.py`` module
+==================================
+
+.. py:module:: ansys.heart.postprocessor.ep_postprocessor
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: ep_postprocessor
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.postprocessor.ep_postprocessor.EPpostprocessor`
+            - Postprocess Electrophysiology results.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> EPpostprocessor</api/ansys/heart/postprocessor/ep_postprocessor/EPpostprocessor>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+D3plot parser using Ansys-dpf.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

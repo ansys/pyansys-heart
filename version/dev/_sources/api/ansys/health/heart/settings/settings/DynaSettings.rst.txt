@@ -1,0 +1,331 @@
+
+
+
+
+
+
+:class:`DynaSettings`
+=====================
+
+
+.. py:class:: ansys.health.heart.settings.settings.DynaSettings(lsdyna_path: pathlib.Path = 'lsdyna.exe', dynatype: Literal['smp', 'intelmpi', 'platformmpi', 'msmpi'] = 'intelmpi', num_cpus: int = 1, platform: Literal['windows', 'wsl', 'linux'] = 'windows', dyna_options: str = '', mpi_options: str = '')
+
+   
+   Class for collecting, managing, and validating LS-DYNA settings.
+
+   This class provides configuration management for LS-DYNA simulations,
+   including executable paths, parallelization settings, platform-specific
+   configurations, and command-line argument generation.
+
+   :Parameters:
+
+       **lsdyna_path** : :obj:`pathlib.Path`
+           Path to LS-DYNA executable.
+
+       **dynatype** : :class:`python:str`
+           Type of LS-DYNA executable (smp, intelmpi, platformmpi, msmpi).
+
+       **num_cpus** : :class:`python:int`
+           Number of CPUs requested for parallel execution.
+
+       **platform** : :class:`python:str`
+           Platform for LS-DYNA execution (windows, wsl, linux).
+
+       **dyna_options** : :class:`python:str`
+           Additional command line options for LS-DYNA.
+
+       **mpi_options** : :class:`python:str`
+           Additional MPI options for parallel execution.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> dyna_settings = DynaSettings(
+   ...     lsdyna_path="lsdyna.exe", dynatype="intelmpi", num_cpus=4, platform="windows"
+   ... )
+   >>> commands = dyna_settings.get_commands("input.k")
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: DynaSettings
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_commands`
+            - Get command line arguments from the defined settings.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~lsdyna_path`
+            - Path to LS-DYNA executable.
+          * - :py:attr:`~dynatype`
+            - Type of LS-DYNA executable.
+          * - :py:attr:`~num_cpus`
+            - Number of CPU's requested.
+          * - :py:attr:`~platform`
+            - Platform LS-DYNA is executed on.
+          * - :py:attr:`~dyna_options`
+            - Additional command line options for dyna.
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__repr__`
+            - Represent self as YAML-formatted string.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import DynaSettings
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: lsdyna_path
+   :type:  pathlib.Path
+   :value: 'lsdyna.exe'
+
+
+   
+   Path to LS-DYNA executable.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: dynatype
+   :type:  str
+   :value: 'intelmpi'
+
+
+   
+   Type of LS-DYNA executable.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: num_cpus
+   :type:  int
+   :value: 1
+
+
+   
+   Number of CPU's requested.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: platform
+   :type:  str
+   :value: 'windows'
+
+
+   
+   Platform LS-DYNA is executed on.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: dyna_options
+   :value: ''
+
+
+   
+   Additional command line options for dyna.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: get_commands(path_to_input: pathlib.Path) -> list[str]
+
+   
+   Get command line arguments from the defined settings.
+
+   Builds platform-specific command line arguments for running LS-DYNA
+   with the configured settings including MPI and parallelization options.
+
+   :Parameters:
+
+       **path_to_input** : :obj:`pathlib.Path`
+           Path to the LS-DYNA input file.
+
+
+
+   :Returns:
+
+       :class:`python:list`\[:class:`python:str`]
+           List of command line arguments for executing LS-DYNA.
+
+
+
+
+   :Raises:
+
+       :obj:`WSLNotFoundError`
+           If WSL platform is specified but wsl.exe is not found.
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> dyna_settings = DynaSettings(dynatype="smp", num_cpus=4)
+   >>> commands = dyna_settings.get_commands(Path("input.k"))
+   >>> print(commands[0])  # LS-DYNA executable path
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: __repr__()
+
+   
+   Represent self as YAML-formatted string.
+
+
+
+
+
+   :Returns:
+
+       :class:`python:str`
+           YAML representation of the DynaSettings object attributes.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

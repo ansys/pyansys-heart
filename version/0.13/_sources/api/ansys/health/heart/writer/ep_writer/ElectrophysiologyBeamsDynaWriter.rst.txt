@@ -1,0 +1,136 @@
+
+
+
+
+
+
+:class:`ElectrophysiologyBeamsDynaWriter`
+=========================================
+
+
+.. py:class:: ansys.health.heart.writer.ep_writer.ElectrophysiologyBeamsDynaWriter(model: ansys.health.heart.models.HeartModel, settings: ansys.health.heart.settings.settings.SimulationSettings = None)
+
+   Bases: :py:obj:`ElectrophysiologyDynaWriter`
+
+
+   
+   Class for preparing the input for an electrophysiology LS-DYNA simulation with beams only.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: ElectrophysiologyBeamsDynaWriter
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~update`
+            - Update keyword database for electrophysiology.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~kw_database`
+            - Collection of keywords relevant for electrophysiology.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.ep_writer import ElectrophysiologyBeamsDynaWriter
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: kw_database
+
+   
+   Collection of keywords relevant for electrophysiology.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: update() -> None
+
+   
+   Update keyword database for electrophysiology.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

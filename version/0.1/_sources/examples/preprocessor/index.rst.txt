@@ -1,0 +1,97 @@
+
+
+.. _sphx_glr_examples_preprocessor:
+
+Preprocessor examples
+=====================
+These examples show you how you can use the preprocessor module
+to generate different kinds of heart models. For instance, a
+biventricular, four chamber, or full heart model.
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="UHC example">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_doc_example_uhc_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_doc_example_uhc.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">UHC example</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Atrial fiber">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_doc_example_atrial_fiber_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_doc_example_atrial_fiber.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Atrial fiber</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Create a full heart model">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_doc_preprocess_fullheart_rodero_01_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_doc_preprocess_fullheart_rodero_01.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Create a full heart model</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Create a four chamber heart model">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_doc_preprocess_fourchamber_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_doc_preprocess_fourchamber.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Create a four chamber heart model</div>
+    </div>
+
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /examples/preprocessor/doc_example_uhc
+   /examples/preprocessor/doc_example_atrial_fiber
+   /examples/preprocessor/doc_preprocess_fullheart_rodero_01
+   /examples/preprocessor/doc_preprocess_fourchamber
+

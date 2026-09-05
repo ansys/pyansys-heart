@@ -1,0 +1,197 @@
+
+
+:class:`LVContourExporter`
+==========================
+
+.. py:class:: ansys.heart.postprocessor.exporter.LVContourExporter(d3plot_file: str, model: ansys.heart.core.models.HeartModel)
+
+   
+   Export Left ventricle surface and Post-process.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: LVContourExporter
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~export_contour_to_vtk`
+            - Cut and save the contour in .vtk format.
+          * - :py:attr:`~plot_lvls`
+            - Get lvls figure.
+          * - :py:attr:`~export_lvls_to_vtk`
+            - Export lvls as vtk Polyline.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~model`
+            - 
+          * - :py:attr:`~work_dir`
+            - 
+          * - :py:attr:`~data`
+            - 
+          * - :py:attr:`~nb_frame`
+            - 
+          * - :py:attr:`~out_folder`
+            - 
+          * - :py:attr:`~lv_surfaces`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.postprocessor.exporter import LVContourExporter
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: model
+
+.. py:attribute:: work_dir
+
+.. py:attribute:: data
+
+.. py:attribute:: nb_frame
+
+.. py:attribute:: out_folder
+   :value: 'lv_surface'
+
+
+.. py:attribute:: lv_surfaces
+   :value: []
+
+
+
+
+Method detail
+-------------
+.. py:method:: export_contour_to_vtk(folder, cutter) -> List[vtk.vtkPolyData]
+
+   
+   Cut and save the contour in .vtk format.
+
+
+   :Parameters:
+
+       **folder** : :obj:`_type_`
+           Output folder.
+
+       **cutter** : :obj:`_type_`
+           _description_
+
+
+
+   :Returns:
+
+       [:obj:`vtk.vtkPolyData`]
+           List of contours
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: plot_lvls()
+
+   
+   Get lvls figure.
+
+
+
+
+
+   :Returns:
+
+       fig: :obj:`figure` :obj:`handle`
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: export_lvls_to_vtk(folder='lvls_vtk')
+
+   
+   Export lvls as vtk Polyline.
+
+
+   :Parameters:
+
+       **folder: out folder**
+           ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

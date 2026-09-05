@@ -1,0 +1,48 @@
+
+
+
+
+
+
+:class:`LSDYNATerminationError`
+===============================
+
+.. py:exception:: ansys.health.heart.exceptions.LSDYNATerminationError(message: str | list = '')
+
+   Bases: :py:obj:`BaseException`
+
+
+   
+   Exception raised when ``Normal Termination`` is not found in the LS-DYNA logs.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.exceptions import LSDYNATerminationError
+
+
+
+
+

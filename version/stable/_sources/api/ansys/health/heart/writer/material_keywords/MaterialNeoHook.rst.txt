@@ -1,0 +1,65 @@
+
+
+
+
+
+
+:class:`MaterialNeoHook`
+========================
+
+
+.. py:class:: ansys.health.heart.writer.material_keywords.MaterialNeoHook(mid: int, rho: float, c10: float, nu: float, kappa: float)
+
+   Bases: :py:obj:`ansys.health.heart.writer.custom_keywords.Mat077H`
+
+
+   
+   Material for the atrium.
+
+
+   :Parameters:
+
+       **mid** : :class:`python:int`
+           Material ID.
+
+       **rho** : :class:`python:float`
+           Density of the material.
+
+       **c10** : :class:`python:float`
+           First coefficient of the material.
+
+       **nu** : :class:`python:float`
+           Poisson's ratio.
+
+       **kappa** : :class:`python:float`
+           Bulk modulus.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.material_keywords import MaterialNeoHook
+
+
+
+
+

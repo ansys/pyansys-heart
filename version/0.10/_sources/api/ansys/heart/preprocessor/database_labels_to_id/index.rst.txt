@@ -1,0 +1,89 @@
+
+
+
+
+
+
+The ``database_labels_to_id.py`` module
+=======================================
+
+.. py:module:: ansys.heart.preprocessor.database_labels_to_id
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: database_labels_to_id
+.. tab-set::
+
+
+
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~Strocchi2020`
+            - 
+
+
+          * - :py:obj:`~Strocchi2020_case_12_14`
+            - 
+
+
+          * - :py:obj:`~Rodero2021`
+            - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Dictionaries to map labels to ID for Strocchi et al 2020 and Rodero et al 2021 datasets.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: Strocchi2020
+
+.. py:data:: Strocchi2020_case_12_14
+
+.. py:data:: Rodero2021
+
+
+

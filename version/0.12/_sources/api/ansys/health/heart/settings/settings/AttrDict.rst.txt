@@ -1,0 +1,78 @@
+
+
+
+
+
+
+:class:`AttrDict`
+=================
+
+.. py:class:: ansys.health.heart.settings.settings.AttrDict(*args, **kwargs)
+
+   Bases: :py:obj:`dict`
+
+
+   
+   Dictionary subclass whose entries can be accessed by attributes as well as normally.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: AttrDict
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__dict__`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import AttrDict
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: __dict__
+
+
+
+
+

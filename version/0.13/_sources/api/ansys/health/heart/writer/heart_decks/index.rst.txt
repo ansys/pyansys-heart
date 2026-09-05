@@ -1,0 +1,115 @@
+
+
+
+
+
+
+The ``heart_decks.py`` module
+=============================
+
+.. py:module:: ansys.health.heart.writer.heart_decks
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: heart_decks
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.writer.heart_decks.BaseDecks`
+            - Class where each attribute corresponds to its respective deck.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.heart_decks.MechanicsDecks`
+            - Useful decks for a mechanics simulation.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.heart_decks.FiberGenerationDecks`
+            - Useful decks for fiber generation.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.heart_decks.PurkinjeGenerationDecks`
+            - Useful decks for Purkinje generation.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.heart_decks.ElectrophysiologyDecks`
+            - Useful decks for electrophysiology simulations.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.heart_decks.ElectroMechanicsDecks`
+            - Useful decks for a electromechanics simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> BaseDecks</api/ansys/health/heart/writer/heart_decks/BaseDecks>
+    <span class="nf nf-cod-symbol_class"></span> MechanicsDecks</api/ansys/health/heart/writer/heart_decks/MechanicsDecks>
+    <span class="nf nf-cod-symbol_class"></span> FiberGenerationDecks</api/ansys/health/heart/writer/heart_decks/FiberGenerationDecks>
+    <span class="nf nf-cod-symbol_class"></span> PurkinjeGenerationDecks</api/ansys/health/heart/writer/heart_decks/PurkinjeGenerationDecks>
+    <span class="nf nf-cod-symbol_class"></span> ElectrophysiologyDecks</api/ansys/health/heart/writer/heart_decks/ElectrophysiologyDecks>
+    <span class="nf nf-cod-symbol_class"></span> ElectroMechanicsDecks</api/ansys/health/heart/writer/heart_decks/ElectroMechanicsDecks>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Defines LS-DYNA decks for heart modeling.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

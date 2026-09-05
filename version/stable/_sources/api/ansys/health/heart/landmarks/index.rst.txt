@@ -1,0 +1,80 @@
+
+
+
+
+
+
+The ``landmarks.py`` module
+===========================
+
+.. py:module:: ansys.health.heart.landmarks
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: landmarks
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.landmarks.LandMarks`
+            - Heart anatomical points.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> LandMarks</api/ansys/health/heart/landmarks/LandMarks>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing heart anatomical landmarks.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

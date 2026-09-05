@@ -1,0 +1,54 @@
+
+
+
+
+
+
+The ``input.py`` module
+=======================
+
+.. py:module:: ansys.health.heart.pre.input
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module to manage input.
+
+Notes
+-----
+This module manages the different types of input that can be handled and includes
+user-specified boundary meshes. This require remeshing.
+
+Methods are provided to validate the volume and boundary mesh objects (PyVista objects),
+and to get the necessary parts or boundaries for each respective model.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+

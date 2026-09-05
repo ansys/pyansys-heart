@@ -1,0 +1,1991 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Release notes &#8212; PyAnsys Heart</title>
+  
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/ansys-sphinx-theme.css?v=cb878c6c" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css?v=fd6457a4" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="_static/styles\ansys-sphinx-theme.css?v=cb878c6c" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://www.nerdfonts.com/assets/css/webfont.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=7c3339d6" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+
+  <!-- Include desired assets -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  
+
+  
+    <link href="_static/css/breadcrumbs.css" rel="stylesheet" />
+  
+    <script src="_static/documentation_options.js?v=570f26d4"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/sg-tags.js?v=d80f6fa4"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'changelog';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.19.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://heart.health.docs.pyansys.com/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="_static/ansys-favicon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Acknowledgements" href="acknowledgements.html" />
+    <link rel="prev" title="Contribute as a developer" href="contribute/developer.html" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="main" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
+  <link rel="canonical" href="https://heart.health.docs.pyansys.com/version/stable/changelog.html" />
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="https://docs.pyansys.com/">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/pyansys_logo_transparent_black.png" class="logo__image only-light" alt="PyAnsys Heart - Home"/>
+    <img src="_static/pyansys_logo_transparent_white.png" class="logo__image only-dark pst-js-only" alt="PyAnsys Heart - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="index.html" title="PyAnsys Heart home">Home</a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="getting-started.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="user-guide.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="examples/index.html">
+    Examples
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="contributing.html">
+    Contribute
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="#">
+    Release notes
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="acknowledgements.html">
+    Acknowledgements
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav>
+</div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+      
+        <div class="navbar-item">
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+  
+</div></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+  
+
+  
+    
+  
+
+
+
+
+
+  
+    
+  
+
+
+
+
+
+<div class="ast-announcement-wrap" role="region" aria-label="Announcement">
+    <div class="ast-announcement warning">
+        <span class="ast-announcement-icon" aria-hidden="true"></span>
+        <span class="ast-announcement-text" id="ast-announcement-text">This repository is no longer maintained and was archived on 2026-08-12. For questions, contact pyansys-core@synopsys.com.</span>
+        <!-- djlint:off H021-->
+        <!-- for inline styles -->
+        <a class="ast-announcement-details-btn" id="ast-announcement-details-btn"
+           href=""
+           data-ast-url=""
+           aria-label="View notifications"
+           style="display:none">View</a>
+        <!-- djlint:on -->
+        <!-- djlint:off H023-->
+        <!-- use entity reference for &times; -->
+        <button class="ast-announcement-close" id="ast-announcement-close" aria-label="Close announcement">&times;</button>
+        <!-- djlint:on -->
+    </div>
+</div>
+
+<!-- Modal overlay -->
+<!-- djlint:off H023-->
+<!-- use entity reference for &times; -->
+<div class="ast-announcement-overlay" id="ast-announcement-overlay" role="dialog" aria-modal="true" aria-label="Announcement details">
+    <div class="ast-announcement-modal warning">
+        <div class="ast-announcement-modal-body"
+             data-ast-items='[{"message": "This repository is no longer maintained and was archived on 2026-08-12. For questions, contact pyansys-core@synopsys.com.", "type": "warning"}]'>
+        </div>
+        <button class="ast-announcement-modal-close" id="ast-announcement-modal-close" aria-label="Close">&times;</button>
+    </div>
+</div>
+<!-- djlint:on -->
+
+<script src="_static/js/announcement_banner.js"
+        data-base-url="./"></script>
+
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="index.html" title="PyAnsys Heart home">Home</a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="getting-started.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="user-guide.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contribute
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Release notes
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="acknowledgements.html">
+    Acknowledgements
+  </a>
+</li>
+
+  </ul>
+</nav>
+</div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+  
+</div></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar"><svg class="pst-icon svg-inline--fa" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+         
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="https://health.docs.pyansys.com/" class="nav-link">PyAnsys Health</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a
+        href="index.html"
+        class="nav-link"
+        aria-label="Home"
+      >
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+      
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Release notes</span></li>
+    
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="release-notes">
+<span id="ref-release-notes"></span><h1>Release notes<a class="headerlink" href="#release-notes" title="Link to this heading">#</a></h1>
+<section id="june-17-2026">
+<h2><a class="reference external" href="https://github.com/ansys/pyansys-heart/releases/tag/v0.16.1">0.16.1</a> (June 17, 2026)<a class="headerlink" href="#june-17-2026" title="Link to this heading">#</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Fixed</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Ventricle atrial isolation part</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1377">#1377</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Apply fixes for failing doc build</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1378">#1378</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Maintenance</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Limit upper version of pyvista to &lt;0.48</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1376">#1376</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="april-21-2026">
+<h2><a class="reference external" href="https://github.com/ansys/pyansys-heart/releases/tag/v0.16.0">0.16.0</a> (April 21, 2026)<a class="headerlink" href="#april-21-2026" title="Link to this heading">#</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-2">
+Added</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Update conductionpath</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1147">#1147</a></p></td>
+</tr>
+<tr class="row-even"><td><p>New aha strain</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1212">#1212</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Add helper method for extracting tetra for a part</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1285">#1285</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Define 12-lead ECG electrode positions</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1341">#1341</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Add EMMAT005, Tentusscher for atrial and beam</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1342">#1342</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Make installing meshing dependencies optional</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1361">#1361</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-3">
+Fixed</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Mock Windows to Windows Subsystem for Linux path</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1274">#1274</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bug in removing face</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1281">#1281</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Fix typo in cavity name mapping in post processing</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1288">#1288</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Excessive VTK obbtree messages</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1302">#1302</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Skip zenodo link check</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1343">#1343</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Define space varying cell model</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1344">#1344</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Add ecg output in ep-meca coupling</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1351">#1351</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Remove part from part_info</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1358">#1358</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-4" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-4">
+Documentation</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Clean up doc build</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1326">#1326</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Update ``CONTRIBUTORS.md`` with the latest contributors</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1349">#1349</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-5" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-5">
+Test</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Add asset to repo for testing purposes</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1290">#1290</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-6" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-6">
+Dependencies</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Support vtk 9.4.2, 9.5.x and pyvista up to 0.47</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1205">#1205</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump pytest from 8.4.2 to 9.0.0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1276">#1276</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Numpy limit</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1278">#1278</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump pypandoc from 1.15 to 1.16.2</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1283">#1283</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Bump pytest from 9.0.1 to 9.0.2</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1294">#1294</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump trame-vtk from 2.10.0 to 2.10.2</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1301">#1301</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Bump the docs-deps group across 1 directory with 5 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1305">#1305</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump trame-vtk from 2.10.2 to 2.11.1</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1320">#1320</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Bump ansys-fluent-core from 0.37.2 to 0.38.0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1339">#1339</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump trame-vtk from 2.11.1 to 2.11.3</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1345">#1345</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Bump pypandoc from 1.16.2 to 1.17</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1347">#1347</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-7" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-7">
+Maintenance</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Add Python 3.13 to ci/cd workflows</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1178">#1178</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Update CHANGELOG for v0.15.0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1272">#1272</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Bump version to 0.16.dev0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1273">#1273</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump the actions group across 1 directory with 6 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1282">#1282</a>, <a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1319">#1319</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Limit upper limit of ansys-fluent-core</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1287">#1287</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Temporary pin ansys-fluent-core to 0.35.0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1289">#1289</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Update missing or outdated files</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1291">#1291</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump the actions group with 3 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1296">#1296</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Update CHANGELOG for v0.15.1</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1325">#1325</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Hanging doc build</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1327">#1327</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Upload coverage when releasing</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1330">#1330</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump the actions group with 2 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1331">#1331</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Add dependabot cooldown settings</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1335">#1335</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump the actions group across 1 directory with 5 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1348">#1348</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Relax upper limit of VTK to 9.6</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1353">#1353</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Update license metadata in pyproject.toml</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1357">#1357</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Address PyVista `extract_geometry` deprecation warnings</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1359">#1359</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump the actions group across 1 directory with 7 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1360">#1360</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-8" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-8">
+Miscellaneous</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Calls to faces property</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1275">#1275</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump copyright year</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1303">#1303</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Use Zenodo API for downloading input data</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1308">#1308</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Fix pyvista deprecation warning</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1350">#1350</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Replace pyvista deprecated method</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1352">#1352</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="february-12-2026">
+<h2><a class="reference external" href="https://github.com/ansys/pyansys-heart/releases/tag/v0.15.1">0.15.1</a> (February 12, 2026)<a class="headerlink" href="#february-12-2026" title="Link to this heading">#</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-9" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-9">
+Fixed</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Limit allowed versions of pydyna</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1313">#1313</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-10" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-10">
+Documentation</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Fix broken link-check for restructured text</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1322">#1322</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-11" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-11">
+Dependencies</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Bump ansys-fluent-core from 0.35.0 to 0.37.1</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1297">#1297</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Remove ansys-units from dependencies</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1309">#1309</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Bump ansys-fluent-core from 0.37.1 to 0.37.2</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1321">#1321</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="november-06-2025">
+<h2><a class="reference external" href="https://github.com/ansys/pyansys-heart/releases/tag/v0.15.0">0.15.0</a> (November 06, 2025)<a class="headerlink" href="#november-06-2025" title="Link to this heading">#</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-12" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-12">
+Added</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Add right atrium appendage landmarks</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1202">#1202</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Use pydantic for materials</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1233">#1233</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Allow unknown caps in model</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1261">#1261</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Rework ventricular fiber settings</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1264">#1264</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-13" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-13">
+Fixed</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Import of LaunchMode</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1208">#1208</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Fix ansys-fluent-core</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1210">#1210</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Improve subprocess</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1211">#1211</a></p></td>
+</tr>
+<tr class="row-even"><td><p>D-RBM fiber generation</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1227">#1227</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Missing conduction system for biventricle models</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1231">#1231</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Link-check for ansys downloads</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1247">#1247</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-14" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-14">
+Documentation</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Update <code class="docutils literal notranslate"><span class="pre">contributors.md</span></code> with the latest contributors</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1190">#1190</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Update LICENSE and AUTHORS file</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1199">#1199</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Update docstrings of settings</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1267">#1267</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Standardize docstrings</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1268">#1268</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Standardization of docstrings</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1271">#1271</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-15" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-15">
+Dependencies</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Exclude vtk 9.4</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1180">#1180</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump trame-vtk from 2.9.0 to 2.9.1</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1191">#1191</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Relax ansys-dpf-core dep</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1201">#1201</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump lower limit of ansys-fluent-core to 0.34.2</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1214">#1214</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Bump pytest from 8.4.1 to 8.4.2</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1228">#1228</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump pytest-cov from 6.2.1 to 7.0.0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1237">#1237</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Bump trame-vtk from 2.9.1 to 2.10.0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1253">#1253</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-16" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-16">
+Maintenance</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Update changelog for v0.14.0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1177">#1177</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump dev version to 0.15dev0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1179">#1179</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Update changelog for v0.14.1</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1183">#1183</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump the actions group with 2 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1192">#1192</a>, <a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1235">#1235</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Update CHANGELOG for v0.14.2</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1200">#1200</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump the actions group with 3 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1204">#1204</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Add security jobs</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1213">#1213</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Update CHANGELOG for v0.14.3</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1225">#1225</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Bump the actions group across 1 directory with 5 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1230">#1230</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump ansys/actions from 10.1.0 to 10.1.2 in the actions group</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1248">#1248</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Ensure consistent isort behavior between ruff and pre-commit</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1251">#1251</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Use index-url on vtk-osmesa</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1255">#1255</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-17" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-17">
+Miscellaneous</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Improve try except pass</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1209">#1209</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Refactor objects.py for maintainability</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1216">#1216</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Landmark management</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1217">#1217</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Use pydantic-based modules for materials</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1242">#1242</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Use pydantic-based materials module</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1244">#1244</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Add a material factory module</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1246">#1246</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Simplify default material models</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1256">#1256</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Remove material settings from settings class</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1257">#1257</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Use pydantic for the settings module</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1259">#1259</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Cleanup test structure</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1262">#1262</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="august-28-2025">
+<h2><a class="reference external" href="https://github.com/ansys/pyansys-heart/releases/tag/v0.14.3">0.14.3</a> (August 28, 2025)<a class="headerlink" href="#august-28-2025" title="Link to this heading">#</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-18" name="sd-tab-set-4" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-18">
+Added</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>add purkinje myocardium junction</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1130">#1130</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Refactor and improve zerop post</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1166">#1166</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Support pim fluent launch mode</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1188">#1188</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-19" name="sd-tab-set-4" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-19">
+Fixed</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Improve surface id check in cavity creation</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/959">#959</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Fixes for pyvista 0.45 compatibility</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1063">#1063</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Assign unique surface ids to cavities and patches</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1156">#1156</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Purkinje on ventricle base</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1162">#1162</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Atrial ventricular isolation</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1164">#1164</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Fix issues introduced by refactoring post processing of stress free results</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1167">#1167</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Missing input files when Fluent is launched in PIM Mode</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1189">#1189</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Data files for examples</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1223">#1223</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-20" name="sd-tab-set-4" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-20">
+Documentation</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Add examples for a user-defined conduction system</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1132">#1132</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Remove reference to wsl in all examples</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1157">#1157</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Update prerequisites to include 2025 r2</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1175">#1175</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-21" name="sd-tab-set-4" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-21">
+Dependencies</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>update numpy requirement from &lt;=2.2.5 to &lt;=2.2.6</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1115">#1115</a></p></td>
+</tr>
+<tr class="row-even"><td><p>bump ansys-sphinx-theme[autoapi] from 1.4.4 to 1.5.1 in the docs-deps group</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1128">#1128</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>bump pytest from 8.3.5 to 8.4.0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1134">#1134</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump pytest-cov from 6.1.1 to 6.2.1</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1143">#1143</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Bump pytest from 8.4.0 to 8.4.1</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1151">#1151</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump trame-vtk from 2.8.17 to 2.9.0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1158">#1158</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Relax httpx version</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1181">#1181</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Avoid ansys-dpf-core 0.14.0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1198">#1198</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-22" name="sd-tab-set-4" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-22">
+Maintenance</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>update CHANGELOG for v0.13.0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1111">#1111</a></p></td>
+</tr>
+<tr class="row-even"><td><p>bump version</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1113">#1113</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>bump ansys/actions from 9.0.2 to 9.0.9 in the actions group</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1114">#1114</a></p></td>
+</tr>
+<tr class="row-even"><td><p>update CHANGELOG for v0.13.1</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1118">#1118</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>update CHANGELOG for v0.13.2</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1121">#1121</a></p></td>
+</tr>
+<tr class="row-even"><td><p>bump the actions group with 2 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1126">#1126</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Bump ansys/actions from 9.0.11 to 10.0.8 in the actions group</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1135">#1135</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Update changelog for v0.13.3</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1145">#1145</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Bump the actions group across 1 directory with 2 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1152">#1152</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Use monkeypatch to set environment variables in tests</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1155">#1155</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Use dpf 25r2 for all ci/cd workflows</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1171">#1171</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Fluent 25r2 image compatibility for ci workflows</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1173">#1173</a>, <a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1174">#1174</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-23" name="sd-tab-set-4" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-23">
+Miscellaneous</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>refactor part for maintainability</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1106">#1106</a></p></td>
+</tr>
+<tr class="row-even"><td><p>refactor and cleanup models.py</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1124">#1124</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>refactor and cleanup parts</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1127">#1127</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Refactor save/load model</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1148">#1148</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Deprecate element_ids attribute in part class</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1150">#1150</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Improve error handling</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1193">#1193</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Improve unpacking tarball</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1194">#1194</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Improve calls to subprocess</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1195">#1195</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Replace exit by exceptions</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1197">#1197</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Add precision to float formatting</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1218">#1218</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="june-17-2025">
+<h2><a class="reference external" href="https://github.com/ansys/pyansys-heart/releases/tag/v0.13.3">0.13.3</a> (June 17, 2025)<a class="headerlink" href="#june-17-2025" title="Link to this heading">#</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-24" name="sd-tab-set-5" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-24">
+Added</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>add support for v252</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1123">#1123</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-25" name="sd-tab-set-5" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-25">
+Fixed</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>bump ansys-sphinx-theme</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1102">#1102</a></p></td>
+</tr>
+<tr class="row-even"><td><p>support python 3.10</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1120">#1120</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>fix broken tests</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1129">#1129</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-26" name="sd-tab-set-5" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-26">
+Documentation</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>update contributing.rst</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1105">#1105</a></p></td>
+</tr>
+<tr class="row-even"><td><p>add acknowledgments</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1110">#1110</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>fix links in README</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1116">#1116</a></p></td>
+</tr>
+<tr class="row-even"><td><p>update install instructions</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1117">#1117</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>update the badges in readme</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1119">#1119</a></p></td>
+</tr>
+<tr class="row-even"><td><p>fix links</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1122">#1122</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>remove explicitly setting fluent version in example</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1131">#1131</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Improve instructions on prerequisites page</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1144">#1144</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-27" name="sd-tab-set-5" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-27">
+Dependencies</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>update scipy requirement from &lt;=1.15.2 to &lt;=1.15.3</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1108">#1108</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Bump trame-vtk from 2.8.15 to 2.8.17</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1137">#1137</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-28" name="sd-tab-set-5" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-28">
+Maintenance</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>bump the actions group across 1 directory with 3 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1088">#1088</a></p></td>
+</tr>
+<tr class="row-even"><td><p>bump version to 0.13.dev0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1096">#1096</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>update CHANGELOG for v0.12.1</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1100">#1100</a></p></td>
+</tr>
+<tr class="row-even"><td><p>update CHANGELOG for v0.12.2</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1104">#1104</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>release to public pypi</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1112">#1112</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-29" name="sd-tab-set-5" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-29">
+Miscellaneous</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>refactor dyna writer to improve maintainability</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1101">#1101</a></p></td>
+</tr>
+<tr class="row-even"><td><p>refactor and further cleanup for release</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1109">#1109</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="may-08-2025">
+<h2><a class="reference external" href="https://github.com/ansys/pyansys-heart/releases/tag/v0.12.2">0.12.2</a> (May 08, 2025)<a class="headerlink" href="#may-08-2025" title="Link to this heading">#</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-30" name="sd-tab-set-6" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-30">
+Added</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>closed system</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1021">#1021</a></p></td>
+</tr>
+<tr class="row-even"><td><p>technical review</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1037">#1037</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>improve-EP-default-conduction</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1069">#1069</a></p></td>
+</tr>
+<tr class="row-even"><td><p>allow passing additional keyword arguments to launch_fluent</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1095">#1095</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-31" name="sd-tab-set-6" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-31">
+Fixed</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>modify beam mesh doc strings</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1030">#1030</a></p></td>
+</tr>
+<tr class="row-even"><td><p>remove wheelhouse from doc/source/_static dir</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1032">#1032</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>follow ansys.health namespace</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1036">#1036</a></p></td>
+</tr>
+<tr class="row-even"><td><p>documentation build</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1039">#1039</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>run examples in pipelines</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1040">#1040</a></p></td>
+</tr>
+<tr class="row-even"><td><p>fall back to mpiexec when mpirun is not found</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1050">#1050</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>avoid pyvista 0.45</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1060">#1060</a></p></td>
+</tr>
+<tr class="row-even"><td><p>adding EM_CONTROL_TIMESTEP to fiber generation decks</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1071">#1071</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>mutable default</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1072">#1072</a></p></td>
+</tr>
+<tr class="row-even"><td><p>force update node mesh ID in laplacewriter</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1079">#1079</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>convert int64 data to int32 for visualization</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1097">#1097</a></p></td>
+</tr>
+<tr class="row-even"><td><p>changelog actions version in release ci</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1099">#1099</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-32" name="sd-tab-set-6" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-32">
+Documentation</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>overall review</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1043">#1043</a></p></td>
+</tr>
+<tr class="row-even"><td><p>link to documentation is broken</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1046">#1046</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>execute all examples nightly doc build</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1054">#1054</a></p></td>
+</tr>
+<tr class="row-even"><td><p>update atrial fiber example</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1064">#1064</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>update user guide and expose pre, post and simulator api docs</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1065">#1065</a></p></td>
+</tr>
+<tr class="row-even"><td><p>interactive plots in examples</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1073">#1073</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>edits based on skimming rendered doc</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1075">#1075</a></p></td>
+</tr>
+<tr class="row-even"><td><p>add left ventricle mechanical example</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1076">#1076</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>add basic ep postprocessor example</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1080">#1080</a></p></td>
+</tr>
+<tr class="row-even"><td><p>fix interactive plots in doc build</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1086">#1086</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>cleanup and fixes for examples</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1087">#1087</a></p></td>
+</tr>
+<tr class="row-even"><td><p>switch to ReactionEikonal for ep-mechanics example</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1090">#1090</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>reduce size of vtksz for doc build</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1091">#1091</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-33" name="sd-tab-set-6" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-33">
+Dependencies</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>update flit-core requirement from &lt;3.11,&gt;=3.2 to &gt;=3.2,&lt;4</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1025">#1025</a></p></td>
+</tr>
+<tr class="row-even"><td><p>bump pytest-cov from 6.0.0 to 6.1.1</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1026">#1026</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>update numpy requirement from &lt;=2.2.4 to &lt;=2.2.5</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1059">#1059</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-34" name="sd-tab-set-6" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-34">
+Maintenance</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>update CHANGELOG for v0.11.0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1023">#1023</a></p></td>
+</tr>
+<tr class="row-even"><td><p>bump version to 0.12.dev0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1033">#1033</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>bump the actions group across 1 directory with 4 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1034">#1034</a></p></td>
+</tr>
+<tr class="row-even"><td><p>bump ansys/actions from 9.0.0 to 9.0.2 in the actions group</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1048">#1048</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>use intelmpi on runner for doc build</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1061">#1061</a></p></td>
+</tr>
+<tr class="row-even"><td><p>update nightly and release doc builds</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1070">#1070</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>only run release workflow on tag push</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1098">#1098</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-35" name="sd-tab-set-6" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-35">
+Miscellaneous</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>standardize type hints for <code class="docutils literal notranslate"><span class="pre">pre</span></code>, <code class="docutils literal notranslate"><span class="pre">post</span></code>, and <code class="docutils literal notranslate"><span class="pre">utils</span></code> subpackages</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1018">#1018</a></p></td>
+</tr>
+<tr class="row-even"><td><p>remove unused and outdated method</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1035">#1035</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>improve how conduction paths and their data are managed</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1041">#1041</a></p></td>
+</tr>
+<tr class="row-even"><td><p>consolidate _BeamsMesh functionality into Mesh</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1042">#1042</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>only print LS-DYNA stdout to debug level</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1081">#1081</a></p></td>
+</tr>
+<tr class="row-even"><td><p>deprecate update parts</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1089">#1089</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="april-07-2025">
+<h2><a class="reference external" href="https://github.com/ansys/pyansys-heart/releases/tag/v0.11.0">0.11.0</a> (April 07, 2025)<a class="headerlink" href="#april-07-2025" title="Link to this heading">#</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-36" name="sd-tab-set-7" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-36">
+Added</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>add changelog actions and changelog documentation</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/908">#908</a></p></td>
+</tr>
+<tr class="row-even"><td><p>handle incompressibility consistently</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/909">#909</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>refactor-beam-networks</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/932">#932</a></p></td>
+</tr>
+<tr class="row-even"><td><p>add D-RBM method for left ventricle model</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/933">#933</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>compute ventricle thickening</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/945">#945</a></p></td>
+</tr>
+<tr class="row-even"><td><p>set stiffness damping</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/980">#980</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>add module for custom exceptions</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/990">#990</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Append user k files</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/992">#992</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-37" name="sd-tab-set-7" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-37">
+Fixed</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>add-EMCONTROLTIMESTEP-in-ep</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/922">#922</a></p></td>
+</tr>
+<tr class="row-even"><td><p>fix cap types and cap type check</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/935">#935</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>refactor part id assignment post wrap</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/946">#946</a></p></td>
+</tr>
+<tr class="row-even"><td><p>syntax error</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/950">#950</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>tox file correction and improvement</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/956">#956</a></p></td>
+</tr>
+<tr class="row-even"><td><p><cite>test_ep_postprocessor</cite> tests on Github runner</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/971">#971</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>reassign part ids when no orphan cells are found</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/983">#983</a></p></td>
+</tr>
+<tr class="row-even"><td><p>shutil.which for wsl</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/995">#995</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>pinned versions for direct dependencies</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/996">#996</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-38" name="sd-tab-set-7" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-38">
+Documentation</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>Cleanup</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/923">#923</a></p></td>
+</tr>
+<tr class="row-even"><td><p>add the landing page</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/949">#949</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>refactor user guide and getting started</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/955">#955</a></p></td>
+</tr>
+<tr class="row-even"><td><p>contributing guide improvement</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/961">#961</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>update docstrings and standardize periods</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/991">#991</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-39" name="sd-tab-set-7" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-39">
+Dependencies</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>bump tox from 4.24.1 to 4.24.2</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/910">#910</a></p></td>
+</tr>
+<tr class="row-even"><td><p>bump ansys-dpf-core from 0.13.4 to 0.13.6</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/912">#912</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>cleanup dependencies list</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/913">#913</a></p></td>
+</tr>
+<tr class="row-even"><td><p>bump ansys-fluent-core from 0.29.0 to 0.30.0</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/940">#940</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>update numpy requirement from &lt;=2.2.3 to &lt;=2.2.4</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/941">#941</a></p></td>
+</tr>
+<tr class="row-even"><td><p>bump the docs-deps group across 1 directory with 2 updates</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/954">#954</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-40" name="sd-tab-set-7" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-40">
+Maintenance</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>self hosted runner</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/904">#904</a></p></td>
+</tr>
+<tr class="row-even"><td><p>workflow improvements</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/951">#951</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>mark and cleanup tests that require dpf</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/981">#981</a></p></td>
+</tr>
+<tr class="row-even"><td><p>release to private pypi</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1019">#1019</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-41" name="sd-tab-set-7" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-41">
+Miscellaneous</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p>clean up deprecated dump model</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/914">#914</a></p></td>
+</tr>
+<tr class="row-even"><td><p>volume meshing and mesher module</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/915">#915</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>name of Material 295</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/918">#918</a></p></td>
+</tr>
+<tr class="row-even"><td><p>cleanup and introduce new environment variables to manage automation</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/919">#919</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>volume meshing and mesher module (#915)</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/921">#921</a></p></td>
+</tr>
+<tr class="row-even"><td><p>create misc module</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/924">#924</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>rename landmarks module to landmark_utils</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/927">#927</a></p></td>
+</tr>
+<tr class="row-even"><td><p>move slerp methods to misc</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/930">#930</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>download module</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/934">#934</a></p></td>
+</tr>
+<tr class="row-even"><td><p>rename custom keywords and keywords_module</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/936">#936</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>uhcwriter</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/937">#937</a></p></td>
+</tr>
+<tr class="row-even"><td><p>rename vtkmethods to vtk_utils</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/938">#938</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>cleanup paths in examples</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/943">#943</a></p></td>
+</tr>
+<tr class="row-even"><td><p>mecha writer clean up</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/944">#944</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>add method to get fluent ui-mode</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/957">#957</a></p></td>
+</tr>
+<tr class="row-even"><td><p>move symbols to dpf utils and cleanup</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/960">#960</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>replace wget by httpx</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/962">#962</a></p></td>
+</tr>
+<tr class="row-even"><td><p>cleanup and refactor preprocessor module</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/969">#969</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>rename helpers subpackage and downloader module</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/970">#970</a></p></td>
+</tr>
+<tr class="row-even"><td><p>dynain file in mechanical simulator</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/977">#977</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>boundary type and anatomy axis exception</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/988">#988</a></p></td>
+</tr>
+<tr class="row-even"><td><p>remove deprecated arguments and methods</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/998">#998</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>move packages to core</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1014">#1014</a></p></td>
+</tr>
+<tr class="row-even"><td><p>change structure of tests</p></td>
+<td><p><a class="reference external" href="https://github.com/ansys/pyansys-heart/pull/1017">#1017</a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#june-17-2026">0.16.1 (June 17, 2026)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#april-21-2026">0.16.0 (April 21, 2026)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#february-12-2026">0.15.1 (February 12, 2026)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#november-06-2025">0.15.0 (November 06, 2025)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#august-28-2025">0.14.3 (August 28, 2025)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#june-17-2025">0.13.3 (June 17, 2025)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#may-08-2025">0.12.2 (May 08, 2025)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#april-07-2025">0.11.0 (April 07, 2025)</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <ul class="this-page-menu">
+      <li><a href="_sources/changelog.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+
+  <!-- Include desired assets -->
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.min.js"></script>
+
+<script>
+// Passing the search options to the search.js file
+const SEARCH_OPTIONS = JSON.parse('{"keys": ["title", "text", "objectID"], "limit": 10, "threshold": 0.2}');
+const SEARCH_FILE = "_static/search.json";
+const ADVANCE_SEARCH_PATH = "search.html";
+const EXTRA_SOURCES = JSON.parse('""');
+</script>
+
+
+<script src="_static/js/search.js"></script>
+
+  
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 Synopsys, Inc. and ANSYS, Inc. All rights reserved.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<!--
+  Theme Version Footer
+  Displays the Sphinx theme version and the last updated date.
+  Accessibility and semantic improvements included.
+-->
+<footer class="theme-version" aria-label="Theme version and last update">
+  <span>
+    
+      Built with the
+      <a href="https://sphinxdocs.ansys.com/version/stable/index.html" target="_blank" rel="noopener noreferrer">
+        Ansys Sphinx Theme
+      </a>
+      1.10.0.
+    
+  </span>
+  <br />
+  <span>Last updated on <time id="ast_build_date"></time></span>
+</footer>
+<script>
+  // Set the last updated date in a readable format
+  (function() {
+    var options = { day: "numeric", month: "long", year: "numeric" };
+    var ast_lastModifiedDate = new Date(document.lastModified);
+    var ast_build_date = ast_lastModifiedDate.toLocaleDateString("en-US", options);
+    var dateElem = document.getElementById("ast_build_date");
+    if (dateElem) {
+      dateElem.textContent = ast_build_date;
+    }
+  })();
+</script></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

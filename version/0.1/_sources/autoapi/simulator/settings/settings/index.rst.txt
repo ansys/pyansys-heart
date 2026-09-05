@@ -1,0 +1,1846 @@
+:py:mod:`simulator.settings.settings`
+=====================================
+
+.. py:module:: simulator.settings.settings
+
+.. autoapi-nested-parse::
+
+   Module that defines some classes for settings.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   simulator.settings.settings.AttrDict
+   simulator.settings.settings.Settings
+   simulator.settings.settings.Analysis
+   simulator.settings.settings.Material
+   simulator.settings.settings.EpMaterial
+   simulator.settings.settings.BoundaryConditions
+   simulator.settings.settings.SystemModel
+   simulator.settings.settings.Mechanics
+   simulator.settings.settings.AnalysisZeroPressure
+   simulator.settings.settings.ZeroPressure
+   simulator.settings.settings.Electrophysiology
+   simulator.settings.settings.Fibers
+   simulator.settings.settings.Purkinje
+   simulator.settings.settings.SimulationSettings
+   simulator.settings.settings.DynaSettings
+
+
+
+
+.. py:class:: AttrDict(*args, **kwargs)
+
+
+   Bases: :py:obj:`dict`
+
+   
+   Dict subclass whose entries can be accessed by attributes as well as normally.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:class:: Settings
+
+
+   
+   Generic settings class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:method:: __repr__()
+
+      
+      Represent object in as dictionary in YAML style.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: set_values(defaults: dict)
+
+      
+      Read default settings from dictionary.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: serialize(remove_units: bool = False) -> dict
+
+      
+      Serialize the settings, that is formats the Quantity as str(<value> <unit>).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: to_consistent_unit_system()
+
+      
+      Convert units to consistent unit system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: Analysis
+
+
+   Bases: :py:obj:`Settings`
+
+   
+   Class for analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: end_time
+      :type: pint.Quantity
+      :value: 0
+
+      
+      End time of the simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: dtmin
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Minimum time-step of simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: dtmax
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Maximum time-step of simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: dt_d3plot
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Time-step of d3plot export.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: dt_icvout
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Time-step of icvout export.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: global_damping
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Global damping constant.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: Material
+
+
+   Bases: :py:obj:`Settings`
+
+   
+   Class for storing material settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: myocardium
+      :type: AttrDict
+
+      
+      Myocardium material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: atrium
+      :type: AttrDict
+
+      
+      Atrial material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: cap
+      :type: AttrDict
+
+      
+      Cap material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: EpMaterial
+
+
+   Bases: :py:obj:`Settings`
+
+   
+   Class for storing ep material settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: myocardium
+      :type: AttrDict
+
+      
+      Myocardium material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: atrium
+      :type: AttrDict
+
+      
+      Atrial material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: cap
+      :type: AttrDict
+
+      
+      Cap material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: beam
+      :type: AttrDict
+
+      
+      beam material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: BoundaryConditions
+
+
+   Bases: :py:obj:`Settings`
+
+   
+   Stores settings/parameters for boundary conditions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: pericardium
+      :type: AttrDict
+
+      
+      Parameters for pericardium spring b.c.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: valve
+      :type: AttrDict
+
+      
+      Parameters for valve spring b.c.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: end_diastolic_cavity_pressure
+      :type: AttrDict
+
+      
+      End-diastolic pressure.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: SystemModel
+
+
+   Bases: :py:obj:`Settings`
+
+   
+   Stores settings/parameters for system model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: name
+      :type: str
+      :value: 'ConstantPreloadWindkesselAfterload'
+
+      
+      Name of the system model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: left_ventricle
+      :type: AttrDict
+
+      
+      Parameters for left ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: right_ventricle
+      :type: AttrDict
+
+      
+      Parameters for right ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: Mechanics
+
+
+   Bases: :py:obj:`Settings`
+
+   
+   Class for keeping track of settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: analysis
+      :type: Analysis
+
+      
+      Generic analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: material
+      :type: Material
+
+      
+      Material settings/configuration.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: boundary_conditions
+      :type: BoundaryConditions
+
+      
+      Boundary condition specifications.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: system
+      :type: SystemModel
+
+      
+      System model settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: AnalysisZeroPressure
+
+
+   Bases: :py:obj:`Analysis`
+
+   
+   Class for keeping track of zero pressure analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: dt_nodout
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Time interval of nodeout export.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: max_iters
+      :type: int
+      :value: 3
+
+      
+      Maximum iterations for stress-free-configuration algorithm.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: method
+      :type: int
+      :value: 2
+
+      
+      Method to use.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: tolerance
+      :type: float
+      :value: 5.0
+
+      
+      Tolerance to use for iterative algorithm.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: ZeroPressure
+
+
+   Bases: :py:obj:`Settings`
+
+   
+   Class for keeping track of settings for stress-free-configuration computation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: analysis
+      :type: AnalysisZeroPressure
+
+      
+      Generic analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: Electrophysiology
+
+
+   Bases: :py:obj:`Settings`
+
+   
+   Class for keeping track of electrophysiology settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: material
+      :type: EpMaterial
+
+      
+      Material settings/configuration.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: analysis
+      :type: Analysis
+
+      
+      Generic analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: Fibers
+
+
+   Bases: :py:obj:`Settings`
+
+   
+   Class for keeping track of fiber settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: alpha_endo
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Helical angle in endocardium.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: alpha_epi
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Helical angle in epicardium.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: beta_endo
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Angle to the outward transmural axis of the heart in endocardium.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: beta_epi
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Angle to the outward transmural axis of the heart in epicardium.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: beta_endo_septum
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Angle to the outward transmural axis of the heart in left septum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: beta_epi_septum
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Angle to the outward transmural axis of the heart in right septum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: Purkinje
+
+
+   Bases: :py:obj:`Settings`
+
+   
+   Class for keeping track of purkinje settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: edgelen
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Edge length.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: ngen
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Number of generations.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: nbrinit
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Number of beams from origin point.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: nsplit
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Number of splits at each leaf.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: pmjtype
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Purkinje muscle junction type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: pmjradius
+      :type: pint.Quantity
+      :value: 0
+
+      
+      Purkinje muscle junction radius.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: SimulationSettings(mechanics: bool = True, electrophysiology: bool = True, fiber: bool = True, purkinje: bool = True, stress_free: bool = True)
+
+
+   
+   Class for keeping track of settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:method:: __repr__()
+
+      
+      Represent object as list of relevant attribute names.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: save(filename: pathlib.Path, remove_units: bool = False)
+
+      
+      Save simulation settings to disk.
+
+
+      :Parameters:
+
+          **filename** : :obj:`pathlib.Path`
+              Path to target .json or .yml file
+
+          **remove_units** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+              Flag indicating whether to remove units before writing, by default False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: load(filename: pathlib.Path)
+
+      
+      Load simulation settings.
+
+
+      :Parameters:
+
+          **filename** : :obj:`pathlib.Path`
+              Path to yaml or json file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: load_defaults()
+
+      
+      Load the default simulation settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: to_consistent_unit_system()
+
+      
+      Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: DynaSettings(lsdyna_path: pathlib.Path, dynatype: Literal[smp, intelmpi, platformmpi, msmpi] = 'intelmpi', num_cpus: int = 1, platform: Literal[windows, wsl, linux] = 'windows', dyna_options: str = '', mpi_options: str = '')
+
+
+   
+   Class for collecting, managing and validating LS-DYNA settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: lsdyna_path
+      :type: pathlib.Path
+
+      
+      Path to LS-DYNA executable.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: dynatype
+      :type: str
+
+      
+      Type of dyna executable.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: num_cpus
+      :type: int
+
+      
+      Number of CPU's requested.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: platform
+      :type: str
+
+      
+      Platform on which dyna is executed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: dyna_options
+
+      
+      Additional command line options for dyna.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: get_commands(path_to_input: pathlib.Path) -> List[str]
+
+      
+      Get command line arguments from the defined settings.
+
+
+      :Parameters:
+
+          **path_to_input** : :obj:`pathlib.Path`
+              Path to the LS-DYNA input file.
+
+      :Returns:
+
+          :obj:`List`\[:class:`python:str`]
+              List of strings of each of the commands.
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: __repr__()
+
+      
+      Represent self as string.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

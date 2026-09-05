@@ -1,0 +1,102 @@
+
+
+.. _sphx_glr_examples_preprocessor:
+
+.. _examples_preprocessor:
+
+Preprocessor examples
+=====================
+These examples show how to use the ``preprocessor`` module
+to generate different kinds of heart models, including a
+biventricular, four-chamber heart model and a full-heart model.
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Generate atrial fibers">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_compute-atrial-fibers_pr_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_compute-atrial-fibers_pr.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Generate atrial fibers</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Define materials">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_demo-material_pr_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_demo-material_pr.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Define materials</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Download a PyAnsys Heart-compatible case from Zenodo">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_download-case_pr_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_download-case_pr.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Download a PyAnsys Heart-compatible case from Zenodo</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Create a full-heart model">
+
+.. only:: html
+
+  .. image:: /examples/preprocessor/images/thumb/sphx_glr_preprocess-fullheart_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_preprocessor_preprocess-fullheart.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Create a full-heart model</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /examples/preprocessor/compute-atrial-fibers_pr
+   /examples/preprocessor/demo-material_pr
+   /examples/preprocessor/download-case_pr
+   /examples/preprocessor/preprocess-fullheart
+

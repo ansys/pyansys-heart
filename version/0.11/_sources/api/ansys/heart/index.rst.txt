@@ -1,0 +1,132 @@
+
+
+
+
+
+
+The ``heart`` package
+=========================
+
+.. py:module:: ansys.heart
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: heart
+.. tab-set::
+
+    .. tab-item:: Subpackages
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.core`
+            - Initialise core module.
+
+
+
+
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~__version__`
+            - The version of pyansys-heart.
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-md-package"></span> core</api/ansys/heart/core/index>
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+
+PyAnsys Heart is a Python framework for heart modeling using ANSYS tools.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: __version__
+
+   
+   The version of pyansys-heart.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

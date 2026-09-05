@@ -1,0 +1,64 @@
+
+:orphan:
+
+.. _sphx_glr_sg_execution_times:
+
+
+Computation times
+=================
+**96:24.205** total execution time for 10 files **from all galleries**:
+
+.. container::
+
+  .. raw:: html
+
+    <style scoped>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" class="init">
+    $(document).ready( function () {
+        $('table.sg-datatable').DataTable({order: [[1, 'desc']]});
+    } );
+    </script>
+
+  .. list-table::
+   :header-rows: 1
+   :class: table table-striped sg-datatable
+
+   * - Example
+     - Time
+     - Mem (MB)
+   * - :ref:`sphx_glr_examples_simulator_ep-mechanics-simulator-fullheart.py` (``..\..\examples\simulator\ep-mechanics-simulator-fullheart.py``)
+     - 63:27.286
+     - 0.0
+   * - :ref:`sphx_glr_examples_simulator_mechanics-simulator-leftventricle_pr.py` (``..\..\examples\simulator\mechanics-simulator-leftventricle_pr.py``)
+     - 10:12.362
+     - 0.0
+   * - :ref:`sphx_glr_examples_simulator_ep-simulator-fullheart_rodero.py` (``..\..\examples\simulator\ep-simulator-fullheart_rodero.py``)
+     - 09:22.308
+     - 0.0
+   * - :ref:`sphx_glr_examples_preprocessor_preprocess-fullheart.py` (``..\..\examples\preprocessor\preprocess-fullheart.py``)
+     - 08:23.609
+     - 0.0
+   * - :ref:`sphx_glr_examples_preprocessor_compute-atrial-fibers_pr.py` (``..\..\examples\preprocessor\compute-atrial-fibers_pr.py``)
+     - 03:20.326
+     - 0.0
+   * - :ref:`sphx_glr_examples_preprocessor_user_conduction_system_pr.py` (``..\..\examples\preprocessor\user_conduction_system_pr.py``)
+     - 00:50.134
+     - 0.0
+   * - :ref:`sphx_glr_examples_preprocessor_download-case_pr.py` (``..\..\examples\preprocessor\download-case_pr.py``)
+     - 00:17.419
+     - 0.0
+   * - :ref:`sphx_glr_examples_preprocessor_define_space_varying_cellmodel.py` (``..\..\examples\preprocessor\define_space_varying_cellmodel.py``)
+     - 00:13.056
+     - 0.0
+   * - :ref:`sphx_glr_examples_postprocessor_ep-postprocess-reaction-eikonal.py` (``..\..\examples\postprocessor\ep-postprocess-reaction-eikonal.py``)
+     - 00:10.394
+     - 0.0
+   * - :ref:`sphx_glr_examples_preprocessor_demo-material_pr.py` (``..\..\examples\preprocessor\demo-material_pr.py``)
+     - 00:07.310
+     - 0.0

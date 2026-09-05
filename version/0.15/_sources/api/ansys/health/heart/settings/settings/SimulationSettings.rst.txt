@@ -1,0 +1,332 @@
+
+
+
+
+
+
+:class:`SimulationSettings`
+===========================
+
+
+.. py:class:: ansys.health.heart.settings.settings.SimulationSettings(mechanics: bool = True, electrophysiology: bool = True, fiber: bool = True, fiber_method: Literal['LSDYNA', 'D-RBM'] = 'LSDYNA', purkinje: bool = True, stress_free: bool = True)
+
+   
+   Class for keeping track of settings.
+
+   Attributes are conditionally created based on initialization parameters.
+   All parameters default to True, so all attributes exist by default.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: SimulationSettings
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~save`
+            - Save simulation settings to disk.
+          * - :py:attr:`~load`
+            - Load simulation settings.
+          * - :py:attr:`~load_defaults`
+            - Load default simulation settings using Pydantic model initialization.
+          * - :py:attr:`~to_consistent_unit_system`
+            - Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~mechanics`
+            - 
+          * - :py:attr:`~electrophysiology`
+            - 
+          * - :py:attr:`~fibers`
+            - 
+          * - :py:attr:`~atrial_fibers`
+            - 
+          * - :py:attr:`~purkinje`
+            - 
+          * - :py:attr:`~stress_free`
+            - 
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__repr__`
+            - Represent object as list of relevant attribute names.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import SimulationSettings
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: mechanics
+   :type:  Mechanics
+
+.. py:attribute:: electrophysiology
+   :type:  Electrophysiology
+
+.. py:attribute:: fibers
+   :type:  FibersBRBM | FibersDRBM
+
+.. py:attribute:: atrial_fibers
+   :type:  AtrialFiber
+
+.. py:attribute:: purkinje
+   :type:  Purkinje
+
+.. py:attribute:: stress_free
+   :type:  ZeroPressure
+
+
+
+Method detail
+-------------
+
+.. py:method:: __repr__()
+
+   
+   Represent object as list of relevant attribute names.
+
+
+
+
+
+   :Returns:
+
+       :class:`python:str`
+           String representation showing the class name and active
+           settings attribute names.
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> settings = SimulationSettings()
+   >>> print(repr(settings))
+   SimulationSettings
+     mechanics
+     electrophysiology
+     fibers
+     atrial_fibers
+     purkinje
+     stress_free
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: save(filename: pathlib.Path)
+
+   
+   Save simulation settings to disk.
+
+
+   :Parameters:
+
+       **filename** : :obj:`pathlib.Path`
+           Path to target .json or .yml file
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   Create examples settings with default values.
+
+   >>> from ansys.health.heart.settings.settings import SimulationSettings
+   >>> settings = SimulationSettings()
+   >>> settings.load_defaults()
+   >>> settings.save("my_settings.yml")
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: load(filename: pathlib.Path)
+
+   
+   Load simulation settings.
+
+
+   :Parameters:
+
+       **filename** : :obj:`pathlib.Path`
+           Path to yaml or json file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   Create examples settings with default values.
+
+   >>> from ansys.health.heart.settings.settings import SimulationSettings
+   >>> settings = SimulationSettings()
+   >>> settings.load_defaults()
+   >>> settings.save("my_settings.yml")
+
+   Load settings in second SimulationSettings object.
+
+   >>> settings1 = SimulationSettings()
+   >>> settings1.load("my_settings.yml")
+   >>> print(
+   ...     "True" if settings.mechanics.analysis == settings1.mechanics.analysis else "False"
+   ... )
+   True
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: load_defaults()
+
+   
+   Load default simulation settings using Pydantic model initialization.
+
+   This method properly initializes all settings with default values using
+   Pydantic's built-in validation and type conversion capabilities.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   Create examples settings with default values.
+
+   Load module
+   >>> from ansys.health.heart.settings.settings import SimulationSettings
+
+   Instantiate settings object.
+
+   >>> settings = SimulationSettings()
+   >>> settings.load_defaults()
+   >>> settings.mechanics.analysis
+   Analysis:
+     end_time: 800.0 millisecond
+     dtmin: 5.0 millisecond
+     dtmax: 5.0 millisecond
+     dt_d3plot: 20.0 millisecond
+     dt_icvout: 5.0 millisecond
+     global_damping: 0.1 / millisecond
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: to_consistent_unit_system()
+
+   
+   Convert all settings to consistent unit-system ["MPa", "mm", "N", "ms", "g"].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   Convert to the consistent unit system ["MPa", "mm", "N", "ms", "g"].
+
+   Import necessary modules
+   >>> from ansys.health.heart.settings.settings import SimulationSettings
+   >>> from pint import Quantity
+
+   Instantiate settings
+   >>> settings = SimulationSettings()
+   >>> settings.mechanics.analysis.end_time = Quantity(1, "s")
+   >>> settings.to_consistent_unit_system()
+   >>> settings.mechanics.analysis.end_time
+   <Quantity(1000.0, 'millisecond')>
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

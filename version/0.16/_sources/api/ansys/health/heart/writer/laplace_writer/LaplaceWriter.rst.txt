@@ -1,0 +1,227 @@
+
+
+
+
+
+
+:class:`LaplaceWriter`
+======================
+
+
+.. py:class:: ansys.health.heart.writer.laplace_writer.LaplaceWriter(model: ansys.health.heart.models.HeartModel, type: Literal['uvc', 'la_fiber', 'ra_fiber', 'D-RBM'], **kwargs)
+
+   Bases: :py:obj:`ansys.health.heart.writer.base_writer.BaseDynaWriter`
+
+
+   
+   Class for preparing the input for a Laplace LS-DYNA simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: LaplaceWriter
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~update`
+            - Update the keyword database.
+          * - :py:attr:`~add_case`
+            - Add a case to the keyword database.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~type`
+            - Problem type.
+          * - :py:attr:`~landmarks`
+            - Landmarks are ``laa``, ``raa``,  and ``top``.
+          * - :py:attr:`~target`
+            - Target mesh related to the problem.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.laplace_writer import LaplaceWriter
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: type
+
+   
+   Problem type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: landmarks
+
+   
+   Landmarks are ``laa``, ``raa``,  and ``top``.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: target
+   :type:  pyvista.UnstructuredGrid
+   :value: None
+
+
+   
+   Target mesh related to the problem.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: update() -> None
+
+   
+   Update the keyword database.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: add_case(case_id: int, case_name: str, set_ids: list[int], bc_values: list[float]) -> None
+
+   
+   Add a case to the keyword database.
+
+
+   :Parameters:
+
+       **case_id** : :class:`python:int`
+           Case ID.
+
+       **case_name** : :class:`python:str`
+           Case name, which is the d3plot filename.
+
+       **set_ids** : :class:`python:list`\[:class:`python:int`]
+           List of nodeset IDs for boundary conditions.
+
+       **bc_values** : :class:`python:list`\[:class:`python:float`]
+           List of boundary condition values.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

@@ -1,0 +1,100 @@
+
+
+:class:`MAT295`
+===============
+
+.. py:class:: ansys.heart.simulator.settings.material.material.MAT295
+
+   Bases: :py:obj:`MechanicalMaterialModel`
+
+
+   
+   Hold data for MAT_295.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: MAT295
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~rho`
+            - 
+          * - :py:attr:`~iso`
+            - 
+          * - :py:attr:`~aopt`
+            - 
+          * - :py:attr:`~aniso`
+            - 
+          * - :py:attr:`~active`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.material import MAT295
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: rho
+   :type:  float
+
+.. py:attribute:: iso
+   :type:  ISO
+
+.. py:attribute:: aopt
+   :type:  float
+   :value: 2.0
+
+
+.. py:attribute:: aniso
+   :type:  Optional[ANISO]
+   :value: None
+
+
+.. py:attribute:: active
+   :type:  Optional[ACTIVE]
+   :value: None
+
+
+
+
+

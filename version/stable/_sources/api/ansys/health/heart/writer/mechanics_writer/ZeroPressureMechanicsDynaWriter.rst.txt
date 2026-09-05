@@ -1,0 +1,146 @@
+
+
+
+
+
+
+:class:`ZeroPressureMechanicsDynaWriter`
+========================================
+
+
+.. py:class:: ansys.health.heart.writer.mechanics_writer.ZeroPressureMechanicsDynaWriter(model: ansys.health.heart.models.HeartModel, settings: Optional[ansys.health.heart.settings.settings.SimulationSettings] = None)
+
+   Bases: :py:obj:`MechanicsDynaWriter`
+
+
+   
+   Class for preparing the input for a stress-free LS-DYNA simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   This class is derived from the ``MechanicsDynaWriter`` class and consequently
+   derives all keywords relevant for simulations involving mechanics. This class
+   does not write the control volume keywords but rather adds the keyword for computing
+   the stress-free configuration based on left/right cavity pressures instead.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: ZeroPressureMechanicsDynaWriter
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~update`
+            - Update the keyword database.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~kw_database`
+            - Collection of keyword decks relevant for mechanics.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.mechanics_writer import ZeroPressureMechanicsDynaWriter
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: kw_database
+
+   
+   Collection of keyword decks relevant for mechanics.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: update(robin_bcs: list[Callable] = None) -> None
+
+   
+   Update the keyword database.
+
+
+   :Parameters:
+
+       **robin_bcs** : :class:`python:list`\[:obj:`Callable`], default: :data:`python:None`
+           List of lambda functions to apply Robin-type boundary conditions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

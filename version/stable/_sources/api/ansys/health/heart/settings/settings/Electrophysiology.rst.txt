@@ -1,0 +1,127 @@
+
+
+
+
+
+
+:class:`Electrophysiology`
+==========================
+
+
+.. py:class:: ansys.health.heart.settings.settings.Electrophysiology(/, **data: Any)
+
+   Bases: :py:obj:`BaseSettings`
+
+
+   
+   Class for keeping track of EP settings.
+
+   Complete electrophysiology simulation configuration including analysis settings,
+   stimulation protocols, layer definitions, and conductivity parameters.
+
+   :Parameters:
+
+       **analysis** : :obj:`EPAnalysis`, :obj:`default` :obj:`EPAnalysis`\()
+           Generic analysis settings for EP simulation.
+
+       **stimulation** : :class:`python:dict`\[:class:`python:str`, :obj:`Stimulation`] | :data:`python:None`, :obj:`default` :data:`python:None`
+           Dictionary of stimulation settings by name.
+
+       **layers** : :class:`python:dict`\[:class:`python:str`, :obj:`Quantity`]
+           Layer definitions for material assignment of myocardium.
+           Default: {"percent_endo": Quantity(0.17, "dimensionless"),
+           "percent_mid": Quantity(0.41, "dimensionless")}
+
+       **lambda_ratio** : :obj:`Quantity`, :obj:`default` :obj:`Quantity`\(0.2, "dimensionless")
+           Intra to extracellular conductivity ratio for EP solve.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> ep = Electrophysiology()
+   >>> ep.analysis.solvertype = "Monodomain"
+   >>> ep.stimulation = {"apex": Stimulation(node_ids=[1, 2, 3])}
+   >>> print(ep.analysis.solvertype)
+   Monodomain
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Electrophysiology
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~analysis`
+            - 
+          * - :py:attr:`~stimulation`
+            - 
+          * - :py:attr:`~layers`
+            - 
+          * - :py:attr:`~lambda_ratio`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import Electrophysiology
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: analysis
+   :type:  EPAnalysis
+   :value: None
+
+
+.. py:attribute:: stimulation
+   :type:  dict[str, Stimulation] | None
+   :value: None
+
+
+.. py:attribute:: layers
+   :type:  dict[str, pint.Quantity]
+   :value: None
+
+
+.. py:attribute:: lambda_ratio
+   :type:  pint.Quantity
+   :value: None
+
+
+
+
+
+

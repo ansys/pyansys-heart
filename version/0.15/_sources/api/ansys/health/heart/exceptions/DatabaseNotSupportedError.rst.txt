@@ -1,0 +1,49 @@
+
+
+
+
+
+
+:class:`DatabaseNotSupportedError`
+==================================
+
+
+.. py:exception:: ansys.health.heart.exceptions.DatabaseNotSupportedError(db_type, message)
+
+   Bases: :py:obj:`NotImplementedError`
+
+
+   
+   Exception raised when the database is not supported.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.exceptions import DatabaseNotSupportedError
+
+
+
+
+

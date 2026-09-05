@@ -1,0 +1,112 @@
+
+
+
+
+
+
+The ``ansys.heart.preprocessor`` library
+========================================
+
+.. py:module:: ansys.heart.preprocessor
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: preprocessor
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.conduction_beam`
+            - Module containing class for creating conduxtion system.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.database_labels_to_id`
+            - Dictionaries to map labels to ID for Strocchi et al 2020 and Rodero et al 2021 datasets.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.database_preprocessor`
+            - Some helper methods to process cases from Strocchi and Rodero databases.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.input`
+            - Module to manage input.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesher`
+            - Module contains methods for interaction with Fluent meshing.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> conduction_beam</api/ansys/heart/preprocessor/conduction_beam/index>
+    <span class="nf nf-fa-file"></span> database_labels_to_id</api/ansys/heart/preprocessor/database_labels_to_id/index>
+    <span class="nf nf-fa-file"></span> database_preprocessor</api/ansys/heart/preprocessor/database_preprocessor/index>
+    <span class="nf nf-fa-file"></span> input</api/ansys/heart/preprocessor/input/index>
+    <span class="nf nf-fa-file"></span> mesher</api/ansys/heart/preprocessor/mesher/index>
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+
+Initialise preprocessor module.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+

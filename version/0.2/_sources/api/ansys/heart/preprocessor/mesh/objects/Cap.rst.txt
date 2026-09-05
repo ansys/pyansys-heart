@@ -1,0 +1,307 @@
+
+
+
+
+Cap
+===
+
+.. py:class:: Cap(name: str = None, node_ids: Union[List[int], numpy.ndarray] = [])
+   :canonical: ansys.heart.preprocessor.mesh.objects.Cap
+
+
+
+Bases: :py:obj:`Feature`
+
+
+   Cap class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: Cap
+.. tab-set::
+
+
+
+    .. tab-item:: Methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~tessellate1`
+            - Tessellate the cap.
+          * - :py:attr:`~tessellate`
+            - Form triangles with the node ids.
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~node_ids`
+            - (Global) node ids of the cap.
+          * - :py:attr:`~triangles`
+            - Triangulation of cap.
+          * - :py:attr:`~normal`
+            - Normal of cap.
+          * - :py:attr:`~centroid`
+            - Centroid of cap.
+          * - :py:attr:`~centroid_id`
+            - Centroid of cap ID (in case centroid node is created).
+          * - :py:attr:`~type`
+            - Type.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.mesh.objects import Cap
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: node_ids
+
+   
+   (Global) node ids of the cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: triangles
+
+   
+   Triangulation of cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: normal
+
+   
+   Normal of cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: centroid
+
+   
+   Centroid of cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: centroid_id
+
+   
+   Centroid of cap ID (in case centroid node is created).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: type
+   :value: 'cap'
+
+   
+   Type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+Method detail
+-------------
+.. py:method:: tessellate1(use_centroid: bool = False) -> numpy.ndarray
+
+   
+   Tessellate the cap.
+
+
+   :Parameters:
+
+       **use_centroid** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Use a central node for tessellation, by default False
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Triangles forming the tessellation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: tessellate(center_point_id=None) -> numpy.ndarray
+
+   
+   Form triangles with the node ids.
+
+
+   :Parameters:
+
+       **center_point_id: ID of the center point of cap**
+           ..
+
+   :Returns:
+
+       :obj:`Mesh` :obj:`connectivity` :obj:`of` :obj:`cap` (:obj:`triangles`)
+           ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

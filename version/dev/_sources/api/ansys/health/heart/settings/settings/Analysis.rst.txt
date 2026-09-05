@@ -1,0 +1,157 @@
+
+
+
+
+
+
+:class:`Analysis`
+=================
+
+
+.. py:class:: ansys.health.heart.settings.settings.Analysis(/, **data: Any)
+
+   Bases: :py:obj:`BaseSettings`
+
+
+   
+   Class for analysis settings.
+
+   Defines core simulation analysis parameters including time stepping,
+   output intervals, and damping parameters for cardiac simulations.
+
+   :Parameters:
+
+       **end_time** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "s")
+           End time of simulation in time units.
+
+       **dtmin** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "s")
+           Minimum time-step of simulation in time units.
+
+       **dtmax** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "s")
+           Maximum time-step of simulation in time units.
+
+       **dt_d3plot** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "s")
+           Time-step of d3plot export in time units.
+
+       **dt_icvout** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "s")
+           Time-step of icvout export in time units.
+
+       **global_damping** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "1/s")
+           Global damping constant in 1/time units.
+
+       **stiffness_damping** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "s")
+           Stiffness damping constant in time units.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> from pint import Quantity
+   >>> analysis = Analysis(
+   ...     end_time=Quantity(1000, "ms"), dtmin=Quantity(0.1, "ms"), dtmax=Quantity(10, "ms")
+   ... )
+   >>> analysis.to_consistent_unit_system()
+   >>> print(analysis.end_time)
+   1000.0 millisecond
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Analysis
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~end_time`
+            - 
+          * - :py:attr:`~dtmin`
+            - 
+          * - :py:attr:`~dtmax`
+            - 
+          * - :py:attr:`~dt_d3plot`
+            - 
+          * - :py:attr:`~dt_icvout`
+            - 
+          * - :py:attr:`~global_damping`
+            - 
+          * - :py:attr:`~stiffness_damping`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import Analysis
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: end_time
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: dtmin
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: dtmax
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: dt_d3plot
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: dt_icvout
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: global_damping
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: stiffness_damping
+   :type:  pint.Quantity
+   :value: None
+
+
+
+
+
+

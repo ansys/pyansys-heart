@@ -1,0 +1,583 @@
+
+
+
+
+
+
+The ``writer_utils.py`` module
+==============================
+
+.. py:module:: ansys.health.heart.writer.writer_utils
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: writer_utils
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~create_node_keyword`
+            - Create node keyword from a NumPy array of nodes.
+
+
+          * - :py:obj:`~add_nodes_to_kw`
+            - Add nodes to an existing *NODE keyword.
+
+
+          * - :py:obj:`~add_beams_to_kw`
+            - Add beams to an existing *ELEMENT_BEAM keyword.
+
+
+          * - :py:obj:`~create_segment_set_keyword`
+            - Create a segment set keyword from an array with the segment set definition.
+
+
+          * - :py:obj:`~create_node_set_keyword`
+            - Create a nodeset.
+
+
+          * - :py:obj:`~create_element_shell_keyword`
+            - Create an element shell keyword.
+
+
+          * - :py:obj:`~create_element_solid_keyword`
+            - Format the *ELEMENT_SOLID keyword with the provided input.
+
+
+          * - :py:obj:`~create_element_solid_ortho_keyword`
+            - Format the *ELEMENT_SOLID_ORTHO keyword with the provided input.
+
+
+          * - :py:obj:`~create_define_curve_kw`
+            - Create define curve from x and y values.
+
+
+          * - :py:obj:`~create_define_sd_orientation_kw`
+            - Create define SD orientation keyword.
+
+
+          * - :py:obj:`~create_discrete_elements_kw`
+            - Create discrete elements based on input arguments.
+
+
+          * - :py:obj:`~get_list_of_used_ids`
+            - Get array of used IDs in the database.
+
+
+          * - :py:obj:`~fast_element_writer`
+            - Fast implementation of the element writer.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module for useful methods to help format LS-DYNA keywords.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: create_node_keyword(nodes: numpy.ndarray, offset: int = 0) -> ansys.dyna.core.keywords.keywords.Node
+
+   
+   Create node keyword from a NumPy array of nodes.
+
+
+   :Parameters:
+
+       **nodes** : :obj:`np.ndarray <numpy.ndarray>`
+           NumPy array containing the node coordinates.
+
+
+
+   :Returns:
+
+       :obj:`keywords.Node`
+           Formatted node keyword.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: add_nodes_to_kw(nodes: numpy.ndarray, node_kw: ansys.dyna.core.keywords.keywords.Node, offset: int = 0) -> ansys.dyna.core.keywords.keywords.Node
+
+   
+   Add nodes to an existing *NODE keyword.
+
+
+   :Parameters:
+
+       **nodes** : :obj:`np.ndarray <numpy.ndarray>`
+           NumPy array of node coordinates to add.
+           If (n,3), the node ID is continuous by offset.
+           If (n,4), the first column is the node ID.
+
+       **node_kw** : :obj:`keywords.Node`
+           Node keyword.
+
+       **offset** : :class:`python:int`
+           Node ID offset.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   If nodes are already defined, this method adds both the nodes in the previous
+   keyword and the specified array of nodes. It automatically computes
+   the index offset in case ``node_kw.nodes`` is not empty.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: add_beams_to_kw(beams: numpy.ndarray, beam_kw: ansys.dyna.core.keywords.keywords.ElementBeam, pid: int, offset: int = 0) -> ansys.dyna.core.keywords.keywords.ElementBeam
+
+   
+   Add beams to an existing *ELEMENT_BEAM keyword.
+
+
+   :Parameters:
+
+       **beams** : :obj:`np.ndarray <numpy.ndarray>`
+           NumPy array of beam coordinates to add.
+
+       **beam_kw** : :obj:`keywords.ElementBeam`
+           Beam keyword.
+
+       **offset** : :class:`python:int`
+           Beam ID offset.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   If beams are already defined, this method adds both the beams in the previous
+   keyword and the specified array of beams. It automatically computes
+   the index offset in case ``beam_kw.elements`` is not empty.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_segment_set_keyword(segments: numpy.ndarray, segid: int = 1, title: str = '') -> ansys.dyna.core.keywords.keywords.SetSegment
+
+   
+   Create a segment set keyword from an array with the segment set definition.
+
+
+   :Parameters:
+
+       **segments** : :obj:`np.ndarray <numpy.ndarray>`
+           Array of node indices that make up the segment. If three columns are provided,
+           it is assumed that the segments are triangular
+
+       **segid** : :class:`python:int`, default: 1
+           Segment set ID.
+
+       **title** : :class:`python:str`, default: ""
+           Title of the segment set.
+
+
+
+   :Returns:
+
+       :obj:`keywords.SetSegment`
+           Formatted segment set keyword.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_node_set_keyword(node_ids: numpy.ndarray | list[int] | int, node_set_id: int = 1, title: str = 'nodeset-title') -> ansys.dyna.core.keywords.keywords.SetNodeList
+
+   
+   Create a nodeset.
+
+
+   :Parameters:
+
+       **node_ids** : :obj:`np.ndarray <numpy.ndarray>` | :class:`python:list`\[:class:`python:int`] | :class:`python:int`
+           List of node IDs to include in the nodeset.
+
+       **node_set_id** : :class:`python:int`, default: 1
+           ID of the nodeset.
+
+       **title** : :class:`python:str`, default: ``'nodeset-title'``
+           Title of the nodeset
+
+
+
+   :Returns:
+
+       :obj:`keywords.SetNodeList`
+           Formatted nodeset.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_element_shell_keyword(shells: numpy.ndarray, part_id: int = 1, id_offset: int = 0) -> ansys.dyna.core.keywords.keywords.ElementShell
+
+   
+   Create an element shell keyword.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   This method creates an element shell keyword from a NumPy array of elements.
+   Each row corresponds to an element.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_element_solid_keyword(elements: numpy.ndarray, e_id: numpy.ndarray, part_id: numpy.ndarray, element_type: str = 'tetra') -> ansys.dyna.core.keywords.keywords.ElementSolid
+
+   
+   Format the *ELEMENT_SOLID keyword with the provided input.
+
+
+   :Parameters:
+
+       **elements** : :obj:`np.ndarray <numpy.ndarray>`
+           NumPy array of integers with element definition.
+
+       **part_id** : :obj:`np.ndarray <numpy.ndarray>`
+           Part IDs of each element.
+
+       **e_id** : :obj:`np.ndarray <numpy.ndarray>`
+           Element ID.
+
+       **element_type** : :class:`python:str`, default: ``'tetra'``
+           Type of element to write
+
+
+
+   :Returns:
+
+       :obj:`keywords.ElementSolid`
+           Formatted *ELEMENT_SOLID keyword.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_element_solid_ortho_keyword(elements: numpy.ndarray, a_vec: numpy.ndarray, d_vec: numpy.ndarray, e_id: numpy.ndarray, part_id: numpy.ndarray, element_type: str = 'tetra') -> ansys.dyna.core.keywords.keywords.ElementSolidOrtho
+
+   
+   Format the *ELEMENT_SOLID_ORTHO keyword with the provided input.
+
+
+   :Parameters:
+
+       **elements** : :obj:`np.ndarray <numpy.ndarray>`
+           NumPy array of integers with element definition
+
+       **a_vec** : :obj:`np.ndarray <numpy.ndarray>`
+           Vector specifying the A direction.
+
+       **d_vec** : :obj:`np.ndarray <numpy.ndarray>`
+           Vector specifying the D direction.
+
+       **part_id** : :obj:`np.ndarray <numpy.ndarray>`
+           Part IDs of each element.
+
+       **e_id** : :obj:`np.ndarray <numpy.ndarray>`
+           Element ID.
+
+       **element_type** : :class:`python:str`, default: ``'tetra'``
+           Type of element to write.
+
+
+
+   :Returns:
+
+       :obj:`keywords.ElementSolidOrtho`
+           Formatted *ELEMENT_SOLID_ORTHO keyword.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_define_curve_kw(x: numpy.ndarray, y: numpy.ndarray, curve_name: str = 'my-title', curve_id: int = 1, lcint: int = 15000) -> ansys.dyna.core.keywords.keywords.DefineCurve
+
+   
+   Create define curve from x and y values.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_define_sd_orientation_kw(vectors: numpy.ndarray, vector_id_offset: int = 0, iop: int = 0) -> ansys.dyna.core.keywords.keywords.DefineSdOrientation
+
+   
+   Create define SD orientation keyword.
+
+
+   :Parameters:
+
+       **vectors** : :obj:`np.ndarray <numpy.ndarray>`
+           Array of shape Nx3 with the defined vector.
+
+       **vector_id_offset** : :class:`python:int`, default: 0
+           Offset for the vector ID.
+
+       **iop** : :class:`python:int`, default: 0
+           Option.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_discrete_elements_kw(nodes: numpy.ndarray, part_id: int, vector_ids: numpy.ndarray | int, scale_factor: numpy.ndarray | float, element_id_offset: int = 0) -> ansys.dyna.core.keywords.keywords.ElementDiscrete
+
+   
+   Create discrete elements based on input arguments.
+
+
+   :Parameters:
+
+       **nodes** : :obj:`np.ndarray <numpy.ndarray>`
+           Nx2 array with node IDs used for the discrete element.
+
+       **part_id** : :class:`python:int`
+           Part ID of the discrete elements given.
+
+       **vector_ids** : :obj:`np.ndarray <numpy.ndarray>` | :class:`python:int`
+           Orientation IDs (vector IDs) that the spring acts on.
+           You can provide either an array of length N or a scalar integer.
+
+       **scale_factor** : :obj:`np.ndarray <numpy.ndarray>` | :class:`python:float`
+           Scale factor on forces. You can provide either an array of length N
+           or a scalar value.
+
+       **element_id_offset** : :class:`python:int`, default: 0
+           Offset value for the element IDs.
+
+       **init_offset** : :class:`python:float`, default: 0.0
+           Initial offset, which is the initial displacement or rotation at t=0.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_list_of_used_ids(keyword_db: ansys.dyna.core.Deck, keyword_str: str) -> numpy.ndarray
+
+   
+   Get array of used IDs in the database.
+
+
+   :Parameters:
+
+       **database** : :obj:`Deck`
+           Database of keywords.
+
+       **keyword** : :class:`python:str`
+           Keyword to find.
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Array of IDs (integers) that are already used
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   For example, for *SECTION, you would get *PART and *MAT IDs.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: fast_element_writer(element_kw: ansys.dyna.core.keywords.keywords.ElementSolidOrtho | ansys.dyna.core.keywords.keywords.ElementSolid, filename: str) -> None
+
+   
+   Fast implementation of the element writer.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Use this method as an alternative to the PyDYNA keywords module.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

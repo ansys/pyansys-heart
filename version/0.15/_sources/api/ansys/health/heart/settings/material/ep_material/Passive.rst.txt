@@ -1,0 +1,49 @@
+
+
+
+
+
+
+:class:`Passive`
+================
+
+
+.. py:class:: ansys.health.heart.settings.material.ep_material.Passive(/, **data: Any)
+
+   Bases: :py:obj:`EPMaterialModel`
+
+
+   
+   Hold data for a passive EP material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.ep_material import Passive
+
+
+
+
+

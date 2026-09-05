@@ -1,0 +1,149 @@
+
+
+
+
+
+
+The ``objects.py`` module
+=========================
+
+.. py:module:: ansys.heart.core.objects
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: objects
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.core.objects.Feature`
+            - Feature class.
+
+
+          * - :py:obj:`~ansys.heart.core.objects.SurfaceMesh`
+            - Surface class.
+
+
+          * - :py:obj:`~ansys.heart.core.objects.Cavity`
+            - Cavity class.
+
+
+          * - :py:obj:`~ansys.heart.core.objects.Cap`
+            - Cap class.
+
+
+          * - :py:obj:`~ansys.heart.core.objects.Point`
+            - Point class. Can be used to collect relevant points in the mesh.
+
+
+          * - :py:obj:`~ansys.heart.core.objects.Mesh`
+            - Mesh class: inherits from pyvista UnstructuredGrid.
+
+
+          * - :py:obj:`~ansys.heart.core.objects.Part`
+            - Part class.
+
+
+
+    .. tab-item:: Enums
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.core.objects.CapType`
+            - Enumeration tracking cap names.
+
+
+          * - :py:obj:`~ansys.heart.core.objects.PartType`
+            - Stores valid part types.
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> Feature</api/ansys/heart/core/objects/Feature>
+    <span class="nf nf-cod-symbol_class"></span> SurfaceMesh</api/ansys/heart/core/objects/SurfaceMesh>
+    <span class="nf nf-cod-symbol_class"></span> Cavity</api/ansys/heart/core/objects/Cavity>
+    <span class="nf nf-cod-symbol_class"></span> Cap</api/ansys/heart/core/objects/Cap>
+    <span class="nf nf-cod-symbol_class"></span> Point</api/ansys/heart/core/objects/Point>
+    <span class="nf nf-cod-symbol_class"></span> Mesh</api/ansys/heart/core/objects/Mesh>
+    <span class="nf nf-cod-symbol_class"></span> Part</api/ansys/heart/core/objects/Part>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_enum"></span> CapType</api/ansys/heart/core/objects/CapType>
+    <span class="nf nf-cod-symbol_enum"></span> PartType</api/ansys/heart/core/objects/PartType>
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module that defines classes used in the heart model.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

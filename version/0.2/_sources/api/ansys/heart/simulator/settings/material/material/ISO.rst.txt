@@ -1,0 +1,115 @@
+
+
+
+
+ISO
+===
+
+.. py:class:: ISO
+   :canonical: ansys.heart.simulator.settings.material.material.ISO
+
+
+
+
+
+   Isotropic module of MAT_295.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: ISO
+.. tab-set::
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~itype`
+            - 
+          * - :py:attr:`~beta`
+            - 
+          * - :py:attr:`~nu`
+            - 
+          * - :py:attr:`~k1`
+            - 
+          * - :py:attr:`~k2`
+            - 
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.material import ISO
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: itype
+   :type: int
+
+   
+
+.. py:attribute:: beta
+   :type: float
+   :value: 0.0
+
+   
+
+.. py:attribute:: nu
+   :type: float
+   :value: 0.499
+
+   
+
+.. py:attribute:: k1
+   :type: float
+
+   
+
+.. py:attribute:: k2
+   :type: float
+
+   
+
+
+

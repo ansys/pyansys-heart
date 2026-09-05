@@ -1,0 +1,135 @@
+
+
+
+
+
+
+The ``material.py`` module
+==========================
+
+.. py:module:: ansys.health.heart.settings.material.material
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: material
+.. tab-set::
+
+
+
+    .. tab-item:: Interfaces
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.material.ISO`
+            - Isotropic module of MAT_295.
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.material.ANISO`
+            - Anisotropic module of MAT_295.
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.material.ActiveModel`
+            - Abstract class for different active models.
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.material.ACTIVE`
+            - Active module of MAT_295.
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.material.MechanicalMaterialModel`
+            - Base class for all mechanical material model.
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.material.Mat295`
+            - Hold data for MAT_ANISOTROPIC_HYPERELASTIC (MAT_295).
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.material.NeoHookean`
+            - Passive isotropic material with MAT_77H.
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_interface"></span> ISO</api/ansys/health/heart/settings/material/material/ISO>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> ANISO</api/ansys/health/heart/settings/material/material/ANISO>
+    <span class="nf nf-cod-symbol_class"></span> ActiveModel</api/ansys/health/heart/settings/material/material/ActiveModel>
+    <span class="nf nf-cod-symbol_class"></span> ACTIVE</api/ansys/health/heart/settings/material/material/ACTIVE>
+    <span class="nf nf-cod-symbol_class"></span> MechanicalMaterialModel</api/ansys/health/heart/settings/material/material/MechanicalMaterialModel>
+    <span class="nf nf-cod-symbol_class"></span> Mat295</api/ansys/health/heart/settings/material/material/Mat295>
+    <span class="nf nf-cod-symbol_class"></span> NeoHookean</api/ansys/health/heart/settings/material/material/NeoHookean>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Material module.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

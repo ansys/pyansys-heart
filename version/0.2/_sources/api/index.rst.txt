@@ -1,0 +1,15 @@
+API reference
+=============
+
+This section describes pyansys-heart endpoints, their capabilities, and how
+to interact with them programmatically.
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   🖿 ansys.heart.general</api/ansys/heart/general/index>
+   🖿 ansys.heart.preprocessor</api/ansys/heart/preprocessor/index>
+   🖿 ansys.heart.simulator</api/ansys/heart/simulator/index>
+   🖿 ansys.heart.core</api/ansys/heart/core/index>
+   🖿 ansys.heart.postprocessor</api/ansys/heart/postprocessor/index>

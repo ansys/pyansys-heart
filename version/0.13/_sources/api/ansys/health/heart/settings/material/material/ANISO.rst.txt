@@ -1,0 +1,320 @@
+
+
+
+
+
+
+:class:`ANISO`
+==============
+
+.. toctree::
+   :hidden:
+
+    HGOFiber</api/ansys/health/heart/settings/material/material/ANISO.HGOFiber>
+
+
+.. py:class:: ansys.health.heart.settings.material.material.ANISO
+
+   
+   Anisotropic module of MAT_295.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+.. py:currentmodule:: ANISO
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~atype`
+            - Type of anisotropic model.
+          * - :py:attr:`~fibers`
+            - List of fibers.
+          * - :py:attr:`~k1fs`
+            - k1 for HGO model for coupling between fibers.
+          * - :py:attr:`~k2fs`
+            - k2 for HGO model for coupling between fibers.
+          * - :py:attr:`~vec_a`
+            - Component of fiber direction, don't change it.
+          * - :py:attr:`~vec_d`
+            - Component of sheet direction, don't change it.
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__post_init__`
+            - Check and deduce other parameters from input.
+          * - :py:attr:`~__repr__`
+            - Make sure print contains field in __post_init__.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.material import ANISO
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: atype
+   :type:  int
+   :value: -1
+
+
+   
+   Type of anisotropic model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: fibers
+   :type:  List[ANISO.HGOFiber]
+   :value: None
+
+
+   
+   List of fibers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: k1fs
+   :type:  Optional[float]
+   :value: None
+
+
+   
+   k1 for HGO model for coupling between fibers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: k2fs
+   :type:  Optional[float]
+   :value: None
+
+
+   
+   k2 for HGO model for coupling between fibers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: vec_a
+   :type:  tuple
+   :value: (1.0, 0.0, 0.0)
+
+
+   
+   Component of fiber direction, don't change it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: vec_d
+   :type:  tuple
+   :value: (0.0, 1.0, 0.0)
+
+
+   
+   Component of sheet direction, don't change it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: __post_init__()
+
+   
+   Check and deduce other parameters from input.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: __repr__()
+
+   
+   Make sure print contains field in __post_init__.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+    ansys.health.heart.settings.material.material.ANISO.HGOFiber
+
+
+
+

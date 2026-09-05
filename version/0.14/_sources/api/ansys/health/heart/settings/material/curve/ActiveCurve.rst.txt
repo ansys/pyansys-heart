@@ -1,0 +1,195 @@
+
+
+
+
+
+
+:class:`ActiveCurve`
+====================
+
+
+.. py:class:: ansys.health.heart.settings.material.curve.ActiveCurve(func: tuple[numpy.ndarray, numpy.ndarray], type: Literal['stress', 'ca2'] = 'ca2', threshold: float = 5e-07, n: int = 5)
+
+   
+   Active stress or Ca2+ curve.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: ActiveCurve
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~plot_time_vs_ca2`
+            - Plot Ca2+ with threshold.
+          * - :py:attr:`~plot_time_vs_stress`
+            - Plot stress.
+
+
+   .. tab-item:: Properties
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~dyna_input`
+            - Return x,y input for k files.
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~type`
+            - 
+          * - :py:attr:`~n_beat`
+            - 
+          * - :py:attr:`~threshold`
+            - 
+          * - :py:attr:`~time`
+            - 
+          * - :py:attr:`~t_beat`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.curve import ActiveCurve
+
+Property detail
+---------------
+
+.. py:property:: dyna_input
+
+   
+   Return x,y input for k files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: type
+   :value: 'ca2'
+
+
+.. py:attribute:: n_beat
+   :value: 5
+
+
+.. py:attribute:: threshold
+   :value: 5e-07
+
+
+.. py:attribute:: time
+
+.. py:attribute:: t_beat
+
+
+
+Method detail
+-------------
+
+.. py:method:: plot_time_vs_ca2()
+
+   
+   Plot Ca2+ with threshold.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: plot_time_vs_stress()
+
+   
+   Plot stress.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

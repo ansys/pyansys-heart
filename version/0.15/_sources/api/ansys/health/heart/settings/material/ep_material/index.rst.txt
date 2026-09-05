@@ -1,0 +1,128 @@
+
+
+
+
+
+
+The ``ep_material.py`` module
+=============================
+
+.. py:module:: ansys.health.heart.settings.material.ep_material
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: ep_material
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.ep_material.EPMaterialModel`
+            - Base class for all EP material models.
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.ep_material.Insulator`
+            - Insulator material.
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.ep_material.Passive`
+            - Hold data for a passive EP material.
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.ep_material.Active`
+            - Hold data for an active EP material.
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.ep_material.ActiveBeam`
+            - Hold data for beam active EP material.
+
+
+
+    .. tab-item:: Enums
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.ep_material.EPSolverType`
+            - Enumeration of EP solver types.
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> EPMaterialModel</api/ansys/health/heart/settings/material/ep_material/EPMaterialModel>
+    <span class="nf nf-cod-symbol_class"></span> Insulator</api/ansys/health/heart/settings/material/ep_material/Insulator>
+    <span class="nf nf-cod-symbol_class"></span> Passive</api/ansys/health/heart/settings/material/ep_material/Passive>
+    <span class="nf nf-cod-symbol_class"></span> Active</api/ansys/health/heart/settings/material/ep_material/Active>
+    <span class="nf nf-cod-symbol_class"></span> ActiveBeam</api/ansys/health/heart/settings/material/ep_material/ActiveBeam>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_enum"></span> EPSolverType</api/ansys/health/heart/settings/material/ep_material/EPSolverType>
+
+
+
+
+
+
+
+
+Description
+-----------
+
+EP material module.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

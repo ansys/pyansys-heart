@@ -1,0 +1,1344 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>preprocessor.models &#8212; pyansys-heart</title>
+
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/css/ansys_sphinx_theme.css?v=068850c2" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=7c3339d6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+ 
+<link href="../../../_static/css/breadcrumbs.css" rel="stylesheet" />
+
+    <script src="../../../_static/documentation_options.js?v=38b66d78"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/table.js?v=b64f5182"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/preprocessor/models/index';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://heart.health.docs.pyansys.com/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.1';
+        </script>
+    <link rel="icon" href="../../../_static/ansys-favicon.png"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="simulator" href="../../simulator/index.html" />
+    <link rel="prev" title="preprocessor.model_definitions" href="../model_definitions/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <link rel="canonical" href="https://heart.health.docs.pyansys.com/version/stable/autoapi/preprocessor/models/index.html" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container"><!-- Debugging: html_theme_options =  -->
+
+<!-- If there is no MiliSearch enabled, use the PyData search -->
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+   
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  <div class="navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/pyansys-logo-black-cropped.png" class="logo__image only-light" alt="Logo image"/>
+    <script>document.write(`<img src="../../../_static/pyansys-logo-black-cropped.png" class="logo__image only-dark" alt="Logo image"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../getting_started/index.html">
+                        Getting started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../user_guide/index.html">
+                        User guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../../index.html">
+                        API Reference
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../examples/index.html">
+                        Examples
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../contributing.html">
+                        Contribute
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
+      0.1  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
+</div>
+
+    </nav>
+    <div id="announcement_msg"></div>
+<script>
+  fetch("announcement.html")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(
+      (text) => (document.getElementById("announcement_msg").innerHTML = text),
+    )
+    .catch((error) => console.error(`Fetch problem: ${error.message}`));
+</script>   <div class="container-xl">
+  <div class="row">
+    <div class="col-12 col-md-3" id="breadcrumbs-spacer"></div>
+    <div class="col-12 col-md-11 col-xl-9" id="breadcrumbs">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul> 
+<li class="nav-item nav-item-additional-breadcrumb">
+  <a href="https://docs.pyansys.com/">PyAnsys</a> » 
+</li>
+ 
+<li class="nav-item nav-item-0">
+  <a href="../../../index.html">pyansys-heart</a> » 
+</li>
+ 
+          <li class="nav-item nav-item-1"><a href="../../index.html" >API Reference</a> » </li>
+          <li class="nav-item nav-item-2"><a href="../index.html" accesskey="U"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor</span></code></a> » </li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.models</span></code></a></li> 
+      </ul>
+    </div></div>
+  </div>
+</div>
+ 
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../getting_started/index.html">
+                        Getting started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../user_guide/index.html">
+                        User guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../../index.html">
+                        API Reference
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../examples/index.html">
+                        Examples
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../contributing.html">
+                        Contribute
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
+      0.1  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor</span></code></a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../mesh/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.mesh</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../model_definitions/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.model_definitions</span></code></a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.models</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../simulator/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simulator</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../postprocessor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">postprocessor</span></code></a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article"></div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <section id="preprocessor-models">
+<h1><a class="reference internal" href="#module-preprocessor.models" title="preprocessor.models"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.models</span></code></a><a class="headerlink" href="#preprocessor-models" title="Link to this heading">#</a></h1>
+<p id="module-preprocessor.models">Module containing classes for the various heart models.</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h3>
+<table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#preprocessor.models.ModelInfo" title="preprocessor.models.ModelInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ModelInfo</span></code></a></p></td>
+<td><p>Contains model information.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#preprocessor.models.HeartModel" title="preprocessor.models.HeartModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HeartModel</span></code></a></p></td>
+<td><p>Parent class for heart models.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#preprocessor.models.LeftVentricle" title="preprocessor.models.LeftVentricle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LeftVentricle</span></code></a></p></td>
+<td><p>Model of just the left ventricle.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#preprocessor.models.BiVentricle" title="preprocessor.models.BiVentricle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BiVentricle</span></code></a></p></td>
+<td><p>Model of the left and right ventricle.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#preprocessor.models.FourChamber" title="preprocessor.models.FourChamber"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FourChamber</span></code></a></p></td>
+<td><p>Model of the left/right ventricle and left/right atrium.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#preprocessor.models.FullHeart" title="preprocessor.models.FullHeart"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FullHeart</span></code></a></p></td>
+<td><p>Model of both ventricles, both atria, aorta and pulmonary artery.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h3>
+<table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#preprocessor.models.LOGGER" title="preprocessor.models.LOGGER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGGER</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#preprocessor.models.info" title="preprocessor.models.info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">info</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt class="sig sig-object py" id="preprocessor.models.LOGGER">
+<span class="sig-prename descclassname"><span class="pre">preprocessor.models.</span></span><span class="sig-name descname"><span class="pre">LOGGER</span></span><a class="headerlink" href="#preprocessor.models.LOGGER" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.models.</span></span><span class="sig-name descname"><span class="pre">ModelInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">database</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">work_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_to_case</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_to_simulation_mesh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_to_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_blood_pool</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.ModelInfo" title="Link to this definition">#</a></dt>
+<dd><p>Contains model information.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo.database">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">database</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#preprocessor.models.ModelInfo.database" title="Link to this definition">#</a></dt>
+<dd><p>Name of the database to use.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">database</span></span><a class="headerlink" href="#id0" title="Link to this definition">#</a></dt>
+<dd><p>Name of the database to use.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo.workdir">
+<span class="sig-name descname"><span class="pre">workdir</span></span><a class="headerlink" href="#preprocessor.models.ModelInfo.workdir" title="Link to this definition">#</a></dt>
+<dd><p>Path to the working directory.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo.path_to_original_mesh">
+<span class="sig-name descname"><span class="pre">path_to_original_mesh</span></span><a class="headerlink" href="#preprocessor.models.ModelInfo.path_to_original_mesh" title="Link to this definition">#</a></dt>
+<dd><p>Path to the original mesh file.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo.path_to_simulation_mesh">
+<span class="sig-name descname"><span class="pre">path_to_simulation_mesh</span></span><a class="headerlink" href="#preprocessor.models.ModelInfo.path_to_simulation_mesh" title="Link to this definition">#</a></dt>
+<dd><p>Path to simulation(in .vtk format).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo.path_to_model">
+<span class="sig-name descname"><span class="pre">path_to_model</span></span><a class="headerlink" href="#preprocessor.models.ModelInfo.path_to_model" title="Link to this definition">#</a></dt>
+<dd><p>Path to model (in .pickle format).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo.labels_to_ids">
+<span class="sig-name descname"><span class="pre">labels_to_ids</span></span><a class="headerlink" href="#preprocessor.models.ModelInfo.labels_to_ids" title="Link to this definition">#</a></dt>
+<dd><p>Dict that maps labels &gt; part/tag id.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo.ids_to_labels">
+<span class="sig-name descname"><span class="pre">ids_to_labels</span></span><a class="headerlink" href="#preprocessor.models.ModelInfo.ids_to_labels" title="Link to this definition">#</a></dt>
+<dd><p>Inverted dict that maps part/tag id &gt; labels.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo.model_type">
+<span class="sig-name descname"><span class="pre">model_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><a class="headerlink" href="#preprocessor.models.ModelInfo.model_type" title="Link to this definition">#</a></dt>
+<dd><p>Model (geometric) type.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo.mesh_size">
+<span class="sig-name descname"><span class="pre">mesh_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#preprocessor.models.ModelInfo.mesh_size" title="Link to this definition">#</a></dt>
+<dd><p>Mesh size used for remeshing.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo.add_blood_pool">
+<span class="sig-name descname"><span class="pre">add_blood_pool</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><a class="headerlink" href="#preprocessor.models.ModelInfo.add_blood_pool" title="Link to this definition">#</a></dt>
+<dd><p>Flag indicating whether to add blood to the cavities.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo.clean_workdir">
+<span class="sig-name descname"><span class="pre">clean_workdir</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">extensions_to_remove</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['.stl',</span> <span class="pre">'.vtk',</span> <span class="pre">'.msh.h5']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_all</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.models.ModelInfo.clean_workdir" title="Link to this definition">#</a></dt>
+<dd><p>Remove files with extension present in the working directory.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>extensions_to_remove</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>List of extensions to remove, by default [“.stl”, “.vtk”, “.msh.h5”]</p>
+</dd>
+<dt><strong>remove_all: bool, optional</strong></dt><dd><p>Flag indicating whether to remove files with any extension.
+Keeps files/folder without extension</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo.create_workdir">
+<span class="sig-name descname"><span class="pre">create_workdir</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.models.ModelInfo.create_workdir" title="Link to this definition">#</a></dt>
+<dd><p>Create the working directory if it doesn’t exist.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.ModelInfo.dump_info">
+<span class="sig-name descname"><span class="pre">dump_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.models.ModelInfo.dump_info" title="Link to this definition">#</a></dt>
+<dd><p>Dump model information to file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.models.</span></span><span class="sig-name descname"><span class="pre">HeartModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#preprocessor.models.ModelInfo" title="preprocessor.models.ModelInfo"><span class="pre">ModelInfo</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.HeartModel" title="Link to this definition">#</a></dt>
+<dd><p>Parent class for heart models.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.parts">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">parts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#preprocessor.models.HeartModel.parts" title="Link to this definition">#</a></dt>
+<dd><p>Return list of parts.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.part_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">part_names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#preprocessor.models.HeartModel.part_names" title="Link to this definition">#</a></dt>
+<dd><p>Return list of part names.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.part_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">part_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#preprocessor.models.HeartModel.part_ids" title="Link to this definition">#</a></dt>
+<dd><p>Return list of used part ids.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.cavities">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cavities</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ansys.heart.preprocessor.mesh.objects.Cavity</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#preprocessor.models.HeartModel.cavities" title="Link to this definition">#</a></dt>
+<dd><p>Return list of cavities in the model.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.info">
+<span class="sig-name descname"><span class="pre">info</span></span><a class="headerlink" href="#preprocessor.models.HeartModel.info" title="Link to this definition">#</a></dt>
+<dd><p>Model meta information.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.mesh">
+<span class="sig-name descname"><span class="pre">mesh</span></span><a class="headerlink" href="#preprocessor.models.HeartModel.mesh" title="Link to this definition">#</a></dt>
+<dd><p>Modified mesh of the tissue.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.mesh_raw">
+<span class="sig-name descname"><span class="pre">mesh_raw</span></span><a class="headerlink" href="#preprocessor.models.HeartModel.mesh_raw" title="Link to this definition">#</a></dt>
+<dd><p>Raw input mesh.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.fluid_mesh">
+<span class="sig-name descname"><span class="pre">fluid_mesh</span></span><a class="headerlink" href="#preprocessor.models.HeartModel.fluid_mesh" title="Link to this definition">#</a></dt>
+<dd><p>Generated fluid mesh.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.model_type">
+<span class="sig-name descname"><span class="pre">model_type</span></span><a class="headerlink" href="#preprocessor.models.HeartModel.model_type" title="Link to this definition">#</a></dt>
+<dd><p>Model type.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">model_type</span></span><a class="headerlink" href="#id1" title="Link to this definition">#</a></dt>
+<dd><p>Elemental labels of AHA17 segments.
+NaN for elements not belong to left ventricle.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.cap_centroids">
+<span class="sig-name descname"><span class="pre">cap_centroids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ansys.heart.preprocessor.mesh.objects.Point</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#preprocessor.models.HeartModel.cap_centroids" title="Link to this definition">#</a></dt>
+<dd><p>Centroid point to create cap shell.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.beam_network">
+<span class="sig-name descname"><span class="pre">beam_network</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ansys.heart.preprocessor.mesh.objects.BeamMesh</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#preprocessor.models.HeartModel.beam_network" title="Link to this definition">#</a></dt>
+<dd><p>List of beam networks in the mesh.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.electrodes">
+<span class="sig-name descname"><span class="pre">electrodes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">ansys.heart.preprocessor.mesh.objects.Point</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#preprocessor.models.HeartModel.electrodes" title="Link to this definition">#</a></dt>
+<dd><p>Electrodes positions for ECG computing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.add_purkinje_from_kfile">
+<span class="sig-name descname"><span class="pre">add_purkinje_from_kfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.models.HeartModel.add_purkinje_from_kfile" title="Link to this definition">#</a></dt>
+<dd><p>Read an LS-DYNA file containing purkinje beams and nodes.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a></span></dt><dd></dd>
+<dt><strong>name</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a></span></dt><dd><p>beamnet name</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.add_beam_net">
+<span class="sig-name descname"><span class="pre">add_beam_net</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beam_nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ansys.heart.preprocessor.mesh.objects.BeamMesh</span></span></span><a class="headerlink" href="#preprocessor.models.HeartModel.add_beam_net" title="Link to this definition">#</a></dt>
+<dd><p>Add a BeamMesh object on the model.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>beam_nodes</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">np.ndarray</span></code></span></dt><dd><p>new nodes coordinates.</p>
+</dd>
+<dt><strong>edges</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">np.ndarray</span></code></span></dt><dd><p>beam elements connectivity
+If <cite>mask</cite> is true, it’s Id of <cite>beam_nodes</cite> (start by 0),
+it will be offset when creating BeamMesh object.
+If <cite>mask</cite> is false, it’s Id of existed nodes, it will not be offset.</p>
+</dd>
+<dt><strong>mask</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">np.ndarray</span></code></span></dt><dd><p>with the same shape of <cite>edges</cite></p>
+</dd>
+<dt><strong>pid</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>part Id, will be reassigned when writing, by default 0</p>
+</dd>
+<dt><strong>name</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>name, by default None</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">BeamMesh</span></code></dt><dd><p>BeamMesh object</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.extract_simulation_mesh">
+<span class="sig-name descname"><span class="pre">extract_simulation_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clean_up</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.models.HeartModel.extract_simulation_mesh" title="Link to this definition">#</a></dt>
+<dd><p>Update the model.</p>
+<p class="rubric">Examples</p>
+<p>Processes a model from the public database and generates a simulation mesh</p>
+<ol class="arabic simple">
+<li><p>Instantiate object that stores relevant information for the preprocessor</p></li>
+</ol>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">info</span> <span class="o">=</span> <span class="n">ModelInfo</span><span class="p">(</span>
+<span class="go">               database=&quot;Strocchi2020&quot;,</span>
+<span class="go">               path_to_case = &quot;01.case&quot;,</span>
+<span class="go">               work_directory = &quot;workdir&quot;,</span>
+<span class="go">               mesh_size = 1.5</span>
+<span class="go">               )</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Instantiate the model object</p></li>
+</ol>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">FullHeart</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Run the extract simulation mesh method</p></li>
+</ol>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">extract_simulation_mesh</span><span class="p">()</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Save model to disk</p></li>
+</ol>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">dump_model</span><span class="p">()</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="5">
+<li><p>Print info about the model</p></li>
+</ol>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">print_info</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.get_part">
+<span class="sig-name descname"><span class="pre">get_part</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_substring</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.models.HeartModel.get_part" title="Link to this definition">#</a></dt>
+<dd><p>Get specific part based on part name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.add_part">
+<span class="sig-name descname"><span class="pre">add_part</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">part_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.models.HeartModel.add_part" title="Link to this definition">#</a></dt>
+<dd><p>Dynamically add a part as an attribute to the object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.remove_part">
+<span class="sig-name descname"><span class="pre">remove_part</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">part_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.models.HeartModel.remove_part" title="Link to this definition">#</a></dt>
+<dd><p>Remove a part with a specific name from the model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.print_info">
+<span class="sig-name descname"><span class="pre">print_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.models.HeartModel.print_info" title="Link to this definition">#</a></dt>
+<dd><p>Print information about the model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.read_input_mesh">
+<span class="sig-name descname"><span class="pre">read_input_mesh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.models.HeartModel.read_input_mesh" title="Link to this definition">#</a></dt>
+<dd><p>Read the input mesh defined in ModelInfo.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.dump_model">
+<span class="sig-name descname"><span class="pre">dump_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_raw_mesh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.models.HeartModel.dump_model" title="Link to this definition">#</a></dt>
+<dd><p>Save model to file.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">dump_model</span><span class="p">(</span><span class="s2">&quot;my_heart_model.pickle&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.plot_mesh">
+<span class="sig-name descname"><span class="pre">plot_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plot_raw_mesh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_by</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'tags'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.HeartModel.plot_mesh" title="Link to this definition">#</a></dt>
+<dd><p>Plot the volume mesh of the heart model.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>plot_raw_mesh</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>Whether to plot the raw mesh, by default False</p>
+</dd>
+<dt><strong>show_edges</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>Whether to plot the edges, by default True</p>
+</dd>
+<dt><strong>color_by</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>Color by cell/point data, by default “tags”</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ansys.heart.preprocessor.models</span> <span class="k">as</span> <span class="nn">models</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">HeartModel</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;heart_model.pickle&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">plot_mesh</span><span class="p">(</span><span class="n">show_edges</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.plot_fibers">
+<span class="sig-name descname"><span class="pre">plot_fibers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_seed_points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_raw_mesh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.HeartModel.plot_fibers" title="Link to this definition">#</a></dt>
+<dd><p>Plot the mesh and fibers as streamlines.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>plot_raw_mesh</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>Flag indicating whether to plot the streamlines on the raw mesh, by default False</p>
+</dd>
+<dt><strong>n_seed_points</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>Number of seed points. Recommended to use 5000, by default 1000</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ansys.heart.preprocessor.models</span> <span class="k">as</span> <span class="nn">models</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">HeartModel</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;my_model.pickle&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">plot_fibers</span><span class="p">(</span><span class="n">n_seed_points</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.plot_surfaces">
+<span class="sig-name descname"><span class="pre">plot_surfaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.HeartModel.plot_surfaces" title="Link to this definition">#</a></dt>
+<dd><p>Plot all the surfaces in the model.</p>
+<p class="rubric">Examples</p>
+<p>Import modules and load model.
+&gt;&gt;&gt; import ansys.heart.preprocessor.models as models
+&gt;&gt;&gt; model = models.HeartModel.load_model(“my_model.pickle”)
+Plot the model
+&gt;&gt;&gt; model.plot(show_edges=True)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.plot_purkinje">
+<span class="sig-name descname"><span class="pre">plot_purkinje</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.HeartModel.plot_purkinje" title="Link to this definition">#</a></dt>
+<dd><p>Plot the mesh and Purkinje network.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.load_model">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.HeartModel.load_model" title="Link to this definition">#</a></dt>
+<dd><p>Load a preprocessed model from file.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">HeartModel</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;my_model.pickle&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.compute_left_ventricle_anatomy_axis">
+<span class="sig-name descname"><span class="pre">compute_left_ventricle_anatomy_axis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">first_cut_short_axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.HeartModel.compute_left_ventricle_anatomy_axis" title="Link to this definition">#</a></dt>
+<dd><p>Compute the long and short axes of the left ventricle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>first_cut_short_axis: default=0.2, use to avoid cut on aortic valve</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.compute_left_ventricle_aha17">
+<span class="sig-name descname"><span class="pre">compute_left_ventricle_aha17</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">17</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_junction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.models.HeartModel.compute_left_ventricle_aha17" title="Link to this definition">#</a></dt>
+<dd><p>Compute AHA17 label for left ventricle elements.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>seg ::  default 17, or 16 segments</strong></dt><dd></dd>
+<dt><strong>p_junction: use CASIS definition for the first cut</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.compute_left_ventricle_element_cs">
+<span class="sig-name descname"><span class="pre">compute_left_ventricle_element_cs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.HeartModel.compute_left_ventricle_element_cs" title="Link to this definition">#</a></dt>
+<dd><p>Compute elemental coordinate system for aha17 elements.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.HeartModel.get_apex_node_set">
+<span class="sig-name descname"><span class="pre">get_apex_node_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">part</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">left</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">right</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'left'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">endocardium</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">epicardium</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">myocardium</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'epicardium'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#preprocessor.models.HeartModel.get_apex_node_set" title="Link to this definition">#</a></dt>
+<dd><p>Get a node set around apex point.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>part</strong><span class="classifier">left&amp;quot;, &amp;quot;right&amp;quot;], <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>on which part, by default “left”</p>
+</dd>
+<dt><strong>option</strong><span class="classifier">endocardium&amp;quot;, &amp;quot;epicardium&amp;quot;, &amp;quot;myocardium&amp;quot;], <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>on surface or in mesh, by default “epicardium”</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.13)"><code class="docutils literal notranslate"><span class="pre">float</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>search in radius, by default 3</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">np.ndarray</span></code></dt><dd><p>apex node set</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.models.LeftVentricle">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.models.</span></span><span class="sig-name descname"><span class="pre">LeftVentricle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#preprocessor.models.ModelInfo" title="preprocessor.models.ModelInfo"><span class="pre">ModelInfo</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.LeftVentricle" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#preprocessor.models.HeartModel" title="preprocessor.models.HeartModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HeartModel</span></code></a></p>
+<p>Model of just the left ventricle.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.LeftVentricle.left_ventricle">
+<span class="sig-name descname"><span class="pre">left_ventricle</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.LeftVentricle.left_ventricle" title="Link to this definition">#</a></dt>
+<dd><p>Left ventricle part.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.models.BiVentricle">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.models.</span></span><span class="sig-name descname"><span class="pre">BiVentricle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#preprocessor.models.ModelInfo" title="preprocessor.models.ModelInfo"><span class="pre">ModelInfo</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.BiVentricle" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#preprocessor.models.HeartModel" title="preprocessor.models.HeartModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HeartModel</span></code></a></p>
+<p>Model of the left and right ventricle.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.BiVentricle.left_ventricle">
+<span class="sig-name descname"><span class="pre">left_ventricle</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.BiVentricle.left_ventricle" title="Link to this definition">#</a></dt>
+<dd><p>Left ventricle part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.BiVentricle.right_ventricle">
+<span class="sig-name descname"><span class="pre">right_ventricle</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.BiVentricle.right_ventricle" title="Link to this definition">#</a></dt>
+<dd><p>Right ventricle part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.BiVentricle.septum">
+<span class="sig-name descname"><span class="pre">septum</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.BiVentricle.septum" title="Link to this definition">#</a></dt>
+<dd><p>Septum.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.models.FourChamber">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.models.</span></span><span class="sig-name descname"><span class="pre">FourChamber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#preprocessor.models.ModelInfo" title="preprocessor.models.ModelInfo"><span class="pre">ModelInfo</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.FourChamber" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#preprocessor.models.HeartModel" title="preprocessor.models.HeartModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HeartModel</span></code></a></p>
+<p>Model of the left/right ventricle and left/right atrium.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.FourChamber.left_ventricle">
+<span class="sig-name descname"><span class="pre">left_ventricle</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.FourChamber.left_ventricle" title="Link to this definition">#</a></dt>
+<dd><p>Left ventricle part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.FourChamber.right_ventricle">
+<span class="sig-name descname"><span class="pre">right_ventricle</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.FourChamber.right_ventricle" title="Link to this definition">#</a></dt>
+<dd><p>Right ventricle part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.FourChamber.septum">
+<span class="sig-name descname"><span class="pre">septum</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.FourChamber.septum" title="Link to this definition">#</a></dt>
+<dd><p>Septum.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.FourChamber.left_atrium">
+<span class="sig-name descname"><span class="pre">left_atrium</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.FourChamber.left_atrium" title="Link to this definition">#</a></dt>
+<dd><p>Left atrium part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.FourChamber.right_atrium">
+<span class="sig-name descname"><span class="pre">right_atrium</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.FourChamber.right_atrium" title="Link to this definition">#</a></dt>
+<dd><p>Right atrium part.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.FourChamber.compute_SA_node">
+<span class="sig-name descname"><span class="pre">compute_SA_node</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ansys.heart.preprocessor.mesh.objects.Point</span></span></span><a class="headerlink" href="#preprocessor.models.FourChamber.compute_SA_node" title="Link to this definition">#</a></dt>
+<dd><p>Compute SinoAtrial node.</p>
+<p>SinoAtrial node is defined on endocardium surface and
+between sup vena cave and inf vena cave.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.FourChamber.compute_AV_node">
+<span class="sig-name descname"><span class="pre">compute_AV_node</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ansys.heart.preprocessor.mesh.objects.Point</span></span></span><a class="headerlink" href="#preprocessor.models.FourChamber.compute_AV_node" title="Link to this definition">#</a></dt>
+<dd><p>Compute Atrio-Ventricular node.</p>
+<p>AtrioVentricular node is on right artrium endocardium surface and closest to septum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">Point</span></code></dt><dd><p>returns the AV node.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.FourChamber.compute_av_conduction">
+<span class="sig-name descname"><span class="pre">compute_av_conduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">create_new_nodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ansys.heart.preprocessor.mesh.objects.BeamMesh</span></span></span><a class="headerlink" href="#preprocessor.models.FourChamber.compute_av_conduction" title="Link to this definition">#</a></dt>
+<dd><p>Compute Atrio-Ventricular conduction by means of beams following a geodesic path.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>create_new_nodes</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.13)"><span class="xref std std-ref">bool</span></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>Duplicate nodes found of the computed geodesic path, by default True</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">BeamMesh</span></code></dt><dd><p>Beam mesh.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference external" href="https://docs.python.org/dev/library/exceptions.html#NotImplementedError" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NotImplementedError</span></code></a></dt><dd><p>Not implemented error.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.FourChamber.compute_His_conduction">
+<span class="sig-name descname"><span class="pre">compute_His_conduction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.FourChamber.compute_His_conduction" title="Link to this definition">#</a></dt>
+<dd><p>Compute His bundle conduction.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.FourChamber.compute_left_right_bundle">
+<span class="sig-name descname"><span class="pre">compute_left_right_bundle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_coord</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">side</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.FourChamber.compute_left_right_bundle" title="Link to this definition">#</a></dt>
+<dd><p>Bundle brunch.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.models.FourChamber.compute_Bachman_bundle">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute_Bachman_bundle</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.FourChamber.compute_Bachman_bundle" title="Link to this definition">#</a></dt>
+<dd><p>Compute Bachman bundle conduction system.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.models.FullHeart">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.models.</span></span><span class="sig-name descname"><span class="pre">FullHeart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#preprocessor.models.ModelInfo" title="preprocessor.models.ModelInfo"><span class="pre">ModelInfo</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.models.FullHeart" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#preprocessor.models.FourChamber" title="preprocessor.models.FourChamber"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FourChamber</span></code></a></p>
+<p>Model of both ventricles, both atria, aorta and pulmonary artery.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.FullHeart.left_ventricle">
+<span class="sig-name descname"><span class="pre">left_ventricle</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.FullHeart.left_ventricle" title="Link to this definition">#</a></dt>
+<dd><p>Left ventricle part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.FullHeart.right_ventricle">
+<span class="sig-name descname"><span class="pre">right_ventricle</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.FullHeart.right_ventricle" title="Link to this definition">#</a></dt>
+<dd><p>Right ventricle part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.FullHeart.septum">
+<span class="sig-name descname"><span class="pre">septum</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.FullHeart.septum" title="Link to this definition">#</a></dt>
+<dd><p>Septum.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.FullHeart.left_atrium">
+<span class="sig-name descname"><span class="pre">left_atrium</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.FullHeart.left_atrium" title="Link to this definition">#</a></dt>
+<dd><p>Left atrium part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.FullHeart.right_atrium">
+<span class="sig-name descname"><span class="pre">right_atrium</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.FullHeart.right_atrium" title="Link to this definition">#</a></dt>
+<dd><p>Right atrium part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.FullHeart.aorta">
+<span class="sig-name descname"><span class="pre">aorta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.FullHeart.aorta" title="Link to this definition">#</a></dt>
+<dd><p>Aorta part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.models.FullHeart.pulmonary_artery">
+<span class="sig-name descname"><span class="pre">pulmonary_artery</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ansys.heart.preprocessor.mesh.objects.Part</span></em><a class="headerlink" href="#preprocessor.models.FullHeart.pulmonary_artery" title="Link to this definition">#</a></dt>
+<dd><p>Pulmonary artery part.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="preprocessor.models.info">
+<span class="sig-prename descclassname"><span class="pre">preprocessor.models.</span></span><span class="sig-name descname"><span class="pre">info</span></span><a class="headerlink" href="#preprocessor.models.info" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.LOGGER"><code class="docutils literal notranslate"><span class="pre">LOGGER</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo"><code class="docutils literal notranslate"><span class="pre">ModelInfo</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo.database"><code class="docutils literal notranslate"><span class="pre">ModelInfo.database</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id0"><code class="docutils literal notranslate"><span class="pre">ModelInfo.database</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo.workdir"><code class="docutils literal notranslate"><span class="pre">ModelInfo.workdir</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo.path_to_original_mesh"><code class="docutils literal notranslate"><span class="pre">ModelInfo.path_to_original_mesh</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo.path_to_simulation_mesh"><code class="docutils literal notranslate"><span class="pre">ModelInfo.path_to_simulation_mesh</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo.path_to_model"><code class="docutils literal notranslate"><span class="pre">ModelInfo.path_to_model</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo.labels_to_ids"><code class="docutils literal notranslate"><span class="pre">ModelInfo.labels_to_ids</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo.ids_to_labels"><code class="docutils literal notranslate"><span class="pre">ModelInfo.ids_to_labels</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo.model_type"><code class="docutils literal notranslate"><span class="pre">ModelInfo.model_type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo.mesh_size"><code class="docutils literal notranslate"><span class="pre">ModelInfo.mesh_size</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo.add_blood_pool"><code class="docutils literal notranslate"><span class="pre">ModelInfo.add_blood_pool</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo.clean_workdir"><code class="docutils literal notranslate"><span class="pre">ModelInfo.clean_workdir()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo.create_workdir"><code class="docutils literal notranslate"><span class="pre">ModelInfo.create_workdir()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.ModelInfo.dump_info"><code class="docutils literal notranslate"><span class="pre">ModelInfo.dump_info()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel"><code class="docutils literal notranslate"><span class="pre">HeartModel</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.parts"><code class="docutils literal notranslate"><span class="pre">HeartModel.parts</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.part_names"><code class="docutils literal notranslate"><span class="pre">HeartModel.part_names</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.part_ids"><code class="docutils literal notranslate"><span class="pre">HeartModel.part_ids</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.cavities"><code class="docutils literal notranslate"><span class="pre">HeartModel.cavities</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.info"><code class="docutils literal notranslate"><span class="pre">HeartModel.info</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.mesh"><code class="docutils literal notranslate"><span class="pre">HeartModel.mesh</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.mesh_raw"><code class="docutils literal notranslate"><span class="pre">HeartModel.mesh_raw</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.fluid_mesh"><code class="docutils literal notranslate"><span class="pre">HeartModel.fluid_mesh</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.model_type"><code class="docutils literal notranslate"><span class="pre">HeartModel.model_type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id1"><code class="docutils literal notranslate"><span class="pre">HeartModel.model_type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.cap_centroids"><code class="docutils literal notranslate"><span class="pre">HeartModel.cap_centroids</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.beam_network"><code class="docutils literal notranslate"><span class="pre">HeartModel.beam_network</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.electrodes"><code class="docutils literal notranslate"><span class="pre">HeartModel.electrodes</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.add_purkinje_from_kfile"><code class="docutils literal notranslate"><span class="pre">HeartModel.add_purkinje_from_kfile()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.add_beam_net"><code class="docutils literal notranslate"><span class="pre">HeartModel.add_beam_net()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.extract_simulation_mesh"><code class="docutils literal notranslate"><span class="pre">HeartModel.extract_simulation_mesh()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.get_part"><code class="docutils literal notranslate"><span class="pre">HeartModel.get_part()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.add_part"><code class="docutils literal notranslate"><span class="pre">HeartModel.add_part()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.remove_part"><code class="docutils literal notranslate"><span class="pre">HeartModel.remove_part()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.print_info"><code class="docutils literal notranslate"><span class="pre">HeartModel.print_info()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.read_input_mesh"><code class="docutils literal notranslate"><span class="pre">HeartModel.read_input_mesh()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.dump_model"><code class="docutils literal notranslate"><span class="pre">HeartModel.dump_model()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.plot_mesh"><code class="docutils literal notranslate"><span class="pre">HeartModel.plot_mesh()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.plot_fibers"><code class="docutils literal notranslate"><span class="pre">HeartModel.plot_fibers()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.plot_surfaces"><code class="docutils literal notranslate"><span class="pre">HeartModel.plot_surfaces()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.plot_purkinje"><code class="docutils literal notranslate"><span class="pre">HeartModel.plot_purkinje()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.load_model"><code class="docutils literal notranslate"><span class="pre">HeartModel.load_model()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.compute_left_ventricle_anatomy_axis"><code class="docutils literal notranslate"><span class="pre">HeartModel.compute_left_ventricle_anatomy_axis()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.compute_left_ventricle_aha17"><code class="docutils literal notranslate"><span class="pre">HeartModel.compute_left_ventricle_aha17()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.compute_left_ventricle_element_cs"><code class="docutils literal notranslate"><span class="pre">HeartModel.compute_left_ventricle_element_cs()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.HeartModel.get_apex_node_set"><code class="docutils literal notranslate"><span class="pre">HeartModel.get_apex_node_set()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.LeftVentricle"><code class="docutils literal notranslate"><span class="pre">LeftVentricle</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.LeftVentricle.left_ventricle"><code class="docutils literal notranslate"><span class="pre">LeftVentricle.left_ventricle</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.BiVentricle"><code class="docutils literal notranslate"><span class="pre">BiVentricle</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.BiVentricle.left_ventricle"><code class="docutils literal notranslate"><span class="pre">BiVentricle.left_ventricle</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.BiVentricle.right_ventricle"><code class="docutils literal notranslate"><span class="pre">BiVentricle.right_ventricle</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.BiVentricle.septum"><code class="docutils literal notranslate"><span class="pre">BiVentricle.septum</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FourChamber"><code class="docutils literal notranslate"><span class="pre">FourChamber</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FourChamber.left_ventricle"><code class="docutils literal notranslate"><span class="pre">FourChamber.left_ventricle</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FourChamber.right_ventricle"><code class="docutils literal notranslate"><span class="pre">FourChamber.right_ventricle</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FourChamber.septum"><code class="docutils literal notranslate"><span class="pre">FourChamber.septum</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FourChamber.left_atrium"><code class="docutils literal notranslate"><span class="pre">FourChamber.left_atrium</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FourChamber.right_atrium"><code class="docutils literal notranslate"><span class="pre">FourChamber.right_atrium</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FourChamber.compute_SA_node"><code class="docutils literal notranslate"><span class="pre">FourChamber.compute_SA_node()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FourChamber.compute_AV_node"><code class="docutils literal notranslate"><span class="pre">FourChamber.compute_AV_node()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FourChamber.compute_av_conduction"><code class="docutils literal notranslate"><span class="pre">FourChamber.compute_av_conduction()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FourChamber.compute_His_conduction"><code class="docutils literal notranslate"><span class="pre">FourChamber.compute_His_conduction()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FourChamber.compute_left_right_bundle"><code class="docutils literal notranslate"><span class="pre">FourChamber.compute_left_right_bundle()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FourChamber.compute_Bachman_bundle"><code class="docutils literal notranslate"><span class="pre">FourChamber.compute_Bachman_bundle()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FullHeart"><code class="docutils literal notranslate"><span class="pre">FullHeart</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FullHeart.left_ventricle"><code class="docutils literal notranslate"><span class="pre">FullHeart.left_ventricle</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FullHeart.right_ventricle"><code class="docutils literal notranslate"><span class="pre">FullHeart.right_ventricle</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FullHeart.septum"><code class="docutils literal notranslate"><span class="pre">FullHeart.septum</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FullHeart.left_atrium"><code class="docutils literal notranslate"><span class="pre">FullHeart.left_atrium</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FullHeart.right_atrium"><code class="docutils literal notranslate"><span class="pre">FullHeart.right_atrium</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FullHeart.aorta"><code class="docutils literal notranslate"><span class="pre">FullHeart.aorta</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.FullHeart.pulmonary_artery"><code class="docutils literal notranslate"><span class="pre">FullHeart.pulmonary_artery</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.models.info"><code class="docutils literal notranslate"><span class="pre">info</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+<!-- If there is no fix edit button function, use the PyData edit-this-button--></div>
+
+  <div class="sidebar-secondary-item">
+  <div class="tocsection sourcelink">
+    <a href="../../../_sources/autoapi/preprocessor/models/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+  <p class="copyright">
+    
+      © Copyright (c) 2024 ANSYS, Inc. All rights reserved.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.2.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the
+  <a href="https://sphinxdocs.ansys.com/version/stable/index.html"
+    >Ansys Sphinx Theme</a
+  >
+  0.10.3. <br />Last updated on
+  <span id="date"></span>
+</p>
+<script>
+  var options = { day: "numeric", month: "long", year: "numeric" };
+  var lastModifiedDate = new Date(document.lastModified);
+  var date = lastModifiedDate.toLocaleDateString("en-US", options);
+  document.getElementById("date").innerHTML = date;
+</script></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

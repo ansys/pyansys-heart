@@ -1,0 +1,153 @@
+
+
+:class:`SystemModel`
+====================
+
+.. py:class:: ansys.heart.simulator.settings.settings.SystemModel
+
+   Bases: :py:obj:`Settings`
+
+
+   
+   Stores settings/parameters for system model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: SystemModel
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~name`
+            - Name of the system model.
+          * - :py:attr:`~left_ventricle`
+            - Parameters for left ventricle.
+          * - :py:attr:`~right_ventricle`
+            - Parameters for right ventricle.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.settings import SystemModel
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: name
+   :type:  str
+   :value: 'ConstantPreloadWindkesselAfterload'
+
+
+   
+   Name of the system model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: left_ventricle
+   :type:  AttrDict
+   :value: None
+
+
+   
+   Parameters for left ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: right_ventricle
+   :type:  AttrDict
+   :value: None
+
+
+   
+   Parameters for right ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

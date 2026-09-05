@@ -1,0 +1,117 @@
+
+
+
+
+
+
+:class:`ActiveBeam`
+===================
+
+
+.. py:class:: ansys.health.heart.settings.material.ep_material.ActiveBeam(/, **data: Any)
+
+   Bases: :py:obj:`Active`
+
+
+   
+   Hold data for conduction beam's active EP material.
+
+   Will use ``*EM_MAT_001`` with mtype=2, associated with a cell model same to the endocardium.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: ActiveBeam
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~check_inputs`
+            - Post init method.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~cell_model`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.ep_material import ActiveBeam
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: cell_model
+   :type:  ansys.health.heart.settings.material.cell_models.Tentusscher
+
+
+
+Method detail
+-------------
+
+.. py:method:: check_inputs()
+
+   
+   Post init method.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

@@ -1,0 +1,199 @@
+
+
+
+
+
+
+The ``settings.py`` module
+==========================
+
+.. py:module:: ansys.heart.simulator.settings.settings
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: settings
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.AttrDict`
+            - Dict subclass whose entries can be accessed by attributes as well as normally.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.Settings`
+            - Generic settings class.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.Analysis`
+            - Class for analysis settings.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.EPAnalysis`
+            - Class for EP analysis settings.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.Material`
+            - Class for storing material settings.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.EpMaterial`
+            - Class for storing ep material settings.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.BoundaryConditions`
+            - Stores settings/parameters for boundary conditions.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.SystemModel`
+            - Stores settings/parameters for system model.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.Mechanics`
+            - Class for keeping track of settings.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.AnalysisZeroPressure`
+            - Class for keeping track of zero pressure analysis settings.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.ZeroPressure`
+            - Class for keeping track of settings for stress-free-configuration computation.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.Stimulation`
+            - Stimulation settings.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.Electrophysiology`
+            - Class for keeping track of electrophysiology settings.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.Fibers`
+            - Class for keeping track of fiber settings.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.AtrialFiber`
+            - Class for keeping track of atrial fiber settings.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.Purkinje`
+            - Class for keeping track of purkinje settings.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.SimulationSettings`
+            - Class for keeping track of settings.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings.DynaSettings`
+            - Class for collecting, managing and validating LS-DYNA settings.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> AttrDict</api/ansys/heart/simulator/settings/settings/AttrDict>
+    <span class="nf nf-cod-symbol_class"></span> Settings</api/ansys/heart/simulator/settings/settings/Settings>
+    <span class="nf nf-cod-symbol_class"></span> Analysis</api/ansys/heart/simulator/settings/settings/Analysis>
+    <span class="nf nf-cod-symbol_class"></span> EPAnalysis</api/ansys/heart/simulator/settings/settings/EPAnalysis>
+    <span class="nf nf-cod-symbol_class"></span> Material</api/ansys/heart/simulator/settings/settings/Material>
+    <span class="nf nf-cod-symbol_class"></span> EpMaterial</api/ansys/heart/simulator/settings/settings/EpMaterial>
+    <span class="nf nf-cod-symbol_class"></span> BoundaryConditions</api/ansys/heart/simulator/settings/settings/BoundaryConditions>
+    <span class="nf nf-cod-symbol_class"></span> SystemModel</api/ansys/heart/simulator/settings/settings/SystemModel>
+    <span class="nf nf-cod-symbol_class"></span> Mechanics</api/ansys/heart/simulator/settings/settings/Mechanics>
+    <span class="nf nf-cod-symbol_class"></span> AnalysisZeroPressure</api/ansys/heart/simulator/settings/settings/AnalysisZeroPressure>
+    <span class="nf nf-cod-symbol_class"></span> ZeroPressure</api/ansys/heart/simulator/settings/settings/ZeroPressure>
+    <span class="nf nf-cod-symbol_class"></span> Stimulation</api/ansys/heart/simulator/settings/settings/Stimulation>
+    <span class="nf nf-cod-symbol_class"></span> Electrophysiology</api/ansys/heart/simulator/settings/settings/Electrophysiology>
+    <span class="nf nf-cod-symbol_class"></span> Fibers</api/ansys/heart/simulator/settings/settings/Fibers>
+    <span class="nf nf-cod-symbol_class"></span> AtrialFiber</api/ansys/heart/simulator/settings/settings/AtrialFiber>
+    <span class="nf nf-cod-symbol_class"></span> Purkinje</api/ansys/heart/simulator/settings/settings/Purkinje>
+    <span class="nf nf-cod-symbol_class"></span> SimulationSettings</api/ansys/heart/simulator/settings/settings/SimulationSettings>
+    <span class="nf nf-cod-symbol_class"></span> DynaSettings</api/ansys/heart/simulator/settings/settings/DynaSettings>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module that defines some classes for settings.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

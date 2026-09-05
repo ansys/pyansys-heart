@@ -1,0 +1,120 @@
+
+
+
+
+
+
+:class:`Model3`
+===============
+
+.. py:class:: ansys.heart.core.settings.material.material.ActiveModel.Model3
+
+   
+   Hold data for active model 3, check manual for details.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Model3
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~t0`
+            - 
+          * - :py:attr:`~ca2ion50`
+            - 
+          * - :py:attr:`~n`
+            - 
+          * - :py:attr:`~f`
+            - 
+          * - :py:attr:`~l`
+            - 
+          * - :py:attr:`~eta`
+            - 
+          * - :py:attr:`~sigmax`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.settings.material.material.ActiveModel import Model3
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: t0
+   :type:  float
+   :value: None
+
+
+.. py:attribute:: ca2ion50
+   :type:  float
+   :value: 1.0
+
+
+.. py:attribute:: n
+   :type:  float
+   :value: 1.0
+
+
+.. py:attribute:: f
+   :type:  float
+   :value: 0.0
+
+
+.. py:attribute:: l
+   :type:  float
+   :value: 1.0
+
+
+.. py:attribute:: eta
+   :type:  float
+   :value: 0.0
+
+
+.. py:attribute:: sigmax
+   :type:  float
+   :value: None
+
+
+
+
+
+

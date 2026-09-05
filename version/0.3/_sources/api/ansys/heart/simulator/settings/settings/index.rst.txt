@@ -1,0 +1,191 @@
+
+
+
+
+
+The ``settings.py`` module
+==========================
+
+.. py:module:: ansys.heart.simulator.settings.settings
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: settings
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~AttrDict`
+            - Dict subclass whose entries can be accessed by attributes as well as normally.
+
+
+          * - :py:attr:`~Settings`
+            - Generic settings class.
+
+
+          * - :py:attr:`~Analysis`
+            - Class for analysis settings.
+
+
+          * - :py:attr:`~EPAnalysis`
+            - Class for EP analysis settings.
+
+
+          * - :py:attr:`~Material`
+            - Class for storing material settings.
+
+
+          * - :py:attr:`~EpMaterial`
+            - Class for storing ep material settings.
+
+
+          * - :py:attr:`~BoundaryConditions`
+            - Stores settings/parameters for boundary conditions.
+
+
+          * - :py:attr:`~SystemModel`
+            - Stores settings/parameters for system model.
+
+
+          * - :py:attr:`~Mechanics`
+            - Class for keeping track of settings.
+
+
+          * - :py:attr:`~AnalysisZeroPressure`
+            - Class for keeping track of zero pressure analysis settings.
+
+
+          * - :py:attr:`~ZeroPressure`
+            - Class for keeping track of settings for stress-free-configuration computation.
+
+
+          * - :py:attr:`~Electrophysiology`
+            - Class for keeping track of electrophysiology settings.
+
+
+          * - :py:attr:`~Fibers`
+            - Class for keeping track of fiber settings.
+
+
+          * - :py:attr:`~AtrialFiber`
+            - Class for keeping track of atrial fiber settings.
+
+
+          * - :py:attr:`~Purkinje`
+            - Class for keeping track of purkinje settings.
+
+
+          * - :py:attr:`~SimulationSettings`
+            - Class for keeping track of settings.
+
+
+          * - :py:attr:`~DynaSettings`
+            - Class for collecting, managing and validating LS-DYNA settings.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🝆 AttrDict<AttrDict>
+    🝆 Settings<Settings>
+    🝆 Analysis<Analysis>
+    🝆 EPAnalysis<EPAnalysis>
+    🝆 Material<Material>
+    🝆 EpMaterial<EpMaterial>
+    🝆 BoundaryConditions<BoundaryConditions>
+    🝆 SystemModel<SystemModel>
+    🝆 Mechanics<Mechanics>
+    🝆 AnalysisZeroPressure<AnalysisZeroPressure>
+    🝆 ZeroPressure<ZeroPressure>
+    🝆 Electrophysiology<Electrophysiology>
+    🝆 Fibers<Fibers>
+    🝆 AtrialFiber<AtrialFiber>
+    🝆 Purkinje<Purkinje>
+    🝆 SimulationSettings<SimulationSettings>
+    🝆 DynaSettings<DynaSettings>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module that defines some classes for settings.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

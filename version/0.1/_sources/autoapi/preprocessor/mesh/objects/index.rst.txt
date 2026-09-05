@@ -1,0 +1,2258 @@
+:py:mod:`preprocessor.mesh.objects`
+===================================
+
+.. py:module:: preprocessor.mesh.objects
+
+.. autoapi-nested-parse::
+
+   Module that contains classes relevant for the mesh.
+
+   Such as a Mesh object, Part object, Features, etc.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   preprocessor.mesh.objects.Feature
+   preprocessor.mesh.objects.BoundaryEdges
+   preprocessor.mesh.objects.EdgeGroup
+   preprocessor.mesh.objects.SurfaceMesh
+   preprocessor.mesh.objects.BeamMesh
+   preprocessor.mesh.objects.Cavity
+   preprocessor.mesh.objects.Cap
+   preprocessor.mesh.objects.Point
+   preprocessor.mesh.objects.Mesh
+   preprocessor.mesh.objects.Part
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   preprocessor.mesh.objects.LOGGER
+
+
+.. py:data:: LOGGER
+
+   
+
+.. py:class:: Feature(name: str = None)
+
+
+   
+   Feature class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: name
+
+      
+      Name of feature.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: type
+
+      
+      Type of feature.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: nsid
+      :type: int
+
+      
+      Node set id associated with feature.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: pid
+      :type: int
+
+      
+      Part id associated with the feature.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: BoundaryEdges(edges: numpy.ndarray = None)
+
+
+   Bases: :py:obj:`Feature`
+
+   
+   Edges class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: type
+      :value: 'edges'
+
+      
+      Feature type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: node_ids
+
+      
+      List of edges.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: groups
+
+      
+      Grouped edges based on connectivity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: EdgeGroup(edges: numpy.ndarray = None, type: str = None)
+
+
+   
+   Edge group class, contains info on connected edges.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: edges
+
+      
+      Edges in edge group.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: type
+
+      
+      Type of edge group: 'open' or 'closed'.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: SurfaceMesh(name: str = None, triangles: numpy.ndarray = None, nodes: numpy.ndarray = None, id: int = None)
+
+
+   Bases: :py:obj:`pyvista.PolyData`, :py:obj:`Feature`
+
+   
+   Surface class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:property:: nodes
+
+      
+      Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:property:: triangles
+
+      
+      Triangular faces of the surface num_faces x 3.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:property:: node_ids
+      :type: numpy.ndarray
+
+      
+      Global node ids - sorted by earliest occurrence.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:property:: boundary_nodes
+      :type: numpy.ndarray
+
+      
+      Global node ids of nodes on the boundary of the mesh (if any).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: type
+      :value: 'surface'
+
+      
+      Surface type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: boundary_edges
+      :type: numpy.ndarray
+
+      
+      Boundary edges.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: edge_groups
+      :type: List[EdgeGroup]
+      :value: []
+
+      
+      Edge groups.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: id
+      :type: int
+
+      
+      ID of surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: nsid
+      :type: int
+
+      
+      ID of corresponding set of nodes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: triangles
+
+      
+      Triangular faces of the surface num_faces x 3.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: nodes
+
+      
+      Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_centroid() -> numpy.ndarray
+
+      
+      Compute the centroid of the surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_bounding_box() -> Tuple[numpy.ndarray, float]
+
+      
+      Compute the bounding box of the surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: get_boundary_edges(append_triangles=None) -> List[EdgeGroup]
+
+      
+      Get boundary edges (if any) of the surface and groups them by connectivity.
+
+
+      :Parameters:
+
+          **append_triangles: optional**
+              special fix for right ventricle endocardium surface since it needs one part
+              from spetum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: separate_connected_regions()
+
+      
+      Use vtk to get connected regions and separate into different surfaces.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: smooth_boundary_edges(window_size: int = 3) -> numpy.ndarray
+
+      
+      Smooth the boundary edges if they are closed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: write_to_stl(filename: pathlib.Path = None) -> None
+
+      
+      Write the surface to a vtk file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: write_feature_edges_to_vtk(prefix: str = None, per_edge_group: bool = False) -> None
+
+      
+      Write the feature edges to a vtk file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: BeamMesh(name: str = None, edges: numpy.ndarray = None, nodes: numpy.ndarray = None, beam_nodes_mask: numpy.ndarray = None, pid: int = None, nsid: int = -1)
+
+
+   Bases: :py:obj:`pyvista.UnstructuredGrid`, :py:obj:`Feature`
+
+   
+   Beam class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:property:: nodes
+
+      
+      Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:property:: edges
+
+      
+      Tetrahedrons num_tetra x 4.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: all_beam_nodes
+      :value: []
+
+      
+
+   .. py:attribute:: edges
+
+      
+      Beams edges.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: nodes
+
+      
+      Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: beam_nodes_mask
+
+      
+      True for beam nodes, False for solid nodes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: pid
+
+      
+      Part id associated with the network.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: nsid
+      :type: int
+
+      
+      Surface id associated with the network.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: Cavity(surface: SurfaceMesh = None, centroid: numpy.ndarray = None, name=None)
+
+
+   Bases: :py:obj:`Feature`
+
+   
+   Cavity class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:property:: volume
+
+      
+      Volume of the cavity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: type
+      :value: 'cavity'
+
+      
+      Type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: surface
+      :type: SurfaceMesh
+
+      
+      Surface mesh making up the cavity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: centroid
+      :type: numpy.ndarray
+
+      
+      Centroid of the cavity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_volume() -> float
+
+      
+      Compute the volume of the (enclosed) cavity.
+
+
+
+
+
+
+
+
+
+
+
+      .. rubric:: Notes
+
+      - Writes stl and computes volume from stl
+      - Assumes normals are pointing inwards
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_centroid()
+
+      
+      Compute the centroid of the cavity.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: Cap(name: str = None, node_ids: Union[List[int], numpy.ndarray] = [])
+
+
+   Bases: :py:obj:`Feature`
+
+   
+   Cap class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: node_ids
+
+      
+      (Global) node ids of the cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: triangles
+
+      
+      Triangulation of cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: normal
+
+      
+      Normal of cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: centroid
+
+      
+      Centroid of cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: centroid_id
+
+      
+      Centroid of cap ID (in case centroid node is created).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: type
+      :value: 'cap'
+
+      
+      Type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: tessellate(center_point_id=None) -> numpy.ndarray
+
+      
+      Form triangles with the node ids.
+
+
+      :Parameters:
+
+          **center_point_id: ID of the center point of cap**
+              ..
+
+      :Returns:
+
+          :obj:`Mesh` :obj:`connectivity` :obj:`of` :obj:`cap` (:obj:`triangles`)
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: Point(name: str = None, xyz: numpy.ndarray = None, node_id: int = None)
+
+
+   Bases: :py:obj:`Feature`
+
+   
+   Point class. Can be used to collect relevant points in the mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: xyz
+      :type: numpy.ndarray
+
+      
+      XYZ Coordinates of point.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: node_id
+      :type: int
+
+      
+      Global node id of point.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: Mesh(*args)
+
+
+   Bases: :py:obj:`pyvista.UnstructuredGrid`
+
+   
+   Mesh class: inherits from pyvista UnstructuredGrid.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Only tetrahedrons are supported.
+   Additional attributes are added on top of the pyvista UnstructuredGrid class
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:property:: nodes
+
+      
+      Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:property:: tetrahedrons
+
+      
+      Tetrahedrons num_tetra x 4.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:property:: part_ids
+      :type: numpy.ndarray
+
+      
+      Array of part ids indicating to which part the tetrahedron belongs.
+
+
+
+
+
+
+
+
+
+
+
+      .. rubric:: Notes
+
+      This is derived from the "tags" field in cell data
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:property:: boundary_names
+      :type: List[str]
+
+      
+      Iterate over boundaries and returns their names.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: triangles
+      :type: numpy.ndarray
+
+      
+      Faces that make up the tetrahedrons.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: face_types
+      :type: numpy.ndarray
+
+      
+      Type of face: 1: interior face, 2: boundary face, 3: interface face.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: conn
+
+      
+      Face-tetra connectivity array.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: interfaces
+      :type: List[SurfaceMesh]
+      :value: []
+
+      
+      List of surface meshes that make up the interface between different parts.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: boundaries
+      :type: List[SurfaceMesh]
+      :value: []
+
+      
+      List of boundary surface meshes within the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: read_mesh_file(filename: pathlib.Path) -> None
+
+      
+      Read mesh file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: read_mesh_file_cristobal2021(filename: pathlib.Path) -> None
+
+      
+      Read mesh file - but modifies the fields to match data of Strocchi 2020.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: write_to_vtk(filename: pathlib.Path) -> None
+
+      
+      Write mesh to VTK file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: keep_elements_with_value(values: List[int], field_name: str) -> None
+
+      
+      Remove elements that satisfy a certain cell value of a specific field.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: establish_connectivity() -> None
+
+      
+      Establish the connetivity of the tetrahedrons.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: get_mask_interface_faces(return_pairs: bool = False) -> Tuple[numpy.ndarray, Optional[List[int]]]
+
+      
+      Get the (interface) faces between two parts.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: add_interfaces(pairs: List[List[int]], pair_names: List[str]) -> None
+
+      
+      Add the interfaces between the parts to the mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: smooth_interfaces() -> None
+
+      
+      Smooth the interfaces between the different parts.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: add_boundaries(add_part_ids: List[int] = [], boundary_names: List[str] = []) -> None
+
+      
+      Add boundary surfaces to the mesh object. One surface per part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: get_surface_from_name(name: str = None)
+
+      
+      Return a list of surfaces that match the given list of names.
+
+
+
+
+
+
+
+
+
+
+
+      .. rubric:: Notes
+
+      Returns single surface. When multiple matches are found returns list of surfaces
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: Part(name: str = None, part_type: str = None)
+
+
+   
+   Part class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:property:: surfaces
+      :type: List[SurfaceMesh]
+
+      
+      List of surfaces belonging to part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:property:: surface_names
+      :type: List[str]
+
+      
+      List of surface names belonging to part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: name
+
+      
+      Name of the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: pid
+
+      
+      Part ID.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: mid
+
+      
+      Material id associated with part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: part_type
+
+      
+      Type of the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: tag_labels
+
+      
+      VTK tag labels used in this part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: tag_ids
+
+      
+      VTK tag ids used in this part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: element_ids
+      :type: numpy.ndarray
+
+      
+      Array holding element ids that make up this part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: points
+      :type: List[Point]
+      :value: []
+
+      
+      Points of interest belonging to the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: caps
+      :type: List[Cap]
+      :value: []
+
+      
+      List of caps belonging to the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: has_fiber
+      :type: bool
+      :value: False
+
+      
+      If this part has fiber/sheet data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: is_active
+      :type: bool
+      :value: False
+
+      
+      If active stress will be established.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: get_point(pointname: str) -> Point
+
+      
+      Get point from part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

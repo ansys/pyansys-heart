@@ -1,0 +1,123 @@
+
+
+
+
+ZeroDSystem
+===========
+
+.. py:class:: ZeroDSystem(csv_path, ed_state, name='')
+   :canonical: ansys.heart.postprocessor.SystemModelPost.ZeroDSystem
+
+
+
+
+
+   0D circulation system model (for one cavity).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: ZeroDSystem
+.. tab-set::
+
+
+
+
+
+
+    .. tab-item:: Static methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~integrate_volume`
+            - Integrate cavity's volume.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.postprocessor.SystemModelPost import ZeroDSystem
+
+
+
+
+Method detail
+-------------
+.. py:method:: integrate_volume(v0, t, q)
+   :staticmethod:
+
+   
+   Integrate cavity's volume.
+
+
+   :Parameters:
+
+       **v0: float, volume at time of 0**
+           ..
+
+       **t: time array**
+           ..
+
+       **q: flow array**
+           ..
+
+   :Returns:
+
+       :obj:`volume` :obj:`array <numpy.ndarray>`
+           ..
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Cavity's volume is not evaluated/saved in csv file.
+   Use implicit with gamma=0.6
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

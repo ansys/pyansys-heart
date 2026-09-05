@@ -1,0 +1,137 @@
+
+
+
+
+
+
+:class:`PurkinjeGenerationDynaWriter`
+=====================================
+
+
+.. py:class:: ansys.health.heart.writer.ep_writer.PurkinjeGenerationDynaWriter(model: ansys.health.heart.models.HeartModel, settings: ansys.health.heart.settings.settings.SimulationSettings = None)
+
+   Bases: :py:obj:`ansys.health.heart.writer.base_writer.BaseDynaWriter`
+
+
+   
+   Class for preparing the input for a Purkinje LS-DYNA simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: PurkinjeGenerationDynaWriter
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~update`
+            - Update keyword database.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~kw_database`
+            - Collection of keywords relevant for Purkinje generation.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.ep_writer import PurkinjeGenerationDynaWriter
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: kw_database
+
+   
+   Collection of keywords relevant for Purkinje generation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: update() -> None
+
+   
+   Update keyword database.
+
+   This method overwrites the inherited function.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

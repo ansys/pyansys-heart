@@ -1,0 +1,132 @@
+
+
+
+
+
+
+The ``writer`` package
+==========================
+
+.. py:module:: ansys.health.heart.writer
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: writer
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.writer.base_writer`
+            - Base module containing classes for writing LS-DYNA keyword files.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.define_function_templates`
+            - Collection of define function templates.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.ep_mechanics_writer`
+            - Module containing classes for writing LS-DYNA keyword files for ep-mechanics simulations.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.ep_writer`
+            - Module containing classes for writing LS-DYNA keyword files for electrophysiology simulations.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.heart_decks`
+            - Defines LS-DYNA decks for heart modeling.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.laplace_writer`
+            - Module containing classes for writing LS-DYNA keyword files for laplace simulations.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.material_keywords`
+            - Use PyDYNA keywords module to create commonly used material cards and their default values.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.mechanics_writer`
+            - Module containing classes for writing LS-DYNA keyword files mechanics simulations.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.writer_utils`
+            - Module for useful methods to help format LS-DYNA keywords.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> base_writer</api/ansys/health/heart/writer/base_writer/index>
+    <span class="nf nf-fa-file"></span> define_function_templates</api/ansys/health/heart/writer/define_function_templates/index>
+    <span class="nf nf-fa-file"></span> ep_mechanics_writer</api/ansys/health/heart/writer/ep_mechanics_writer/index>
+    <span class="nf nf-fa-file"></span> ep_writer</api/ansys/health/heart/writer/ep_writer/index>
+    <span class="nf nf-fa-file"></span> heart_decks</api/ansys/health/heart/writer/heart_decks/index>
+    <span class="nf nf-fa-file"></span> laplace_writer</api/ansys/health/heart/writer/laplace_writer/index>
+    <span class="nf nf-fa-file"></span> material_keywords</api/ansys/health/heart/writer/material_keywords/index>
+    <span class="nf nf-fa-file"></span> mechanics_writer</api/ansys/health/heart/writer/mechanics_writer/index>
+    <span class="nf nf-fa-file"></span> writer_utils</api/ansys/health/heart/writer/writer_utils/index>
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+
+Writer subpackage.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+

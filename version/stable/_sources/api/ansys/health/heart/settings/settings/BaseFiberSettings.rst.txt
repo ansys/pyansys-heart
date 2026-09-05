@@ -1,0 +1,158 @@
+
+
+
+
+
+
+:class:`BaseFiberSettings`
+==========================
+
+
+.. py:class:: ansys.health.heart.settings.settings.BaseFiberSettings(/, **data: Any)
+
+   Bases: :py:obj:`BaseSettings`
+
+
+   
+   Base class for keeping track of fiber orientation settings.
+
+   Defines fundamental fiber orientation parameters for cardiac muscle fiber
+   modeling. These settings control the helical and transverse angles that
+   define the spatial orientation of cardiac muscle fibers across the
+   myocardial wall from endocardium to epicardium.
+
+   :Parameters:
+
+       **alpha_endo** : :obj:`Quantity`, default: :obj:`Quantity`\(-60, "degree")
+           Helical angle in endocardium (inner heart wall surface) in degrees.
+           Positive values indicate right-handed helix orientation.
+
+       **alpha_epi** : :obj:`Quantity`, default: :obj:`Quantity`\(60, "degree")
+           Helical angle in epicardium (outer heart wall surface) in degrees.
+           Typically opposite sign to alpha_endo for transmural rotation.
+
+       **beta_endo** : :obj:`Quantity`, default: :obj:`Quantity`\(-65, "degree")
+           Angle to the outward transmural axis in endocardium in degrees.
+           Controls fiber inclination relative to heart wall thickness direction.
+
+       **beta_epi** : :obj:`Quantity`, default: :obj:`Quantity`\(25, "degree")
+           Angle to the outward transmural axis in epicardium in degrees.
+           Defines fiber inclination at the outer wall surface.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   The fiber orientation by rotating a the local coordinate system:
+   - Longitudinal direction (e_l): apex to base
+   - Transmural direction (e_t): endocardium to epicardium
+   - Circumferential direction (e_c): orthogonal to both (right-hand rule)
+
+   Alpha angles define rotation of the circumferential direction around the
+   transmural axis (helical angle).
+   Beta angles define rotation of the circumferential direction around the longitudinal
+   axis (inclination angle).
+
+   Default values are based on Bayer et al. 2012 http://dx.doi.org/10.1007/s10439-012-0593-5. Note
+   that for the Bayer method the transmural direction points inward from epicardium, hence the
+   negative sign of alpha_endo and beta_endo.
+
+
+   .. rubric:: Examples
+
+   Create basic fiber settings with default Bayer et al. values:
+
+   >>> fiber_settings = BaseFiberSettings()
+   >>> print(fiber_settings.alpha_endo)
+   -60 degree
+   >>> print(fiber_settings.alpha_epi)
+   60 degree
+
+   Create custom fiber orientation:
+
+   >>> from pint import Quantity
+   >>> custom_fibers = BaseFiberSettings(
+   ...     alpha_endo=Quantity(-45, "degree"),
+   ...     alpha_epi=Quantity(45, "degree"),
+   ...     beta_endo=Quantity(-30, "degree"),
+   ...     beta_epi=Quantity(30, "degree"),
+   ... )
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: BaseFiberSettings
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~alpha_endo`
+            - 
+          * - :py:attr:`~alpha_epi`
+            - 
+          * - :py:attr:`~beta_endo`
+            - 
+          * - :py:attr:`~beta_epi`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import BaseFiberSettings
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: alpha_endo
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: alpha_epi
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: beta_endo
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: beta_epi
+   :type:  pint.Quantity
+   :value: None
+
+
+
+
+
+

@@ -1,0 +1,791 @@
+
+
+:class:`Mesh`
+=============
+
+.. py:class:: ansys.heart.core.objects.Mesh(*args)
+
+   Bases: :py:obj:`pyvista.UnstructuredGrid`
+
+
+   
+   Mesh class: inherits from pyvista UnstructuredGrid.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   This class inherits from pyvista.UnstructuredGrid and adds additional
+   attributes and convenience methods for enhanced functionality. E.g. we use _volume_id,
+   _surface_id and _line_id cell arrays to keep track of "labeled" selections of
+   cells. _volume_id is used to group 3D volume cells together.
+   Any non 3D volume cell is labeled as numpy.nan. Similarly 2D and 1D cells are tracked
+   through _surface_id and _line_id respectively.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Mesh
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~save`
+            - Save mesh.
+          * - :py:attr:`~load_mesh`
+            - Load an existing mesh.
+          * - :py:attr:`~validate_ids_to_name_map`
+            - Check whether there are any duplicate or unmapped surfaces/volumes.
+          * - :py:attr:`~clean`
+            - Merge duplicate points and return cleaned copy.
+          * - :py:attr:`~add_volume`
+            - Add a volume.
+          * - :py:attr:`~add_surface`
+            - Add a surface.
+          * - :py:attr:`~add_lines`
+            - Add lines.
+          * - :py:attr:`~get_volume`
+            - Get a volume as a UnstructuredGrids object.
+          * - :py:attr:`~get_volume_by_name`
+            - Get the surface associated with `name`.
+          * - :py:attr:`~get_surface`
+            - Get a surface as PolyData object.
+          * - :py:attr:`~get_surface_by_name`
+            - Get the surface associated with `name`.
+          * - :py:attr:`~get_lines`
+            - Get lines as a PolyData object.
+          * - :py:attr:`~remove_surface`
+            - Remove a surface with id.
+          * - :py:attr:`~remove_volume`
+            - Remove a volume with id.
+          * - :py:attr:`~remove_lines`
+            - Remove a set of lines with id.
+
+
+   .. tab-item:: Properties
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~nodes`
+            - Node coordinates.
+          * - :py:attr:`~tetrahedrons`
+            - Tetrahedrons num_tetra x 4.
+          * - :py:attr:`~triangles`
+            - Get all triangles of the mesh.
+          * - :py:attr:`~lines`
+            - Get all triangles of the mesh.
+          * - :py:attr:`~part_ids`
+            - Array of part ids indicating to which part the tetrahedron belongs.
+          * - :py:attr:`~surface_ids`
+            - Unique surface ids.
+          * - :py:attr:`~surface_names`
+            - List of surface names.
+          * - :py:attr:`~volume_ids`
+            - Unique volume ids.
+          * - :py:attr:`~volume_names`
+            - List of volume names.
+          * - :py:attr:`~line_ids`
+            - Unique line ids.
+
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.objects import Mesh
+
+Property detail
+---------------
+.. py:property:: nodes
+   
+   Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: tetrahedrons
+   
+   Tetrahedrons num_tetra x 4.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: triangles
+   
+   Get all triangles of the mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: lines
+   
+   Get all triangles of the mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: part_ids
+   :type: numpy.ndarray
+
+   
+   Array of part ids indicating to which part the tetrahedron belongs.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   This is derived from the "part-id" field in cell data
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: surface_ids
+   :type: numpy.ndarray
+
+   
+   Unique surface ids.
+
+
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Array with unique surface ids
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: surface_names
+   :type: List[str]
+
+   
+   List of surface names.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: volume_ids
+   :type: numpy.ndarray
+
+   
+   Unique volume ids.
+
+
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Array with unique volume ids
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: volume_names
+   :type: List[str]
+
+   
+   List of volume names.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: line_ids
+   :type: numpy.ndarray
+
+   
+   Unique line ids.
+
+
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Array with unique line ids
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+Method detail
+-------------
+.. py:method:: save(filename: Union[str, pathlib.Path], **kwargs)
+
+   
+   Save mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: load_mesh(filename: Union[str, pathlib.Path])
+
+   
+   Load an existing mesh.
+
+
+   :Parameters:
+
+       **filename** : :obj:`Union`\[:class:`python:str`, :obj:`pathlib.Path`]
+           Path to filename.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   This tries to read a JSON file with the volume/surface id to name map
+   with extension .namemap.json in the same directory as the file. Alternatively,
+   you can read the name map manually by calling `._load_id_to_name_map(filename)`
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: validate_ids_to_name_map()
+
+   
+   Check whether there are any duplicate or unmapped surfaces/volumes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: clean(ignore_nans_in_point_average: bool = False, **kwargs)
+
+   
+   Merge duplicate points and return cleaned copy.
+
+
+   :Parameters:
+
+       **ignore_nans_in_point_average** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Flag indicating whether to ignore nan values when averaging point data, by default False
+
+
+
+   :Returns:
+
+       :obj:`Mesh`
+           Cleaned copy of self.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: add_volume(volume: pyvista.UnstructuredGrid, id: int = None, name: str = None)
+
+   
+   Add a volume.
+
+
+   :Parameters:
+
+       **volume** : :obj:`pv.PolyData`
+           PolyData representation of the volume to add
+
+       **id** : :class:`python:int`
+           ID of the volume to be added. This id will be tracked as "_volume-id"
+
+       **name** : :class:`python:str`, :obj:`optional`
+           Name of the added volume, by default None (not tracked)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: add_surface(surface: pyvista.PolyData, id: int = None, name: str = None, overwrite_existing: bool = False)
+
+   
+   Add a surface.
+
+
+   :Parameters:
+
+       **surface** : :obj:`pv.PolyData`
+           PolyData representation of the surface to add
+
+       **sid** : :class:`python:int`
+           ID of the surface to be added. This id will be tracked as "_surface-id"
+
+       **name** : :class:`python:str`, :obj:`optional`
+           Name of the added surface, by default None (not tracked)
+
+       **overwrite_existing** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Flag indicating whether to overwrite/append a surface with the same id, by default False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: add_lines(lines: pyvista.PolyData, id: int = None)
+
+   
+   Add lines.
+
+
+   :Parameters:
+
+       **lines** : :obj:`pv.PolyData`
+           PolyData representation of the lines to add
+
+       **id** : :class:`python:int`
+           ID of the surface to be added. This id will be tracked as "_line-id"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_volume(sid: int) -> pyvista.UnstructuredGrid
+
+   
+   Get a volume as a UnstructuredGrids object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_volume_by_name(name: str) -> pyvista.UnstructuredGrid
+
+   
+   Get the surface associated with `name`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_surface(sid: int) -> Union[pyvista.PolyData, SurfaceMesh]
+
+   
+   Get a surface as PolyData object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Tries to return a SurfaceMesh object that also contains a name and id.
+   and additional convenience properties.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_surface_by_name(name: str) -> Union[pyvista.PolyData, SurfaceMesh]
+
+   
+   Get the surface associated with `name`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_lines(sid: int) -> pyvista.PolyData
+
+   
+   Get lines as a PolyData object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: remove_surface(sid: int)
+
+   
+   Remove a surface with id.
+
+
+   :Parameters:
+
+       **sid** : :class:`python:int`
+           Id of surface to remove.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: remove_volume(vid: int)
+
+   
+   Remove a volume with id.
+
+
+   :Parameters:
+
+       **vid** : :class:`python:int`
+           Id of volume to remove.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: remove_lines(lid: int)
+
+   
+   Remove a set of lines with id.
+
+
+   :Parameters:
+
+       **lid** : :class:`python:int`
+           Id of lines to remove.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

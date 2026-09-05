@@ -1,0 +1,49 @@
+
+
+
+
+
+
+:class:`ActiveModel`
+====================
+
+
+.. py:class:: ansys.health.heart.settings.material.material.ActiveModel(/, **data: Any)
+
+   Bases: :py:obj:`pydantic.BaseModel`
+
+
+   
+   Active model base class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.material import ActiveModel
+
+
+
+
+

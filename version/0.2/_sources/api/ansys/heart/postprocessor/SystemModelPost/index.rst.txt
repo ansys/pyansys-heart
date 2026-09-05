@@ -1,0 +1,114 @@
+
+
+
+
+
+The ``SystemModelPost.py`` module
+=================================
+
+.. py:module:: ansys.heart.postprocessor.SystemModelPost
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: SystemModelPost
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~Pressure`
+            - System state for pressure.
+
+
+          * - :py:attr:`~Flow`
+            - System state for flow.
+
+
+          * - :py:attr:`~Volume`
+            - System state for volume.
+
+
+          * - :py:attr:`~SystemState`
+            - System state including pressure, flow, volume.
+
+
+          * - :py:attr:`~ZeroDSystem`
+            - 0D circulation system model (for one cavity).
+
+
+          * - :py:attr:`~SystemModelPost`
+            - Class for post-processing system model.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🝆 Pressure<Pressure>
+    🝆 Flow<Flow>
+    🝆 Volume<Volume>
+    🝆 SystemState<SystemState>
+    🝆 ZeroDSystem<ZeroDSystem>
+    🝆 SystemModelPost<SystemModelPost>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module for postprocessing system model data.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

@@ -1,0 +1,108 @@
+
+
+
+
+
+The ``helpers.py`` module
+=========================
+
+.. py:module:: ansys.heart.preprocessor.helpers
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: helpers
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~model_summary`
+            - Generate a dictionary with model information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing general helper methods.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: model_summary(model: ansys.heart.preprocessor.models.HeartModel, attributes: list = None) -> dict
+
+   
+   Generate a dictionary with model information.
+
+
+   :Parameters:
+
+       **model** : :obj:`HeartModel`
+           HeartModel for which to generate the summary dictionary
+
+       **attributes** : :class:`python:list`
+           List of attributes to try to add to the dict.
+
+   :Returns:
+
+       :class:`python:dict`
+           Dictionary with model information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

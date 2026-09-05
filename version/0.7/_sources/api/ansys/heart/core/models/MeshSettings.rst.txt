@@ -1,0 +1,122 @@
+
+
+:class:`MeshSettings`
+=====================
+
+.. py:class:: ansys.heart.core.models.MeshSettings
+
+   
+   Mesh settings for (re) meshing the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: MeshSettings
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~global_mesh_size`
+            - Global mesh size.
+          * - :py:attr:`~add_blood_pool`
+            - Flag indicating whether to add a blood pool (experimental).
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.models import MeshSettings
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: global_mesh_size
+   :type:  float
+   :value: 1.5
+
+
+   
+   Global mesh size.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: add_blood_pool
+   :type:  bool
+   :value: False
+
+
+   
+   Flag indicating whether to add a blood pool (experimental).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

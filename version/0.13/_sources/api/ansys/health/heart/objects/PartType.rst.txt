@@ -1,0 +1,111 @@
+
+
+
+
+
+
+:class:`PartType`
+=================
+
+
+.. py:class:: ansys.health.heart.objects.PartType(*args, **kwds)
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   
+   Stores valid part types.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: PartType
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~VENTRICLE`
+            - 
+          * - :py:attr:`~ATRIUM`
+            - 
+          * - :py:attr:`~SEPTUM`
+            - 
+          * - :py:attr:`~ARTERY`
+            - 
+          * - :py:attr:`~MYOCARDIUM`
+            - 
+          * - :py:attr:`~UNDEFINED`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.objects import PartType
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: VENTRICLE
+   :value: 'ventricle'
+
+
+.. py:attribute:: ATRIUM
+   :value: 'atrium'
+
+
+.. py:attribute:: SEPTUM
+   :value: 'septum'
+
+
+.. py:attribute:: ARTERY
+   :value: 'artery'
+
+
+.. py:attribute:: MYOCARDIUM
+   :value: 'myocardium'
+
+
+.. py:attribute:: UNDEFINED
+   :value: 'undefined'
+
+
+
+
+
+

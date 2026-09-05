@@ -1,0 +1,326 @@
+
+
+
+
+
+
+The ``connectivity.py`` module
+==============================
+
+.. py:module:: ansys.health.heart.utils.connectivity
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: connectivity
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~get_faces_tetra`
+            - Get faces that make up the tetrahedrons.
+
+
+          * - :py:obj:`~face_tetra_connectivity`
+            - Compute the tetra-face connectivity tables.
+
+
+          * - :py:obj:`~get_face_type`
+            - Establish the face type, which indicates whether it is a boundary or an interior face.
+
+
+          * - :py:obj:`~get_edges_from_triangles`
+            - Generate an array of edges from an array of triangles.
+
+
+          * - :py:obj:`~get_free_edges`
+            - Get the boundary edges that are only referenced once.
+
+
+          * - :py:obj:`~edge_connectivity`
+            - Group edges by connectivity.
+
+
+          * - :py:obj:`~remove_triangle_layers_from_trimesh`
+            - Remove boundary triangles.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing methods for mesh connectivity.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: get_faces_tetra(tetra: numpy.ndarray) -> numpy.ndarray
+
+   
+   Get faces that make up the tetrahedrons.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: face_tetra_connectivity(tetra: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]
+
+   
+   Compute the tetra-face connectivity tables.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_face_type(faces: numpy.ndarray, face_cell_connectivity: numpy.ndarray) -> numpy.ndarray
+
+   
+   Establish the face type, which indicates whether it is a boundary or an interior face.
+
+
+   :Parameters:
+
+       **faces** : :obj:`np.ndarray <numpy.ndarray>`
+           Array with face definitions.
+
+       **face_cell_connectivity** : :obj:`np.ndarray <numpy.ndarray>`
+           Array describing the cells that each of the faces is connected to.
+           For example, ``np.array([c0, c1])``.
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Type of face, which is either interior ``(face_type = 1)``
+           or boundary ``(face_type = 2)``.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_edges_from_triangles(triangles: numpy.ndarray) -> numpy.ndarray
+
+   
+   Generate an array of edges from an array of triangles.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_free_edges(triangles: numpy.ndarray, return_free_triangles: bool = False) -> numpy.ndarray | Tuple[numpy.ndarray, numpy.ndarray]
+
+   
+   Get the boundary edges that are only referenced once.
+
+
+   :Parameters:
+
+       **triangles** : :obj:`np.ndarray <numpy.ndarray>`
+           Array of triangles.
+
+       **return_free_triangles** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:False`
+           Whether to return the free triangles.
+
+
+
+   :Returns:
+
+       **free_edges** : :obj:`np.ndarray <numpy.ndarray>`
+           NumPy array with the free edges.
+
+       free_triangles: :obj:`np.ndarray <numpy.ndarray>`, :obj:`optional`
+           Numpy array with the triangles that use these free edges
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: edge_connectivity(edges: numpy.ndarray, return_type: bool = False, sort_closed: bool = False) -> numpy.ndarray
+
+   
+   Group edges by connectivity.
+
+
+   :Parameters:
+
+       **edges** : :obj:`np.array`
+           NumEdges x 2 NumPy arrays with edge definitions.
+
+       **return_type** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:False`
+           Whether to return the edge group type. If ``True``, the function
+           returns a list of strings with these types:
+           
+           - ``open``: Edge group is open-ended.
+           - ``closed``: Edge group forms a closed edge loop.
+
+       **sort_closed** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:False`
+           Whether to sort closed edge loops.
+
+
+
+   :Returns:
+
+       **edge_groups** : :obj:`np.ndarray <numpy.ndarray>`
+           Grouped edges by connectivity.
+
+       **group_types** : :class:`python:list`\[:class:`python:str`], :obj:`optional`
+           Type of the edge group. Options are ``open`` or ``closed``.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   This method uses an implementation of a depth-first search. For more information,
+   seeDepth-first search <https://en.wikipedia.org/wiki/Depth-first_search>`_ on
+   the Wikipedia site.
+
+   Performance of this method is not tested. It might not be suitable for large arrays of edges.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: remove_triangle_layers_from_trimesh(triangles: numpy.ndarray, iters: int = 1) -> numpy.ndarray
+
+   
+   Remove boundary triangles.
+
+
+   :Parameters:
+
+       **triangles** : :obj:`np.ndarray <numpy.ndarray>`
+           Array of triangles.
+
+       **iters** : :class:`python:int`, default: 1
+           Number of iterations.
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Reduced set of triangles.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

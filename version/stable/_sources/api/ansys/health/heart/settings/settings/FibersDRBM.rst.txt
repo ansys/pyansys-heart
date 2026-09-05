@@ -1,0 +1,176 @@
+
+
+
+
+
+
+:class:`FibersDRBM`
+===================
+
+
+.. py:class:: ansys.health.heart.settings.settings.FibersDRBM(/, **data: Any)
+
+   Bases: :py:obj:`BaseSettings`
+
+
+   
+   Class for storing settings for the Doste et al rule-based method.
+
+   Implements the D-RBM (Doste Rule-Based Method) for fiber orientation
+   generation in biventricular cardiac models. This method uses separate
+   fiber orientation settings for left and right ventricles, with optional
+   outflow tract specifications. Moreover, it includes a septal fraction
+   parameter to define the portion of the septum assigned to the left ventricle.
+
+   The D-RBM method provides ventricle-specific fiber orientations to
+   better represent the distinct fiber architectures in each ventricle,
+   particularly important for accurate mechanical and electrical modeling.
+
+   :Parameters:
+
+       **left_ventricle** : :obj:`BaseFiberSettings`, default: :obj:`BaseFiberSettings`\(alpha_endo=Quantity(60, "degree")
+           ,alpha_epi=Quantity(-60, "degree"), beta_endo=Quantity(-20, "degree"),
+           beta_epi=Quantity(20, "degree"))
+           Fiber orientation settings specific to the left ventricle.
+           Contains alpha and beta angles for left ventricular wall.
+
+       **right_ventricle** : BaseFiberSettings: default: :obj:`BaseFiberSettings`\(alpha_endo=
+           Quantity(-90, "degree"),alpha_epi=Quantity(25, "degree"), beta_endo=Quantity(0, "degree"),
+           beta_epi=Quantity(20, "degree"))
+           Fiber orientation settings specific to the right ventricle.
+           Contains alpha and beta angles for right ventricular wall.
+
+       **alpha_outflow_tract** : :obj:`Quantity` | :data:`python:None`, default: :data:`python:None`
+           Helical angle for the outflow tract region in degrees.
+           Set to None if outflow tract fiber orientation not specified.
+
+       **beta_outflow_tract** : :obj:`Quantity` | :data:`python:None`, default: :data:`python:None`
+           Inclination angle for the outflow tract region in degrees.
+           Set to None if outflow tract fiber orientation not specified.
+
+       **septal_fraction** : :class:`python:float`, default: 2.0/3.0
+           The fraction of the septum that belongs to the left ventricle.
+           Typically 2/3 (0.667) based on anatomical measurements.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Based on Doste et al. https://doi.org/10.1002/cnm.3185.
+
+   Coordinate system definition in PyAnsys-Heart:
+   - Longitudinal direction: apex to base
+   - Transmural direction: endo to epicardium
+   - Circumferential direction: e_c = e_l × e_t (right-hand rule)
+
+   Alpha defines rotation around transmural axis (helical angle).
+   Beta defines rotation around longitudinal axis (inclination angle).
+
+
+   .. rubric:: Examples
+
+   Create D-RBM fiber settings with default values:
+
+   >>> drbm_fibers = FibersDRBM()
+   >>> print(drbm_fibers.left_ventricle.alpha_endo)
+   60 degree
+   >>> print(drbm_fibers.right_ventricle.alpha_endo)
+   -90 degree
+   >>> print(drbm_fibers.septal_fraction)
+   0.6666666666666666
+
+   Create custom D-RBM settings:
+
+   >>> from pint import Quantity
+   >>> custom_drbm = FibersDRBM(
+   ...     left_ventricle=BaseFiberSettings(
+   ...         alpha_endo=Quantity(45, "degree"), alpha_epi=Quantity(-45, "degree")
+   ...     ),
+   ...     septal_fraction=0.7,
+   ... )
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: FibersDRBM
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~left_ventricle`
+            - 
+          * - :py:attr:`~right_ventricle`
+            - 
+          * - :py:attr:`~alpha_outflow_tract`
+            - 
+          * - :py:attr:`~beta_outflow_tract`
+            - 
+          * - :py:attr:`~septal_fraction`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import FibersDRBM
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: left_ventricle
+   :type:  BaseFiberSettings
+   :value: None
+
+
+.. py:attribute:: right_ventricle
+   :type:  BaseFiberSettings
+   :value: None
+
+
+.. py:attribute:: alpha_outflow_tract
+   :type:  pint.Quantity | None
+   :value: None
+
+
+.. py:attribute:: beta_outflow_tract
+   :type:  pint.Quantity | None
+   :value: None
+
+
+.. py:attribute:: septal_fraction
+   :type:  float
+   :value: None
+
+
+
+
+
+

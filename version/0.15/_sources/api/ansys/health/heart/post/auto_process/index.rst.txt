@@ -1,0 +1,145 @@
+
+
+
+
+
+
+The ``auto_process.py`` module
+==============================
+
+.. py:module:: ansys.health.heart.post.auto_process
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: auto_process
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~zerop_post`
+            - Postprocess the zero-pressure folder.
+
+
+          * - :py:obj:`~mech_post`
+            - Postprocess the mechanical simulation folder.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Script used to postprocess simulations automatically.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: zerop_post(directory: str, model: ansys.health.heart.models.HeartModel) -> tuple[dict, numpy.ndarray, numpy.ndarray]
+
+   
+   Postprocess the zero-pressure folder.
+
+
+   :Parameters:
+
+       **directory** : :class:`python:str`
+           Path to the simulation folder.
+
+       **model** : :obj:`HeartModel`
+           Model to postprocess.
+
+
+
+   :Returns:
+
+       :class:`python:tuple`\[:class:`python:dict`, :obj:`np.ndarray <numpy.ndarray>`, :obj:`np.ndarray <numpy.ndarray>`]
+           Dictionary with convergence information,
+           stress free configuration, and
+           computed end-of-diastolic configuration.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: mech_post(directory: str, model: ansys.health.heart.models.HeartModel) -> None
+
+   
+   Postprocess the mechanical simulation folder.
+
+
+   :Parameters:
+
+       **directory** : :class:`python:str`
+           Path to the d3plot folder.
+
+       **model** : :obj:`HeartModel`
+           Heart model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

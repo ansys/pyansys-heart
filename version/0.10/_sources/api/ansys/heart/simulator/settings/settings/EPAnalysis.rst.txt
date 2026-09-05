@@ -1,0 +1,81 @@
+
+
+
+
+
+
+:class:`EPAnalysis`
+===================
+
+.. py:class:: ansys.heart.simulator.settings.settings.EPAnalysis
+
+   Bases: :py:obj:`Analysis`
+
+
+   
+   Class for EP analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: EPAnalysis
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~solvertype`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.settings import EPAnalysis
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: solvertype
+   :type:  Literal['Monodomain', 'Eikonal', 'ReactionEikonal']
+   :value: 'Monodomain'
+
+
+
+
+
+

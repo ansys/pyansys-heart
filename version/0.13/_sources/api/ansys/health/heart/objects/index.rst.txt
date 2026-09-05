@@ -1,0 +1,149 @@
+
+
+
+
+
+
+The ``objects.py`` module
+=========================
+
+.. py:module:: ansys.health.heart.objects
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: objects
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.objects.Feature`
+            - Feature class.
+
+
+          * - :py:obj:`~ansys.health.heart.objects.SurfaceMesh`
+            - Surface class.
+
+
+          * - :py:obj:`~ansys.health.heart.objects.Cavity`
+            - Cavity class.
+
+
+          * - :py:obj:`~ansys.health.heart.objects.Cap`
+            - Cap class.
+
+
+          * - :py:obj:`~ansys.health.heart.objects.Point`
+            - Point class, which can be used to collect relevant points in the mesh.
+
+
+          * - :py:obj:`~ansys.health.heart.objects.Mesh`
+            - Mesh class, which inherits from the PyVista unstructured grid object.
+
+
+          * - :py:obj:`~ansys.health.heart.objects.Part`
+            - Part class.
+
+
+
+    .. tab-item:: Enums
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.objects.CapType`
+            - Enumeration tracking cap names.
+
+
+          * - :py:obj:`~ansys.health.heart.objects.PartType`
+            - Stores valid part types.
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> Feature</api/ansys/health/heart/objects/Feature>
+    <span class="nf nf-cod-symbol_class"></span> SurfaceMesh</api/ansys/health/heart/objects/SurfaceMesh>
+    <span class="nf nf-cod-symbol_class"></span> Cavity</api/ansys/health/heart/objects/Cavity>
+    <span class="nf nf-cod-symbol_class"></span> Cap</api/ansys/health/heart/objects/Cap>
+    <span class="nf nf-cod-symbol_class"></span> Point</api/ansys/health/heart/objects/Point>
+    <span class="nf nf-cod-symbol_class"></span> Mesh</api/ansys/health/heart/objects/Mesh>
+    <span class="nf nf-cod-symbol_class"></span> Part</api/ansys/health/heart/objects/Part>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_enum"></span> CapType</api/ansys/health/heart/objects/CapType>
+    <span class="nf nf-cod-symbol_enum"></span> PartType</api/ansys/health/heart/objects/PartType>
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module that defines classes used in the heart model.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

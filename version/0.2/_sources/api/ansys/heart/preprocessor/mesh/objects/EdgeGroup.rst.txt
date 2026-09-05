@@ -1,0 +1,128 @@
+
+
+
+
+EdgeGroup
+=========
+
+.. py:class:: EdgeGroup(edges: numpy.ndarray = None, type: str = None)
+   :canonical: ansys.heart.preprocessor.mesh.objects.EdgeGroup
+
+
+
+
+
+   Edge group class, contains info on connected edges.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: EdgeGroup
+.. tab-set::
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~edges`
+            - Edges in edge group.
+          * - :py:attr:`~type`
+            - Type of edge group: 'open' or 'closed'.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.mesh.objects import EdgeGroup
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: edges
+
+   
+   Edges in edge group.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: type
+
+   
+   Type of edge group: 'open' or 'closed'.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

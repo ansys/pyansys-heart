@@ -1,0 +1,92 @@
+
+
+
+
+
+
+The ``settings`` package
+============================
+
+.. py:module:: ansys.heart.simulator.settings
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: settings
+.. tab-set::
+
+    .. tab-item:: Subpackages
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.defaults`
+            - 
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.material`
+            - 
+
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.settings`
+            - Module that defines some classes for settings.
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-md-package"></span> defaults</api/ansys/heart/simulator/settings/defaults/index>
+    <span class="nf nf-md-package"></span> material</api/ansys/heart/simulator/settings/material/index>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> settings</api/ansys/heart/simulator/settings/settings/index>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

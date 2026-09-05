@@ -1,0 +1,86 @@
+
+
+:class:`NeoHookean`
+===================
+
+.. py:class:: ansys.heart.simulator.settings.material.material.NeoHookean
+
+   Bases: :py:obj:`MechanicalMaterialModel`
+
+
+   
+   Passive isotropic material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: NeoHookean
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~rho`
+            - 
+          * - :py:attr:`~c10`
+            - 
+          * - :py:attr:`~nu`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.material import NeoHookean
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: rho
+   :type:  float
+
+.. py:attribute:: c10
+   :type:  float
+
+.. py:attribute:: nu
+   :type:  float
+   :value: 0.499
+
+
+
+
+

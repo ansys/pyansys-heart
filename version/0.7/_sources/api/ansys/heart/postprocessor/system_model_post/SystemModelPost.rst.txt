@@ -1,0 +1,231 @@
+
+
+:class:`SystemModelPost`
+========================
+
+.. py:class:: ansys.heart.postprocessor.system_model_post.SystemModelPost(dir)
+
+   
+   Class for post-processing system model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   unit: ms, kPa, mL
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: SystemModelPost
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_ejection_fraction`
+            - Compute ejection fraction at a given time interval.
+          * - :py:attr:`~plot_pv_loop`
+            - Plot PV loop.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~dir`
+            - 
+          * - :py:attr:`~model_type`
+            - 
+          * - :py:attr:`~fcsv1`
+            - 
+          * - :py:attr:`~fcsv2`
+            - 
+          * - :py:attr:`~s`
+            - 
+          * - :py:attr:`~l_ed_pressure`
+            - 
+          * - :py:attr:`~l_ed_volume`
+            - 
+          * - :py:attr:`~lv_system`
+            - 
+
+
+   .. tab-item:: Static methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~plot_pressure_flow_volume`
+            - Plot pressure/flow/volume curves.
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.postprocessor.system_model_post import SystemModelPost
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: dir
+
+.. py:attribute:: model_type
+   :value: 'LV'
+
+
+.. py:attribute:: fcsv1
+
+.. py:attribute:: fcsv2
+
+.. py:attribute:: s
+
+.. py:attribute:: l_ed_pressure
+
+.. py:attribute:: l_ed_volume
+
+.. py:attribute:: lv_system
+
+
+
+Method detail
+-------------
+.. py:method:: get_ejection_fraction(t_start=0, t_end=100000000000.0)
+
+   
+   Compute ejection fraction at a given time interval.
+
+
+   :Parameters:
+
+       **t_start: start time**
+           ..
+
+       **t_end: end time**
+           ..
+
+
+
+   :Returns:
+
+       :obj:`Ejection` :obj:`fraction`
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: plot_pv_loop(t_start=0, t_end=100000000000.0, show_ed=True, ef=[None, None])
+
+   
+   Plot PV loop.
+
+
+   :Parameters:
+
+       **ef: Default None, else plot ejection fraction in legend.**
+           ..
+
+       **show_ed: Default False, else plot ED state**
+           ..
+
+       **t_start: start time**
+           ..
+
+       **t_end: end time**
+           ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: plot_pressure_flow_volume(cavity: ZeroDSystem, t_start: float = 0, t_end: float = 1000000.0)
+   :staticmethod:
+
+
+   
+   Plot pressure/flow/volume curves.
+
+
+   :Parameters:
+
+       **cavity: ZeroDSystem,**
+           ..
+
+       **t_end: start time**
+           ..
+
+       **t_start: end time**
+           ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

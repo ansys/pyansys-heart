@@ -1,0 +1,93 @@
+
+
+
+
+
+The ``mesh`` package 
+========================
+
+.. py:module:: ansys.heart.preprocessor.mesh
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: mesh
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~ansys.heart.preprocessor.mesh.connectivity`
+            - Module containing methods for mesh connectivity.
+
+
+          * - :py:attr:`~ansys.heart.preprocessor.mesh.fluenthdf5`
+            - Module containing functions to read/write fluent meshes in HDF5 format.
+
+
+          * - :py:attr:`~ansys.heart.preprocessor.mesh.geodisc`
+            - Module for computing paths.
+
+
+          * - :py:attr:`~ansys.heart.preprocessor.mesh.mesher`
+            - Module contains methods for interaction with Fluent meshing.
+
+
+          * - :py:attr:`~ansys.heart.preprocessor.mesh.objects`
+            - Module that contains classes relevant for the mesh.
+
+
+          * - :py:attr:`~ansys.heart.preprocessor.mesh.vtkmethods`
+            - Module contains methods for mesh operations related to the vtk library.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🗎 connectivity<connectivity/index.rst>
+    🗎 fluenthdf5<fluenthdf5/index.rst>
+    🗎 geodisc<geodisc/index.rst>
+    🗎 mesher<mesher/index.rst>
+    🗎 objects<objects/index.rst>
+    🗎 vtkmethods<vtkmethods/index.rst>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

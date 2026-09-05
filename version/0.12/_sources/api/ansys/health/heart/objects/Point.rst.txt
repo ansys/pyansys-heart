@@ -1,0 +1,130 @@
+
+
+
+
+
+
+:class:`Point`
+==============
+
+.. py:class:: ansys.health.heart.objects.Point(name: str = None, xyz: numpy.ndarray = None, node_id: int = None)
+
+   Bases: :py:obj:`Feature`
+
+
+   
+   Point class, which can be used to collect relevant points in the mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Point
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~xyz`
+            - XYZ coordinates of the point.
+          * - :py:attr:`~node_id`
+            - Global node ID of the point.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.objects import Point
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: xyz
+   :type:  numpy.ndarray
+   :value: None
+
+
+   
+   XYZ coordinates of the point.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: node_id
+   :type:  int
+   :value: None
+
+
+   
+   Global node ID of the point.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

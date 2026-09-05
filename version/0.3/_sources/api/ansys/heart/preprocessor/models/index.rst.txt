@@ -1,0 +1,114 @@
+
+
+
+
+
+The ``models.py`` module
+========================
+
+.. py:module:: ansys.heart.preprocessor.models
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: models
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~ModelInfo`
+            - Contains model information.
+
+
+          * - :py:attr:`~HeartModel`
+            - Parent class for heart models.
+
+
+          * - :py:attr:`~LeftVentricle`
+            - Model of just the left ventricle.
+
+
+          * - :py:attr:`~BiVentricle`
+            - Model of the left and right ventricle.
+
+
+          * - :py:attr:`~FourChamber`
+            - Model of the left/right ventricle and left/right atrium.
+
+
+          * - :py:attr:`~FullHeart`
+            - Model of both ventricles, both atria, aorta and pulmonary artery.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🝆 ModelInfo<ModelInfo>
+    🝆 HeartModel<HeartModel>
+    🝆 LeftVentricle<LeftVentricle>
+    🝆 BiVentricle<BiVentricle>
+    🝆 FourChamber<FourChamber>
+    🝆 FullHeart<FullHeart>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing classes for the various heart models.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

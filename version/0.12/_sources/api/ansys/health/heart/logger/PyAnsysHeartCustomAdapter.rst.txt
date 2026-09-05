@@ -1,0 +1,226 @@
+
+
+
+
+
+
+:class:`PyAnsysHeartCustomAdapter`
+==================================
+
+.. py:class:: ansys.health.heart.logger.PyAnsysHeartCustomAdapter(logger: logging.Logger)
+
+   Bases: :py:obj:`logging.LoggerAdapter`
+
+
+   
+   Keeps the reference to the PyAnsys Heart service instance dynamic.
+
+   If you use the standard approach, which is supplying *extra* input
+   to the logger, you must input PyAnsys Heart service instances
+   each time that you log a message.
+
+   Using adapters, you only need to specify the PyAnsys Heart service instance
+   that you are referring to once.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: PyAnsysHeartCustomAdapter
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~process`
+            - Process extra arguments.
+          * - :py:attr:`~log_to_file`
+            - Add a file handler to the logger.
+          * - :py:attr:`~log_to_stdout`
+            - Add a stdout handler to the logger.
+          * - :py:attr:`~setLevel`
+            - Change the log level of the object and the attached handlers.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~level`
+            - 
+          * - :py:attr:`~file_handler`
+            - 
+          * - :py:attr:`~std_out_handler`
+            - 
+          * - :py:attr:`~logger`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.logger import PyAnsysHeartCustomAdapter
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: level
+   :value: None
+
+
+.. py:attribute:: file_handler
+   :type:  Optional[logging.FileHandler]
+   :value: None
+
+
+.. py:attribute:: std_out_handler
+   :type:  Optional[logging.StreamHandler]
+   :value: None
+
+
+.. py:attribute:: logger
+
+
+
+Method detail
+-------------
+
+.. py:method:: process(msg: str, kwargs: MutableMapping[str, Dict[str, str]])
+
+   
+   Process extra arguments.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: log_to_file(filename: str = FILE_NAME, level: LOG_LEVEL_TYPE = LOG_LEVEL_FILE) -> None
+
+   
+   Add a file handler to the logger.
+
+
+   :Parameters:
+
+       **filename** : :class:`python:str`, default: :obj:`FILE_NAME`
+           Name of the file to record logs to.
+
+       **level** : :class:`python:str` or :class:`python:int`, default: :obj:`LOG_LEVEL`
+           Level of logging, such as ``DEBUG``.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: log_to_stdout(level: LOG_LEVEL_TYPE = LOG_LEVEL_STDOUT) -> None
+
+   
+   Add a stdout handler to the logger.
+
+
+   :Parameters:
+
+       **level** : :class:`python:str` or :class:`python:int`, default: :obj:`LOG_LEVEL`
+           Level of the logging record.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: setLevel(level: Union[int, str] = 'DEBUG')
+
+   
+   Change the log level of the object and the attached handlers.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

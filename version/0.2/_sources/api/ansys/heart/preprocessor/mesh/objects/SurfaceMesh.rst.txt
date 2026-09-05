@@ -1,0 +1,578 @@
+
+
+
+
+SurfaceMesh
+===========
+
+.. py:class:: SurfaceMesh(name: str = None, triangles: numpy.ndarray = None, nodes: numpy.ndarray = None, id: int = None)
+   :canonical: ansys.heart.preprocessor.mesh.objects.SurfaceMesh
+
+
+
+Bases: :py:obj:`pyvista.PolyData`, :py:obj:`Feature`
+
+
+   Surface class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: SurfaceMesh
+.. tab-set::
+
+
+
+    .. tab-item:: Methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~compute_centroid`
+            - Compute the centroid of the surface.
+          * - :py:attr:`~compute_bounding_box`
+            - Compute the bounding box of the surface.
+          * - :py:attr:`~get_boundary_edges`
+            - Get boundary edges (if any) of the surface and groups them by connectivity.
+          * - :py:attr:`~separate_connected_regions`
+            - Use vtk to get connected regions and separate into different surfaces.
+          * - :py:attr:`~smooth_boundary_edges`
+            - Smooth the boundary edges if they are closed.
+          * - :py:attr:`~write_to_stl`
+            - Write the surface to a vtk file.
+          * - :py:attr:`~write_feature_edges_to_vtk`
+            - Write the feature edges to a vtk file.
+
+
+    .. tab-item:: Properties
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~nodes`
+            - Node coordinates.
+          * - :py:attr:`~triangles`
+            - Triangular faces of the surface num_faces x 3.
+          * - :py:attr:`~node_ids`
+            - Global node ids - sorted by earliest occurrence.
+          * - :py:attr:`~boundary_nodes`
+            - Global node ids of nodes on the boundary of the mesh (if any).
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~type`
+            - Surface type.
+          * - :py:attr:`~boundary_edges`
+            - Boundary edges.
+          * - :py:attr:`~edge_groups`
+            - Edge groups.
+          * - :py:attr:`~id`
+            - ID of surface.
+          * - :py:attr:`~nsid`
+            - ID of corresponding set of nodes.
+          * - :py:attr:`~triangles`
+            - Triangular faces of the surface num_faces x 3.
+          * - :py:attr:`~nodes`
+            - Node coordinates.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.mesh.objects import SurfaceMesh
+
+
+Property detail
+---------------
+.. py:property:: nodes
+   :canonical: ansys.heart.preprocessor.mesh.objects.SurfaceMesh.nodes
+   :type: None
+
+
+   
+   Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: triangles
+   :canonical: ansys.heart.preprocessor.mesh.objects.SurfaceMesh.triangles
+   :type: None
+
+
+   
+   Triangular faces of the surface num_faces x 3.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: node_ids
+   :canonical: ansys.heart.preprocessor.mesh.objects.SurfaceMesh.node_ids
+   :type: numpy.ndarray
+
+
+   
+   Global node ids - sorted by earliest occurrence.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: boundary_nodes
+   :canonical: ansys.heart.preprocessor.mesh.objects.SurfaceMesh.boundary_nodes
+   :type: numpy.ndarray
+
+
+   
+   Global node ids of nodes on the boundary of the mesh (if any).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: type
+   :value: 'surface'
+
+   
+   Surface type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: boundary_edges
+   :type: numpy.ndarray
+
+   
+   Boundary edges.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: edge_groups
+   :type: List[EdgeGroup]
+   :value: []
+
+   
+   Edge groups.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: id
+   :type: int
+
+   
+   ID of surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: nsid
+   :type: int
+
+   
+   ID of corresponding set of nodes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: triangles
+
+   
+   Triangular faces of the surface num_faces x 3.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: nodes
+
+   
+   Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+Method detail
+-------------
+.. py:method:: compute_centroid() -> numpy.ndarray
+
+   
+   Compute the centroid of the surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_bounding_box() -> Tuple[numpy.ndarray, float]
+
+   
+   Compute the bounding box of the surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_boundary_edges(append_triangles=None) -> List[EdgeGroup]
+
+   
+   Get boundary edges (if any) of the surface and groups them by connectivity.
+
+
+   :Parameters:
+
+       **append_triangles: optional**
+           special fix for right ventricle endocardium surface since it needs one part
+           from spetum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: separate_connected_regions()
+
+   
+   Use vtk to get connected regions and separate into different surfaces.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: smooth_boundary_edges(window_size: int = 3) -> numpy.ndarray
+
+   
+   Smooth the boundary edges if they are closed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: write_to_stl(filename: pathlib.Path = None) -> None
+
+   
+   Write the surface to a vtk file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: write_feature_edges_to_vtk(prefix: str = None, per_edge_group: bool = False) -> None
+
+   
+   Write the feature edges to a vtk file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

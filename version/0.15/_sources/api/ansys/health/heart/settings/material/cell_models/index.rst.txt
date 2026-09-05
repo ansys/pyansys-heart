@@ -1,0 +1,101 @@
+
+
+
+
+
+
+The ``cell_models.py`` module
+=============================
+
+.. py:module:: ansys.health.heart.settings.material.cell_models
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: cell_models
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.cell_models.Tentusscher`
+            - Data for Tentusscher cell model.
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.cell_models.TentusscherEndo`
+            - Data for Tentusscher cell model in its endocardium version.
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.cell_models.TentusscherEpi`
+            - Data for Tentusscher cell model in its epicardium version.
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.cell_models.TentusscherMid`
+            - Data for Tentusscher cell model in its mid-myocardium version.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> Tentusscher</api/ansys/health/heart/settings/material/cell_models/Tentusscher>
+    <span class="nf nf-cod-symbol_class"></span> TentusscherEndo</api/ansys/health/heart/settings/material/cell_models/TentusscherEndo>
+    <span class="nf nf-cod-symbol_class"></span> TentusscherEpi</api/ansys/health/heart/settings/material/cell_models/TentusscherEpi>
+    <span class="nf nf-cod-symbol_class"></span> TentusscherMid</api/ansys/health/heart/settings/material/cell_models/TentusscherMid>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module to collect ionic cell models.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

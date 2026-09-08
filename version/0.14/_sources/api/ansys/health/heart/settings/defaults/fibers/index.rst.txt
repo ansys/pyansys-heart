@@ -1,0 +1,89 @@
+
+
+
+
+
+
+The ``fibers.py`` module
+========================
+
+.. py:module:: ansys.health.heart.settings.defaults.fibers
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: fibers
+.. tab-set::
+
+
+
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~angles`
+            - 
+
+
+          * - :py:obj:`~la_bundle`
+            - 
+
+
+          * - :py:obj:`~ra_bundle`
+            - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module contains default values for fiber generation.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: angles
+
+.. py:data:: la_bundle
+
+.. py:data:: ra_bundle
+
+
+

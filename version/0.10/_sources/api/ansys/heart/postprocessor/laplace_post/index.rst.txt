@@ -1,0 +1,314 @@
+
+
+
+
+
+
+The ``laplace_post.py`` module
+==============================
+
+.. py:module:: ansys.heart.postprocessor.laplace_post
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: laplace_post
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~read_laplace_solution`
+            - Read laplace fields from d3plot files.
+
+
+          * - :py:obj:`~update_transmural_by_normal`
+            - Use surface normal for transmural direction.
+
+
+          * - :py:obj:`~orthogonalization`
+            - Orthogonalization.
+
+
+          * - :py:obj:`~compute_la_fiber_cs`
+            - Compute left atrium fibers coordinate system.
+
+
+          * - :py:obj:`~compute_ra_fiber_cs`
+            - Compute right atrium fibers coordinate system.
+
+
+          * - :py:obj:`~compute_ventricle_fiber_by_drbm`
+            - D-RBM method described in https://doi.org/10.1016/j.cma.2020.113468.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Post process script related to Laplace solving (UHC, fibers).
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: read_laplace_solution(directory: str, field_list: list[str], read_heatflux: bool = False) -> pyvista.UnstructuredGrid
+
+   
+   Read laplace fields from d3plot files.
+
+
+   :Parameters:
+
+       **directory** : :class:`python:str`
+           directory of d3plot files
+
+       **field_list** : :class:`python:list`\[:class:`python:str`]
+           name of each d3plot file/field
+
+
+
+   :Returns:
+
+       :obj:`pv.UnstructuredGrid`
+           grid with point data of each field
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: update_transmural_by_normal(grid: pyvista.UnstructuredGrid, surface: pyvista.PolyData) -> numpy.ndarray
+
+   
+   Use surface normal for transmural direction.
+
+
+   :Parameters:
+
+       **grid** : :obj:`pv.UnstructuredGrid`
+           atrium grid
+
+       **surface** : :obj:`pv.PolyData`
+           atrium endocardium surface
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           cell transmural direction vector
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: orthogonalization(grad_trans: numpy.ndarray, k: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]
+
+   
+   Orthogonalization.
+
+
+   :Parameters:
+
+       **grad_trans** : :obj:`np.ndarray <numpy.ndarray>`
+           transmural vector
+
+       **k** : :obj:`np.ndarray <numpy.ndarray>`
+           Bundle selection vector
+
+
+
+   :Returns:
+
+       :class:`python:tuple`\[:obj:`np.ndarray <numpy.ndarray>`, :obj:`np.ndarray <numpy.ndarray>`, :obj:`np.ndarray <numpy.ndarray>`]
+           local coordinate system e_l,e_n,e_t
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: compute_la_fiber_cs(directory: str, settings: ansys.heart.simulator.settings.settings.AtrialFiber, endo_surface: pyvista.PolyData = None) -> pyvista.UnstructuredGrid
+
+   
+   Compute left atrium fibers coordinate system.
+
+
+   :Parameters:
+
+       **directory** : :class:`python:str`
+           directory of d3plot files.
+
+       **settings** : :obj:`AtrialFiber`
+           Atrial fiber settings.
+
+       **endo_surface** : :obj:`pv.PolyData`, :obj:`optional`
+           _description_, by default None
+           If given, normal direction will be updated by surface normal instead of Laplace solution.
+
+
+
+   :Returns:
+
+       :obj:`pv.UnstructuredGrid`
+           pv object with fiber coordinates system.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Method descrbed in https://doi.org/10.1016/j.cma.2020.113468
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: compute_ra_fiber_cs(directory: str, settings: ansys.heart.simulator.settings.settings.AtrialFiber, endo_surface: pyvista.PolyData = None) -> pyvista.UnstructuredGrid
+
+   
+   Compute right atrium fibers coordinate system.
+
+
+   :Parameters:
+
+       **directory** : :class:`python:str`
+           directory of d3plot files.
+
+       **settings** : :obj:`AtrialFiber`
+           Atrial fiber settings.
+
+       **endo_surface** : :obj:`pv.PolyData`, :obj:`optional`
+           _description_, by default None
+           If given, normal direction will be updated by surface normal instead of Laplace solution.
+
+
+
+   :Returns:
+
+       :obj:`pv.UnstructuredGrid`
+           pv object with fiber coordinates system.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Method descrbed in https://doi.org/10.1016/j.cma.2020.113468
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: compute_ventricle_fiber_by_drbm(directory: str, settings: dict = {'alpha_left': [-60, 60], 'alpha_right': [-60, 60], 'alpha_ot': None, 'beta_left': [-65, 25], 'beta_right': [-65, 25], 'beta_ot': None}) -> pyvista.UnstructuredGrid
+
+   
+   D-RBM method described in https://doi.org/10.1016/j.cma.2020.113468.
+
+
+   :Parameters:
+
+       **directory** : :class:`python:str`
+           directory of d3plot/tprint files.
+
+       **settings** : :class:`python:dict`, :obj:`optional`
+           rotation angles, by default { "alpha_left": [-60, 60], "alpha_right": [-60, 60],
+           "alpha_ot": None, "beta_left": [-65, 25], "beta_right": [-65, 25], "beta_ot": None, }
+
+
+
+   :Returns:
+
+       :obj:`pv.UnstructuredGrid`
+           grid contains `fiber`,`cross-fiber`,`sheet` vectors
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

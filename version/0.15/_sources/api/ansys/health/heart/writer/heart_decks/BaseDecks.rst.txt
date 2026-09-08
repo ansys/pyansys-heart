@@ -1,0 +1,152 @@
+
+
+
+
+
+
+:class:`BaseDecks`
+==================
+
+
+.. py:class:: ansys.health.heart.writer.heart_decks.BaseDecks
+
+   
+   Class where each attribute corresponds to its respective deck.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   This class used to distinguish between each of the decks.
+   This base class defines some commonly used decks.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: BaseDecks
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~add_deck`
+            - Add deck by filename.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~main`
+            - 
+          * - :py:attr:`~parts`
+            - 
+          * - :py:attr:`~nodes`
+            - 
+          * - :py:attr:`~solid_elements`
+            - 
+          * - :py:attr:`~material`
+            - 
+          * - :py:attr:`~segment_sets`
+            - 
+          * - :py:attr:`~node_sets`
+            - 
+          * - :py:attr:`~boundary_conditions`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.heart_decks import BaseDecks
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: main
+   :type:  ansys.dyna.core.Deck
+
+.. py:attribute:: parts
+   :type:  ansys.dyna.core.Deck
+
+.. py:attribute:: nodes
+   :type:  ansys.dyna.core.Deck
+
+.. py:attribute:: solid_elements
+   :type:  ansys.dyna.core.Deck
+
+.. py:attribute:: material
+   :type:  ansys.dyna.core.Deck
+
+.. py:attribute:: segment_sets
+   :type:  ansys.dyna.core.Deck
+
+.. py:attribute:: node_sets
+   :type:  ansys.dyna.core.Deck
+
+.. py:attribute:: boundary_conditions
+   :type:  ansys.dyna.core.Deck
+
+
+
+Method detail
+-------------
+
+.. py:method:: add_deck(deckname: str) -> None
+
+   
+   Add deck by filename.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

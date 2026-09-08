@@ -1,0 +1,159 @@
+
+
+
+
+
+
+The ``simulator.py`` module
+===========================
+
+.. py:module:: ansys.heart.core.simulator
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: simulator
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.core.simulator.BaseSimulator`
+            - Base class for the simulator.
+
+
+          * - :py:obj:`~ansys.heart.core.simulator.EPSimulator`
+            - EP Simulator.
+
+
+          * - :py:obj:`~ansys.heart.core.simulator.MechanicsSimulator`
+            - Mechanics simulator with imposed active stress.
+
+
+          * - :py:obj:`~ansys.heart.core.simulator.EPMechanicsSimulator`
+            - Coupled EP-mechanics simulator with computed Electrophysiology.
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~run_lsdyna`
+            - Standalone function for running LS-DYNA.
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> BaseSimulator</api/ansys/heart/core/simulator/BaseSimulator>
+    <span class="nf nf-cod-symbol_class"></span> EPSimulator</api/ansys/heart/core/simulator/EPSimulator>
+    <span class="nf nf-cod-symbol_class"></span> MechanicsSimulator</api/ansys/heart/core/simulator/MechanicsSimulator>
+    <span class="nf nf-cod-symbol_class"></span> EPMechanicsSimulator</api/ansys/heart/core/simulator/EPMechanicsSimulator>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Simulator module.
+
+Options for simulation:
+
+- EP-only
+    with/without fbers.
+    with/without purkinje.
+- Electro-mechanics
+    simplified EP (imposed activation).
+    coupled electro-mechanics.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: run_lsdyna(path_to_input: pathlib, settings: ansys.heart.core.settings.settings.DynaSettings = None, simulation_directory: pathlib = None)
+
+   
+   Standalone function for running LS-DYNA.
+
+
+   :Parameters:
+
+       **path_to_input** : :obj:`Path`
+           Input file for LS-DYNA.
+
+       **settings** : :obj:`DynaSettings`, :obj:`optional`
+           LS-DYNA settings, such as path to executable, executable type,
+           platform, by default ``None``.
+
+       **simulation_directory** : :obj:`Path`, :obj:`optional`
+           Directory where to simulate, by default ``None``.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

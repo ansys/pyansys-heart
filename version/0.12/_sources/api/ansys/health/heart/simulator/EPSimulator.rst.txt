@@ -1,0 +1,156 @@
+
+
+
+
+
+
+:class:`EPSimulator`
+====================
+
+.. py:class:: ansys.health.heart.simulator.EPSimulator(model: ansys.health.heart.models.HeartModel, dyna_settings: ansys.health.heart.settings.settings.DynaSettings, simulation_directory: pathlib = '')
+
+   Bases: :py:obj:`BaseSimulator`
+
+
+   
+   EP (electrophysiology) simulator.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: EPSimulator
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~simulate`
+            - Launch the EP simulation.
+          * - :py:attr:`~compute_purkinje`
+            - Compute the Purkinje network.
+          * - :py:attr:`~compute_conduction_system`
+            - Compute the conduction system.
+
+
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.simulator import EPSimulator
+
+
+
+Method detail
+-------------
+
+.. py:method:: simulate(folder_name='main-ep', extra_k_files: list[str] | None = None)
+
+   
+   Launch the EP simulation.
+
+
+   :Parameters:
+
+       **folder_name** : :class:`python:str`, default: ``'main-ep'``
+           Simulation folder name.
+
+       **extra_k_files** : :class:`python:list`\[:class:`python:str`], default: :data:`python:None`
+           User-defined k files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_purkinje()
+
+   
+   Compute the Purkinje network.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_conduction_system()
+
+   
+   Compute the conduction system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

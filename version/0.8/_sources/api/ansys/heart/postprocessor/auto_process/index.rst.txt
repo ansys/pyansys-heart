@@ -1,0 +1,179 @@
+
+
+
+
+
+
+The ``auto_process.py`` module
+==============================
+
+.. py:module:: ansys.heart.postprocessor.auto_process
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: auto_process
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~zerop_post`
+            - Post-process zeropressure folder.
+
+
+          * - :py:obj:`~mech_post`
+            - Post-process mechanical simulation folder.
+
+
+          * - :py:obj:`~export_to_vtk`
+            - Export heart motion(surfaces) into vtk files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Script used to post process simulations automatically.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: zerop_post(directory: str, model: ansys.heart.core.models.HeartModel) -> tuple[dict, numpy.ndarray, numpy.ndarray]
+
+   
+   Post-process zeropressure folder.
+
+
+   :Parameters:
+
+       **directory** : :class:`python:str`
+           Path to simulation folder
+
+       **model** : :obj:`HeartModel`
+           model to post-process
+
+
+
+   :Returns:
+
+       :class:`python:tuple`\[:class:`python:dict`, :obj:`np.ndarray <numpy.ndarray>`, :obj:`np.ndarray <numpy.ndarray>`]
+           dictionary with convergence information
+           stress free configuration
+           computed end-of-diastolic configuration
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: mech_post(directory: str, model: ansys.heart.core.models.HeartModel)
+
+   
+   Post-process mechanical simulation folder.
+
+
+   :Parameters:
+
+       **directory** : :class:`python:str`
+           d3plot folder
+
+       **model** : :obj:`HeartModel`
+           heart model
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: export_to_vtk(directory: str, model: ansys.heart.core.models.HeartModel)
+
+   
+   Export heart motion(surfaces) into vtk files.
+
+
+   :Parameters:
+
+       **directory** : :class:`python:str`
+           d3plot folder
+
+       **model** : :obj:`HeartModel`
+           heart model
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

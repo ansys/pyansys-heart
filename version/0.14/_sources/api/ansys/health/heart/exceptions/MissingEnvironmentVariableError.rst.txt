@@ -1,0 +1,49 @@
+
+
+
+
+
+
+:class:`MissingEnvironmentVariableError`
+========================================
+
+
+.. py:exception:: ansys.health.heart.exceptions.MissingEnvironmentVariableError
+
+   Bases: :py:obj:`OSError`
+
+
+   
+   Exception raised when a required environment variable is missing.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.exceptions import MissingEnvironmentVariableError
+
+
+
+
+

@@ -1,0 +1,108 @@
+
+
+
+
+
+The ``ansys.heart.postprocessor`` library
+=========================================
+
+.. py:module:: ansys.heart.postprocessor
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: postprocessor
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~ansys.heart.postprocessor.EPpostprocessor`
+            - D3plot parser using Ansys-dpf.
+
+
+          * - :py:attr:`~ansys.heart.postprocessor.Klotz_curve`
+            - Klotz curve module.
+
+
+          * - :py:attr:`~ansys.heart.postprocessor.SystemModelPost`
+            - Module for postprocessing system model data.
+
+
+          * - :py:attr:`~ansys.heart.postprocessor.aha17_strain`
+            - Compute myocardial strain.
+
+
+          * - :py:attr:`~ansys.heart.postprocessor.auto_process`
+            - Script used to post process simulations automatically.
+
+
+          * - :py:attr:`~ansys.heart.postprocessor.dpf_utils`
+            - D3plot parser using Ansys-dpf.
+
+
+          * - :py:attr:`~ansys.heart.postprocessor.exporter`
+            - Export information from d3plot.
+
+
+          * - :py:attr:`~ansys.heart.postprocessor.laplace_post`
+            - Post process script related to Laplace solving (UHC, fibers).
+
+
+          * - :py:attr:`~ansys.heart.postprocessor.pvloop`
+            - Get PV loop from ls-dyna icvout file.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🗎 EPpostprocessor<EPpostprocessor/index.rst>
+    🗎 Klotz_curve<Klotz_curve/index.rst>
+    🗎 SystemModelPost<SystemModelPost/index.rst>
+    🗎 aha17_strain<aha17_strain/index.rst>
+    🗎 auto_process<auto_process/index.rst>
+    🗎 dpf_utils<dpf_utils/index.rst>
+    🗎 exporter<exporter/index.rst>
+    🗎 laplace_post<laplace_post/index.rst>
+    🗎 pvloop<pvloop/index.rst>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

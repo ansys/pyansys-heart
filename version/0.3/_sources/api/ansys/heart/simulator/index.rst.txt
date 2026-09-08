@@ -1,0 +1,86 @@
+
+
+
+
+
+The ``ansys.heart.simulator`` library
+=====================================
+
+.. py:module:: ansys.heart.simulator
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: simulator
+.. tab-set::
+
+    .. tab-item:: Subpackages
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~ansys.heart.simulator.settings`
+            - 
+
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~ansys.heart.simulator.simulator`
+            - Simulator module.
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🖿 settings<settings/index.rst>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🗎 simulator<simulator/index.rst>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

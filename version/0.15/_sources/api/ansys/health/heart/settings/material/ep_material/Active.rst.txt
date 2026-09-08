@@ -1,0 +1,82 @@
+
+
+
+
+
+
+:class:`Active`
+===============
+
+
+.. py:class:: ansys.health.heart.settings.material.ep_material.Active(/, **data: Any)
+
+   Bases: :py:obj:`EPMaterialModel`
+
+
+   
+   Hold data for an active EP material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Active
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~cell_model`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.ep_material import Active
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: cell_model
+   :type:  ansys.health.heart.settings.material.cell_models.Tentusscher
+   :value: None
+
+
+
+
+
+

@@ -1,0 +1,154 @@
+
+
+
+
+
+
+:class:`Electrophysiology`
+==========================
+
+.. py:class:: ansys.health.heart.settings.settings.Electrophysiology
+
+   Bases: :py:obj:`Settings`
+
+
+   
+   Class for keeping track of EP settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Electrophysiology
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~material`
+            - Material settings/configuration.
+          * - :py:attr:`~analysis`
+            - Generic analysis settings.
+          * - :py:attr:`~stimulation`
+            - Stimulation settings.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import Electrophysiology
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: material
+   :type:  EpMaterial
+
+   
+   Material settings/configuration.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: analysis
+   :type:  EPAnalysis
+
+   
+   Generic analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: stimulation
+   :type:  AttrDict[str, Stimulation]
+   :value: None
+
+
+   
+   Stimulation settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

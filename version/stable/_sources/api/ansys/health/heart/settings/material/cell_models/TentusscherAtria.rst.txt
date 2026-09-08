@@ -1,0 +1,101 @@
+
+
+
+
+
+
+:class:`TentusscherAtria`
+=========================
+
+
+.. py:class:: ansys.health.heart.settings.material.cell_models.TentusscherAtria(/, **data: Any)
+
+   Bases: :py:obj:`Tentusscher`
+
+
+   
+   Tentusscher cell model adapted for atrial cells.
+
+   @TODO: add reference paper?
+
+   Notes: This is a simplified approach since not atrial cell model
+   is implemented in current version of LS-DYNA.
+   CRN cell model will be implemented in the future.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: TentusscherAtria
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~gks`
+            - 
+          * - :py:attr:`~gto`
+            - 
+          * - :py:attr:`~gcal`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.cell_models import TentusscherAtria
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: gks
+   :type:  float
+   :value: 0.275
+
+
+.. py:attribute:: gto
+   :type:  float
+   :value: 0.294
+
+
+.. py:attribute:: gcal
+   :type:  float
+   :value: 1e-05
+
+
+
+
+
+

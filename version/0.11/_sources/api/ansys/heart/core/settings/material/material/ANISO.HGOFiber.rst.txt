@@ -1,0 +1,183 @@
+
+
+
+
+
+
+:class:`HGOFiber`
+=================
+
+.. py:class:: ansys.heart.core.settings.material.material.ANISO.HGOFiber
+
+   
+   Define HGO type fiber from k1 and k2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: HGOFiber
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~k1`
+            - k1 for HGO model.
+          * - :py:attr:`~k2`
+            - k2 for HGO model.
+          * - :py:attr:`~a`
+            - Fiber dispersion tensor parameter.
+          * - :py:attr:`~b`
+            - Fiber dispersion tensor parameter.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.settings.material.material.ANISO import HGOFiber
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: k1
+   :type:  float
+   :value: None
+
+
+   
+   k1 for HGO model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: k2
+   :type:  float
+   :value: None
+
+
+   
+   k2 for HGO model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: a
+   :type:  float
+   :value: 0.0
+
+
+   
+   Fiber dispersion tensor parameter.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: b
+   :type:  float
+   :value: 1.0
+
+
+   
+   Fiber dispersion tensor parameter.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

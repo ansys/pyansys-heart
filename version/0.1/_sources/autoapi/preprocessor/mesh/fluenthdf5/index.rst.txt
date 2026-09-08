@@ -1,0 +1,703 @@
+:py:mod:`preprocessor.mesh.fluenthdf5`
+======================================
+
+.. py:module:: preprocessor.mesh.fluenthdf5
+
+.. autoapi-nested-parse::
+
+   Module containing functions to read/write fluent meshes in HDF5 format.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   preprocessor.mesh.fluenthdf5.FluentCellZone
+   preprocessor.mesh.fluenthdf5.FluentFaceZone
+   preprocessor.mesh.fluenthdf5.FluentMesh
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   preprocessor.mesh.fluenthdf5.add_solid_name_to_stl
+
+
+
+.. py:class:: FluentCellZone(min_id: int = None, max_id: int = None, name: str = None, cid: int = None)
+
+
+   
+   Class that stores information of the cell zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: min_id
+      :type: int
+
+      
+      Min cell id of the cell zone: indexing starts at 0.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: max_id
+      :type: int
+
+      
+      Max cell id of the cell zone: indexing starts at 0.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: name
+      :type: str
+
+      
+      Name of the cell zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: id
+      :type: int
+
+      
+      Id of the cell zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: cells
+      :type: numpy.ndarray
+
+      
+      Array of cells for this cell zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: get_cells(all_cells: numpy.ndarray) -> None
+
+      
+      Select the cells between min and max id.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: FluentFaceZone(min_id: int = None, max_id: int = None, name: str = None, zone_id: int = None, zone_type: str = None, hdf5_id: int = None, faces: numpy.ndarray = None, c0c1: numpy.ndarray = None)
+
+
+   
+   Class that stores information of the face zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: min_id
+      :type: int
+
+      
+      Min face id of the face zone: indexing starts at 0.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: max_id
+      :type: int
+
+      
+      Max face id of the face zone: indexing starts at 0.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: name
+      :type: str
+
+      
+      Name of the face zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: id
+      :type: int
+
+      
+      Id of the face zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: zone_type
+      :type: str
+
+      
+      Type of face zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: faces
+      :type: numpy.ndarray
+
+      
+      Array of faces for this face zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: c0c1
+      :type: numpy.ndarray
+
+      
+      Array that stores connected cell-ids.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: hdf5_id
+
+      
+      Id of face zone in hdf5 file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: FluentMesh(filename: str = None)
+
+
+   
+   Class that stores the Fluent mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:property:: cell_zone_names
+
+      
+      List of cell zone names of non-empty cell zones.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: filename
+      :type: str
+
+      
+      Path to file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: fid
+      :type: h5py.File
+
+      
+      File id to h5py file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: nodes
+      :type: numpy.ndarray
+
+      
+      All nodes of the mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: faces
+      :type: numpy.ndarray
+
+      
+      All faces.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: cells
+      :type: numpy.ndarray
+
+      
+      All cells.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: cell_ids
+      :type: numpy.ndarray
+
+      
+      Array of cell ids use to define the cell zones.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: cell_zones
+      :type: List[FluentCellZone]
+
+      
+      List of cell zones.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: face_zones
+      :type: List[FluentFaceZone]
+
+      
+      List of face zones.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: load_mesh(filename: str = None, reconstruct_tetrahedrons: bool = True) -> None
+
+      
+      Load the mesh from the hdf5 file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: add_solid_name_to_stl(filename, solid_name, file_type: str = 'ascii') -> None
+
+   
+   Add name of solid to stl file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

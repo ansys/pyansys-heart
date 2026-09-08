@@ -1,0 +1,79 @@
+
+
+
+
+
+
+The ``material`` package
+============================
+
+.. py:module:: ansys.heart.simulator.settings.material
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: material
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.material.curve`
+            - Module for active stress curve.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.material.ep_material`
+            - Material module.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.material.material`
+            - Material module.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> curve</api/ansys/heart/simulator/settings/material/curve/index>
+    <span class="nf nf-fa-file"></span> ep_material</api/ansys/heart/simulator/settings/material/ep_material/index>
+    <span class="nf nf-fa-file"></span> material</api/ansys/heart/simulator/settings/material/material/index>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

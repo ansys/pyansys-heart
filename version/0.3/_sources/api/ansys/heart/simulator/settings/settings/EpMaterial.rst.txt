@@ -1,0 +1,183 @@
+
+
+
+
+EpMaterial
+==========
+
+.. py:class:: EpMaterial
+   :canonical: ansys.heart.simulator.settings.settings.EpMaterial
+
+
+
+Bases: :py:obj:`Settings`
+
+
+   Class for storing ep material settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: EpMaterial
+.. tab-set::
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~myocardium`
+            - Myocardium material.
+          * - :py:attr:`~atrium`
+            - Atrial material.
+          * - :py:attr:`~cap`
+            - Cap material.
+          * - :py:attr:`~beam`
+            - beam material.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.settings import EpMaterial
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: myocardium
+   :type: AttrDict
+
+   
+   Myocardium material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: atrium
+   :type: AttrDict
+
+   
+   Atrial material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: cap
+   :type: AttrDict
+
+   
+   Cap material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: beam
+   :type: AttrDict
+
+   
+   beam material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

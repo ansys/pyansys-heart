@@ -1,0 +1,182 @@
+
+
+
+
+
+
+The ``electrophysiology.py`` module
+===================================
+
+.. py:module:: ansys.health.heart.settings.defaults.electrophysiology
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: electrophysiology
+.. tab-set::
+
+
+
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~heart`
+            - Generic analysis settings.
+
+
+          * - :py:obj:`~analysis`
+            - Material settings.
+
+
+          * - :py:obj:`~material`
+            - Material settings.
+
+
+          * - :py:obj:`~default_myocardium_material_eikonal`
+            - 
+
+
+          * - :py:obj:`~default_beam_material_eikonal`
+            - 
+
+
+          * - :py:obj:`~default_beam_material_monodomain`
+            - 
+
+
+          * - :py:obj:`~default_myocardium_material_monodomain`
+            - 
+
+
+          * - :py:obj:`~stimulation`
+            - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module contains default values for EP (Electrophysiology) simulations.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: heart
+
+   
+   Generic analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: analysis
+
+   
+   Material settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: material
+
+   
+   Material settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: default_myocardium_material_eikonal
+
+.. py:data:: default_beam_material_eikonal
+
+.. py:data:: default_beam_material_monodomain
+
+.. py:data:: default_myocardium_material_monodomain
+
+.. py:data:: stimulation
+
+
+

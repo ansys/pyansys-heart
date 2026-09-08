@@ -1,0 +1,287 @@
+
+
+
+
+
+
+:class:`DynaSettings`
+=====================
+
+.. py:class:: ansys.heart.core.settings.settings.DynaSettings(lsdyna_path: pathlib.Path = 'lsdyna.exe', dynatype: Literal['smp', 'intelmpi', 'platformmpi', 'msmpi'] = 'intelmpi', num_cpus: int = 1, platform: Literal['windows', 'wsl', 'linux'] = 'windows', dyna_options: str = '', mpi_options: str = '')
+
+   
+   Class for collecting, managing and validating LS-DYNA settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: DynaSettings
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_commands`
+            - Get command line arguments from the defined settings.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~lsdyna_path`
+            - Path to LS-DYNA executable.
+          * - :py:attr:`~dynatype`
+            - Type of dyna executable.
+          * - :py:attr:`~num_cpus`
+            - Number of CPU's requested.
+          * - :py:attr:`~platform`
+            - Platform on which dyna is executed.
+          * - :py:attr:`~dyna_options`
+            - Additional command line options for dyna.
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__repr__`
+            - Represent self as string.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.settings.settings import DynaSettings
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: lsdyna_path
+   :type:  pathlib.Path
+   :value: 'lsdyna.exe'
+
+
+   
+   Path to LS-DYNA executable.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: dynatype
+   :type:  str
+   :value: 'intelmpi'
+
+
+   
+   Type of dyna executable.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: num_cpus
+   :type:  int
+   :value: 1
+
+
+   
+   Number of CPU's requested.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: platform
+   :type:  str
+   :value: 'windows'
+
+
+   
+   Platform on which dyna is executed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: dyna_options
+   :value: ''
+
+
+   
+   Additional command line options for dyna.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: get_commands(path_to_input: pathlib.Path) -> List[str]
+
+   
+   Get command line arguments from the defined settings.
+
+
+   :Parameters:
+
+       **path_to_input** : :obj:`pathlib.Path`
+           Path to the LS-DYNA input file.
+
+
+
+   :Returns:
+
+       :obj:`List`\[:class:`python:str`]
+           List of strings of each of the commands.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: __repr__()
+
+   
+   Represent self as string.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

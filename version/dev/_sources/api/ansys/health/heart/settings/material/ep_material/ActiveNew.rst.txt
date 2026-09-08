@@ -1,0 +1,135 @@
+
+
+
+
+
+
+:class:`ActiveNew`
+==================
+
+
+.. py:class:: ansys.health.heart.settings.material.ep_material.ActiveNew(/, **data: Any)
+
+   Bases: :py:obj:`Active`
+
+
+   
+   Same with :class:`Active` except use ``*EM_MAT_005``.
+
+   In Eikonal-reaction model, it uses anisotropic conductivity tensor
+   for ECG computation.
+   Other advantages in Bi-domain model but not supported in current version.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: ActiveNew
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~warn_on_init`
+            - Warn that ActiveNew is experimental.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~cond_sigma_fiber`
+            - 
+          * - :py:attr:`~cond_sigma_sheet`
+            - 
+          * - :py:attr:`~cond_sigma_sheet_normal`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.ep_material import ActiveNew
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: cond_sigma_fiber
+   :type:  Optional[float]
+   :value: None
+
+
+.. py:attribute:: cond_sigma_sheet
+   :type:  Optional[float]
+   :value: None
+
+
+.. py:attribute:: cond_sigma_sheet_normal
+   :type:  Optional[float]
+   :value: None
+
+
+
+
+Method detail
+-------------
+
+.. py:method:: warn_on_init()
+
+   
+   Warn that ActiveNew is experimental.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

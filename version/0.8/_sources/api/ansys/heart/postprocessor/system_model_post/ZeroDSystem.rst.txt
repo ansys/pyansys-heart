@@ -1,0 +1,165 @@
+
+
+:class:`ZeroDSystem`
+====================
+
+.. py:class:: ansys.heart.postprocessor.system_model_post.ZeroDSystem(csv_path, ed_state, name='')
+
+   
+   0D circulation system model (for one cavity).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: ZeroDSystem
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~name`
+            - 
+          * - :py:attr:`~ed`
+            - 
+          * - :py:attr:`~data`
+            - 
+          * - :py:attr:`~time`
+            - 
+          * - :py:attr:`~pressure`
+            - 
+          * - :py:attr:`~cavity`
+            - 
+          * - :py:attr:`~artery`
+            - 
+          * - :py:attr:`~venous`
+            - 
+          * - :py:attr:`~flow`
+            - 
+          * - :py:attr:`~peripheral`
+            - 
+          * - :py:attr:`~volume`
+            - 
+
+
+   .. tab-item:: Static methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~integrate_volume`
+            - Integrate cavity's volume.
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.postprocessor.system_model_post import ZeroDSystem
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: name
+
+.. py:attribute:: ed
+
+.. py:attribute:: data
+
+.. py:attribute:: time
+
+.. py:attribute:: pressure
+
+.. py:attribute:: cavity
+
+.. py:attribute:: artery
+
+.. py:attribute:: venous
+
+.. py:attribute:: flow
+
+.. py:attribute:: peripheral
+
+.. py:attribute:: volume
+
+
+
+Method detail
+-------------
+.. py:method:: integrate_volume(v0, t, q)
+   :staticmethod:
+
+
+   
+   Integrate cavity's volume.
+
+
+   :Parameters:
+
+       **v0: float, volume at time of 0**
+           ..
+
+       **t: time array**
+           ..
+
+       **q: flow array**
+           ..
+
+
+
+   :Returns:
+
+       :obj:`volume` :obj:`array <numpy.ndarray>`
+           ..
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Cavity's volume is not evaluated/saved in csv file.
+   Use implicit with gamma=0.6
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

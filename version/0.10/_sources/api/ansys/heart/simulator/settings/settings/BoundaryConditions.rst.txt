@@ -1,0 +1,158 @@
+
+
+
+
+
+
+:class:`BoundaryConditions`
+===========================
+
+.. py:class:: ansys.heart.simulator.settings.settings.BoundaryConditions
+
+   Bases: :py:obj:`Settings`
+
+
+   
+   Stores settings/parameters for boundary conditions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: BoundaryConditions
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~robin`
+            - Parameters for pericardium spring/damper b.c.
+          * - :py:attr:`~valve`
+            - Parameters for valve spring b.c.
+          * - :py:attr:`~end_diastolic_cavity_pressure`
+            - End-diastolic pressure.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.settings import BoundaryConditions
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: robin
+   :type:  AttrDict
+   :value: None
+
+
+   
+   Parameters for pericardium spring/damper b.c.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: valve
+   :type:  AttrDict
+   :value: None
+
+
+   
+   Parameters for valve spring b.c.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: end_diastolic_cavity_pressure
+   :type:  AttrDict
+   :value: None
+
+
+   
+   End-diastolic pressure.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

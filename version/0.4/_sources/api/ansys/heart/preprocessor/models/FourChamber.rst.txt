@@ -1,0 +1,211 @@
+
+
+:class:`FourChamber`
+====================
+
+.. py:class:: ansys.heart.preprocessor.models.FourChamber(info: ModelInfo = None)
+
+   Bases: :py:obj:`HeartModel`
+
+
+   
+   Model of the left/right ventricle and left/right atrium.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: FourChamber
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~left_ventricle`
+            - Left ventricle part.
+          * - :py:attr:`~right_ventricle`
+            - Right ventricle part.
+          * - :py:attr:`~septum`
+            - Septum.
+          * - :py:attr:`~left_atrium`
+            - Left atrium part.
+          * - :py:attr:`~right_atrium`
+            - Right atrium part.
+          * - :py:attr:`~fiber`
+            - 
+          * - :py:attr:`~active`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.models import FourChamber
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: left_ventricle
+   :type:  ansys.heart.preprocessor.mesh.objects.Part
+
+   
+   Left ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: right_ventricle
+   :type:  ansys.heart.preprocessor.mesh.objects.Part
+
+   
+   Right ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: septum
+   :type:  ansys.heart.preprocessor.mesh.objects.Part
+
+   
+   Septum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: left_atrium
+   :type:  ansys.heart.preprocessor.mesh.objects.Part
+
+   
+   Left atrium part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: right_atrium
+   :type:  ansys.heart.preprocessor.mesh.objects.Part
+
+   
+   Right atrium part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: fiber
+   :value: True
+
+
+.. py:attribute:: active
+   :value: True
+
+
+
+
+

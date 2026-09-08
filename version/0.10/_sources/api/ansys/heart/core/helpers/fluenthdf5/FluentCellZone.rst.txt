@@ -1,0 +1,250 @@
+
+
+
+
+
+
+:class:`FluentCellZone`
+=======================
+
+.. py:class:: ansys.heart.core.helpers.fluenthdf5.FluentCellZone(min_id: int = None, max_id: int = None, name: str = None, cid: int = None)
+
+   
+   Class that stores information of the cell zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: FluentCellZone
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_cells`
+            - Select the cells between min and max id.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~min_id`
+            - Min cell id of the cell zone: indexing starts at 0.
+          * - :py:attr:`~max_id`
+            - Max cell id of the cell zone: indexing starts at 0.
+          * - :py:attr:`~name`
+            - Name of the cell zone.
+          * - :py:attr:`~id`
+            - Id of the cell zone.
+          * - :py:attr:`~cells`
+            - Array of cells for this cell zone.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.helpers.fluenthdf5 import FluentCellZone
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: min_id
+   :type:  int
+   :value: None
+
+
+   
+   Min cell id of the cell zone: indexing starts at 0.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: max_id
+   :type:  int
+   :value: None
+
+
+   
+   Max cell id of the cell zone: indexing starts at 0.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: name
+   :type:  str
+   :value: None
+
+
+   
+   Name of the cell zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: id
+   :type:  int
+   :value: None
+
+
+   
+   Id of the cell zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: cells
+   :type:  numpy.ndarray
+   :value: None
+
+
+   
+   Array of cells for this cell zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: get_cells(all_cells: numpy.ndarray) -> None
+
+   
+   Select the cells between min and max id.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Requires list of all cells.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

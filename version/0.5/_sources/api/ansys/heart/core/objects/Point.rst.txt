@@ -1,0 +1,121 @@
+
+
+:class:`Point`
+==============
+
+.. py:class:: ansys.heart.core.objects.Point(name: str = None, xyz: numpy.ndarray = None, node_id: int = None)
+
+   Bases: :py:obj:`Feature`
+
+
+   
+   Point class. Can be used to collect relevant points in the mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Point
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~xyz`
+            - XYZ Coordinates of point.
+          * - :py:attr:`~node_id`
+            - Global node id of point.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.objects import Point
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: xyz
+   :type:  numpy.ndarray
+
+   
+   XYZ Coordinates of point.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: node_id
+   :type:  int
+
+   
+   Global node id of point.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

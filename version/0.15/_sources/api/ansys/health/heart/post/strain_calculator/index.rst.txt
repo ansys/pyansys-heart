@@ -1,0 +1,80 @@
+
+
+
+
+
+
+The ``strain_calculator.py`` module
+===================================
+
+.. py:module:: ansys.health.heart.post.strain_calculator
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: strain_calculator
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.post.strain_calculator.AhaStrainCalculator`
+            - Compute longitudinal, radial, and circumferential strain for the left ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> AhaStrainCalculator</api/ansys/health/heart/post/strain_calculator/AhaStrainCalculator>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Compute myocardial strain.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

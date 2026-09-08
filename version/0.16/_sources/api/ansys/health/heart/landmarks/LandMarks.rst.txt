@@ -1,0 +1,306 @@
+
+
+
+
+
+
+:class:`LandMarks`
+==================
+
+
+.. py:class:: ansys.health.heart.landmarks.LandMarks
+
+   
+   Heart anatomical points.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: LandMarks
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~sa_node`
+            - Sinoatrial node.
+          * - :py:attr:`~av_node`
+            - Atrioventricular node.
+          * - :py:attr:`~his_bif_node`
+            - His bundle bifurcation node.
+          * - :py:attr:`~his_left_end_node`
+            - His bundle left end node.
+          * - :py:attr:`~his_right_end_node`
+            - His bundle right end node.
+          * - :py:attr:`~bachmann_end_node`
+            - Bachmann bundle end node.
+          * - :py:attr:`~left_fascicle_end_node`
+            - Left fascicle end node.
+          * - :py:attr:`~left_apex`
+            - Left ventricle apex (endocardium).
+          * - :py:attr:`~right_apex`
+            - Right ventricle apex (endocardium).
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.landmarks import LandMarks
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: sa_node
+   :type:  ansys.health.heart.objects.Point
+
+   
+   Sinoatrial node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: av_node
+   :type:  ansys.health.heart.objects.Point
+
+   
+   Atrioventricular node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: his_bif_node
+   :type:  ansys.health.heart.objects.Point
+
+   
+   His bundle bifurcation node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: his_left_end_node
+   :type:  ansys.health.heart.objects.Point
+
+   
+   His bundle left end node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: his_right_end_node
+   :type:  ansys.health.heart.objects.Point
+
+   
+   His bundle right end node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: bachmann_end_node
+   :type:  ansys.health.heart.objects.Point
+
+   
+   Bachmann bundle end node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: left_fascicle_end_node
+   :type:  ansys.health.heart.objects.Point
+
+   
+   Left fascicle end node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: left_apex
+   :type:  ansys.health.heart.objects.Point
+
+   
+   Left ventricle apex (endocardium).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: right_apex
+   :type:  ansys.health.heart.objects.Point
+
+   
+   Right ventricle apex (endocardium).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

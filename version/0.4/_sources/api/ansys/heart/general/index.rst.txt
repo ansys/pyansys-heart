@@ -1,0 +1,183 @@
+
+
+
+
+
+
+The ``ansys.heart.general`` library
+===================================
+
+.. py:module:: ansys.heart.general
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: general
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~check_lsdyna_exe`
+            - Check if LSDYNA executable exists.
+
+
+          * - :py:obj:`~clean_directory`
+            - Clean the directory by removing it and re-creating it.
+
+
+          * - :py:obj:`~run_lsdyna`
+            - Run lsdyna in wsl.
+
+
+
+
+    .. tab-item:: Constants
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~NCPU`
+            - 
+
+
+          * - :py:obj:`~LSDYNAPATH`
+            - 
+
+
+          * - :py:obj:`~OS`
+            - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing some general methods.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: check_lsdyna_exe()
+
+   
+   Check if LSDYNA executable exists.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: clean_directory(directory: str)
+
+   
+   Clean the directory by removing it and re-creating it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: run_lsdyna(sim_file: str, lsdynapath: str = LSDYNAPATH, ncpu: int = NCPU, options='', OS=OS)
+
+   
+   Run lsdyna in wsl.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: NCPU
+   :value: 4
+
+
+.. py:data:: LSDYNAPATH
+   :value: 'D:\\wsl\\lsdyna_mpp\\mppdyna_d_sse2_linux86_64_intelmmpi'
+
+
+.. py:data:: OS
+   :value: 'wsl'
+
+
+
+

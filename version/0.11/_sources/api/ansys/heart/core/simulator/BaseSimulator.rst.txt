@@ -1,0 +1,385 @@
+
+
+
+
+
+
+:class:`BaseSimulator`
+======================
+
+.. py:class:: ansys.heart.core.simulator.BaseSimulator(model: ansys.heart.core.models.HeartModel, dyna_settings: ansys.heart.core.settings.settings.DynaSettings = None, simulation_directory: pathlib = '')
+
+   
+   Base class for the simulator.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: BaseSimulator
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~load_default_settings`
+            - Load default simulation settings.
+          * - :py:attr:`~compute_fibers`
+            - Compute the fiber-sheet directions on ventricle(s).
+          * - :py:attr:`~compute_uhc`
+            - Compute universal 'heart' coordinates system.
+          * - :py:attr:`~compute_right_atrial_fiber`
+            - Compute right atrium fiber with LDRBD method.
+          * - :py:attr:`~compute_left_atrial_fiber`
+            - Compute left atrium fiber with LDRBD method.
+          * - :py:attr:`~run_laplace_problem`
+            - Run Laplace-Dirichlet (thermal) problem in LSDYNA.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~model`
+            - HeartModel to simulate.
+          * - :py:attr:`~root_directory`
+            - Root simulation directory.
+          * - :py:attr:`~settings`
+            - Simulation settings.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.simulator import BaseSimulator
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: model
+   :type:  ansys.heart.core.models.HeartModel
+
+   
+   HeartModel to simulate.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: root_directory
+   :value: ''
+
+
+   
+   Root simulation directory.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: settings
+   :type:  ansys.heart.core.settings.settings.SimulationSettings
+
+   
+   Simulation settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: load_default_settings() -> ansys.heart.core.settings.settings.SimulationSettings
+
+   
+   Load default simulation settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_fibers(method: Literal['LSDYNA', 'D-RBM'] = 'LSDYNA', rotation_angles: dict = None)
+
+   
+   Compute the fiber-sheet directions on ventricle(s).
+
+
+   :Parameters:
+
+       **method** : :obj:`Literal`\[&quot;LSDYNA&quot;, &quot;D, :obj:`optional`
+           method, by default "LSDYNA"
+
+       **rotation_angles** : :class:`python:dict`, :obj:`optional`
+           rotation angle alpha and beta, by default None
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_uhc() -> pyvista.UnstructuredGrid
+
+   
+   Compute universal 'heart' coordinates system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_right_atrial_fiber(appendage: list[float], top: list[list[float]] = None) -> pyvista.UnstructuredGrid
+
+   
+   Compute right atrium fiber with LDRBD method.
+
+
+   :Parameters:
+
+       **appendage: list[float]**
+           Coordinates of appendage.
+
+       **top** : :class:`python:list`\[:class:`python:list`\[:class:`python:float`]], :obj:`optional`
+           ..
+
+       **A list of nodal coordinates to define the top path. By default, this is set to None.**
+           ..
+
+       **The top path is a set of nodes connecting the superior (SVC) and inferior (IVC) vena cava.**
+           ..
+
+       **Refer to `Notes` for more details.**
+           ..
+
+       **The default method (top=None) may not work for some anatomical structures. In such cases,**
+           ..
+
+       **you can define the start and end points by providing a list of coordinates,**
+           ..
+
+       **e.g., [[x1, y1, z1], [x2, y2, z2]]. These two nodes should be located on the SVC and IVC**
+           ..
+
+       **rings, approximately at the 12 o'clock position.**
+           ..
+
+       **You can also add an intermediate point to enforce the geodesic path,**
+           ..
+
+       **e.g., [[x1, y1, z1], [x3, y3, z3], [x2, y2, z2]].**
+           ..
+
+
+
+   :Returns:
+
+       :obj:`pv.UnstructuredGrid`
+           Left atrium with fiber coordinates system 'e_l', 'e_t' and 'e_n'.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   the method is described in https://doi.org/10.1016/j.cma.2020.113468
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_left_atrial_fiber(appendage: list[float] = None) -> pyvista.UnstructuredGrid
+
+   
+   Compute left atrium fiber with LDRBD method.
+
+
+   :Parameters:
+
+       **appendage** : :class:`python:list`\[:class:`python:float`], :obj:`optional`
+           Coordinates of appendage, by default None
+           If not defined, we use the cap named 'appendage'.
+
+
+
+   :Returns:
+
+       :obj:`pv.UnstructuredGrid`
+           Right atrium with fiber coordinates system 'e_l', 'e_t' and 'e_n'.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   the method is described in https://doi.org/10.1016/j.cma.2020.113468
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: run_laplace_problem(export_directory, type: Literal['uvc', 'la_fiber', 'ra_fiber'], **kwargs)
+
+   
+   Run Laplace-Dirichlet (thermal) problem in LSDYNA.
+
+
+   :Parameters:
+
+       **export_directory: str**
+           LSDYNA directory
+
+       **type: str**
+           Simulation type.
+
+       **kwargs** : :class:`python:dict`
+           Landmarks to create nodeset, keys can be 'laa','raa','top'.
+
+
+
+   :Returns:
+
+       :obj:`UnstructuredGrid` :obj:`with` :obj:`array <numpy.ndarray>` :obj:`to` :obj:`map` :obj:`data` :obj:`back` :obj:`to` :obj:`full` mesh.
+           ..
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

@@ -1,0 +1,45 @@
+
+
+
+
+
+
+:class:`Model4`
+===============
+
+.. py:class:: ansys.health.heart.settings.material.material.ActiveModel.Model4
+
+   
+   Hold data for active model 4.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.material.ActiveModel import Model4
+
+
+
+
+

@@ -1,0 +1,187 @@
+
+
+
+
+
+
+:class:`MechanicsSimulator`
+===========================
+
+
+.. py:class:: ansys.health.heart.simulator.MechanicsSimulator(model: ansys.health.heart.models.HeartModel, dyna_settings: ansys.health.heart.settings.settings.DynaSettings, simulation_directory: pathlib = '', initial_stress: bool = True)
+
+   Bases: :py:obj:`BaseSimulator`
+
+
+   
+   Mechanics simulator with imposed active stress.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: MechanicsSimulator
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~simulate`
+            - Launch the main mechanical simulation.
+          * - :py:attr:`~compute_stress_free_configuration`
+            - Compute the stress-free configuration of the model.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~initial_stress`
+            - If stress-free computation is taken into consideration.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.simulator import MechanicsSimulator
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: initial_stress
+   :value: True
+
+
+   
+   If stress-free computation is taken into consideration.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: simulate(folder_name: str = 'main-mechanics', zerop_folder: str | None = None, auto_post: bool = True, extra_k_files: list[str] | None = None)
+
+   
+   Launch the main mechanical simulation.
+
+
+   :Parameters:
+
+       **folder_name** : :class:`python:str`, default: ``'main-mechanics'``
+           Simulation folder name.
+
+       **zerop_folder** : :class:`python:str` | :data:`python:None`, default: :data:`python:None`
+           Folder containing stress-free simulation.
+           If ``None``, the ``zeropressure`` folder under the root directory is used.
+
+       **auto_post** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:True`
+           Whether to run postprocessing scripts.
+
+       **extra_k_files** : :class:`python:list`\[:class:`python:str`], default: :data:`python:None`
+           User-defined k files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: compute_stress_free_configuration(folder_name='zeropressure', overwrite: bool = True, extra_k_files: list[str] | None = None)
+
+   
+   Compute the stress-free configuration of the model.
+
+
+   :Parameters:
+
+       **folder_name** : :class:`python:str`, default: ``'zeropressure'``
+           Simulation folder name.
+
+       **overwrite** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:True`
+           Whether to run simulation and overwrite files.
+
+       **extra_k_files** : :class:`python:list`\[:class:`python:str`], default: :data:`python:None`
+           User-defined k files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

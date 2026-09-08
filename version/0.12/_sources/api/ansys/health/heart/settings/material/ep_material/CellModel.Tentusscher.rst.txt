@@ -1,0 +1,583 @@
+
+
+
+
+
+
+:class:`Tentusscher`
+====================
+
+.. py:class:: ansys.health.heart.settings.material.ep_material.CellModel.Tentusscher
+
+   
+   Hold data for Tentusscher cell model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Tentusscher
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~to_dictionary`
+            - Convert to dictionary.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~gas_constant`
+            - 
+          * - :py:attr:`~t`
+            - 
+          * - :py:attr:`~faraday_constant`
+            - 
+          * - :py:attr:`~cm`
+            - 
+          * - :py:attr:`~vc`
+            - 
+          * - :py:attr:`~vsr`
+            - 
+          * - :py:attr:`~vss`
+            - 
+          * - :py:attr:`~pkna`
+            - 
+          * - :py:attr:`~ko`
+            - 
+          * - :py:attr:`~nao`
+            - 
+          * - :py:attr:`~cao`
+            - 
+          * - :py:attr:`~gk1`
+            - 
+          * - :py:attr:`~gkr`
+            - 
+          * - :py:attr:`~gna`
+            - 
+          * - :py:attr:`~gbna`
+            - 
+          * - :py:attr:`~gcal`
+            - 
+          * - :py:attr:`~gbca`
+            - 
+          * - :py:attr:`~gpca`
+            - 
+          * - :py:attr:`~gpk`
+            - 
+          * - :py:attr:`~pnak`
+            - 
+          * - :py:attr:`~km`
+            - 
+          * - :py:attr:`~kmna`
+            - 
+          * - :py:attr:`~knaca`
+            - 
+          * - :py:attr:`~ksat`
+            - 
+          * - :py:attr:`~alpha`
+            - 
+          * - :py:attr:`~gamma`
+            - 
+          * - :py:attr:`~kmca`
+            - 
+          * - :py:attr:`~kmnai`
+            - 
+          * - :py:attr:`~kpca`
+            - 
+          * - :py:attr:`~k1`
+            - 
+          * - :py:attr:`~k2`
+            - 
+          * - :py:attr:`~k3`
+            - 
+          * - :py:attr:`~k4`
+            - 
+          * - :py:attr:`~ec`
+            - 
+          * - :py:attr:`~maxsr`
+            - 
+          * - :py:attr:`~minsr`
+            - 
+          * - :py:attr:`~vrel`
+            - 
+          * - :py:attr:`~vleak`
+            - 
+          * - :py:attr:`~vxfer`
+            - 
+          * - :py:attr:`~vmaxup`
+            - 
+          * - :py:attr:`~kup`
+            - 
+          * - :py:attr:`~bufc`
+            - 
+          * - :py:attr:`~kbufc`
+            - 
+          * - :py:attr:`~bufsr`
+            - 
+          * - :py:attr:`~kbufsf`
+            - 
+          * - :py:attr:`~bufss`
+            - 
+          * - :py:attr:`~kbufss`
+            - 
+          * - :py:attr:`~gks`
+            - 
+          * - :py:attr:`~gto`
+            - 
+          * - :py:attr:`~v`
+            - 
+          * - :py:attr:`~ki`
+            - 
+          * - :py:attr:`~nai`
+            - 
+          * - :py:attr:`~cai`
+            - 
+          * - :py:attr:`~cass`
+            - 
+          * - :py:attr:`~casr`
+            - 
+          * - :py:attr:`~rpri`
+            - 
+          * - :py:attr:`~xr1`
+            - 
+          * - :py:attr:`~xr2`
+            - 
+          * - :py:attr:`~xs`
+            - 
+          * - :py:attr:`~m`
+            - 
+          * - :py:attr:`~h`
+            - 
+          * - :py:attr:`~j`
+            - 
+          * - :py:attr:`~d`
+            - 
+          * - :py:attr:`~f`
+            - 
+          * - :py:attr:`~f2`
+            - 
+          * - :py:attr:`~fcass`
+            - 
+          * - :py:attr:`~s`
+            - 
+          * - :py:attr:`~r`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.ep_material.CellModel import Tentusscher
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: gas_constant
+   :type:  float
+   :value: 8314.472
+
+
+.. py:attribute:: t
+   :type:  float
+   :value: 310
+
+
+.. py:attribute:: faraday_constant
+   :type:  float
+   :value: 96485.3415
+
+
+.. py:attribute:: cm
+   :type:  float
+   :value: 0.185
+
+
+.. py:attribute:: vc
+   :type:  float
+   :value: 0.016404
+
+
+.. py:attribute:: vsr
+   :type:  float
+   :value: 0.001094
+
+
+.. py:attribute:: vss
+   :type:  float
+   :value: 5.468e-05
+
+
+.. py:attribute:: pkna
+   :type:  float
+   :value: 0.03
+
+
+.. py:attribute:: ko
+   :type:  float
+   :value: 5.4
+
+
+.. py:attribute:: nao
+   :type:  float
+   :value: 140.0
+
+
+.. py:attribute:: cao
+   :type:  float
+   :value: 2.0
+
+
+.. py:attribute:: gk1
+   :type:  float
+   :value: 5.405
+
+
+.. py:attribute:: gkr
+   :type:  float
+   :value: 0.153
+
+
+.. py:attribute:: gna
+   :type:  float
+   :value: 14.838
+
+
+.. py:attribute:: gbna
+   :type:  float
+   :value: 0.0002
+
+
+.. py:attribute:: gcal
+   :type:  float
+   :value: 3.98e-05
+
+
+.. py:attribute:: gbca
+   :type:  float
+   :value: 0.000592
+
+
+.. py:attribute:: gpca
+   :type:  float
+   :value: 0.1238
+
+
+.. py:attribute:: gpk
+   :type:  float
+   :value: 0.0146
+
+
+.. py:attribute:: pnak
+   :type:  float
+   :value: 2.724
+
+
+.. py:attribute:: km
+   :type:  float
+   :value: 1.0
+
+
+.. py:attribute:: kmna
+   :type:  float
+   :value: 40.0
+
+
+.. py:attribute:: knaca
+   :type:  float
+   :value: 1000.0
+
+
+.. py:attribute:: ksat
+   :type:  float
+   :value: 0.1
+
+
+.. py:attribute:: alpha
+   :type:  float
+   :value: 2.5
+
+
+.. py:attribute:: gamma
+   :type:  float
+   :value: 0.35
+
+
+.. py:attribute:: kmca
+   :type:  float
+   :value: 1.38
+
+
+.. py:attribute:: kmnai
+   :type:  float
+   :value: 87.5
+
+
+.. py:attribute:: kpca
+   :type:  float
+   :value: 0.0005
+
+
+.. py:attribute:: k1
+   :type:  float
+   :value: 0.15
+
+
+.. py:attribute:: k2
+   :type:  float
+   :value: 0.045
+
+
+.. py:attribute:: k3
+   :type:  float
+   :value: 0.06
+
+
+.. py:attribute:: k4
+   :type:  float
+   :value: 0.005
+
+
+.. py:attribute:: ec
+   :type:  float
+   :value: 1.5
+
+
+.. py:attribute:: maxsr
+   :type:  float
+   :value: 2.5
+
+
+.. py:attribute:: minsr
+   :type:  float
+   :value: 1.0
+
+
+.. py:attribute:: vrel
+   :type:  float
+   :value: 0.102
+
+
+.. py:attribute:: vleak
+   :type:  float
+   :value: 0.00036
+
+
+.. py:attribute:: vxfer
+   :type:  float
+   :value: 0.0038
+
+
+.. py:attribute:: vmaxup
+   :type:  float
+   :value: 0.006375
+
+
+.. py:attribute:: kup
+   :type:  float
+   :value: 0.00025
+
+
+.. py:attribute:: bufc
+   :type:  float
+   :value: 0.2
+
+
+.. py:attribute:: kbufc
+   :type:  float
+   :value: 0.001
+
+
+.. py:attribute:: bufsr
+   :type:  float
+   :value: 10.0
+
+
+.. py:attribute:: kbufsf
+   :type:  float
+   :value: 0.3
+
+
+.. py:attribute:: bufss
+   :type:  float
+   :value: 0.4
+
+
+.. py:attribute:: kbufss
+   :type:  float
+   :value: 0.00025
+
+
+.. py:attribute:: gks
+   :type:  float
+   :value: 0.392
+
+
+.. py:attribute:: gto
+   :type:  float
+   :value: 0.294
+
+
+.. py:attribute:: v
+   :type:  float
+   :value: -85.23
+
+
+.. py:attribute:: ki
+   :type:  float
+   :value: 136.89
+
+
+.. py:attribute:: nai
+   :type:  float
+   :value: 8.604
+
+
+.. py:attribute:: cai
+   :type:  float
+   :value: 0.000126
+
+
+.. py:attribute:: cass
+   :type:  float
+   :value: 0.00036
+
+
+.. py:attribute:: casr
+   :type:  float
+   :value: 3.64
+
+
+.. py:attribute:: rpri
+   :type:  float
+   :value: 0.9073
+
+
+.. py:attribute:: xr1
+   :type:  float
+   :value: 0.00621
+
+
+.. py:attribute:: xr2
+   :type:  float
+   :value: 0.4712
+
+
+.. py:attribute:: xs
+   :type:  float
+   :value: 0.0095
+
+
+.. py:attribute:: m
+   :type:  float
+   :value: 0.00172
+
+
+.. py:attribute:: h
+   :type:  float
+   :value: 0.7444
+
+
+.. py:attribute:: j
+   :type:  float
+   :value: 0.7045
+
+
+.. py:attribute:: d
+   :type:  float
+   :value: 3.373e-05
+
+
+.. py:attribute:: f
+   :type:  float
+   :value: 0.7888
+
+
+.. py:attribute:: f2
+   :type:  float
+   :value: 0.9755
+
+
+.. py:attribute:: fcass
+   :type:  float
+   :value: 0.9953
+
+
+.. py:attribute:: s
+   :type:  float
+   :value: 0.999998
+
+
+.. py:attribute:: r
+   :type:  float
+   :value: 2.42e-08
+
+
+
+
+Method detail
+-------------
+
+.. py:method:: to_dictionary()
+
+   
+   Convert to dictionary.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

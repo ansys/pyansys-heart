@@ -1,0 +1,97 @@
+
+
+
+
+
+
+:class:`DummyMaterial`
+======================
+
+.. py:class:: ansys.heart.simulator.settings.material.ep_material.EPMaterial.DummyMaterial
+
+   
+   Just for initialization.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: DummyMaterial
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__repr__`
+            - Print a message.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.ep_material.EPMaterial import DummyMaterial
+
+
+
+Method detail
+-------------
+
+.. py:method:: __repr__()
+
+   
+   Print a message.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

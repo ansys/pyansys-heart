@@ -1,0 +1,78 @@
+
+
+
+
+
+The ``purkinje.py`` module
+==========================
+
+.. py:module:: ansys.heart.simulator.settings.defaults.purkinje
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: purkinje
+.. tab-set::
+
+
+
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~build`
+            - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module contains default values for Purkinje generation.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: build
+
+   
+
+
+

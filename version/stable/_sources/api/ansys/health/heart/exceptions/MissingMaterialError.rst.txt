@@ -1,0 +1,49 @@
+
+
+
+
+
+
+:class:`MissingMaterialError`
+=============================
+
+
+.. py:exception:: ansys.health.heart.exceptions.MissingMaterialError(part_name: str, material_type: Literal['EP', 'Mechanical'])
+
+   Bases: :py:obj:`ValueError`
+
+
+   
+   Exception raised when a required material is missing in the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.exceptions import MissingMaterialError
+
+
+
+
+

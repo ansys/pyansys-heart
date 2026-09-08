@@ -1,0 +1,111 @@
+
+
+
+
+
+
+The ``ep_material.py`` module
+=============================
+
+.. py:module:: ansys.heart.core.settings.material.ep_material
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: ep_material
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.core.settings.material.ep_material.CellModel`
+            - Abstract class for different cell models.
+
+
+          * - :py:obj:`~ansys.heart.core.settings.material.ep_material.EPMaterialModel`
+            - Base class for all EP material models.
+
+
+          * - :py:obj:`~ansys.heart.core.settings.material.ep_material.EPMaterial`
+            - EP material module.
+
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~m1`
+            - 
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> CellModel</api/ansys/heart/core/settings/material/ep_material/CellModel>
+    <span class="nf nf-cod-symbol_class"></span> EPMaterialModel</api/ansys/heart/core/settings/material/ep_material/EPMaterialModel>
+    <span class="nf nf-cod-symbol_class"></span> EPMaterial</api/ansys/heart/core/settings/material/ep_material/EPMaterial>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Material module.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: m1
+
+
+

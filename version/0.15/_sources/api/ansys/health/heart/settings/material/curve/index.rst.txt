@@ -1,0 +1,204 @@
+
+
+
+
+
+
+The ``curve.py`` module
+=======================
+
+.. py:module:: ansys.health.heart.settings.material.curve
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: curve
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.settings.material.curve.ActiveCurve`
+            - Pydantic-backed ActiveCurve.
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~strocchi_active`
+            - Active stress in doi.org/10.1371/journal.pone.0235145.
+
+
+          * - :py:obj:`~kumaraswamy_active`
+            - Active stress in  Gaëtan Desrues doi.org/10.1007/978-3-030-78710-3_43.
+
+
+          * - :py:obj:`~constant_ca2`
+            - Constant ca2 curve for Active model 1.
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> ActiveCurve</api/ansys/health/heart/settings/material/curve/ActiveCurve>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module for active stress curve.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: strocchi_active(t_end=800, t_act=0) -> tuple[numpy.ndarray, numpy.ndarray]
+
+   
+   Active stress in doi.org/10.1371/journal.pone.0235145.
+
+   T_peak is described in MAT_295
+
+   :Parameters:
+
+       **t_end** : :class:`python:int`, default: 800
+           Heart beat period.
+
+       **t_act** : :class:`python:int`, default: 0
+           Start time.
+
+
+
+   :Returns:
+
+       :class:`python:tuple`\[:obj:`np.ndarray <numpy.ndarray>`, :obj:`np.ndarray <numpy.ndarray>`]
+           (time, stress) array
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: kumaraswamy_active(t_end=1000) -> tuple[numpy.ndarray, numpy.ndarray]
+
+   
+   Active stress in  Gaëtan Desrues doi.org/10.1007/978-3-030-78710-3_43.
+
+   T_peak is described in MAT295
+
+   :Parameters:
+
+       **t_end** : :class:`python:int`, default: 1000
+           Heart beat duration.
+
+
+
+   :Returns:
+
+       :class:`python:tuple`\[:obj:`np.ndarray <numpy.ndarray>`, :obj:`np.ndarray <numpy.ndarray>`]
+           (timen,stress) array
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: constant_ca2(tb: float = 800, ca2ionm: float = 4.35) -> tuple[numpy.ndarray, numpy.ndarray]
+
+   
+   Constant ca2 curve for Active model 1.
+
+
+   :Parameters:
+
+       **tb** : :class:`python:float`, default: 800
+           Heart beat period.
+
+       **ca2ionm** : :class:`python:float`, default: 4.35
+           Amplitude, which equals ca2ionm in MAT_295.
+
+
+
+   :Returns:
+
+       :class:`python:tuple`\[:obj:`np.ndarray <numpy.ndarray>`, :obj:`np.ndarray <numpy.ndarray>`]
+           (time, stress) array
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

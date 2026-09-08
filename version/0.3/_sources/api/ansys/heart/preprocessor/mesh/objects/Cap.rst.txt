@@ -1,0 +1,204 @@
+
+
+
+
+Cap
+===
+
+.. py:class:: Cap(name: str = None, node_ids: Union[List[int], numpy.ndarray] = [])
+   :canonical: ansys.heart.preprocessor.mesh.objects.Cap
+
+
+
+Bases: :py:obj:`Feature`
+
+
+   Cap class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: Cap
+.. tab-set::
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~node_ids`
+            - (Global) node ids of the cap.
+          * - :py:attr:`~triangles`
+            - Triangulation of cap.
+          * - :py:attr:`~normal`
+            - Normal of cap.
+          * - :py:attr:`~centroid`
+            - Centroid of cap.
+          * - :py:attr:`~centroid_id`
+            - Centroid of cap ID (in case centroid node is created).
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.mesh.objects import Cap
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: node_ids
+
+   
+   (Global) node ids of the cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: triangles
+
+   
+   Triangulation of cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: normal
+
+   
+   Normal of cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: centroid
+
+   
+   Centroid of cap.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: centroid_id
+
+   
+   Centroid of cap ID (in case centroid node is created).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

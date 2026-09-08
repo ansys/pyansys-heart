@@ -1,0 +1,57 @@
+
+
+:class:`ActiveModel`
+====================
+
+.. toctree::
+   :hidden:
+
+    /api/ansys/heart/simulator/settings/material/material/ActiveModel.Model1
+    /api/ansys/heart/simulator/settings/material/material/ActiveModel.Model3
+
+.. py:class:: ansys.heart.simulator.settings.material.material.ActiveModel
+
+   
+   Abstract class for different active models.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.material import ActiveModel
+
+
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   ansys.heart.simulator.settings.material.material.ActiveModel.Model1
+   ansys.heart.simulator.settings.material.material.ActiveModel.Model3
+
+
+

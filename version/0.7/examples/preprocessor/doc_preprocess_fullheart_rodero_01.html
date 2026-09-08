@@ -1,0 +1,807 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Create a full heart model &#8212; PyAnsys Heart</title>
+
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/ansys_sphinx_theme.css?v=d2ac875c" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://www.nerdfonts.com/assets/css/webfont.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=7c3339d6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+ 
+<link href="../../_static/css/breadcrumbs.css" rel="stylesheet" />
+
+    <script src="../../_static/documentation_options.js?v=b9678aa1"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/table.js?v=b64f5182"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/preprocessor/doc_preprocess_fullheart_rodero_01';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://heart.health.docs.pyansys.com/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.7';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <link rel="icon" href="../../_static/ansys-favicon.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Define materials" href="doc_demo_material.html" />
+    <link rel="prev" title="Create a four chamber heart model" href="doc_preprocess_fourchamber.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <link rel="canonical" href="https://heart.health.docs.pyansys.com/version/stable/examples/preprocessor/doc_preprocess_fullheart_rodero_01.html" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container"><!-- Debugging: html_theme_options =  -->
+
+  <!-- If there is no MeiliSearch enabled, use the PyData search -->
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+   
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="https://docs.pyansys.com/">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/pyansys_logo_transparent_black.png" class="logo__image only-light" alt="PyAnsys Heart - Home"/>
+    <script>document.write(`<img src="../../_static/pyansys_logo_transparent_white.png" class="logo__image only-dark" alt="PyAnsys Heart - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting-started/index.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../user-guide/index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contribute
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+    <div id="announcement_msg"></div>
+<script>
+  fetch("announcement.html")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(
+      (text) => (document.getElementById("announcement_msg").innerHTML = text),
+    )
+    .catch((error) => console.error(`Fetch problem: ${error.message}`));
+</script>  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting-started/index.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../user-guide/index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contribute
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../postprocessor/index.html">Postprocessor examples</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Preprocessor examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="doc_download_case.html">Download a PyAnsys - Heart compatible case from Zenodo.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="doc_example_uhc.html">UHC example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="doc_example_atrial_fiber.html">Atrial fiber</a></li>
+<li class="toctree-l2"><a class="reference internal" href="doc_example_stimulation.html">Stimulation definition example</a></li>
+
+
+
+<li class="toctree-l2"><a class="reference internal" href="doc_preprocess_truncated_LV.html">Create a truncated ellipsoid model</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="doc_preprocess_fourchamber.html">Create a four chamber heart model</a></li>
+
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Create a full heart model</a></li>
+
+<li class="toctree-l2"><a class="reference internal" href="doc_demo_material.html">Define materials</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../simulator/index.html">Simulator examples</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+         
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="https://docs.pyansys.com/" class="nav-link">PyAnsys</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a
+        href="../../index.html"
+        class="nav-link"
+        aria-label="Home"
+      >
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a href="../index.html" class="nav-link">Examples</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a href="index.html" class="nav-link">Preprocessor examples</a>
+    </li>
+      
+    <li class="breadcrumb-item active" aria-current="page">Create a full heart model</li>
+    
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-examples-preprocessor-doc-preprocess-fullheart-rodero-01-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code</p>
+</div>
+<section class="sphx-glr-example-title" id="create-a-full-heart-model">
+<span id="sphx-glr-examples-preprocessor-doc-preprocess-fullheart-rodero-01-py"></span><h1>Create a full heart model<a class="headerlink" href="#create-a-full-heart-model" title="Link to this heading">#</a></h1>
+<p>This example shows you how to process a case from Rodero et al (2021) into
+a simulation-ready heart model.</p>
+</section>
+<section id="example-setup">
+<h1>Example setup<a class="headerlink" href="#example-setup" title="Link to this heading">#</a></h1>
+<section id="perform-the-required-imports">
+<h2>Perform the required imports<a class="headerlink" href="#perform-the-required-imports" title="Link to this heading">#</a></h2>
+<p>Import the required modules and set relevant paths, including that of the working
+directory and generated model</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <a href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="pathlib.Path" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">Path</span></a>
+
+<span class="kn">from</span> <span class="nn">ansys.heart.core.helpers.general</span> <span class="kn">import</span> <span class="n">clean_directory</span>
+<span class="kn">import</span> <span class="nn">ansys.heart.core.models</span> <span class="k">as</span> <span class="nn">models</span>
+<span class="kn">from</span> <span class="nn">ansys.heart.preprocessor.database_preprocessor</span> <span class="kn">import</span> <span class="n">get_compatible_input</span>
+
+<span class="c1"># Use Fluent 24.1 for meshing.</span>
+<span class="kn">import</span> <span class="nn">ansys.heart.preprocessor.mesher</span> <span class="k">as</span> <span class="nn">mesher</span>
+
+<span class="n">mesher</span><span class="o">.</span><span class="n">_fluent_version</span> <span class="o">=</span> <span class="s2">&quot;24.1&quot;</span>
+
+<span class="c1"># specify necessary paths.</span>
+<span class="n">case_file</span> <span class="o">=</span> <a href="https://docs.python.org/dev/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span>
+    <span class="s2">&quot;d:</span><span class="se">\\</span><span class="s2">development&quot;</span><span class="p">,</span> <span class="s2">&quot;pyansys-heart&quot;</span><span class="p">,</span> <span class="s2">&quot;downloads&quot;</span><span class="p">,</span> <span class="s2">&quot;Rodero2021&quot;</span><span class="p">,</span> <span class="s2">&quot;01&quot;</span><span class="p">,</span> <span class="s2">&quot;01.vtk&quot;</span>
+<span class="p">)</span>
+
+
+<span class="n">workdir</span> <span class="o">=</span> <a href="https://docs.python.org/dev/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><a href="https://docs.python.org/dev/library/os.path.html#os.path.dirname" title="os.path.dirname" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span></a><span class="p">(</span><span class="n">case_file</span><span class="p">),</span> <span class="s2">&quot;FullHeart&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <a href="https://docs.python.org/dev/library/os.path.html#os.path.isdir" title="os.path.isdir" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span></a><span class="p">(</span><span class="n">workdir</span><span class="p">):</span>
+    <a href="https://docs.python.org/dev/library/os.html#os.makedirs" title="os.makedirs" class="sphx-glr-backref-module-os sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">makedirs</span></a><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+
+<span class="n">path_to_model</span> <span class="o">=</span> <a href="https://docs.python.org/dev/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;heart_model.pickle&quot;</span><span class="p">)</span>
+<span class="n">path_to_input</span> <span class="o">=</span> <a href="https://docs.python.org/dev/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;input_model.vtp&quot;</span><span class="p">)</span>
+<span class="n">path_to_part_definitions</span> <span class="o">=</span> <a href="https://docs.python.org/dev/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;part_definitions.json&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You may need to (manually) download the .case or .vtk files from the Strocchi2020
+and Rodero2021 databases first. See:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://zenodo.org/records/3890034">https://zenodo.org/records/3890034</a></p></li>
+<li><p><a class="reference external" href="https://zenodo.org/records/4590294">https://zenodo.org/records/4590294</a></p></li>
+</ul>
+<p>Alternatively you can make use of the download
+module instead. See the download module.</p>
+</div>
+</section>
+<section id="convert-the-vtk-file-into-compatible-input">
+<h2>Convert the .vtk file into compatible input<a class="headerlink" href="#convert-the-vtk-file-into-compatible-input" title="Link to this heading">#</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">input_geom</span><span class="p">,</span> <span class="n">part_definitions</span> <span class="o">=</span> <span class="n">get_compatible_input</span><span class="p">(</span>
+    <span class="n">case_file</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;FullHeart&quot;</span><span class="p">,</span> <span class="n">database</span><span class="o">=</span><span class="s2">&quot;Rodero2021&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Note that the input model and part definitions can be used for later use.</span>
+<span class="c1"># save input geometry and part definitions:</span>
+<span class="n">input_geom</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">path_to_input</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_to_part_definitions</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <a href="https://docs.python.org/dev/library/json.html#json.dump" title="json.dump" class="sphx-glr-backref-module-json sphx-glr-backref-type-py-function"><span class="n">json</span><span class="o">.</span><span class="n">dump</span></a><span class="p">(</span><span class="n">part_definitions</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="set-required-information">
+<h2>Set required information<a class="headerlink" href="#set-required-information" title="Link to this heading">#</a></h2>
+<p>Set the right database to which this case belongs, and set other relevant
+information such as the desired mesh size.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># create or clean working directory</span>
+<span class="k">if</span> <span class="ow">not</span> <a href="https://docs.python.org/dev/library/os.path.html#os.path.isdir" title="os.path.isdir" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span></a><span class="p">(</span><span class="n">workdir</span><span class="p">):</span>
+    <a href="https://docs.python.org/dev/library/os.html#os.makedirs" title="os.makedirs" class="sphx-glr-backref-module-os sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">makedirs</span></a><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">clean_directory</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;.stl&quot;</span><span class="p">,</span> <span class="s2">&quot;.msh.h5&quot;</span><span class="p">,</span> <span class="s2">&quot;.pickle&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="initialize-the-heart-model-with-info">
+<h2>Initialize the heart model with info<a class="headerlink" href="#initialize-the-heart-model-with-info" title="Link to this heading">#</a></h2>
+<p>Initialize the desired heart model with info.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># initialize full heart model</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FullHeart</span><span class="p">(</span><span class="n">working_directory</span><span class="o">=</span><span class="n">workdir</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">_mesh_settings</span><span class="o">.</span><span class="n">global_mesh_size</span> <span class="o">=</span> <span class="mf">1.5</span>
+
+<span class="c1"># load input model generated in an earlier step.</span>
+<span class="n">model</span><span class="o">.</span><span class="n">load_input</span><span class="p">(</span><span class="n">input_geom</span><span class="p">,</span> <span class="n">part_definitions</span><span class="p">,</span> <span class="s2">&quot;surface-id&quot;</span><span class="p">)</span>
+
+<span class="c1"># mesh the volume of all structural parts.</span>
+<span class="n">model</span><span class="o">.</span><span class="n">mesh_volume</span><span class="p">(</span><span class="n">use_wrapper</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># update the model and extract the required (anatomical) features</span>
+<span class="n">model</span><span class="o">.</span><span class="n">_update_parts</span><span class="p">()</span>
+
+<span class="c1"># dump the model to disk</span>
+<span class="n">model</span><span class="o">.</span><span class="n">dump_model</span><span class="p">(</span><span class="n">path_to_model</span><span class="p">)</span>
+
+<span class="c1"># Optionally save the simulation mesh as a vtk object for &quot;offline&quot; inspection</span>
+<span class="n">model</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><a href="https://docs.python.org/dev/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;simulation-mesh.vtu&quot;</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><a href="https://docs.python.org/dev/library/os.path.html#os.path.join" title="os.path.join" class="sphx-glr-backref-module-os-path sphx-glr-backref-type-py-function"><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span></a><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;heart_model.vtu&quot;</span><span class="p">))</span>
+
+<span class="c1"># print some info about the processed model.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+<span class="c1"># clean the working directory</span>
+<span class="n">clean_directory</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">extensions_to_remove</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;.stl&quot;</span><span class="p">,</span> <span class="s2">&quot;.vtk&quot;</span><span class="p">,</span> <span class="s2">&quot;.msh.h5&quot;</span><span class="p">])</span>
+
+<span class="c1"># print part names</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">part_names</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="visualize-results">
+<h2>Visualize results<a class="headerlink" href="#visualize-results" title="Link to this heading">#</a></h2>
+<p>You can visualize and inspect the components of the model by accessing
+various properties/attributes and invoke methods.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Volume of LV cavity: </span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">left_ventricle</span><span class="o">.</span><span class="n">cavity</span><span class="o">.</span><span class="n">volume</span><span class="si">}</span><span class="s2"> mm^3&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Volume of LV cavity: </span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">left_atrium</span><span class="o">.</span><span class="n">cavity</span><span class="o">.</span><span class="n">volume</span><span class="si">}</span><span class="s2"> mm^3&quot;</span><span class="p">)</span>
+
+<span class="c1"># plot the remeshed model</span>
+<span class="n">model</span><span class="o">.</span><span class="n">plot_mesh</span><span class="p">(</span><span class="n">show_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../../_images/full_heart_mesh.png"><img alt="../../_images/full_heart_mesh.png" class="align-center" src="../../_images/full_heart_mesh.png" style="width: 400pt;" />
+</a>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the endocardial surface of the left ventricle.</span>
+<span class="n">model</span><span class="o">.</span><span class="n">left_ventricle</span><span class="o">.</span><span class="n">endocardium</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show_edges</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../../_images/full_heart_lv_endocardium.png"><img alt="../../_images/full_heart_lv_endocardium.png" class="align-center" src="../../_images/full_heart_lv_endocardium.png" style="width: 400pt;" />
+</a>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># loop over all cavities and plot these in a single window with pyvista.</span>
+<span class="kn">import</span> <span class="nn">pyvista</span> <span class="k">as</span> <span class="nn">pv</span>
+
+<span class="n">cavities</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">PolyData</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">cavities</span><span class="p">:</span>
+    <span class="n">cavities</span> <span class="o">+=</span> <span class="n">c</span><span class="o">.</span><span class="n">surface</span>
+<span class="n">cavities</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">show_edges</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../../_images/full_heart_cavities.png"><img alt="../../_images/full_heart_cavities.png" class="align-center" src="../../_images/full_heart_cavities.png" style="width: 400pt;" />
+</a>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 0.000 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-preprocessor-doc-preprocess-fullheart-rodero-01-py">
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/d9d83dcdc3aed3cab56238adb84f05d8/doc_preprocess_fullheart_rodero_01.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">doc_preprocess_fullheart_rodero_01.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/ff6b81726906bdc02ad592d3ebec931d/doc_preprocess_fullheart_rodero_01.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">doc_preprocess_fullheart_rodero_01.ipynb</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Create a full heart model</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#example-setup">Example setup</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#perform-the-required-imports">Perform the required imports</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convert-the-vtk-file-into-compatible-input">Convert the .vtk file into compatible input</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#set-required-information">Set required information</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#initialize-the-heart-model-with-info">Initialize the heart model with info</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visualize-results">Visualize results</a></li>
+</ul>
+</li>
+</ul>
+
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+<!-- If there is no fix edit button function, use the PyData edit-this-button-->
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../_sources/examples/preprocessor/doc_preprocess_fullheart_rodero_01.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright (c) 2024 ANSYS, Inc. All rights reserved.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the
+  <a href="https://sphinxdocs.ansys.com/version/stable/index.html"
+    >Ansys Sphinx Theme</a
+  >
+  1.0.7. <br />Last updated on
+  <span id="date"></span>
+</p>
+<script>
+  var options = { day: "numeric", month: "long", year: "numeric" };
+  var lastModifiedDate = new Date(document.lastModified);
+  var date = lastModifiedDate.toLocaleDateString("en-US", options);
+  document.getElementById("date").innerHTML = date;
+</script></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

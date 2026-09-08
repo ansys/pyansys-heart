@@ -1,0 +1,122 @@
+
+
+
+
+
+
+The ``post`` package
+========================
+
+.. py:module:: ansys.health.heart.post
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: post
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.post.auto_process`
+            - Script used to postprocess simulations automatically.
+
+
+          * - :py:obj:`~ansys.health.heart.post.dpf_utils`
+            - D3plot parser using Ansys DPF.
+
+
+          * - :py:obj:`~ansys.health.heart.post.klotz_curve`
+            - Klotz curve module.
+
+
+          * - :py:obj:`~ansys.health.heart.post.laplace_post`
+            - Postprocessing script related to Laplace solving (UHC, fibers).
+
+
+          * - :py:obj:`~ansys.health.heart.post.pvloop`
+            - Get pressure-volume (PV) loop from the LS-DYNA ICVOUT file.
+
+
+          * - :py:obj:`~ansys.health.heart.post.strain_calculator`
+            - Compute myocardial strain.
+
+
+          * - :py:obj:`~ansys.health.heart.post.system_model_post`
+            - Module for postprocessing system model data.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> auto_process</api/ansys/health/heart/post/auto_process/index>
+    <span class="nf nf-fa-file"></span> dpf_utils</api/ansys/health/heart/post/dpf_utils/index>
+    <span class="nf nf-fa-file"></span> klotz_curve</api/ansys/health/heart/post/klotz_curve/index>
+    <span class="nf nf-fa-file"></span> laplace_post</api/ansys/health/heart/post/laplace_post/index>
+    <span class="nf nf-fa-file"></span> pvloop</api/ansys/health/heart/post/pvloop/index>
+    <span class="nf nf-fa-file"></span> strain_calculator</api/ansys/health/heart/post/strain_calculator/index>
+    <span class="nf nf-fa-file"></span> system_model_post</api/ansys/health/heart/post/system_model_post/index>
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+
+Postprocessing subpackage.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+

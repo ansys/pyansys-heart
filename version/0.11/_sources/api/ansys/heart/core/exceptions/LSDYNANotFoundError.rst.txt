@@ -1,0 +1,48 @@
+
+
+
+
+
+
+:class:`LSDYNANotFoundError`
+============================
+
+.. py:exception:: ansys.heart.core.exceptions.LSDYNANotFoundError
+
+   Bases: :py:obj:`FileNotFoundError`
+
+
+   
+   LSDYNA executable not found.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.exceptions import LSDYNANotFoundError
+
+
+
+
+

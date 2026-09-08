@@ -1,0 +1,45 @@
+
+
+:class:`LsDynaErrorTerminationError`
+====================================
+
+.. py:exception:: ansys.heart.simulator.simulator.LsDynaErrorTerminationError
+
+   Bases: :py:obj:`Exception`
+
+
+   
+   Exception raised when `N o r m a l    t e r m i n a t i o n` is not found.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.simulator import LsDynaErrorTerminationError
+
+
+
+
+
+

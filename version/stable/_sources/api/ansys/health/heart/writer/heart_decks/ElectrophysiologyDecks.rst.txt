@@ -1,0 +1,90 @@
+
+
+
+
+
+
+:class:`ElectrophysiologyDecks`
+===============================
+
+
+.. py:class:: ansys.health.heart.writer.heart_decks.ElectrophysiologyDecks
+
+   Bases: :py:obj:`BaseDecks`
+
+
+   
+   Useful decks for electrophysiology simulations.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: ElectrophysiologyDecks
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~cell_models`
+            - 
+          * - :py:attr:`~ep_settings`
+            - 
+          * - :py:attr:`~beam_networks`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.heart_decks import ElectrophysiologyDecks
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: cell_models
+   :type:  ansys.dyna.core.Deck
+
+.. py:attribute:: ep_settings
+   :type:  ansys.dyna.core.Deck
+
+.. py:attribute:: beam_networks
+   :type:  ansys.dyna.core.Deck
+
+
+
+
+

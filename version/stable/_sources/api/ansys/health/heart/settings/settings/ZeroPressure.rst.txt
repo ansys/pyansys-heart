@@ -1,0 +1,95 @@
+
+
+
+
+
+
+:class:`ZeroPressure`
+=====================
+
+
+.. py:class:: ansys.health.heart.settings.settings.ZeroPressure(/, **data: Any)
+
+   Bases: :py:obj:`BaseSettings`
+
+
+   
+   Class for keeping track of settings for stress-free-configuration computation.
+
+   Configuration for computing the stress-free (unloaded) configuration
+   of cardiac geometry, essential for accurate mechanical simulations.
+
+   :Parameters:
+
+       **analysis** : :obj:`AnalysisZeroPressure`, default: :obj:`AnalysisZeroPressure`\()
+           Analysis settings specific to zero-pressure computation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> zero_pressure = ZeroPressure()
+   >>> zero_pressure.analysis.max_iters = 5
+   >>> zero_pressure.analysis.tolerance = 1.0
+   >>> print(zero_pressure.analysis.method)
+   2
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: ZeroPressure
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~analysis`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import ZeroPressure
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: analysis
+   :type:  AnalysisZeroPressure
+   :value: None
+
+
+
+
+
+

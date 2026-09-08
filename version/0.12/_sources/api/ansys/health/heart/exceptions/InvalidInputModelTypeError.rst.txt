@@ -1,0 +1,48 @@
+
+
+
+
+
+
+:class:`InvalidInputModelTypeError`
+===================================
+
+.. py:exception:: ansys.health.heart.exceptions.InvalidInputModelTypeError(message: str)
+
+   Bases: :py:obj:`TypeError`
+
+
+   
+   Exception raised when the input heart model type is invalid.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.exceptions import InvalidInputModelTypeError
+
+
+
+
+

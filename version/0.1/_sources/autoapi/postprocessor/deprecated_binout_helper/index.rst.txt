@@ -1,0 +1,195 @@
+:py:mod:`postprocessor.deprecated_binout_helper`
+================================================
+
+.. py:module:: postprocessor.deprecated_binout_helper
+
+.. autoapi-nested-parse::
+
+   Methods for reading LS-DYNA binout file.
+
+   Note: depend on qd, can be replaced other Ansys's package like by pydpf, lsreader?
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   postprocessor.deprecated_binout_helper.Elout
+   postprocessor.deprecated_binout_helper.NodOut
+   postprocessor.deprecated_binout_helper.IcvOut
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   postprocessor.deprecated_binout_helper.a
+
+
+.. py:class:: Elout(fn)
+
+
+   
+   Class of element output.
+
+   Read stress and history variables (28) for solid elements.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:method:: get_stress()
+
+      
+      Get stress.
+
+
+
+      :Returns:
+
+          :mod:`numpy` :obj:`array <numpy.ndarray>` :obj:`of` :obj:`time` * :obj:`element` * 6 stress.
+              ..
+
+          stress-xx   stress-yy   stress-zz   stress-xy   stress-yz   stress-zx
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: get_history_variable()
+
+      
+      Get history variables.
+
+
+
+      :Returns:
+
+          :mod:`numpy` :obj:`array <numpy.ndarray>` :obj:`of` :obj:`time` * :obj:`element` * 27 :obj:`history` variables.
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: NodOut(fn)
+
+
+   
+   Nodout class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:method:: get_coordinates()
+
+      
+      Get coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: IcvOut(fn)
+
+
+   
+   IcvOut class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: a
+
+   
+

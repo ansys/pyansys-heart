@@ -1,0 +1,73 @@
+
+
+
+
+
+The ``material`` package 
+============================
+
+.. py:module:: ansys.heart.simulator.settings.material
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: material
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~ansys.heart.simulator.settings.material.curve`
+            - Module for active stress curve.
+
+
+          * - :py:attr:`~ansys.heart.simulator.settings.material.material`
+            - Material module.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🗎 curve<curve/index.rst>
+    🗎 material<material/index.rst>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

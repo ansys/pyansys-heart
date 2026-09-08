@@ -1,0 +1,1924 @@
+:py:mod:`preprocessor.models`
+=============================
+
+.. py:module:: preprocessor.models
+
+.. autoapi-nested-parse::
+
+   Module containing classes for the various heart models.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   preprocessor.models.ModelInfo
+   preprocessor.models.HeartModel
+   preprocessor.models.LeftVentricle
+   preprocessor.models.BiVentricle
+   preprocessor.models.FourChamber
+   preprocessor.models.FullHeart
+
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   preprocessor.models.LOGGER
+   preprocessor.models.info
+
+
+.. py:data:: LOGGER
+
+   
+
+.. py:class:: ModelInfo(database: str, work_directory: pathlib.Path, path_to_case: pathlib.Path, path_to_simulation_mesh: pathlib.Path = None, path_to_model: pathlib.Path = None, mesh_size: float = 1.5, add_blood_pool: bool = False)
+
+
+   
+   Contains model information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:property:: database
+      :type: str
+
+      
+      Name of the database to use.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: database
+
+      
+      Name of the database to use.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: workdir
+
+      
+      Path to the working directory.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: path_to_original_mesh
+
+      
+      Path to the original mesh file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: path_to_simulation_mesh
+
+      
+      Path to simulation(in .vtk format).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: path_to_model
+
+      
+      Path to model (in .pickle format).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: labels_to_ids
+
+      
+      Dict that maps labels > part/tag id.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: ids_to_labels
+
+      
+      Inverted dict that maps part/tag id > labels.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: model_type
+      :type: str
+
+      
+      Model (geometric) type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: mesh_size
+      :type: float
+
+      
+      Mesh size used for remeshing.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: add_blood_pool
+      :type: bool
+
+      
+      Flag indicating whether to add blood to the cavities.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: clean_workdir(extensions_to_remove: List[str] = ['.stl', '.vtk', '.msh.h5'], remove_all: bool = False) -> None
+
+      
+      Remove files with extension present in the working directory.
+
+
+      :Parameters:
+
+          **extensions_to_remove** : :obj:`List`\[:class:`python:str`], :obj:`optional`
+              List of extensions to remove, by default [".stl", ".vtk", ".msh.h5"]
+
+          **remove_all: bool, optional**
+              Flag indicating whether to remove files with any extension.
+              Keeps files/folder without extension
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: create_workdir() -> None
+
+      
+      Create the working directory if it doesn't exist.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: dump_info(filename: pathlib.Path = None) -> None
+
+      
+      Dump model information to file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: HeartModel(info: ModelInfo)
+
+
+   
+   Parent class for heart models.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:property:: parts
+      :type: List[ansys.heart.preprocessor.mesh.objects.Part]
+
+      
+      Return list of parts.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:property:: part_names
+      :type: List[str]
+
+      
+      Return list of part names.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:property:: part_ids
+      :type: List[int]
+
+      
+      Return list of used part ids.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:property:: cavities
+      :type: List[ansys.heart.preprocessor.mesh.objects.Cavity]
+
+      
+      Return list of cavities in the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: info
+
+      
+      Model meta information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: mesh
+
+      
+      Modified mesh of the tissue.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: mesh_raw
+
+      
+      Raw input mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: fluid_mesh
+
+      
+      Generated fluid mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: model_type
+
+      
+      Model type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: model_type
+
+      
+      Elemental labels of AHA17 segments.
+      NaN for elements not belong to left ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: cap_centroids
+      :type: List[ansys.heart.preprocessor.mesh.objects.Point]
+      :value: []
+
+      
+      Centroid point to create cap shell.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: beam_network
+      :type: List[ansys.heart.preprocessor.mesh.objects.BeamMesh]
+      :value: []
+
+      
+      List of beam networks in the mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: electrodes
+      :type: List[ansys.heart.preprocessor.mesh.objects.Point]
+      :value: []
+
+      
+      Electrodes positions for ECG computing.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: add_purkinje_from_kfile(filename: pathlib.Path, name: str) -> None
+
+      
+      Read an LS-DYNA file containing purkinje beams and nodes.
+
+
+      :Parameters:
+
+          **filename** : :obj:`pathlib.Path`
+              ..
+
+          **name** : :class:`python:str`
+              beamnet name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: add_beam_net(beam_nodes: numpy.ndarray, edges: numpy.ndarray, mask: numpy.ndarray, pid=0, name: str = None) -> ansys.heart.preprocessor.mesh.objects.BeamMesh
+
+      
+      Add a BeamMesh object on the model.
+
+
+      :Parameters:
+
+          **beam_nodes** : :obj:`np.ndarray <numpy.ndarray>`
+              new nodes coordinates.
+
+          **edges** : :obj:`np.ndarray <numpy.ndarray>`
+              beam elements connectivity
+              If `mask` is true, it's Id of `beam_nodes` (start by 0),
+              it will be offset when creating BeamMesh object.
+              If `mask` is false, it's Id of existed nodes, it will not be offset.
+
+          **mask** : :obj:`np.ndarray <numpy.ndarray>`
+              with the same shape of `edges`
+
+          **pid** : :class:`python:int`, :obj:`optional`
+              part Id, will be reassigned when writing, by default 0
+
+          **name** : :class:`python:str`, :obj:`optional`
+              name, by default None
+
+      :Returns:
+
+          :obj:`BeamMesh`
+              BeamMesh object
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: extract_simulation_mesh(clean_up: bool = False) -> None
+
+      
+      Update the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+      .. rubric:: Examples
+
+      Processes a model from the public database and generates a simulation mesh
+
+      1. Instantiate object that stores relevant information for the preprocessor
+
+      >>> info = ModelInfo(
+                     database="Strocchi2020",
+                     path_to_case = "01.case",
+                     work_directory = "workdir",
+                     mesh_size = 1.5
+                     )
+
+      2. Instantiate the model object
+
+      >>> model = FullHeart(info)
+
+      3. Run the extract simulation mesh method
+
+      >>> model.extract_simulation_mesh()
+
+      4. Save model to disk
+
+      >>> model.dump_model()
+
+      5. Print info about the model
+
+      >>> model.print_info()
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: get_part(name: str, by_substring: bool = False) -> Union[ansys.heart.preprocessor.mesh.objects.Part, None]
+
+      
+      Get specific part based on part name.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: add_part(part_name: str) -> None
+
+      
+      Dynamically add a part as an attribute to the object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: remove_part(part_name: str) -> None
+
+      
+      Remove a part with a specific name from the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: print_info() -> None
+
+      
+      Print information about the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: read_input_mesh() -> None
+
+      
+      Read the input mesh defined in ModelInfo.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: dump_model(filename: pathlib.Path = None, remove_raw_mesh: bool = True) -> None
+
+      
+      Save model to file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+      .. rubric:: Examples
+
+      >>> model.dump_model("my_heart_model.pickle")
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: plot_mesh(plot_raw_mesh: bool = False, show_edges: bool = True, color_by: str = 'tags')
+
+      
+      Plot the volume mesh of the heart model.
+
+
+      :Parameters:
+
+          **plot_raw_mesh** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+              Whether to plot the raw mesh, by default False
+
+          **show_edges** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+              Whether to plot the edges, by default True
+
+          **color_by** : :class:`python:str`, :obj:`optional`
+              Color by cell/point data, by default "tags"
+
+
+
+
+
+
+
+
+
+
+
+      .. rubric:: Examples
+
+      >>> import ansys.heart.preprocessor.models as models
+      >>> model = models.HeartModel.load_model("heart_model.pickle")
+      >>> model.plot_mesh(show_edges=True)
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: plot_fibers(n_seed_points: int = 1000, plot_raw_mesh: bool = False)
+
+      
+      Plot the mesh and fibers as streamlines.
+
+
+      :Parameters:
+
+          **plot_raw_mesh** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+              Flag indicating whether to plot the streamlines on the raw mesh, by default False
+
+          **n_seed_points** : :class:`python:int`, :obj:`optional`
+              Number of seed points. Recommended to use 5000, by default 1000
+
+
+
+
+
+
+
+
+
+
+
+      .. rubric:: Examples
+
+      >>> import ansys.heart.preprocessor.models as models
+      >>> model = models.HeartModel.load_model("my_model.pickle")
+      >>> model.plot_fibers(n_seed_points=5000)
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: plot_surfaces(show_edges: bool = True)
+
+      
+      Plot all the surfaces in the model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+      .. rubric:: Examples
+
+      Import modules and load model.
+      >>> import ansys.heart.preprocessor.models as models
+      >>> model = models.HeartModel.load_model("my_model.pickle")
+      Plot the model
+      >>> model.plot(show_edges=True)
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: plot_purkinje()
+
+      
+      Plot the mesh and Purkinje network.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: load_model(filename: pathlib.Path)
+      :staticmethod:
+
+      
+      Load a preprocessed model from file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+      .. rubric:: Examples
+
+      >>> model = HeartModel.load_model("my_model.pickle")
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_left_ventricle_anatomy_axis(first_cut_short_axis=0.2)
+
+      
+      Compute the long and short axes of the left ventricle.
+
+
+      :Parameters:
+
+          **first_cut_short_axis: default=0.2, use to avoid cut on aortic valve**
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_left_ventricle_aha17(seg=17, p_junction=None) -> None
+
+      
+      Compute AHA17 label for left ventricle elements.
+
+
+      :Parameters:
+
+          **seg ::  default 17, or 16 segments**
+              ..
+
+          **p_junction: use CASIS definition for the first cut**
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_left_ventricle_element_cs()
+
+      
+      Compute elemental coordinate system for aha17 elements.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: get_apex_node_set(part: [left, right] = 'left', option: [endocardium, epicardium, myocardium] = 'epicardium', radius: float = 3) -> numpy.ndarray
+
+      
+      Get a node set around apex point.
+
+
+      :Parameters:
+
+          **part** : left&quot;, &quot;right&quot;], :obj:`optional`
+              on which part, by default "left"
+
+          **option** : endocardium&quot;, &quot;epicardium&quot;, &quot;myocardium&quot;], :obj:`optional`
+              on surface or in mesh, by default "epicardium"
+
+          **radius** : :class:`python:float`, :obj:`optional`
+              search in radius, by default 3
+
+      :Returns:
+
+          :obj:`np.ndarray <numpy.ndarray>`
+              apex node set
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: LeftVentricle(info: ModelInfo)
+
+
+   Bases: :py:obj:`HeartModel`
+
+   
+   Model of just the left ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: left_ventricle
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Left ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: BiVentricle(info: ModelInfo)
+
+
+   Bases: :py:obj:`HeartModel`
+
+   
+   Model of the left and right ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: left_ventricle
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Left ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: right_ventricle
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Right ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: septum
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Septum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: FourChamber(info: ModelInfo)
+
+
+   Bases: :py:obj:`HeartModel`
+
+   
+   Model of the left/right ventricle and left/right atrium.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: left_ventricle
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Left ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: right_ventricle
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Right ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: septum
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Septum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: left_atrium
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Left atrium part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: right_atrium
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Right atrium part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_SA_node() -> ansys.heart.preprocessor.mesh.objects.Point
+
+      
+      Compute SinoAtrial node.
+
+      SinoAtrial node is defined on endocardium surface and
+      between sup vena cave and inf vena cave.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_AV_node() -> ansys.heart.preprocessor.mesh.objects.Point
+
+      
+      Compute Atrio-Ventricular node.
+
+      AtrioVentricular node is on right artrium endocardium surface and closest to septum.
+
+
+      :Returns:
+
+          :obj:`Point`
+              returns the AV node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_av_conduction(create_new_nodes=True) -> ansys.heart.preprocessor.mesh.objects.BeamMesh
+
+      
+      Compute Atrio-Ventricular conduction by means of beams following a geodesic path.
+
+
+      :Parameters:
+
+          **create_new_nodes** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+              Duplicate nodes found of the computed geodesic path, by default True
+
+      :Returns:
+
+          :obj:`BeamMesh`
+              Beam mesh.
+
+
+
+
+      :Raises:
+
+          :obj:`NotImplementedError`
+              Not implemented error.
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_His_conduction()
+
+      
+      Compute His bundle conduction.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_left_right_bundle(start_coord, start_id, side: str)
+
+      
+      Bundle brunch.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: compute_Bachman_bundle()
+      :abstractmethod:
+
+      
+      Compute Bachman bundle conduction system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:class:: FullHeart(info: ModelInfo)
+
+
+   Bases: :py:obj:`FourChamber`
+
+   
+   Model of both ventricles, both atria, aorta and pulmonary artery.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:attribute:: left_ventricle
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Left ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: right_ventricle
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Right ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: septum
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Septum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: left_atrium
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Left atrium part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: right_atrium
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Right atrium part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: aorta
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Aorta part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:attribute:: pulmonary_artery
+      :type: ansys.heart.preprocessor.mesh.objects.Part
+
+      
+      Pulmonary artery part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:data:: info
+
+   
+

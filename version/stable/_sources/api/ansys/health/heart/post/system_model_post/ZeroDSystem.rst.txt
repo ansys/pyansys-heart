@@ -1,0 +1,98 @@
+
+
+
+
+
+
+:class:`ZeroDSystem`
+====================
+
+
+.. py:class:: ansys.health.heart.post.system_model_post.ZeroDSystem(csv_path: str, ed_state: list[float, float], name: str = '')
+
+   
+   0D circulation system model (for one cavity).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: ZeroDSystem
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~name`
+            - 
+          * - :py:attr:`~ed`
+            - 
+          * - :py:attr:`~time`
+            - 
+          * - :py:attr:`~pressure`
+            - 
+          * - :py:attr:`~flow`
+            - 
+          * - :py:attr:`~volume`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.post.system_model_post import ZeroDSystem
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: name
+   :value: ''
+
+
+.. py:attribute:: ed
+
+.. py:attribute:: time
+
+.. py:attribute:: pressure
+
+.. py:attribute:: flow
+
+.. py:attribute:: volume
+
+
+
+
+

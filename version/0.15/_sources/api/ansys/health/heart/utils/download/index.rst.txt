@@ -1,0 +1,247 @@
+
+
+
+
+
+
+The ``download.py`` module
+==========================
+
+.. py:module:: ansys.health.heart.utils.download
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: download
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~download_case_from_zenodo`
+            - Download a case from the remote repository.
+
+
+          * - :py:obj:`~unpack_case`
+            - Unpack the downloaded tarball file.
+
+
+          * - :py:obj:`~download_all_cases`
+            - Download all supported cases.
+
+
+          * - :py:obj:`~unpack_cases`
+            - Unpack a list of TAR files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing methods to download cases from public databases.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: download_case_from_zenodo(database: str, case_number: int, download_folder: pathlib.Path, overwrite: bool = True, validate_hash: bool = True) -> pathlib.Path | None
+
+   
+   Download a case from the remote repository.
+
+
+   :Parameters:
+
+       **database** : :class:`python:str`
+           name of the database. Options are ``'Strocchi2020'`` or ``'Rodero2021'``.
+
+       **case_number** : :class:`python:int`
+           Case number to download.
+
+       **download_folder** : :obj:`Path`
+           Path to the folder to download the case to.
+
+
+
+   :Returns:
+
+       :obj:`Path`
+           Path to the tarball that contains the VTK/CASE files.
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   Download case 1 from the public repository (``'Strocchi2020'``) of pathological hearts.
+
+   >>> path_to_tar_file = download_case_from_zenodo(
+       database="Strocchi2020", case_number=1, download_folder="my/download/folder"
+       )
+
+   Download case 1 from the public repository (``'Rodero2021'``) of healthy hearts.
+
+   >>> path_to_tar_file = download_case_from_zenodo(
+       database="Rodero2021", case_number=1, download_folder="my/download/folder"
+       )
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: unpack_case(tar_path: pathlib.Path, reduce_size: bool = True) -> str | bool
+
+   
+   Unpack the downloaded tarball file.
+
+
+   :Parameters:
+
+       **tar_path** : :obj:`Path`
+           Path to TAR.GZ file.
+
+       **reduce_size** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:True`
+           Whether to reduce the size of the unpacked files by removing the VTK file for the
+           Strocchi database.
+
+
+
+   :Returns:
+
+       :class:`python:str`
+           Path to the CASE or VTK file.
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> from ansys.health.heart.utils.download import unpack_case
+   >>> path = unpack_case("Rodero2021\\01.tar.gz")
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: download_all_cases(download_dir: str = None) -> list[str]
+
+   
+   Download all supported cases.
+
+
+   :Parameters:
+
+       **download_dir** : :class:`python:str`
+           Base directory to download cases to.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Note that depending on bandwidth, downloading all cases might take a lot of
+   time.
+
+
+   .. rubric:: Examples
+
+   >>> from ansys.health.heart.utils.download import download_all_cases
+   >>> tar_files = download_all_cases("my-downloads")
+
+   To unpack all cases, you can use the ``unpack_cases()`` method:
+
+   >>> from ansys.health.heart.utils.download import unpack_cases
+   >>> unpack_cases(tar_files)
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: unpack_cases(list_of_tar_files: List) -> None
+
+   
+   Unpack a list of TAR files.
+
+
+   :Parameters:
+
+       **list_of_tar_files** : :obj:`typing.List`
+           List of TAR files to unpack.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> from ansys.health.heart.utils.download import unpack_cases
+   >>> unpack_cases(["01.tar.gz", "02.tar.gz"])
+
+   ..
+       !! processed by numpydoc !!
+
+
+

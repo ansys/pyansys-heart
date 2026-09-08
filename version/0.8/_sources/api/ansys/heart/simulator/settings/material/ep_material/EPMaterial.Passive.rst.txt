@@ -1,0 +1,88 @@
+
+
+:class:`Passive`
+================
+
+.. py:class:: ansys.heart.simulator.settings.material.ep_material.EPMaterial.Passive
+
+   Bases: :py:obj:`EPMaterialModel`
+
+
+   
+   Hold data for EP passive material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Passive
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~sigma_fiber`
+            - 
+          * - :py:attr:`~sigma_sheet`
+            - 
+          * - :py:attr:`~sigma_sheet_normal`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.ep_material.EPMaterial import Passive
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: sigma_fiber
+   :type:  float
+
+.. py:attribute:: sigma_sheet
+   :type:  Optional[float]
+   :value: None
+
+
+.. py:attribute:: sigma_sheet_normal
+   :type:  Optional[float]
+   :value: None
+
+
+
+
+

@@ -1,0 +1,80 @@
+
+
+
+
+
+
+The ``laplace_writer.py`` module
+================================
+
+.. py:module:: ansys.health.heart.writer.laplace_writer
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: laplace_writer
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.writer.laplace_writer.LaplaceWriter`
+            - Class for preparing the input for a Laplace LS-DYNA simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> LaplaceWriter</api/ansys/health/heart/writer/laplace_writer/LaplaceWriter>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing classes for writing LS-DYNA keyword files for laplace simulations.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

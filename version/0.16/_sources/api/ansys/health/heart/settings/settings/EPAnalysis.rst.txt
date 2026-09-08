@@ -1,0 +1,93 @@
+
+
+
+
+
+
+:class:`EPAnalysis`
+===================
+
+
+.. py:class:: ansys.health.heart.settings.settings.EPAnalysis(/, **data: Any)
+
+   Bases: :py:obj:`Analysis`
+
+
+   
+   Class for EP analysis settings.
+
+   Extends Analysis with electrophysiology-specific solver configuration.
+   Supports different EP solver types for cardiac electrical simulation.
+
+   :Parameters:
+
+       **solvertype** : :obj:`Literal`\["Monodomain", "Eikonal", "ReactionEikonal"], default: "Monodomain"
+           Type of electrophysiology solver to use.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> ep_analysis = EPAnalysis(solvertype="Monodomain")
+   >>> print(ep_analysis.solvertype)
+   Monodomain
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: EPAnalysis
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~solvertype`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import EPAnalysis
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: solvertype
+   :type:  Literal['Monodomain', 'Eikonal', 'ReactionEikonal']
+   :value: None
+
+
+
+
+
+

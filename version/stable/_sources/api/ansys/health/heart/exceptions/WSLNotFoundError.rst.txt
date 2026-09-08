@@ -1,0 +1,49 @@
+
+
+
+
+
+
+:class:`WSLNotFoundError`
+=========================
+
+
+.. py:exception:: ansys.health.heart.exceptions.WSLNotFoundError
+
+   Bases: :py:obj:`FileNotFoundError`
+
+
+   
+   Exception raised when WSL executable is not found.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.exceptions import WSLNotFoundError
+
+
+
+
+

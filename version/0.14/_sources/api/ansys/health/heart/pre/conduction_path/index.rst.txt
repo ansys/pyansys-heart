@@ -1,0 +1,100 @@
+
+
+
+
+
+
+The ``conduction_path.py`` module
+=================================
+
+.. py:module:: ansys.health.heart.pre.conduction_path
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: conduction_path
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.pre.conduction_path.ConductionPath`
+            - Conduction path class.
+
+
+
+    .. tab-item:: Enums
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.pre.conduction_path.ConductionPathType`
+            - Conduction Path types.
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> ConductionPath</api/ansys/health/heart/pre/conduction_path/ConductionPath>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_enum"></span> ConductionPathType</api/ansys/health/heart/pre/conduction_path/ConductionPathType>
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Conduction system class.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

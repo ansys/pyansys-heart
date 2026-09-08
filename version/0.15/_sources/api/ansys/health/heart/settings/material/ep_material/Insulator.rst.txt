@@ -1,0 +1,110 @@
+
+
+
+
+
+
+:class:`Insulator`
+==================
+
+
+.. py:class:: ansys.health.heart.settings.material.ep_material.Insulator(/, **data: Any)
+
+   Bases: :py:obj:`EPMaterialModel`
+
+
+   
+   Insulator material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Insulator
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~sigma_fiber`
+            - 
+          * - :py:attr:`~sigma_sheet_normal`
+            - 
+          * - :py:attr:`~sigma_sheet`
+            - 
+          * - :py:attr:`~cm`
+            - 
+          * - :py:attr:`~beta`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.ep_material import Insulator
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: sigma_fiber
+   :type:  float
+   :value: 0.0
+
+
+.. py:attribute:: sigma_sheet_normal
+   :type:  float
+   :value: 0.0
+
+
+.. py:attribute:: sigma_sheet
+   :type:  float
+   :value: 0.0
+
+
+.. py:attribute:: cm
+   :type:  float
+   :value: 0.0
+
+
+.. py:attribute:: beta
+   :type:  float
+   :value: 0.0
+
+
+
+
+
+

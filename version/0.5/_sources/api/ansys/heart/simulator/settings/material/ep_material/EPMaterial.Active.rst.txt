@@ -1,0 +1,93 @@
+
+
+:class:`Active`
+===============
+
+.. py:class:: ansys.heart.simulator.settings.material.ep_material.EPMaterial.Active
+
+   Bases: :py:obj:`EPMaterialModel`
+
+
+   
+   Hold data for EP material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Active
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~solver_type`
+            - 
+          * - :py:attr:`~sigma_fiber`
+            - 
+          * - :py:attr:`~sigma_sheet`
+            - 
+          * - :py:attr:`~sigma_sheet_normal`
+            - 
+          * - :py:attr:`~cell_model`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.ep_material.EPMaterial import Active
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: solver_type
+
+.. py:attribute:: sigma_fiber
+   :type:  float
+
+.. py:attribute:: sigma_sheet
+   :type:  Optional[float]
+
+.. py:attribute:: sigma_sheet_normal
+   :type:  Optional[float]
+
+.. py:attribute:: cell_model
+   :type:  CellModel
+
+
+
+

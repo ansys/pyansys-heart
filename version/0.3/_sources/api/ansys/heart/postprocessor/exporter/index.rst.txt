@@ -1,0 +1,88 @@
+
+
+
+
+
+The ``exporter.py`` module
+==========================
+
+.. py:module:: ansys.heart.postprocessor.exporter
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: exporter
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~D3plotToVTKExporter`
+            - Read d3plot and save deformed mesh.
+
+
+          * - :py:attr:`~LVContourExporter`
+            - Export Left ventricle surface and Post-process.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🝆 D3plotToVTKExporter<D3plotToVTKExporter>
+    🝆 LVContourExporter<LVContourExporter>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Export information from d3plot.
+
+Mostly related to the motion.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

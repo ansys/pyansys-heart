@@ -1,0 +1,111 @@
+
+
+
+
+
+The ``ansys.heart.preprocessor`` library
+========================================
+
+.. py:module:: ansys.heart.preprocessor
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: preprocessor
+.. tab-set::
+
+    .. tab-item:: Subpackages
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~ansys.heart.preprocessor.mesh`
+            - 
+
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~ansys.heart.preprocessor.conduction_beam`
+            - Module containing class for creating conduxtion system.
+
+
+          * - :py:attr:`~ansys.heart.preprocessor.database_labels_to_id`
+            - Dictionaries to map labels to ID for Strocchi et al 2020 and Rodero et al 2021 datasets.
+
+
+          * - :py:attr:`~ansys.heart.preprocessor.database_preprocessor`
+            - Some helper methods to process cases from Strocchi and Rodero databases.
+
+
+          * - :py:attr:`~ansys.heart.preprocessor.helpers`
+            - Module containing general helper methods.
+
+
+          * - :py:attr:`~ansys.heart.preprocessor.input`
+            - Module to manage input.
+
+
+          * - :py:attr:`~ansys.heart.preprocessor.models`
+            - Module containing classes for the various heart models.
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🖿 mesh<mesh/index.rst>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🗎 conduction_beam<conduction_beam/index.rst>
+    🗎 database_labels_to_id<database_labels_to_id/index.rst>
+    🗎 database_preprocessor<database_preprocessor/index.rst>
+    🗎 helpers<helpers/index.rst>
+    🗎 input<input/index.rst>
+    🗎 models<models/index.rst>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

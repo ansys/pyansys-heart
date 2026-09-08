@@ -1,0 +1,177 @@
+
+
+
+
+
+
+:class:`SystemModelPost`
+========================
+
+.. py:class:: ansys.health.heart.post.system_model_post.SystemModelPost(dir: str)
+
+   
+   Postprocessing system model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   The units are ms, kPa, and mL.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: SystemModelPost
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_ejection_fraction`
+            - Compute ejection fraction on a given time interval.
+          * - :py:attr:`~plot_pv_loop`
+            - Plot PV loop.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~dir`
+            - 
+          * - :py:attr:`~model_type`
+            - 
+          * - :py:attr:`~lv_system`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.post.system_model_post import SystemModelPost
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: dir
+
+.. py:attribute:: model_type
+   :value: 'LV'
+
+
+.. py:attribute:: lv_system
+
+
+
+Method detail
+-------------
+
+.. py:method:: get_ejection_fraction(t_start: float = 0, t_end: float = 100000000000.0) -> float
+
+   
+   Compute ejection fraction on a given time interval.
+
+
+   :Parameters:
+
+       **t_start** : :class:`python:float`, default: 0
+           Start time.
+
+       **t_end** : :class:`python:float`, default: 10e10
+           End time.
+
+
+
+   :Returns:
+
+       :class:`python:float`
+           Ejection fraction.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: plot_pv_loop(t_start: float = 0, t_end: float = 100000000000.0, show_ed: bool = True, ef: list[float, float] = [None, None]) -> matplotlib.pyplot.Figure
+
+   
+   Plot PV loop.
+
+
+   :Parameters:
+
+       **t_start** : :class:`python:float`, default: 0
+           Start time to plot.
+
+       **t_end** : :class:`python:float`, default: 10e10
+           End time to plot.
+
+       **show_ed** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:True`
+           Whether to show the end of the diastole state in zeropressure.
+
+       **ef** : :class:`python:list`\[:class:`python:float`, :class:`python:float`], default: [:data:`python:None`, :data:`python:None`]
+           Ejection fraction to show in the legend.
+
+
+
+   :Returns:
+
+       :obj:`plt.Figure`
+           Figure handle.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

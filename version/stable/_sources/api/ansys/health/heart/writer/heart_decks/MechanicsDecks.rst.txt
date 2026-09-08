@@ -1,0 +1,90 @@
+
+
+
+
+
+
+:class:`MechanicsDecks`
+=======================
+
+
+.. py:class:: ansys.health.heart.writer.heart_decks.MechanicsDecks
+
+   Bases: :py:obj:`BaseDecks`
+
+
+   
+   Useful decks for a mechanics simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: MechanicsDecks
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~cap_elements`
+            - 
+          * - :py:attr:`~control_volume`
+            - 
+          * - :py:attr:`~pericardium`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.heart_decks import MechanicsDecks
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: cap_elements
+   :type:  ansys.dyna.core.Deck
+
+.. py:attribute:: control_volume
+   :type:  ansys.dyna.core.Deck
+
+.. py:attribute:: pericardium
+   :type:  ansys.dyna.core.Deck
+
+
+
+
+

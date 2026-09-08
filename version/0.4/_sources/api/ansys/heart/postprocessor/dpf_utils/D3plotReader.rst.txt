@@ -1,0 +1,386 @@
+
+
+:class:`D3plotReader`
+=====================
+
+.. py:class:: ansys.heart.postprocessor.dpf_utils.D3plotReader(path: pathlib.Path)
+
+   
+   Use DPF to parse d3plot.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: D3plotReader
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_initial_coordinates`
+            - Get initial coordinates.
+          * - :py:attr:`~get_ep_fields`
+            - Get EP fields container.
+          * - :py:attr:`~get_transmembrane_potentials_fc`
+            - Get sub field container.
+          * - :py:attr:`~print_lsdyna_ms_results`
+            - Print available ms results.
+          * - :py:attr:`~get_displacement_at`
+            - Get displacement field.
+          * - :py:attr:`~get_displacement`
+            - Get displacement.
+          * - :py:attr:`~get_material_ids`
+            - Get list of material id.
+          * - :py:attr:`~get_history_variable`
+            - Get history variables in d3plot.
+          * - :py:attr:`~export_vtk`
+            - Convert d3plot to vtk.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~ds`
+            - 
+          * - :py:attr:`~model`
+            - 
+          * - :py:attr:`~meshgrid`
+            - 
+          * - :py:attr:`~time`
+            - 
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__del__`
+            - Shutdown the server to release ansyscl.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.postprocessor.dpf_utils import D3plotReader
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: ds
+
+.. py:attribute:: model
+
+.. py:attribute:: meshgrid
+   :type:  pyvista.UnstructuredGrid
+
+.. py:attribute:: time
+
+
+
+Method detail
+-------------
+.. py:method:: __del__()
+
+   
+   Shutdown the server to release ansyscl.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_initial_coordinates()
+
+   
+   Get initial coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_ep_fields(at_step: int = None) -> ansys.dpf.core.FieldsContainer
+
+   
+   Get EP fields container.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_transmembrane_potentials_fc(fc: ansys.dpf.core.FieldsContainer) -> ansys.dpf.core.FieldsContainer
+
+   
+   Get sub field container.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: print_lsdyna_ms_results()
+
+   
+   Print available ms results.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_displacement_at(time: float) -> numpy.ndarray
+
+   
+   Get displacement field.
+
+
+   :Parameters:
+
+       **time** : :class:`python:float`
+           at which time
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           displacement
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_displacement()
+
+   
+   Get displacement.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_material_ids()
+
+   
+   Get list of material id.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_history_variable(hv_index: List[int], at_step: int = 0)
+
+   
+   Get history variables in d3plot.
+
+
+   :Parameters:
+
+       **hv_index: List[int]**
+           History variables index.
+
+       **at_step: int, optional**
+           At this frame, by default 0.
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           History variables data.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   d3plot.get_history_variable(hv_index=list(range(9)), at_frame=at_frame) to
+   get Deformation gradient (column-wise storage),see MAT_295 in LS-DYNA manual.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: export_vtk(file_path: str, prefix: str = 'model', only_surface: bool = False, keep_mat_ids: List[int] = None)
+
+   
+   Convert d3plot to vtk.
+
+
+   :Parameters:
+
+       **keep_mat_ids: keep cells by material IDs.**
+           ..
+
+       **only_surface: extract surface.**
+           ..
+
+       **file_path: Path**
+           ..
+
+       **prefix: vtk file prefix, optional**
+           ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

@@ -1,0 +1,89 @@
+
+
+
+
+
+
+The ``defaults`` package
+============================
+
+.. py:module:: ansys.heart.simulator.settings.defaults
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: defaults
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.defaults.electrophysiology`
+            - Module contains default values for electrophysiology simulations.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.defaults.fibers`
+            - Module contains default values for fiber generation.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.defaults.mechanics`
+            - Module contains default values for mechanics simulations.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.defaults.purkinje`
+            - Module contains default values for Purkinje generation.
+
+
+          * - :py:obj:`~ansys.heart.simulator.settings.defaults.zeropressure`
+            - Module contains default values for zero-pressure/stress-free-configuration simulations.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> electrophysiology</api/ansys/heart/simulator/settings/defaults/electrophysiology/index>
+    <span class="nf nf-fa-file"></span> fibers</api/ansys/heart/simulator/settings/defaults/fibers/index>
+    <span class="nf nf-fa-file"></span> mechanics</api/ansys/heart/simulator/settings/defaults/mechanics/index>
+    <span class="nf nf-fa-file"></span> purkinje</api/ansys/heart/simulator/settings/defaults/purkinje/index>
+    <span class="nf nf-fa-file"></span> zeropressure</api/ansys/heart/simulator/settings/defaults/zeropressure/index>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

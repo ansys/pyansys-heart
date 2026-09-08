@@ -1,0 +1,294 @@
+
+
+
+
+
+
+:class:`FluentFaceZone`
+=======================
+
+.. py:class:: ansys.heart.core.helpers.fluenthdf5.FluentFaceZone(min_id: int = None, max_id: int = None, name: str = None, zone_id: int = None, zone_type: str = None, hdf5_id: int = None, faces: numpy.ndarray = None, c0c1: numpy.ndarray = None)
+
+   
+   Class that stores information of the face zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: FluentFaceZone
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~min_id`
+            - Min face id of the face zone: indexing starts at 0.
+          * - :py:attr:`~max_id`
+            - Max face id of the face zone: indexing starts at 0.
+          * - :py:attr:`~name`
+            - Name of the face zone.
+          * - :py:attr:`~id`
+            - Id of the face zone.
+          * - :py:attr:`~zone_type`
+            - Type of face zone.
+          * - :py:attr:`~faces`
+            - Array of faces for this face zone.
+          * - :py:attr:`~c0c1`
+            - Array that stores connected cell-ids.
+          * - :py:attr:`~hdf5_id`
+            - Id of face zone in hdf5 file.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.helpers.fluenthdf5 import FluentFaceZone
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: min_id
+   :type:  int
+   :value: None
+
+
+   
+   Min face id of the face zone: indexing starts at 0.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: max_id
+   :type:  int
+   :value: None
+
+
+   
+   Max face id of the face zone: indexing starts at 0.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: name
+   :type:  str
+   :value: None
+
+
+   
+   Name of the face zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: id
+   :type:  int
+   :value: None
+
+
+   
+   Id of the face zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: zone_type
+   :type:  str
+   :value: None
+
+
+   
+   Type of face zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: faces
+   :type:  numpy.ndarray
+   :value: None
+
+
+   
+   Array of faces for this face zone.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: c0c1
+   :type:  numpy.ndarray
+   :value: None
+
+
+   
+   Array that stores connected cell-ids.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: hdf5_id
+   :value: None
+
+
+   
+   Id of face zone in hdf5 file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

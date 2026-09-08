@@ -1,0 +1,137 @@
+
+
+
+
+
+The ``support.py`` module
+=========================
+
+.. py:module:: ansys.heart.simulator.support
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: support
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~run_preprocessor`
+            - Run the preprocessor with the given input arguments.
+
+
+
+
+    .. tab-item:: Constants
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~LOGGER`
+            - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Provide methods to support workflows.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: run_preprocessor(model_type: ansys.heart.preprocessor.models.v0_1.models.HeartModel, database: str, path_original_mesh: pathlib, work_directory: pathlib, path_to_model: pathlib = None, mesh_size: float = 2.0, add_blood_pool: bool = False, clean_workdir: bool = True, skip_meshing: bool = False)
+
+   
+   Run the preprocessor with the given input arguments.
+
+
+   :Parameters:
+
+       **model_type** : :obj:`models.HeartModel`
+           Type of model. Valid values include: LeftVentricle, BiVentricle, FourChamber, FullHeart
+
+       **database** : :class:`python:str`
+           Name of the database. Either "Strocchi2020" or "Rodero2021"
+
+       **path_original_mesh** : :obj:`Path`
+           Path to the input mesh file
+
+       **work_directory** : :obj:`Path`
+           Working directory
+
+       **path_to_model** : :obj:`Path`, :obj:`optional`
+           Path to the model, by default None, writes as "heart_model.pickle"
+
+       **mesh_size** : :class:`python:float`, :obj:`optional`
+           Size used for remeshing the volume, by default 2.0
+
+       **clean_workdir** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Flag indicating whether to clean the working directory, by default True
+
+       **skip_meshing** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Skip fluent meshing, (only for testing), by default False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: LOGGER
+
+   
+
+
+

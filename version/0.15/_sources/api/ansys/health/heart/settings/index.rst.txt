@@ -1,0 +1,92 @@
+
+
+
+
+
+
+The ``settings`` package
+============================
+
+.. py:module:: ansys.health.heart.settings
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: settings
+.. tab-set::
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.settings.settings`
+            - Module that defines classes that hold settings relevant for PyAnsys-Heart.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> settings</api/ansys/health/heart/settings/settings/index>
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+
+Settings subpackage.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+

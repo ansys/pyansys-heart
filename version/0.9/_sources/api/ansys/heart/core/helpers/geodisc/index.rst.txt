@@ -1,0 +1,156 @@
+
+
+
+
+
+
+The ``geodisc.py`` module
+=========================
+
+.. py:module:: ansys.heart.core.helpers.geodisc
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: geodisc
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~rodrigues_rot`
+            - Perform rodrigues rotation.
+
+
+          * - :py:obj:`~project_3d_points`
+            - Project points on a representative plane.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module for computing paths.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: rodrigues_rot(points: numpy.ndarray, n0: numpy.ndarray, n1: numpy.ndarray) -> numpy.ndarray
+
+   
+   Perform rodrigues rotation.
+
+
+   :Parameters:
+
+       **points** : :obj:`np.ndarray <numpy.ndarray>`
+           Points to rotate.
+
+       **n0** : :obj:`np.ndarray <numpy.ndarray>`
+           Vector 1.
+
+       **n1** : :obj:`np.ndarray <numpy.ndarray>`
+           Vector 2.
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Rotated points.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Rotate given points based on a starting and ending vector.
+   Axis k and angle of rotation theta given by vectors n0,n1.
+   P_rot = P*cos(theta) + (k x P)*sin(theta) + k*<k,P>*(1-cos(theta))
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: project_3d_points(p_set: numpy.ndarray) -> numpy.ndarray
+
+   
+   Project points on a representative plane.
+
+
+   :Parameters:
+
+       **p_set** : :obj:`np.ndarray <numpy.ndarray>`
+           Point set, Nx3
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Projected points onto the SVD representative plane.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Uses SVD to find representative plane:
+   https://meshlogic.github.io/posts/jupyter/curve-fitting/fitting-a-circle-to-cluster-of-3d-points/
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

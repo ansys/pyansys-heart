@@ -1,0 +1,242 @@
+
+
+
+
+
+
+The ``laplace_post.py`` module
+==============================
+
+.. py:module:: ansys.heart.postprocessor.laplace_post
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: laplace_post
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~read_uvc`
+            - Read UVC from d3plot files.
+
+
+          * - :py:obj:`~orthogonalization`
+            - Gram–Schmidt orthogonalization.
+
+
+          * - :py:obj:`~get_gradient`
+            - Read thermal fields from d3plot and compute gradient.
+
+
+          * - :py:obj:`~compute_la_fiber_cs`
+            - Compute left atrium fibers coordinate system.
+
+
+          * - :py:obj:`~compute_ra_fiber_cs`
+            - Compute right atrium fibers coordinate system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Post process script related to Laplace solving (UHC, fibers).
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: read_uvc(directory)
+
+   
+   Read UVC from d3plot files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: orthogonalization(grid) -> pyvista.UnstructuredGrid
+
+   
+   Gram–Schmidt orthogonalization.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_gradient(directory, field_list: List[str]) -> pyvista.UnstructuredGrid
+
+   
+   Read thermal fields from d3plot and compute gradient.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: compute_la_fiber_cs(directory: str, settings: ansys.heart.simulator.settings.settings.AtrialFiber, endo_surface: pyvista.PolyData = None) -> pyvista.UnstructuredGrid
+
+   
+   Compute left atrium fibers coordinate system.
+
+
+   :Parameters:
+
+       **directory** : :class:`python:str`
+           directory of d3plot files.
+
+       **settings** : :obj:`AtrialFiber`
+           Atrial fiber settings.
+
+       **endo_surface** : :obj:`pv.PolyData`, :obj:`optional`
+           _description_, by default None
+           If given, normal direction will be updated by surface normal instead of Laplace solution.
+
+
+
+   :Returns:
+
+       :obj:`pv.UnstructuredGrid`
+           pv object with fiber coordinates system.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Method descrbed in https://doi.org/10.1016/j.cma.2020.113468
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: compute_ra_fiber_cs(directory: str, settings: ansys.heart.simulator.settings.settings.AtrialFiber, endo_surface: pyvista.PolyData = None) -> pyvista.UnstructuredGrid
+
+   
+   Compute right atrium fibers coordinate system.
+
+
+   :Parameters:
+
+       **directory** : :class:`python:str`
+           directory of d3plot files.
+
+       **settings** : :obj:`AtrialFiber`
+           Atrial fiber settings.
+
+       **endo_surface** : :obj:`pv.PolyData`, :obj:`optional`
+           _description_, by default None
+           If given, normal direction will be updated by surface normal instead of Laplace solution.
+
+
+
+   :Returns:
+
+       :obj:`pv.UnstructuredGrid`
+           pv object with fiber coordinates system.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Method descrbed in https://doi.org/10.1016/j.cma.2020.113468
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

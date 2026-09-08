@@ -1,0 +1,123 @@
+
+
+
+
+
+
+:class:`AnalysisZeroPressure`
+=============================
+
+
+.. py:class:: ansys.health.heart.settings.settings.AnalysisZeroPressure(/, **data: Any)
+
+   Bases: :py:obj:`Analysis`
+
+
+   
+   Class for keeping track of zero-pressure analysis settings.
+
+   Extends Analysis with specific settings for stress-free configuration
+   computation, including iterative solver parameters.
+
+   :Parameters:
+
+       **dt_nodout** : :obj:`Quantity`, default: :obj:`Quantity`\(0, "s")
+           Time interval of nodeout export.
+
+       **max_iters** : :class:`python:int`, default: 3
+           Maximum iterations for stress-free-configuration algorithm.
+
+       **method** : :class:`python:int`, default: 2
+           Method identifier to use for computation.
+
+       **tolerance** : :class:`python:float`, default: 5.0
+           Tolerance for iterative algorithm convergence.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> zero_p = AnalysisZeroPressure(max_iters=5, tolerance=1.0, method=2)
+   >>> print(zero_p.max_iters)
+   5
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: AnalysisZeroPressure
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~dt_nodout`
+            - 
+          * - :py:attr:`~max_iters`
+            - 
+          * - :py:attr:`~method`
+            - 
+          * - :py:attr:`~tolerance`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import AnalysisZeroPressure
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: dt_nodout
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: max_iters
+   :type:  int
+   :value: None
+
+
+.. py:attribute:: method
+   :type:  int
+   :value: None
+
+
+.. py:attribute:: tolerance
+   :type:  float
+   :value: None
+
+
+
+
+
+

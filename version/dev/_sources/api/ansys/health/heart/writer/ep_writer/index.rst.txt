@@ -1,0 +1,94 @@
+
+
+
+
+
+
+The ``ep_writer.py`` module
+===========================
+
+.. py:module:: ansys.health.heart.writer.ep_writer
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: ep_writer
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.writer.ep_writer.PurkinjeGenerationDynaWriter`
+            - Class for preparing the input for a Purkinje LS-DYNA simulation.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.ep_writer.ElectrophysiologyDynaWriter`
+            - Class for preparing the input for an electrophysiology LS-DYNA simulation.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.ep_writer.ElectrophysiologyBeamsDynaWriter`
+            - Class for preparing the input for an electrophysiology LS-DYNA simulation with beams only.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> PurkinjeGenerationDynaWriter</api/ansys/health/heart/writer/ep_writer/PurkinjeGenerationDynaWriter>
+    <span class="nf nf-cod-symbol_class"></span> ElectrophysiologyDynaWriter</api/ansys/health/heart/writer/ep_writer/ElectrophysiologyDynaWriter>
+    <span class="nf nf-cod-symbol_class"></span> ElectrophysiologyBeamsDynaWriter</api/ansys/health/heart/writer/ep_writer/ElectrophysiologyBeamsDynaWriter>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing classes for writing LS-DYNA keyword files for electrophysiology simulations.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

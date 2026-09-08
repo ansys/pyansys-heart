@@ -1,0 +1,105 @@
+
+
+
+
+LeftVentricle
+=============
+
+.. py:class:: LeftVentricle(info: ModelInfo = None)
+   :canonical: ansys.heart.preprocessor.models.LeftVentricle
+
+
+
+Bases: :py:obj:`HeartModel`
+
+
+   Model of just the left ventricle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: LeftVentricle
+.. tab-set::
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~left_ventricle`
+            - Left ventricle part.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.models import LeftVentricle
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: left_ventricle
+   :type: ansys.heart.preprocessor.mesh.objects.Part
+
+   
+   Left ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

@@ -1,0 +1,144 @@
+:py:mod:`simulator.settings.defaults.mechanics`
+===============================================
+
+.. py:module:: simulator.settings.defaults.mechanics
+
+.. autoapi-nested-parse::
+
+   Module contains default values for mechanics simulations.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+.. py:data:: heart
+
+   
+   Generic analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: analysis
+
+   
+   Material settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: material
+
+   
+   Boundary condition settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: boundary_conditions
+
+   
+   System model parameters.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: co
+
+   
+
+.. py:data:: tau
+
+   
+
+.. py:data:: pee
+
+   
+
+.. py:data:: rp
+
+   
+
+.. py:data:: ca
+
+   
+
+.. py:data:: ra
+
+   
+
+.. py:data:: rv
+
+   
+
+.. py:data:: system_model
+
+   
+
+.. py:data:: system_model3
+
+   
+

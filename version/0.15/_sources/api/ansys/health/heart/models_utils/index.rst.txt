@@ -1,0 +1,344 @@
+
+
+
+
+
+
+The ``models_utils.py`` module
+==============================
+
+.. py:module:: ansys.health.heart.models_utils
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: models_utils
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~define_sino_atrial_node`
+            - Define Sino-atrial node.
+
+
+          * - :py:obj:`~define_atrio_ventricular_node`
+            - Define Atrio-ventricular node.
+
+
+          * - :py:obj:`~define_his_bundle_bifurcation_node`
+            - Define His bundle bifurcation node.
+
+
+          * - :py:obj:`~define_his_bundle_end_node`
+            - Define His bundle end node.
+
+
+          * - :py:obj:`~define_bachman_bundle_end_node`
+            - Define Bachmann bundle end node.
+
+
+          * - :py:obj:`~define_fascile_bundle_end_node`
+            - Define fascile bundle end node.
+
+
+          * - :py:obj:`~define_full_conduction_system`
+            - Define the full conduction system.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Stateless methods for the heart model.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: define_sino_atrial_node(model: ansys.health.heart.models.FullHeart | ansys.health.heart.models.FourChamber, landmarks: ansys.health.heart.landmarks.LandMarks, target_coord: numpy.ndarray | list = None) -> ansys.health.heart.objects.Point | None
+
+   
+   Define Sino-atrial node.
+
+
+   :Parameters:
+
+       **model** : :obj:`models.FullHeart` | :obj:`models.FourChamber`
+           Heart model.
+
+       **landmarks** : :obj:`LandMarks`
+           Landmarks instance to store the SA node.
+
+       **target_coord** : :obj:`np.ndarray <numpy.ndarray>` | :class:`python:list`, default: :data:`python:None`
+           If ``None``, the target coordinate is computed as the midpoint between
+           the centroids of the superior and inferior vena cavae. If a coordinate is provided,
+           the closest point on the right atrium endocardium surface to that coordinate is used.
+
+
+
+   :Returns:
+
+       :obj:`Point` | :data:`python:None`
+           Sino-atrial node.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: define_atrio_ventricular_node(model: ansys.health.heart.models.FullHeart | ansys.health.heart.models.FourChamber, landmarks: ansys.health.heart.landmarks.LandMarks, target_coord: numpy.ndarray | list = None) -> ansys.health.heart.objects.Point | None
+
+   
+   Define Atrio-ventricular node.
+
+
+   :Parameters:
+
+       **model** : :obj:`models.FullHeart` | :obj:`models.FourChamber`
+           Heart model.
+
+       **landmarks** : :obj:`LandMarks`
+           Landmarks instance to store the AV node.
+
+       **target_coord** : :obj:`np.ndarray <numpy.ndarray>` | :class:`python:list`, default: :data:`python:None`
+           If ``None``, the target coordinate is computed as the closest point on the right atrium
+           endocardium surface to the right ventricle septum. If a coordinate is provided, the
+           closest point on the right atrium endocardium surface to that coordinate is used.
+
+
+
+   :Returns:
+
+       :obj:`Point` | :data:`python:None`
+           Atrioventricular node.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: define_his_bundle_bifurcation_node(model: ansys.health.heart.models.FourChamber | ansys.health.heart.models.FullHeart, landmarks: ansys.health.heart.landmarks.LandMarks, target_coord: numpy.ndarray | list = None) -> ansys.health.heart.objects.Point | None
+
+   
+   Define His bundle bifurcation node.
+
+
+   :Parameters:
+
+       **model** : :obj:`models.FourChamber` | :obj:`models.FullHeart`
+           Heart model.
+
+       **landmarks** : :obj:`LandMarks`
+           Landmarks instance to get AV node and store HIS bifurcation node.
+
+       **target_coord** : :obj:`np.ndarray <numpy.ndarray>` | :class:`python:list`, default: :data:`python:None`
+           If ``None``, the target coordinate is computed as the closest point in the septum to
+           the AV node. If a coordinate is provided, the closest point in the septum to that
+           coordinate is used.
+
+
+
+   :Returns:
+
+       :obj:`Point` | :data:`python:None`
+           His bifurcation node.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: define_his_bundle_end_node(model: ansys.health.heart.models.FullHeart | ansys.health.heart.models.FourChamber, landmarks: ansys.health.heart.landmarks.LandMarks, target_coord: numpy.ndarray | list = None, side: Literal['left', 'right'] = 'left', n_close: int = 20) -> ansys.health.heart.objects.Point | None
+
+   
+   Define His bundle end node.
+
+
+   :Parameters:
+
+       **model** : :obj:`models.FullHeart` | :obj:`models.FourChamber`
+           Heart model.
+
+       **landmarks** : :obj:`LandMarks`
+           Landmarks instance to get HIS bifurcation node and store end nodes.
+
+       **target_coord** : :obj:`np.ndarray <numpy.ndarray>` | :class:`python:list`, default: :data:`python:None`
+           If ``None``, the target coordinate is computed as the n-th closest point
+           on the endocardium to the His bundle bifurcation node.
+           Not implemented yet if a coordinate is provided.
+
+       **side** : :obj:`Literal`\[&quot;left&quot;, &quot;right&quot;], default: "left"
+           Side of the heart to define the end node for.
+
+       **n_close** : :class:`python:int`, default: 20
+           n-th closest point to the bifurcation node, to avoid too close to the bifurcation node.
+
+
+
+   :Returns:
+
+       :obj:`Point` | :data:`python:None`
+           His end node.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: define_bachman_bundle_end_node(model: ansys.health.heart.models.FullHeart | ansys.health.heart.models.FourChamber, target_coord=None) -> ansys.health.heart.landmarks.LandMarks | None
+
+   
+   Define Bachmann bundle end node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: define_fascile_bundle_end_node(model: ansys.health.heart.models.FullHeart | ansys.health.heart.models.FourChamber, target_coord=None) -> ansys.health.heart.landmarks.LandMarks | None
+
+   
+   Define fascile bundle end node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: define_full_conduction_system(model: ansys.health.heart.models.FullHeart | ansys.health.heart.models.FourChamber | ansys.health.heart.models.BiVentricle, purkinje_folder: str, landmarks: ansys.health.heart.landmarks.LandMarks = None) -> tuple[list[ansys.health.heart.pre.conduction_path.ConductionPath], ansys.health.heart.landmarks.LandMarks]
+
+   
+   Define the full conduction system.
+
+
+   :Parameters:
+
+       **model** : :obj:`models.FullHeart` | :obj:`models.FourChamber` | :obj:`models.BiVentricle`
+           Heart model.
+
+       **purkinje_folder** : :class:`python:str`
+           Folder with LS-DYNA's Purkinje generation.
+
+       **landmarks** : :obj:`LandMarks`, :obj:`optional`
+           Existing landmarks instance. If None, a new one is created.
+
+
+
+   :Returns:
+
+       :class:`python:tuple`\[:class:`python:list`\[:obj:`ConductionPath`], :obj:`LandMarks`]
+           List of conduction paths and the landmarks instance.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

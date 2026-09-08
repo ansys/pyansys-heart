@@ -1,0 +1,49 @@
+
+
+
+
+
+
+:class:`Septum`
+===============
+
+
+.. py:class:: ansys.health.heart.parts.Septum(name: str = None)
+
+   Bases: :py:obj:`Part`
+
+
+   
+   Septum part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.parts import Septum
+
+
+
+
+

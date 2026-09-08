@@ -1,0 +1,140 @@
+:py:mod:`postprocessor.exporter`
+================================
+
+.. py:module:: postprocessor.exporter
+
+.. autoapi-nested-parse::
+
+   Export information from d3plot.
+
+   Mostly related to the motion.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   postprocessor.exporter.LVContourExporter
+
+
+
+
+.. py:class:: LVContourExporter(d3plot_file: str, model: ansys.heart.preprocessor.models.HeartModel)
+
+
+   
+   Export Left ventricle surface and Post-process.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:method:: export_contour_to_vtk(folder, cutter) -> [vtk.vtkPolyData]
+
+      
+      Cut and save the contour in vtk.
+
+
+      :Parameters:
+
+          **cutter: dict contain 'center' and 'normal'**
+              ..
+
+          **folder: output folder**
+              ..
+
+      :Returns:
+
+          :obj:`List` :obj:`of` :obj:`contour` :obj:`data`
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: plot_lvls()
+
+      
+      Get lvls figure.
+
+
+
+      :Returns:
+
+          fig: :obj:`figure` :obj:`handle`
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: export_lvls_to_vtk(folder='lvls_vtk')
+
+      
+      Export lvls as vtk Polyline.
+
+
+      :Parameters:
+
+          **folder: out folder**
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+

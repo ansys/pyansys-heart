@@ -1,0 +1,278 @@
+
+
+
+
+BeamMesh
+========
+
+.. py:class:: BeamMesh(name: str = None, edges: numpy.ndarray = None, nodes: numpy.ndarray = None, beam_nodes_mask: numpy.ndarray = None, pid: int = None, nsid: int = -1)
+   :canonical: ansys.heart.preprocessor.mesh.objects.BeamMesh
+
+
+
+Bases: :py:obj:`pyvista.UnstructuredGrid`, :py:obj:`Feature`
+
+
+   Beam class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: BeamMesh
+.. tab-set::
+
+
+
+
+    .. tab-item:: Properties
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~nodes`
+            - Node coordinates.
+          * - :py:attr:`~edges`
+            - Tetrahedrons num_tetra x 4.
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~all_beam_nodes`
+            - 
+          * - :py:attr:`~edges`
+            - Beams edges.
+          * - :py:attr:`~nodes`
+            - Node coordinates.
+          * - :py:attr:`~beam_nodes_mask`
+            - True for beam nodes, False for solid nodes.
+          * - :py:attr:`~pid`
+            - Part id associated with the network.
+          * - :py:attr:`~nsid`
+            - Surface id associated with the network.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.mesh.objects import BeamMesh
+
+
+Property detail
+---------------
+.. py:property:: nodes
+   :canonical: ansys.heart.preprocessor.mesh.objects.BeamMesh.nodes
+   :type: None
+
+
+   
+   Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: edges
+   :canonical: ansys.heart.preprocessor.mesh.objects.BeamMesh.edges
+   :type: None
+
+
+   
+   Tetrahedrons num_tetra x 4.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: all_beam_nodes
+   :value: []
+
+   
+
+.. py:attribute:: edges
+
+   
+   Beams edges.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: nodes
+
+   
+   Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: beam_nodes_mask
+
+   
+   True for beam nodes, False for solid nodes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: pid
+
+   
+   Part id associated with the network.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: nsid
+   :type: int
+
+   
+   Surface id associated with the network.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

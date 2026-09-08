@@ -1,0 +1,48 @@
+
+
+
+
+
+
+:class:`SupportedFluentVersionNotFoundError`
+============================================
+
+.. py:exception:: ansys.heart.core.exceptions.SupportedFluentVersionNotFoundError
+
+   Bases: :py:obj:`Exception`
+
+
+   
+   Exception raised when no supported Fluent version is found.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.core.exceptions import SupportedFluentVersionNotFoundError
+
+
+
+
+

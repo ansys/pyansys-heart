@@ -1,0 +1,1310 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tentusscher &#8212; PyAnsys Heart</title>
+  
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../../../../../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/css\ansys_sphinx_theme.css?v=0909a4fa" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://www.nerdfonts.com/assets/css/webfont.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../../../../_static/custom.css?v=7c3339d6" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../../../../../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+
+  <!-- Include desired assets -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  
+
+  
+    <link href="../../../../../../../_static/css/breadcrumbs.css" rel="stylesheet" />
+  
+    <script src="../../../../../../../_static/documentation_options.js?v=3e3a806a"></script>
+    <script src="../../../../../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script src="../../../../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/ansys/health/heart/settings/material/ep_material/CellModel.Tentusscher';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://heart.health.docs.pyansys.com/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.12';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../../../../../../../_static/ansys-favicon.png"/>
+    <link rel="index" title="Index" href="../../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="release/['0', '12']" />
+  <link rel="canonical" href="https://heart.health.docs.pyansys.com/version/stable/api/ansys/health/heart/settings/material/ep_material/CellModel.Tentusscher.html" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="https://docs.pyansys.com/">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../../../../_static/pyansys_logo_transparent_black.png" class="logo__image only-light" alt="PyAnsys Heart - Home"/>
+    <img src="../../../../../../../_static/pyansys_logo_transparent_white.png" class="logo__image only-dark pst-js-only" alt="PyAnsys Heart - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../../getting-started.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../../user-guide.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../../contributing.html">
+    Contribute
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../../../../changelog.html">
+    Release notes
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="../../../../../../../search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+</div>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="../../../../../../../search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+</div>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+  
+    <div id="announcement_msg"></div>
+<script>
+  fetch("announcement.html")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(
+      (text) => (document.getElementById("announcement_msg").innerHTML = text),
+    )
+    .catch((error) => console.error(`Fetch problem: ${error.message}`));
+</script>
+  
+
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../../getting-started.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../../user-guide.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../../contributing.html">
+    Contribute
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../../../changelog.html">
+    Release notes
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+         
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="https://health.docs.pyansys.com/" class="nav-link">PyAnsys Health</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a
+        href="../../../../../../../index.html"
+        class="nav-link"
+        aria-label="Home"
+      >
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+      
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><code class="xref py py-class docutils literal notranslate"><span class="pre">Tentusscher</span></code></span></li>
+    
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="tentusscher">
+<h1><code class="xref py py-class docutils literal notranslate"><span class="pre">Tentusscher</span></code><a class="headerlink" href="#tentusscher" title="Link to this heading">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="ansys.health.heart.settings.material.ep_material.CellModel.Tentusscher">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ansys.health.heart.settings.material.ep_material.CellModel.</span></span><span class="sig-name descname"><span class="pre">Tentusscher</span></span><a class="headerlink" href="#ansys.health.heart.settings.material.ep_material.CellModel.Tentusscher" title="Link to this definition">#</a></dt>
+<dd><p>Hold data for Tentusscher cell model.</p>
+</dd></dl>
+
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Methods</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.to_dictionary" title="Tentusscher.to_dictionary"><code class="xref py py-attr docutils literal notranslate"><span class="pre">to_dictionary</span></code></a></p></td>
+<td><p>Convert to dictionary.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Attributes</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.gas_constant" title="Tentusscher.gas_constant"><code class="xref py py-attr docutils literal notranslate"><span class="pre">gas_constant</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.t" title="Tentusscher.t"><code class="xref py py-attr docutils literal notranslate"><span class="pre">t</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.faraday_constant" title="Tentusscher.faraday_constant"><code class="xref py py-attr docutils literal notranslate"><span class="pre">faraday_constant</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.cm" title="Tentusscher.cm"><code class="xref py py-attr docutils literal notranslate"><span class="pre">cm</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.vc" title="Tentusscher.vc"><code class="xref py py-attr docutils literal notranslate"><span class="pre">vc</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.vsr" title="Tentusscher.vsr"><code class="xref py py-attr docutils literal notranslate"><span class="pre">vsr</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.vss" title="Tentusscher.vss"><code class="xref py py-attr docutils literal notranslate"><span class="pre">vss</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.pkna" title="Tentusscher.pkna"><code class="xref py py-attr docutils literal notranslate"><span class="pre">pkna</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.ko" title="Tentusscher.ko"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ko</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.nao" title="Tentusscher.nao"><code class="xref py py-attr docutils literal notranslate"><span class="pre">nao</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.cao" title="Tentusscher.cao"><code class="xref py py-attr docutils literal notranslate"><span class="pre">cao</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.gk1" title="Tentusscher.gk1"><code class="xref py py-attr docutils literal notranslate"><span class="pre">gk1</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.gkr" title="Tentusscher.gkr"><code class="xref py py-attr docutils literal notranslate"><span class="pre">gkr</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.gna" title="Tentusscher.gna"><code class="xref py py-attr docutils literal notranslate"><span class="pre">gna</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.gbna" title="Tentusscher.gbna"><code class="xref py py-attr docutils literal notranslate"><span class="pre">gbna</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.gcal" title="Tentusscher.gcal"><code class="xref py py-attr docutils literal notranslate"><span class="pre">gcal</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.gbca" title="Tentusscher.gbca"><code class="xref py py-attr docutils literal notranslate"><span class="pre">gbca</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.gpca" title="Tentusscher.gpca"><code class="xref py py-attr docutils literal notranslate"><span class="pre">gpca</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.gpk" title="Tentusscher.gpk"><code class="xref py py-attr docutils literal notranslate"><span class="pre">gpk</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.pnak" title="Tentusscher.pnak"><code class="xref py py-attr docutils literal notranslate"><span class="pre">pnak</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.km" title="Tentusscher.km"><code class="xref py py-attr docutils literal notranslate"><span class="pre">km</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.kmna" title="Tentusscher.kmna"><code class="xref py py-attr docutils literal notranslate"><span class="pre">kmna</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.knaca" title="Tentusscher.knaca"><code class="xref py py-attr docutils literal notranslate"><span class="pre">knaca</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.ksat" title="Tentusscher.ksat"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ksat</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.alpha" title="Tentusscher.alpha"><code class="xref py py-attr docutils literal notranslate"><span class="pre">alpha</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.gamma" title="Tentusscher.gamma"><code class="xref py py-attr docutils literal notranslate"><span class="pre">gamma</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.kmca" title="Tentusscher.kmca"><code class="xref py py-attr docutils literal notranslate"><span class="pre">kmca</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.kmnai" title="Tentusscher.kmnai"><code class="xref py py-attr docutils literal notranslate"><span class="pre">kmnai</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.kpca" title="Tentusscher.kpca"><code class="xref py py-attr docutils literal notranslate"><span class="pre">kpca</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.k1" title="Tentusscher.k1"><code class="xref py py-attr docutils literal notranslate"><span class="pre">k1</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.k2" title="Tentusscher.k2"><code class="xref py py-attr docutils literal notranslate"><span class="pre">k2</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.k3" title="Tentusscher.k3"><code class="xref py py-attr docutils literal notranslate"><span class="pre">k3</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.k4" title="Tentusscher.k4"><code class="xref py py-attr docutils literal notranslate"><span class="pre">k4</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.ec" title="Tentusscher.ec"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ec</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.maxsr" title="Tentusscher.maxsr"><code class="xref py py-attr docutils literal notranslate"><span class="pre">maxsr</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.minsr" title="Tentusscher.minsr"><code class="xref py py-attr docutils literal notranslate"><span class="pre">minsr</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.vrel" title="Tentusscher.vrel"><code class="xref py py-attr docutils literal notranslate"><span class="pre">vrel</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.vleak" title="Tentusscher.vleak"><code class="xref py py-attr docutils literal notranslate"><span class="pre">vleak</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.vxfer" title="Tentusscher.vxfer"><code class="xref py py-attr docutils literal notranslate"><span class="pre">vxfer</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.vmaxup" title="Tentusscher.vmaxup"><code class="xref py py-attr docutils literal notranslate"><span class="pre">vmaxup</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.kup" title="Tentusscher.kup"><code class="xref py py-attr docutils literal notranslate"><span class="pre">kup</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.bufc" title="Tentusscher.bufc"><code class="xref py py-attr docutils literal notranslate"><span class="pre">bufc</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.kbufc" title="Tentusscher.kbufc"><code class="xref py py-attr docutils literal notranslate"><span class="pre">kbufc</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.bufsr" title="Tentusscher.bufsr"><code class="xref py py-attr docutils literal notranslate"><span class="pre">bufsr</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.kbufsf" title="Tentusscher.kbufsf"><code class="xref py py-attr docutils literal notranslate"><span class="pre">kbufsf</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.bufss" title="Tentusscher.bufss"><code class="xref py py-attr docutils literal notranslate"><span class="pre">bufss</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.kbufss" title="Tentusscher.kbufss"><code class="xref py py-attr docutils literal notranslate"><span class="pre">kbufss</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.gks" title="Tentusscher.gks"><code class="xref py py-attr docutils literal notranslate"><span class="pre">gks</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.gto" title="Tentusscher.gto"><code class="xref py py-attr docutils literal notranslate"><span class="pre">gto</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.v" title="Tentusscher.v"><code class="xref py py-attr docutils literal notranslate"><span class="pre">v</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.ki" title="Tentusscher.ki"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ki</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.nai" title="Tentusscher.nai"><code class="xref py py-attr docutils literal notranslate"><span class="pre">nai</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.cai" title="Tentusscher.cai"><code class="xref py py-attr docutils literal notranslate"><span class="pre">cai</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.cass" title="Tentusscher.cass"><code class="xref py py-attr docutils literal notranslate"><span class="pre">cass</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.casr" title="Tentusscher.casr"><code class="xref py py-attr docutils literal notranslate"><span class="pre">casr</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.rpri" title="Tentusscher.rpri"><code class="xref py py-attr docutils literal notranslate"><span class="pre">rpri</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.xr1" title="Tentusscher.xr1"><code class="xref py py-attr docutils literal notranslate"><span class="pre">xr1</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.xr2" title="Tentusscher.xr2"><code class="xref py py-attr docutils literal notranslate"><span class="pre">xr2</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.xs" title="Tentusscher.xs"><code class="xref py py-attr docutils literal notranslate"><span class="pre">xs</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.m" title="Tentusscher.m"><code class="xref py py-attr docutils literal notranslate"><span class="pre">m</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.h" title="Tentusscher.h"><code class="xref py py-attr docutils literal notranslate"><span class="pre">h</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.j" title="Tentusscher.j"><code class="xref py py-attr docutils literal notranslate"><span class="pre">j</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.d" title="Tentusscher.d"><code class="xref py py-attr docutils literal notranslate"><span class="pre">d</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.f" title="Tentusscher.f"><code class="xref py py-attr docutils literal notranslate"><span class="pre">f</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.f2" title="Tentusscher.f2"><code class="xref py py-attr docutils literal notranslate"><span class="pre">f2</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.fcass" title="Tentusscher.fcass"><code class="xref py py-attr docutils literal notranslate"><span class="pre">fcass</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Tentusscher.s" title="Tentusscher.s"><code class="xref py py-attr docutils literal notranslate"><span class="pre">s</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Tentusscher.r" title="Tentusscher.r"><code class="xref py py-attr docutils literal notranslate"><span class="pre">r</span></code></a></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="import-detail">
+<h2>Import detail<a class="headerlink" href="#import-detail" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ansys.health.heart.settings.material.ep_material.CellModel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tentusscher</span>
+</pre></div>
+</div>
+</section>
+<section id="attribute-detail">
+<h2>Attribute detail<a class="headerlink" href="#attribute-detail" title="Link to this heading">#</a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.gas_constant">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">gas_constant</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8314.472</span></em><a class="headerlink" href="#Tentusscher.gas_constant" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.t">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">t</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">310</span></em><a class="headerlink" href="#Tentusscher.t" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.faraday_constant">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">faraday_constant</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">96485.3415</span></em><a class="headerlink" href="#Tentusscher.faraday_constant" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.cm">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">cm</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.185</span></em><a class="headerlink" href="#Tentusscher.cm" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.vc">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">vc</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.016404</span></em><a class="headerlink" href="#Tentusscher.vc" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.vsr">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">vsr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.001094</span></em><a class="headerlink" href="#Tentusscher.vsr" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.vss">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">vss</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5.468e-05</span></em><a class="headerlink" href="#Tentusscher.vss" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.pkna">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">pkna</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.03</span></em><a class="headerlink" href="#Tentusscher.pkna" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.ko">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">ko</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5.4</span></em><a class="headerlink" href="#Tentusscher.ko" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.nao">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">nao</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">140.0</span></em><a class="headerlink" href="#Tentusscher.nao" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.cao">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">cao</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.0</span></em><a class="headerlink" href="#Tentusscher.cao" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.gk1">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">gk1</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5.405</span></em><a class="headerlink" href="#Tentusscher.gk1" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.gkr">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">gkr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.153</span></em><a class="headerlink" href="#Tentusscher.gkr" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.gna">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">gna</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">14.838</span></em><a class="headerlink" href="#Tentusscher.gna" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.gbna">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">gbna</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0002</span></em><a class="headerlink" href="#Tentusscher.gbna" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.gcal">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">gcal</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3.98e-05</span></em><a class="headerlink" href="#Tentusscher.gcal" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.gbca">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">gbca</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.000592</span></em><a class="headerlink" href="#Tentusscher.gbca" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.gpca">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">gpca</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1238</span></em><a class="headerlink" href="#Tentusscher.gpca" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.gpk">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">gpk</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0146</span></em><a class="headerlink" href="#Tentusscher.gpk" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.pnak">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">pnak</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.724</span></em><a class="headerlink" href="#Tentusscher.pnak" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.km">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">km</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#Tentusscher.km" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.kmna">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">kmna</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">40.0</span></em><a class="headerlink" href="#Tentusscher.kmna" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.knaca">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">knaca</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000.0</span></em><a class="headerlink" href="#Tentusscher.knaca" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.ksat">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">ksat</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></em><a class="headerlink" href="#Tentusscher.ksat" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.alpha">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">alpha</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.5</span></em><a class="headerlink" href="#Tentusscher.alpha" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.gamma">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">gamma</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.35</span></em><a class="headerlink" href="#Tentusscher.gamma" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.kmca">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">kmca</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.38</span></em><a class="headerlink" href="#Tentusscher.kmca" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.kmnai">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">kmnai</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">87.5</span></em><a class="headerlink" href="#Tentusscher.kmnai" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.kpca">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">kpca</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0005</span></em><a class="headerlink" href="#Tentusscher.kpca" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.k1">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">k1</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.15</span></em><a class="headerlink" href="#Tentusscher.k1" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.k2">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">k2</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.045</span></em><a class="headerlink" href="#Tentusscher.k2" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.k3">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">k3</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.06</span></em><a class="headerlink" href="#Tentusscher.k3" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.k4">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">k4</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.005</span></em><a class="headerlink" href="#Tentusscher.k4" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.ec">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">ec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.5</span></em><a class="headerlink" href="#Tentusscher.ec" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.maxsr">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">maxsr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.5</span></em><a class="headerlink" href="#Tentusscher.maxsr" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.minsr">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">minsr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#Tentusscher.minsr" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.vrel">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">vrel</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.102</span></em><a class="headerlink" href="#Tentusscher.vrel" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.vleak">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">vleak</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.00036</span></em><a class="headerlink" href="#Tentusscher.vleak" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.vxfer">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">vxfer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0038</span></em><a class="headerlink" href="#Tentusscher.vxfer" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.vmaxup">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">vmaxup</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.006375</span></em><a class="headerlink" href="#Tentusscher.vmaxup" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.kup">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">kup</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.00025</span></em><a class="headerlink" href="#Tentusscher.kup" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.bufc">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">bufc</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.2</span></em><a class="headerlink" href="#Tentusscher.bufc" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.kbufc">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">kbufc</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.001</span></em><a class="headerlink" href="#Tentusscher.kbufc" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.bufsr">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">bufsr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10.0</span></em><a class="headerlink" href="#Tentusscher.bufsr" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.kbufsf">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">kbufsf</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.3</span></em><a class="headerlink" href="#Tentusscher.kbufsf" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.bufss">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">bufss</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.4</span></em><a class="headerlink" href="#Tentusscher.bufss" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.kbufss">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">kbufss</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.00025</span></em><a class="headerlink" href="#Tentusscher.kbufss" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.gks">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">gks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.392</span></em><a class="headerlink" href="#Tentusscher.gks" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.gto">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">gto</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.294</span></em><a class="headerlink" href="#Tentusscher.gto" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.v">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">v</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-85.23</span></em><a class="headerlink" href="#Tentusscher.v" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.ki">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">ki</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">136.89</span></em><a class="headerlink" href="#Tentusscher.ki" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.nai">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">nai</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8.604</span></em><a class="headerlink" href="#Tentusscher.nai" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.cai">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">cai</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.000126</span></em><a class="headerlink" href="#Tentusscher.cai" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.cass">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">cass</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.00036</span></em><a class="headerlink" href="#Tentusscher.cass" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.casr">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">casr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3.64</span></em><a class="headerlink" href="#Tentusscher.casr" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.rpri">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">rpri</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.9073</span></em><a class="headerlink" href="#Tentusscher.rpri" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.xr1">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">xr1</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.00621</span></em><a class="headerlink" href="#Tentusscher.xr1" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.xr2">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">xr2</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.4712</span></em><a class="headerlink" href="#Tentusscher.xr2" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.xs">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">xs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0095</span></em><a class="headerlink" href="#Tentusscher.xs" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.m">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">m</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.00172</span></em><a class="headerlink" href="#Tentusscher.m" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.h">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">h</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.7444</span></em><a class="headerlink" href="#Tentusscher.h" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.j">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">j</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.7045</span></em><a class="headerlink" href="#Tentusscher.j" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.d">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">d</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3.373e-05</span></em><a class="headerlink" href="#Tentusscher.d" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.f">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">f</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.7888</span></em><a class="headerlink" href="#Tentusscher.f" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.f2">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">f2</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.9755</span></em><a class="headerlink" href="#Tentusscher.f2" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.fcass">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">fcass</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.9953</span></em><a class="headerlink" href="#Tentusscher.fcass" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.s">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">s</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.999998</span></em><a class="headerlink" href="#Tentusscher.s" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Tentusscher.r">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">r</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.15)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.42e-08</span></em><a class="headerlink" href="#Tentusscher.r" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="method-detail">
+<h2>Method detail<a class="headerlink" href="#method-detail" title="Link to this heading">#</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="Tentusscher.to_dictionary">
+<span class="sig-prename descclassname"><span class="pre">Tentusscher.</span></span><span class="sig-name descname"><span class="pre">to_dictionary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Tentusscher.to_dictionary" title="Link to this definition">#</a></dt>
+<dd><p>Convert to dictionary.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ansys.health.heart.settings.material.ep_material.CellModel.Tentusscher"><code class="docutils literal notranslate"><span class="pre">ansys.health.heart.settings.material.ep_material.CellModel.Tentusscher</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#import-detail">Import detail</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attribute-detail">Attribute detail</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.gas_constant"><code class="docutils literal notranslate"><span class="pre">gas_constant</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.t"><code class="docutils literal notranslate"><span class="pre">t</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.faraday_constant"><code class="docutils literal notranslate"><span class="pre">faraday_constant</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.cm"><code class="docutils literal notranslate"><span class="pre">cm</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.vc"><code class="docutils literal notranslate"><span class="pre">vc</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.vsr"><code class="docutils literal notranslate"><span class="pre">vsr</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.vss"><code class="docutils literal notranslate"><span class="pre">vss</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.pkna"><code class="docutils literal notranslate"><span class="pre">pkna</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.ko"><code class="docutils literal notranslate"><span class="pre">ko</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.nao"><code class="docutils literal notranslate"><span class="pre">nao</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.cao"><code class="docutils literal notranslate"><span class="pre">cao</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.gk1"><code class="docutils literal notranslate"><span class="pre">gk1</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.gkr"><code class="docutils literal notranslate"><span class="pre">gkr</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.gna"><code class="docutils literal notranslate"><span class="pre">gna</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.gbna"><code class="docutils literal notranslate"><span class="pre">gbna</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.gcal"><code class="docutils literal notranslate"><span class="pre">gcal</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.gbca"><code class="docutils literal notranslate"><span class="pre">gbca</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.gpca"><code class="docutils literal notranslate"><span class="pre">gpca</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.gpk"><code class="docutils literal notranslate"><span class="pre">gpk</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.pnak"><code class="docutils literal notranslate"><span class="pre">pnak</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.km"><code class="docutils literal notranslate"><span class="pre">km</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.kmna"><code class="docutils literal notranslate"><span class="pre">kmna</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.knaca"><code class="docutils literal notranslate"><span class="pre">knaca</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.ksat"><code class="docutils literal notranslate"><span class="pre">ksat</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.alpha"><code class="docutils literal notranslate"><span class="pre">alpha</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.gamma"><code class="docutils literal notranslate"><span class="pre">gamma</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.kmca"><code class="docutils literal notranslate"><span class="pre">kmca</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.kmnai"><code class="docutils literal notranslate"><span class="pre">kmnai</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.kpca"><code class="docutils literal notranslate"><span class="pre">kpca</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.k1"><code class="docutils literal notranslate"><span class="pre">k1</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.k2"><code class="docutils literal notranslate"><span class="pre">k2</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.k3"><code class="docutils literal notranslate"><span class="pre">k3</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.k4"><code class="docutils literal notranslate"><span class="pre">k4</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.ec"><code class="docutils literal notranslate"><span class="pre">ec</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.maxsr"><code class="docutils literal notranslate"><span class="pre">maxsr</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.minsr"><code class="docutils literal notranslate"><span class="pre">minsr</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.vrel"><code class="docutils literal notranslate"><span class="pre">vrel</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.vleak"><code class="docutils literal notranslate"><span class="pre">vleak</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.vxfer"><code class="docutils literal notranslate"><span class="pre">vxfer</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.vmaxup"><code class="docutils literal notranslate"><span class="pre">vmaxup</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.kup"><code class="docutils literal notranslate"><span class="pre">kup</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.bufc"><code class="docutils literal notranslate"><span class="pre">bufc</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.kbufc"><code class="docutils literal notranslate"><span class="pre">kbufc</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.bufsr"><code class="docutils literal notranslate"><span class="pre">bufsr</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.kbufsf"><code class="docutils literal notranslate"><span class="pre">kbufsf</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.bufss"><code class="docutils literal notranslate"><span class="pre">bufss</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.kbufss"><code class="docutils literal notranslate"><span class="pre">kbufss</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.gks"><code class="docutils literal notranslate"><span class="pre">gks</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.gto"><code class="docutils literal notranslate"><span class="pre">gto</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.v"><code class="docutils literal notranslate"><span class="pre">v</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.ki"><code class="docutils literal notranslate"><span class="pre">ki</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.nai"><code class="docutils literal notranslate"><span class="pre">nai</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.cai"><code class="docutils literal notranslate"><span class="pre">cai</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.cass"><code class="docutils literal notranslate"><span class="pre">cass</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.casr"><code class="docutils literal notranslate"><span class="pre">casr</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.rpri"><code class="docutils literal notranslate"><span class="pre">rpri</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.xr1"><code class="docutils literal notranslate"><span class="pre">xr1</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.xr2"><code class="docutils literal notranslate"><span class="pre">xr2</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.xs"><code class="docutils literal notranslate"><span class="pre">xs</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.m"><code class="docutils literal notranslate"><span class="pre">m</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.h"><code class="docutils literal notranslate"><span class="pre">h</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.j"><code class="docutils literal notranslate"><span class="pre">j</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.d"><code class="docutils literal notranslate"><span class="pre">d</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.f"><code class="docutils literal notranslate"><span class="pre">f</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.f2"><code class="docutils literal notranslate"><span class="pre">f2</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.fcass"><code class="docutils literal notranslate"><span class="pre">fcass</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.s"><code class="docutils literal notranslate"><span class="pre">s</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.r"><code class="docutils literal notranslate"><span class="pre">r</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#method-detail">Method detail</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Tentusscher.to_dictionary"><code class="docutils literal notranslate"><span class="pre">to_dictionary()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+<!-- If there is no fix edit button function, use the PyData edit-this-button-->
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <ul class="this-page-menu">
+      <li><a href="../../../../../../../_sources/api/ansys/health/heart/settings/material/ep_material/CellModel.Tentusscher.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../../../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../../../../../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+
+  <!-- Include desired assets -->
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.min.js"></script>
+
+<script>
+// Passing the search options to the search.js file
+const SEARCH_OPTIONS = JSON.parse('{"keys": ["title", "text"], "limit": 10, "threshold": 0.2}');
+const SEARCH_FILE = "../../../../../../../_static/search.json";
+</script>
+
+
+<script src="../../../../../../../_static/js/search.js"></script>
+  
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright (c) 2025 ANSYS, Inc. All rights reserved.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the
+  <a href="https://sphinxdocs.ansys.com/version/stable/index.html"
+    >Ansys Sphinx Theme</a
+  >
+  1.3.3. <br />Last updated on
+  <span id="ast_build_date"></span>
+</p>
+<script>
+  var options = { day: "numeric", month: "long", year: "numeric" };
+  var ast_lastModifiedDate = new Date(document.lastModified);
+  var ast_build_date = ast_lastModifiedDate.toLocaleDateString("en-US", options);
+  document.getElementById("ast_build_date").innerHTML = ast_build_date;
+</script></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

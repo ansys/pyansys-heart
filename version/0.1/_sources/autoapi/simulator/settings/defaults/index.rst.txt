@@ -1,0 +1,19 @@
+:py:mod:`simulator.settings.defaults`
+=====================================
+
+.. py:module:: simulator.settings.defaults
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   electrophysiology/index.rst
+   fibers/index.rst
+   mechanics/index.rst
+   purkinje/index.rst
+   zeropressure/index.rst
+
+

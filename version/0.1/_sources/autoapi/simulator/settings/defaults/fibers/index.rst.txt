@@ -1,0 +1,20 @@
+:py:mod:`simulator.settings.defaults.fibers`
+============================================
+
+.. py:module:: simulator.settings.defaults.fibers
+
+.. autoapi-nested-parse::
+
+   Module contains default values for fiber generation.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+.. py:data:: angles
+
+   
+

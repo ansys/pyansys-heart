@@ -1,0 +1,135 @@
+
+
+
+
+
+
+The ``fluenthdf5.py`` module
+============================
+
+.. py:module:: ansys.heart.preprocessor.mesh.fluenthdf5
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: fluenthdf5
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.fluenthdf5.FluentCellZone`
+            - Class that stores information of the cell zone.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.fluenthdf5.FluentFaceZone`
+            - Class that stores information of the face zone.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor.mesh.fluenthdf5.FluentMesh`
+            - Class that stores the Fluent mesh.
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~add_solid_name_to_stl`
+            - Add name of solid to stl file.
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> FluentCellZone</api/ansys/heart/preprocessor/mesh/fluenthdf5/FluentCellZone>
+    <span class="nf nf-cod-symbol_class"></span> FluentFaceZone</api/ansys/heart/preprocessor/mesh/fluenthdf5/FluentFaceZone>
+    <span class="nf nf-cod-symbol_class"></span> FluentMesh</api/ansys/heart/preprocessor/mesh/fluenthdf5/FluentMesh>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing functions to read/write fluent meshes in HDF5 format.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: add_solid_name_to_stl(filename, solid_name, file_type: str = 'ascii') -> None
+
+   
+   Add name of solid to stl file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Supports only single block.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

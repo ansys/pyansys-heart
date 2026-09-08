@@ -1,0 +1,46 @@
+
+
+
+
+
+
+:class:`Model2`
+===============
+
+
+.. py:class:: ansys.health.heart.settings.material.material.ActiveModel.Model2
+
+   
+   Hold data for active model 2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.material.ActiveModel import Model2
+
+
+
+
+

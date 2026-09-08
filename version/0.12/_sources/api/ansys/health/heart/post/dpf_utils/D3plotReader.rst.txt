@@ -1,0 +1,305 @@
+
+
+
+
+
+
+:class:`D3plotReader`
+=====================
+
+.. py:class:: ansys.health.heart.post.dpf_utils.D3plotReader(path: pathlib.Path)
+
+   
+   Use DPF to parse the d3plot.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: D3plotReader
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_initial_coordinates`
+            - Get initial coordinates.
+          * - :py:attr:`~get_ep_fields`
+            - Get EP fields container.
+          * - :py:attr:`~print_lsdyna_ms_results`
+            - Print available ms results.
+          * - :py:attr:`~get_displacement_at`
+            - Get the displacement field.
+          * - :py:attr:`~get_material_ids`
+            - Get a list of the material IDs.
+          * - :py:attr:`~get_history_variable`
+            - Get history variables in the d3plot.
+          * - :py:attr:`~get_heatflux`
+            - Get nodal heat flux vector from the d3plot.
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~ds`
+            - 
+          * - :py:attr:`~model`
+            - 
+          * - :py:attr:`~meshgrid`
+            - 
+          * - :py:attr:`~time`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.post.dpf_utils import D3plotReader
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: ds
+
+.. py:attribute:: model
+
+.. py:attribute:: meshgrid
+   :type:  pyvista.UnstructuredGrid
+
+.. py:attribute:: time
+
+
+
+Method detail
+-------------
+
+.. py:method:: get_initial_coordinates() -> numpy.ndarray
+
+   
+   Get initial coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_ep_fields(at_step: int = None) -> ansys.dpf.core.FieldsContainer
+
+   
+   Get EP fields container.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: print_lsdyna_ms_results() -> None
+
+   
+   Print available ms results.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_displacement_at(time: float) -> numpy.ndarray
+
+   
+   Get the displacement field.
+
+
+   :Parameters:
+
+       **time** : :class:`python:float`
+           Time to get the displacement field at.
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Displacement array.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_material_ids() -> numpy.ndarray
+
+   
+   Get a list of the material IDs.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_history_variable(hv_index: List[int], at_step: int = 0) -> numpy.ndarray
+
+   
+   Get history variables in the d3plot.
+
+
+   :Parameters:
+
+       **hv_index: List[int]**
+           History variables index.
+
+       **at_step: int, default: 0**
+           Step to get the history variables at.
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           History variables data.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   ``d3plot.get_history_variable(hv_index=list(range(9)), at_frame=at_frame)``. To
+   get the deformation gradient (column-wise storage), see MAT_295 in the LS-DYNA manuals.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_heatflux(step: int = 2) -> numpy.ndarray
+
+   
+   Get nodal heat flux vector from the d3plot.
+
+
+   :Parameters:
+
+       **step** : :class:`python:int`, default: 2
+           Time step
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Heat flux.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

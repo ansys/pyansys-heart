@@ -1,0 +1,108 @@
+
+
+
+
+
+
+:class:`LandMarks`
+==================
+
+
+.. py:class:: ansys.health.heart.models_utils.LandMarks
+
+   
+   Heart anatomical points.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: LandMarks
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~SA_NODE`
+            - 
+          * - :py:attr:`~AV_NODE`
+            - 
+          * - :py:attr:`~HIS_BIF_NODE`
+            - 
+          * - :py:attr:`~HIS_LEFT_END_NODE`
+            - 
+          * - :py:attr:`~HIS_RIGHT_END_NODE`
+            - 
+          * - :py:attr:`~BACHMAN_END_NODE`
+            - 
+          * - :py:attr:`~LEFT_FASCILE_END`
+            - 
+          * - :py:attr:`~LEFT_APEX`
+            - 
+          * - :py:attr:`~RIGHT_APEX`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.models_utils import LandMarks
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: SA_NODE
+
+.. py:attribute:: AV_NODE
+
+.. py:attribute:: HIS_BIF_NODE
+
+.. py:attribute:: HIS_LEFT_END_NODE
+
+.. py:attribute:: HIS_RIGHT_END_NODE
+
+.. py:attribute:: BACHMAN_END_NODE
+
+.. py:attribute:: LEFT_FASCILE_END
+
+.. py:attribute:: LEFT_APEX
+
+.. py:attribute:: RIGHT_APEX
+
+
+
+
+

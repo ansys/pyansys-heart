@@ -1,0 +1,486 @@
+
+
+
+
+
+
+:class:`Part`
+=============
+
+
+.. py:class:: ansys.health.heart.parts.Part(name: str = None, part_type: _PartType = _PartType.UNDEFINED)
+
+   
+   Base part class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: Part
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+   .. tab-item:: Methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_point`
+            - Get a point from the part.
+          * - :py:attr:`~get_element_ids`
+            - Get element IDs that make up the part.
+
+
+   .. tab-item:: Properties
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~surfaces`
+            - List of surfaces belonging to the part.
+          * - :py:attr:`~surface_names`
+            - List of surface names belonging to the part.
+          * - :py:attr:`~element_ids`
+            - Get element IDs that make up the part.
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~name`
+            - Part name.
+          * - :py:attr:`~pid`
+            - Part ID.
+          * - :py:attr:`~mid`
+            - Material ID associated with the part.
+          * - :py:attr:`~points`
+            - Points of interest belonging to the part.
+          * - :py:attr:`~fiber`
+            - Flag indicating if the part has fiber/sheet data.
+          * - :py:attr:`~active`
+            - Flag indicating if active stress is established.
+          * - :py:attr:`~meca_material`
+            - Material model to assign in the simulator.
+          * - :py:attr:`~ep_material`
+            - EP material model to assign in the simulator.
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__str__`
+            - Return a string representation of the part.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.parts import Part
+
+Property detail
+---------------
+
+.. py:property:: surfaces
+   :type: list[ansys.health.heart.objects.SurfaceMesh]
+
+
+   
+   List of surfaces belonging to the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: surface_names
+   :type: list[str]
+
+
+   
+   List of surface names belonging to the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: element_ids
+   :type: numpy.ndarray
+
+
+   
+   Get element IDs that make up the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: name
+   :type:  str
+   :value: None
+
+
+   
+   Part name.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: pid
+   :type:  int | None
+   :value: None
+
+
+   
+   Part ID.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: mid
+   :type:  int | None
+   :value: None
+
+
+   
+   Material ID associated with the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: points
+   :type:  list[ansys.health.heart.objects.Point]
+   :value: []
+
+
+   
+   Points of interest belonging to the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: fiber
+   :type:  bool
+   :value: False
+
+
+   
+   Flag indicating if the part has fiber/sheet data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: active
+   :type:  bool
+   :value: False
+
+
+   
+   Flag indicating if active stress is established.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: meca_material
+   :type:  ansys.health.heart.settings.material.material.MechanicalMaterialModel
+
+   
+   Material model to assign in the simulator.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: ep_material
+   :type:  ansys.health.heart.settings.material.ep_material.EPMaterial
+
+   
+   EP material model to assign in the simulator.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: get_point(pointname: str) -> ansys.health.heart.objects.Point | None
+
+   
+   Get a point from the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_element_ids(mesh: ansys.health.heart.objects.Mesh = None) -> numpy.ndarray
+
+   
+   Get element IDs that make up the part.
+
+
+   :Parameters:
+
+       **mesh** : :obj:`Mesh`, default: :data:`python:None`
+           The mesh object where to get the element IDs from.
+
+
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           Array of element IDs that make up the part.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: __str__() -> str
+
+   
+   Return a string representation of the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

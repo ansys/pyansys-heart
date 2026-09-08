@@ -1,0 +1,359 @@
+
+
+
+
+
+
+:class:`ACTIVE`
+===============
+
+
+.. py:class:: ansys.health.heart.settings.material.material.ACTIVE
+
+   
+   Active module of MAT_295.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: ACTIVE
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~acid`
+            - Do not define it, it will be assigned with an ID of Ca2+ curve
+          * - :py:attr:`~actype`
+            - Type of active model, will be deduced in __post_init__.
+          * - :py:attr:`~acthr`
+            - Ca2+ threshold for active stress, need to be defined for ep-coupled,
+          * - :py:attr:`~acdir`
+            - Direction of active stress, don't change it.
+          * - :py:attr:`~sf`
+            - Scaling factor on fiber direction.
+          * - :py:attr:`~ss`
+            - Scaling factor on sheet direction.
+          * - :py:attr:`~sn`
+            - Scaling factor on normal direction.
+          * - :py:attr:`~model`
+            - Active model.
+          * - :py:attr:`~ca2_curve`
+            - Ca2+ curve for mechanical problem.
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__post_init__`
+            - Deduce actype.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.material.material import ACTIVE
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: acid
+   :type:  int
+   :value: None
+
+
+   
+   Do not define it, it will be assigned with an ID of Ca2+ curve
+   for mechanical problem or empty for ep-coupled problem.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: actype
+   :type:  int
+   :value: None
+
+
+   
+   Type of active model, will be deduced in __post_init__.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: acthr
+   :type:  float
+   :value: None
+
+
+   
+   Ca2+ threshold for active stress, need to be defined for ep-coupled,
+   for mechanics it's defined in ActiveCurve.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: acdir
+   :type:  int
+   :value: 1
+
+
+   
+   Direction of active stress, don't change it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: sf
+   :type:  float
+   :value: 1.0
+
+
+   
+   Scaling factor on fiber direction.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: ss
+   :type:  float
+   :value: 0.0
+
+
+   
+   Scaling factor on sheet direction.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: sn
+   :type:  float
+   :value: 0.0
+
+
+   
+   Scaling factor on normal direction.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: model
+   :type:  ActiveModel
+
+   
+   Active model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: ca2_curve
+   :type:  ansys.health.heart.settings.material.curve.ActiveCurve
+
+   
+   Ca2+ curve for mechanical problem.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Method detail
+-------------
+
+.. py:method:: __post_init__()
+
+   
+   Deduce actype.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+

@@ -1,0 +1,53 @@
+
+
+
+
+
+
+:class:`MaterialCap`
+====================
+
+
+.. py:class:: ansys.health.heart.writer.material_keywords.MaterialCap(mid: int = 1)
+
+   Bases: :py:obj:`ansys.dyna.core.keywords.keywords.MatNull`
+
+
+   
+   Material of the closing cap/valves.
+
+
+   :Parameters:
+
+       **keywords** : :obj:`keywords.MatNull`
+           Inherits from the Null type material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.material_keywords import MaterialCap
+
+
+
+
+

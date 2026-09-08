@@ -1,0 +1,24 @@
+:py:mod:`simulator.settings`
+============================
+
+.. py:module:: simulator.settings
+
+
+Subpackages
+-----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 3
+
+   defaults/index.rst
+
+
+Submodules
+----------
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   settings/index.rst
+
+

@@ -1,0 +1,158 @@
+
+
+
+
+
+
+:class:`Material`
+=================
+
+.. py:class:: ansys.health.heart.settings.settings.Material
+
+   Bases: :py:obj:`Settings`
+
+
+   
+   Class for storing material settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Material
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~myocardium`
+            - Myocardium material.
+          * - :py:attr:`~passive`
+            - Passive material. For example, the vessel wall.
+          * - :py:attr:`~cap`
+            - Cap material.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import Material
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: myocardium
+   :type:  AttrDict
+   :value: None
+
+
+   
+   Myocardium material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: passive
+   :type:  AttrDict
+   :value: None
+
+
+   
+   Passive material. For example, the vessel wall.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: cap
+   :type:  AttrDict
+   :value: None
+
+
+   
+   Cap material.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

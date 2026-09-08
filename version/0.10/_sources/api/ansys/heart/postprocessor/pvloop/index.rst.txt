@@ -1,0 +1,160 @@
+
+
+
+
+
+
+The ``pvloop.py`` module
+========================
+
+.. py:module:: ansys.heart.postprocessor.pvloop
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: pvloop
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~write_pvloop_pngs`
+            - Write pv loop figures into png.
+
+
+          * - :py:obj:`~generate_pvloop`
+            - Generate pv loop figures from icvout.
+
+
+
+
+    .. tab-item:: Constants
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~CV_NAME`
+            - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Get pressure-volume (PV) loop from LS-DYNA icvout file.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: write_pvloop_pngs(pressure: numpy.ndarray, volume: numpy.ndarray, save_to: str)
+
+   
+   Write pv loop figures into png.
+
+
+   :Parameters:
+
+       **pressure** : :obj:`np.ndarray <numpy.ndarray>`
+           pressure array
+
+       **volume** : :obj:`np.ndarray <numpy.ndarray>`
+           volume array
+
+       **save_to** : :class:`python:str`
+           folder to save
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: generate_pvloop(f: str, out_dir: str, t_to_keep: float = 800)
+
+   
+   Generate pv loop figures from icvout.
+
+
+   :Parameters:
+
+       **f** : :class:`python:str`
+           binout path
+
+       **out_dir** : :class:`python:str`
+           folder to save
+
+       **t_to_keep** : :class:`python:float`, :obj:`optional`
+           Time to keep from the end, by default 800 (last heart beat)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: CV_NAME
+   :value: ['LV', 'RV', 'LA', 'RA']
+
+
+
+

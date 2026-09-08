@@ -1,0 +1,364 @@
+
+
+
+
+SurfaceMesh
+===========
+
+.. py:class:: SurfaceMesh(name: str = None, triangles: numpy.ndarray = None, nodes: numpy.ndarray = None, id: int = None)
+   :canonical: ansys.heart.preprocessor.mesh.objects.SurfaceMesh
+
+
+
+Bases: :py:obj:`pyvista.PolyData`, :py:obj:`Feature`
+
+
+   Surface class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: SurfaceMesh
+.. tab-set::
+
+
+
+    .. tab-item:: Methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~write_to_stl`
+            - Write the surface to a vtk file.
+
+
+    .. tab-item:: Properties
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~nodes`
+            - Node coordinates.
+          * - :py:attr:`~triangles`
+            - Triangular faces of the surface num_faces x 3.
+          * - :py:attr:`~boundary_edges`
+            - Get boundary edges of self.
+          * - :py:attr:`~node_ids`
+            - Global node ids - sorted by earliest occurrence.
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~type`
+            - Surface type.
+          * - :py:attr:`~id`
+            - ID of surface.
+          * - :py:attr:`~nsid`
+            - ID of corresponding set of nodes.
+          * - :py:attr:`~triangles`
+            - Triangular faces of the surface num_faces x 3.
+          * - :py:attr:`~nodes`
+            - Node coordinates.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.mesh.objects import SurfaceMesh
+
+
+Property detail
+---------------
+.. py:property:: nodes
+   :canonical: ansys.heart.preprocessor.mesh.objects.SurfaceMesh.nodes
+   :type: None
+
+
+   
+   Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: triangles
+   :canonical: ansys.heart.preprocessor.mesh.objects.SurfaceMesh.triangles
+   :type: None
+
+
+   
+   Triangular faces of the surface num_faces x 3.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: boundary_edges
+   :canonical: ansys.heart.preprocessor.mesh.objects.SurfaceMesh.boundary_edges
+   :type: None
+
+
+   
+   Get boundary edges of self.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: node_ids
+   :canonical: ansys.heart.preprocessor.mesh.objects.SurfaceMesh.node_ids
+   :type: numpy.ndarray
+
+
+   
+   Global node ids - sorted by earliest occurrence.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: type
+   :value: 'surface'
+
+   
+   Surface type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: id
+   :type: int
+
+   
+   ID of surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: nsid
+   :type: int
+
+   
+   ID of corresponding set of nodes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: triangles
+
+   
+   Triangular faces of the surface num_faces x 3.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: nodes
+
+   
+   Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+Method detail
+-------------
+.. py:method:: write_to_stl(filename: pathlib.Path = None) -> None
+
+   
+   Write the surface to a vtk file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

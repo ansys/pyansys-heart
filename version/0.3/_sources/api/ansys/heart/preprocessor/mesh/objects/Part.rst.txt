@@ -1,0 +1,440 @@
+
+
+
+
+Part
+====
+
+.. py:class:: Part(name: str = None, part_type: PartType = PartType.UNDEFINED)
+   :canonical: ansys.heart.preprocessor.mesh.objects.Part
+
+
+
+
+
+   Part class.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: Part
+.. tab-set::
+
+
+
+    .. tab-item:: Methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~get_point`
+            - Get point from part.
+
+
+    .. tab-item:: Properties
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~surfaces`
+            - List of surfaces belonging to part.
+          * - :py:attr:`~surface_names`
+            - List of surface names belonging to part.
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~name`
+            - Name of the part.
+          * - :py:attr:`~pid`
+            - Part ID.
+          * - :py:attr:`~mid`
+            - Material id associated with part.
+          * - :py:attr:`~part_type`
+            - Type of the part.
+          * - :py:attr:`~element_ids`
+            - Array holding element ids that make up this part.
+          * - :py:attr:`~points`
+            - Points of interest belonging to the part.
+          * - :py:attr:`~caps`
+            - List of caps belonging to the part.
+          * - :py:attr:`~fiber`
+            - If this part has fiber/sheet data.
+          * - :py:attr:`~active`
+            - If active stress will be established.
+          * - :py:attr:`~meca_material`
+            - Material model will be assiggned in Simulator.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.mesh.objects import Part
+
+
+Property detail
+---------------
+.. py:property:: surfaces
+   :canonical: ansys.heart.preprocessor.mesh.objects.Part.surfaces
+   :type: List[SurfaceMesh]
+
+
+   
+   List of surfaces belonging to part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: surface_names
+   :canonical: ansys.heart.preprocessor.mesh.objects.Part.surface_names
+   :type: List[str]
+
+
+   
+   List of surface names belonging to part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: name
+
+   
+   Name of the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: pid
+
+   
+   Part ID.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: mid
+
+   
+   Material id associated with part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: part_type
+   :type: PartType
+
+   
+   Type of the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: element_ids
+   :type: numpy.ndarray
+
+   
+   Array holding element ids that make up this part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: points
+   :type: List[Point]
+   :value: []
+
+   
+   Points of interest belonging to the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: caps
+   :type: List[Cap]
+   :value: []
+
+   
+   List of caps belonging to the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: fiber
+   :type: bool
+   :value: False
+
+   
+   If this part has fiber/sheet data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: active
+   :type: bool
+   :value: False
+
+   
+   If active stress will be established.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: meca_material
+   :type: ansys.heart.simulator.settings.material.material.MechanicalMaterialModel
+
+   
+   Material model will be assiggned in Simulator.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+Method detail
+-------------
+.. py:method:: get_point(pointname: str) -> Point
+
+   
+   Get point from part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

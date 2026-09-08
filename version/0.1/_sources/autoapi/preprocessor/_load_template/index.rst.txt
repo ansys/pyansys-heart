@@ -1,0 +1,107 @@
+:orphan:
+
+:py:mod:`preprocessor._load_template`
+=====================================
+
+.. py:module:: preprocessor._load_template
+
+
+Module Contents
+---------------
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   preprocessor._load_template.get_this_folder
+   preprocessor._load_template.get_loader
+   preprocessor._load_template.load_template
+
+
+
+Attributes
+~~~~~~~~~~
+
+.. autoapisummary::
+
+   preprocessor._load_template.LOGGER
+
+
+.. py:data:: LOGGER
+
+   
+
+.. py:function:: get_this_folder()
+
+   
+   Get folder of this file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_loader()
+
+   
+   Get the loader.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: load_template(*name)
+
+   
+   Load a template from the local template directory.
+
+   Templates can be specified as a single filename, e.g.
+   ``load_template('temp.txt')``, or loaded from subdirectories using e.g.
+   ``load_template('subdir_1', 'subdir_2', 'file.txt')``.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

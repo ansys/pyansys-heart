@@ -1,0 +1,212 @@
+
+
+
+
+
+
+The ``material_factory.py`` module
+==================================
+
+.. py:module:: ansys.health.heart.settings.material.material_factory
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: material_factory
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~assign_default_mechanics_materials`
+            - Assign default mechanical materials to all model parts without existing materials.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Factory functions for creating mechanical material models.
+
+This module provides factory functions for creating mechanical material instances
+with appropriate default parameters for cardiac tissue simulation. The factory
+functions handle parameter extraction from Quantity objects, material component
+assembly (isotropic, anisotropic, active), and proper material instantiation using
+the existing Pydantic-based Mat295 material model.
+
+The module supports mechanical material creation for:
+- Myocardium tissue with isotropic, anisotropic, and active components
+- Passive tissue with isotropic properties only
+- Electro-mechanical coupling configurations for multi-physics simulations
+
+All factory functions are optimized for PyAnsys Heart simulation workflows and
+follow cardiac mechanics modeling best practices including proper fiber orientation,
+hyperelastic constitutive models, and active stress generation.
+
+Examples
+--------
+>>> import ansys.health.heart.models as models
+>>> from ansys.health.heart.settings.material.material_factory import (
+...     assign_default_mechanics_materials,
+... )
+
+>>> # Create model and assign mechanical materials
+>>> model = models.BiVentricle()
+>>> assign_default_mechanics_materials(model, ep_coupled=True)
+
+>>> # Verify material assignment
+>>> all_assigned = all(part.meca_material is not None for part in model.parts)
+>>> print(all_assigned)
+True
+
+>>> # Check for electro-mechanical coupling
+>>> active_parts = [p for p in model.parts if p.active and p.fiber]
+>>> has_active_materials = all(p.meca_material.active is not None for p in active_parts)
+>>> print(has_active_materials)
+True
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: assign_default_mechanics_materials(model: ansys.health.heart.models.HeartModel | ansys.health.heart.models.FullHeart | ansys.health.heart.models.BiVentricle | ansys.health.heart.models.LeftVentricle | ansys.health.heart.models.FourChamber, ep_coupled: bool = False) -> None
+
+   
+   Assign default mechanical materials to all model parts without existing materials.
+
+   This function performs in-place assignment of appropriate mechanical materials
+   to all parts in a heart model that do not already have valid mechanical materials.
+   The material selection is based on part characteristics (fiber orientation, active
+   properties).
+
+   :Parameters:
+
+       **model** : :obj:`HeartModel` or :obj:`FullHeart` or :obj:`BiVentricle` or :obj:`LeftVentricle` or :obj:`FourChamber`
+           Heart model instance to assign materials to. The model is modified in-place
+           with new mechanical material assignments.
+
+       **ep_coupled** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:False`
+           Whether to configure materials for electro-mechanical coupling.
+           Affects active model selection and activation mechanisms.
+
+
+
+
+
+
+
+   :Raises:
+
+       :obj:`ValueError`
+           If material creation fails for any part due to configuration errors.
+
+       :obj:`RuntimeError`
+           If material assignment fails due to part validation or access errors.
+
+
+
+
+   .. rubric:: Notes
+
+   **Material Assignment Rules:**
+
+   * **Parts with fiber orientation**: Receive complete myocardium materials with
+     isotropic, anisotropic, and potentially active components
+   * **Parts without fiber orientation**: Receive passive materials with isotropic
+     properties only
+   * **Active vs passive parts**: Active parts retain active material components,
+     passive parts have active components set to None
+   * **Existing materials**: Parts with valid mechanical materials are skipped
+
+   **Material Component Configuration:**
+
+   * **Isotropic**: HGO or Ogden hyperelastic models for bulk tissue response
+   * **Anisotropic**: Fiber and sheet directions with directional stiffening
+   * **Active**: Time-based or calcium-based contractile stress generation
+
+   **Electro-Mechanical Coupling:**
+
+   * **EP Coupled (True)**: Active materials use calcium-dependent activation
+     for coupling with electrophysiology simulations
+   * **Mechanics Only (False)**: Active materials use predefined activation curves
+     for standalone mechanical analysis
+
+   The function logs all material assignments and provides a summary of the
+   assignment process including the number of parts processed.
+
+
+   .. rubric:: Examples
+
+   >>> import ansys.health.heart.models as models
+   >>> from ansys.health.heart.settings.material.material_factory import (
+   ...     assign_default_mechanics_materials,
+   ... )
+   >>> # Create model and assign mechanical materials
+   >>> model = models.BiVentricle()
+   >>> assign_default_mechanics_materials(model, ep_coupled=True)
+   >>> # Verify all parts have materials assigned
+   >>> all_assigned = all(part.meca_material is not None for part in model.parts)
+   >>> print(all_assigned)
+   True
+   >>> # Check material types based on part characteristics
+   >>> fiber_parts = [p for p in model.parts if p.fiber]
+   >>> non_fiber_parts = [p for p in model.parts if not p.fiber]
+   >>> # Verify fiber parts have complete myocardium materials
+   >>> fiber_materials_complete = all(
+   ...     p.meca_material.iso is not None and p.meca_material.aniso is not None
+   ...     for p in fiber_parts
+   ... )
+   >>> print(fiber_materials_complete)
+   True
+   >>> # Verify non-fiber parts have passive materials only
+   >>> non_fiber_passive = all(
+   ...     p.meca_material.aniso is None and p.meca_material.active is None
+   ...     for p in non_fiber_parts
+   ... )
+   >>> print(non_fiber_passive)
+   True
+
+   ..
+       !! processed by numpydoc !!
+
+
+

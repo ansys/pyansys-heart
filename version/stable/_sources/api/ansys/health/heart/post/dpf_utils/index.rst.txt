@@ -1,0 +1,114 @@
+
+
+
+
+
+
+The ``dpf_utils.py`` module
+===========================
+
+.. py:module:: ansys.health.heart.post.dpf_utils
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: dpf_utils
+.. tab-set::
+
+
+
+    .. tab-item:: Interfaces
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.post.dpf_utils.ICVoutReader`
+            - Read control volume data from the binout file.
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.post.dpf_utils.D3plotReader`
+            - Use DPF to parse the d3plot.
+
+
+          * - :py:obj:`~ansys.health.heart.post.dpf_utils.EPpostprocessor`
+            - Postprocess EP (plectrophysiology) results.
+
+
+          * - :py:obj:`~ansys.health.heart.post.dpf_utils.D3plotToVTKExporter`
+            - Read d3plot and save the deformed mesh.
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_interface"></span> ICVoutReader</api/ansys/health/heart/post/dpf_utils/ICVoutReader>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> D3plotReader</api/ansys/health/heart/post/dpf_utils/D3plotReader>
+    <span class="nf nf-cod-symbol_class"></span> EPpostprocessor</api/ansys/health/heart/post/dpf_utils/EPpostprocessor>
+    <span class="nf nf-cod-symbol_class"></span> D3plotToVTKExporter</api/ansys/health/heart/post/dpf_utils/D3plotToVTKExporter>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+D3plot parser using Ansys DPF.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

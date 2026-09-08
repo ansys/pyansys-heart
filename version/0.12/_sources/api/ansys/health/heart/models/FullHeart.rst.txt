@@ -1,0 +1,256 @@
+
+
+
+
+
+
+:class:`FullHeart`
+==================
+
+.. py:class:: ansys.health.heart.models.FullHeart(working_directory: pathlib.Path | str = None)
+
+   Bases: :py:obj:`FourChamber`
+
+
+   
+   Model of both ventricles, both atria, the aorta, and the pulmonary artery.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: FullHeart
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~left_ventricle`
+            - Left ventricle part.
+          * - :py:attr:`~right_ventricle`
+            - Right ventricle part.
+          * - :py:attr:`~septum`
+            - Septum.
+          * - :py:attr:`~left_atrium`
+            - Left atrium part.
+          * - :py:attr:`~right_atrium`
+            - Right atrium part.
+          * - :py:attr:`~aorta`
+            - Aorta part.
+          * - :py:attr:`~pulmonary_artery`
+            - Pulmonary artery part.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.models import FullHeart
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: left_ventricle
+   :type:  ansys.health.heart.objects.Part
+
+   
+   Left ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: right_ventricle
+   :type:  ansys.health.heart.objects.Part
+
+   
+   Right ventricle part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: septum
+   :type:  ansys.health.heart.objects.Part
+
+   
+   Septum.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: left_atrium
+   :type:  ansys.health.heart.objects.Part
+
+   
+   Left atrium part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: right_atrium
+   :type:  ansys.health.heart.objects.Part
+
+   
+   Right atrium part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: aorta
+   :type:  ansys.health.heart.objects.Part
+
+   
+   Aorta part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: pulmonary_artery
+   :type:  ansys.health.heart.objects.Part
+
+   
+   Pulmonary artery part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

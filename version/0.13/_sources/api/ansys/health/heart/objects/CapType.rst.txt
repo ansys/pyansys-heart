@@ -1,0 +1,480 @@
+
+
+
+
+
+
+:class:`CapType`
+================
+
+
+.. py:class:: ansys.health.heart.objects.CapType(*args, **kwds)
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   
+   Enumeration tracking cap names.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: CapType
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~MITRAL_VALVE`
+            - Cap representing mitral valve region.
+          * - :py:attr:`~AORTIC_VALVE`
+            - Cap representing aortic valve region.
+          * - :py:attr:`~MITRAL_VALVE_ATRIUM`
+            - Cap representing mitral valve region on the atrial side.
+          * - :py:attr:`~COMBINED_MITRAL_AORTIC_VALVE`
+            - Combined mitral aortic valve. Valid for truncated models.
+          * - :py:attr:`~PULMONARY_VALVE`
+            - Cap representing pulmonary valve region.
+          * - :py:attr:`~TRICUSPID_VALVE`
+            - Cap representing tricuspid valve region.
+          * - :py:attr:`~TRICUSPID_VALVE_ATRIUM`
+            - Cap representing tricuspid valve region on the atrial side.
+          * - :py:attr:`~LEFT_ATRIUM_APPENDAGE`
+            - Cap representing left atrium appendage region.
+          * - :py:attr:`~LEFT_SUPERIOR_PULMONARY_VEIN`
+            - Cap representing left superior pulmonary vein region.
+          * - :py:attr:`~LEFT_INFERIOR_PULMONARY_VEIN`
+            - Cap representing left inferior pulmonary vein region.
+          * - :py:attr:`~RIGHT_INFERIOR_PULMONARY_VEIN`
+            - Cap representing right inferior pulmonary vein region.
+          * - :py:attr:`~RIGHT_SUPERIOR_PULMONARY_VEIN`
+            - Cap representing right superior pulmonary vein region.
+          * - :py:attr:`~SUPERIOR_VENA_CAVA`
+            - Cap representing superior vena cava region.
+          * - :py:attr:`~INFERIOR_VENA_CAVA`
+            - Cap representing inferior vena cava region.
+          * - :py:attr:`~UNKNOWN`
+            - Cap with unknown association.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.objects import CapType
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: MITRAL_VALVE
+   :value: 'mitral-valve'
+
+
+   
+   Cap representing mitral valve region.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: AORTIC_VALVE
+   :value: 'aortic-valve'
+
+
+   
+   Cap representing aortic valve region.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: MITRAL_VALVE_ATRIUM
+   :value: 'mitral-valve-atrium'
+
+
+   
+   Cap representing mitral valve region on the atrial side.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: COMBINED_MITRAL_AORTIC_VALVE
+   :value: 'combined-mitral-aortic-valve'
+
+
+   
+   Combined mitral aortic valve. Valid for truncated models.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: PULMONARY_VALVE
+   :value: 'pulmonary-valve'
+
+
+   
+   Cap representing pulmonary valve region.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: TRICUSPID_VALVE
+   :value: 'tricuspid-valve'
+
+
+   
+   Cap representing tricuspid valve region.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: TRICUSPID_VALVE_ATRIUM
+   :value: 'tricuspid-valve-atrium'
+
+
+   
+   Cap representing tricuspid valve region on the atrial side.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: LEFT_ATRIUM_APPENDAGE
+   :value: 'left-atrium-appendage'
+
+
+   
+   Cap representing left atrium appendage region.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: LEFT_SUPERIOR_PULMONARY_VEIN
+   :value: 'left-superior-pulmonary-vein'
+
+
+   
+   Cap representing left superior pulmonary vein region.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: LEFT_INFERIOR_PULMONARY_VEIN
+   :value: 'left-inferior-pulmonary-vein'
+
+
+   
+   Cap representing left inferior pulmonary vein region.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: RIGHT_INFERIOR_PULMONARY_VEIN
+   :value: 'right-inferior-pulmonary-vein'
+
+
+   
+   Cap representing right inferior pulmonary vein region.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: RIGHT_SUPERIOR_PULMONARY_VEIN
+   :value: 'right-superior-pulmonary-vein'
+
+
+   
+   Cap representing right superior pulmonary vein region.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: SUPERIOR_VENA_CAVA
+   :value: 'superior-vena-cava'
+
+
+   
+   Cap representing superior vena cava region.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: INFERIOR_VENA_CAVA
+   :value: 'inferior-vena-cava'
+
+
+   
+   Cap representing inferior vena cava region.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: UNKNOWN
+   :value: 'unknown-cap'
+
+
+   
+   Cap with unknown association.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

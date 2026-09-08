@@ -1,0 +1,1069 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Mesh &#8212; PyAnsys Heart</title>
+
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/css/ansys_sphinx_theme.css?v=d2ac875c" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://www.nerdfonts.com/assets/css/webfont.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/custom.css?v=7c3339d6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+ 
+<link href="../../../../../_static/css/breadcrumbs.css" rel="stylesheet" />
+
+    <script src="../../../../../_static/documentation_options.js?v=a4d987d4"></script>
+    <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../../_static/js/table.js?v=b64f5182"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script src="../../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/ansys/heart/core/objects/Mesh';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.4';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://heart.health.docs.pyansys.com/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
+    <link rel="icon" href="../../../../../_static/ansys-favicon.png"/>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+    <link rel="next" title="Part" href="Part.html" />
+    <link rel="prev" title="Point" href="Point.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <link rel="canonical" href="https://heart.health.docs.pyansys.com/version/stable/api/ansys/heart/core/objects/Mesh.html" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container"><!-- Debugging: html_theme_options =  -->
+
+  <!-- If there is no MeiliSearch enabled, use the PyData search -->
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+   
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="https://docs.pyansys.com/">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../../_static/pyansys_logo_transparent_black.png" class="logo__image only-light" alt="PyAnsys Heart - Home"/>
+    <script>document.write(`<img src="../../../../../_static/pyansys_logo_transparent_white.png" class="logo__image only-dark" alt="PyAnsys Heart - Home"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../getting-started/index.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../user-guide/index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../contributing.html">
+    Contribute
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+    <div id="announcement_msg"></div>
+<script>
+  fetch("announcement.html")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(
+      (text) => (document.getElementById("announcement_msg").innerHTML = text),
+    )
+    .catch((error) => console.error(`Fetch problem: ${error.message}`));
+</script>  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../getting-started/index.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../user-guide/index.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../../index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../examples/index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../../contributing.html">
+    Contribute
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-3"
+      type="button"
+      class="version-switcher__button btn btn-sm dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-3"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-3"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-3">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item">
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html"><span class="nf nf-md-package"></span> ansys.heart.core</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../logger/index.html"> <span class="nf nf-fa-file"></span> logger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/index.html"> <span class="nf nf-fa-file"></span> models</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html"> <span class="nf nf-fa-file"></span> objects</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Feature.html"> <span class="nf nf-cod-symbol_class"></span> Feature</a></li>
+<li class="toctree-l3"><a class="reference internal" href="SurfaceMesh.html"> <span class="nf nf-cod-symbol_class"></span> SurfaceMesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="BeamMesh.html"> <span class="nf nf-cod-symbol_class"></span> BeamMesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Cavity.html"> <span class="nf nf-cod-symbol_class"></span> Cavity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Cap.html"> <span class="nf nf-cod-symbol_class"></span> Cap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Point.html"> <span class="nf nf-cod-symbol_class"></span> Point</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#"> <span class="nf nf-cod-symbol_class"></span> Mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Part.html"> <span class="nf nf-cod-symbol_class"></span> Part</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PartType.html"> <span class="nf nf-cod-symbol_enum"></span> PartType</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../../simulator/index.html"><span class="nf nf-md-package"></span> ansys.heart.simulator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../preprocessor/index.html"><span class="nf nf-md-package"></span> ansys.heart.preprocessor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../postprocessor/index.html"><span class="nf nf-md-package"></span> ansys.heart.postprocessor</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+         
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="https://docs.pyansys.com/" class="nav-link">PyAnsys</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a
+        href="../../../../../index.html"
+        class="nav-link"
+        aria-label="Home"
+      >
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a href="../../../../index.html" class="nav-link">API reference</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a href="../index.html" class="nav-link">The <code class="docutils literal notranslate"><span class="pre">ansys.heart.core</span></code> library</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a href="index.html" class="nav-link">The <code class="docutils literal notranslate"><span class="pre">objects.py</span></code> module</a>
+    </li>
+      
+    <li class="breadcrumb-item active" aria-current="page"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code></li>
+    
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="mesh">
+<h1><code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code><a class="headerlink" href="#mesh" title="Link to this heading">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="ansys.heart.core.objects.Mesh">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ansys.heart.core.objects.</span></span><span class="sig-name descname"><span class="pre">Mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ansys.heart.core.objects.Mesh" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">pyvista.UnstructuredGrid</span></code></p>
+<p>Mesh class: inherits from pyvista UnstructuredGrid.</p>
+<p class="rubric">Notes</p>
+<p>This class inherits from pyvista.UnstructuredGrid and adds additional
+attributes and convenience methods for enhanced functionality. E.g. we use _volume_id,
+_surface_id and _line_id cell arrays to keep track of “labeled” selections of
+cells. _volume_id is used to group 3D volume cells together.
+Any non 3D volume cell is labeled as numpy.nan. Similarly 2D and 1D cells are tracked
+through _surface_id and _line_id respectively.</p>
+</dd></dl>
+
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Methods</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Mesh.save" title="Mesh.save"><code class="xref py py-attr docutils literal notranslate"><span class="pre">save</span></code></a></p></td>
+<td><p>Save mesh.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Mesh.load_mesh" title="Mesh.load_mesh"><code class="xref py py-attr docutils literal notranslate"><span class="pre">load_mesh</span></code></a></p></td>
+<td><p>Load an existing mesh.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Mesh.validate_ids_to_name_map" title="Mesh.validate_ids_to_name_map"><code class="xref py py-attr docutils literal notranslate"><span class="pre">validate_ids_to_name_map</span></code></a></p></td>
+<td><p>Check whether there are any duplicate or unmapped surfaces/volumes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Mesh.clean" title="Mesh.clean"><code class="xref py py-attr docutils literal notranslate"><span class="pre">clean</span></code></a></p></td>
+<td><p>Merge duplicate points and return cleaned copy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Mesh.add_volume" title="Mesh.add_volume"><code class="xref py py-attr docutils literal notranslate"><span class="pre">add_volume</span></code></a></p></td>
+<td><p>Add a volume.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Mesh.add_surface" title="Mesh.add_surface"><code class="xref py py-attr docutils literal notranslate"><span class="pre">add_surface</span></code></a></p></td>
+<td><p>Add a surface.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Mesh.add_lines" title="Mesh.add_lines"><code class="xref py py-attr docutils literal notranslate"><span class="pre">add_lines</span></code></a></p></td>
+<td><p>Add lines.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Mesh.get_volume" title="Mesh.get_volume"><code class="xref py py-attr docutils literal notranslate"><span class="pre">get_volume</span></code></a></p></td>
+<td><p>Get a volume as a UnstructuredGrids object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Mesh.get_volume_by_name" title="Mesh.get_volume_by_name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">get_volume_by_name</span></code></a></p></td>
+<td><p>Get the surface associated with <cite>name</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Mesh.get_surface" title="Mesh.get_surface"><code class="xref py py-attr docutils literal notranslate"><span class="pre">get_surface</span></code></a></p></td>
+<td><p>Get a surface as PolyData object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Mesh.get_surface_by_name" title="Mesh.get_surface_by_name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">get_surface_by_name</span></code></a></p></td>
+<td><p>Get the surface associated with <cite>name</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Mesh.get_lines" title="Mesh.get_lines"><code class="xref py py-attr docutils literal notranslate"><span class="pre">get_lines</span></code></a></p></td>
+<td><p>Get lines as a PolyData object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Mesh.remove_surface" title="Mesh.remove_surface"><code class="xref py py-attr docutils literal notranslate"><span class="pre">remove_surface</span></code></a></p></td>
+<td><p>Remove a surface with id.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Mesh.remove_volume" title="Mesh.remove_volume"><code class="xref py py-attr docutils literal notranslate"><span class="pre">remove_volume</span></code></a></p></td>
+<td><p>Remove a volume with id.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Mesh.remove_lines" title="Mesh.remove_lines"><code class="xref py py-attr docutils literal notranslate"><span class="pre">remove_lines</span></code></a></p></td>
+<td><p>Remove a set of lines with id.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Properties</label><div class="sd-tab-content docutils">
+<div class="pst-scrollable-table-container"><table class="table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Mesh.nodes" title="Mesh.nodes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">nodes</span></code></a></p></td>
+<td><p>Node coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Mesh.tetrahedrons" title="Mesh.tetrahedrons"><code class="xref py py-attr docutils literal notranslate"><span class="pre">tetrahedrons</span></code></a></p></td>
+<td><p>Tetrahedrons num_tetra x 4.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Mesh.triangles" title="Mesh.triangles"><code class="xref py py-attr docutils literal notranslate"><span class="pre">triangles</span></code></a></p></td>
+<td><p>Get all triangles of the mesh.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Mesh.lines" title="Mesh.lines"><code class="xref py py-attr docutils literal notranslate"><span class="pre">lines</span></code></a></p></td>
+<td><p>Get all triangles of the mesh.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Mesh.part_ids" title="Mesh.part_ids"><code class="xref py py-attr docutils literal notranslate"><span class="pre">part_ids</span></code></a></p></td>
+<td><p>Array of part ids indicating to which part the tetrahedron belongs.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Mesh.surface_ids" title="Mesh.surface_ids"><code class="xref py py-attr docutils literal notranslate"><span class="pre">surface_ids</span></code></a></p></td>
+<td><p>Unique surface ids.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Mesh.surface_names" title="Mesh.surface_names"><code class="xref py py-attr docutils literal notranslate"><span class="pre">surface_names</span></code></a></p></td>
+<td><p>List of surface names.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Mesh.volume_ids" title="Mesh.volume_ids"><code class="xref py py-attr docutils literal notranslate"><span class="pre">volume_ids</span></code></a></p></td>
+<td><p>Unique volume ids.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Mesh.volume_names" title="Mesh.volume_names"><code class="xref py py-attr docutils literal notranslate"><span class="pre">volume_names</span></code></a></p></td>
+<td><p>List of volume names.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Mesh.line_ids" title="Mesh.line_ids"><code class="xref py py-attr docutils literal notranslate"><span class="pre">line_ids</span></code></a></p></td>
+<td><p>Unique line ids.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+<section id="import-detail">
+<h2>Import detail<a class="headerlink" href="#import-detail" title="Link to this heading">#</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ansys.heart.core.objects</span> <span class="kn">import</span> <span class="n">Mesh</span>
+</pre></div>
+</div>
+</section>
+<section id="property-detail">
+<h2>Property detail<a class="headerlink" href="#property-detail" title="Link to this heading">#</a></h2>
+<dl class="py property">
+<dt class="sig sig-object py" id="Mesh.nodes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">nodes</span></span><a class="headerlink" href="#Mesh.nodes" title="Link to this definition">#</a></dt>
+<dd><p>Node coordinates.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Mesh.tetrahedrons">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">tetrahedrons</span></span><a class="headerlink" href="#Mesh.tetrahedrons" title="Link to this definition">#</a></dt>
+<dd><p>Tetrahedrons num_tetra x 4.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Mesh.triangles">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">triangles</span></span><a class="headerlink" href="#Mesh.triangles" title="Link to this definition">#</a></dt>
+<dd><p>Get all triangles of the mesh.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Mesh.lines">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">lines</span></span><a class="headerlink" href="#Mesh.lines" title="Link to this definition">#</a></dt>
+<dd><p>Get all triangles of the mesh.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Mesh.part_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">part_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#Mesh.part_ids" title="Link to this definition">#</a></dt>
+<dd><p>Array of part ids indicating to which part the tetrahedron belongs.</p>
+<p class="rubric">Notes</p>
+<p>This is derived from the “part-id” field in cell data</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Mesh.surface_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">surface_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#Mesh.surface_ids" title="Link to this definition">#</a></dt>
+<dd><p>Unique surface ids.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">np.ndarray</span></code></dt><dd><p>Array with unique surface ids</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Mesh.surface_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">surface_names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#Mesh.surface_names" title="Link to this definition">#</a></dt>
+<dd><p>List of surface names.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Mesh.volume_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">volume_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#Mesh.volume_ids" title="Link to this definition">#</a></dt>
+<dd><p>Unique volume ids.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">np.ndarray</span></code></dt><dd><p>Array with unique volume ids</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Mesh.volume_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">volume_names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#Mesh.volume_names" title="Link to this definition">#</a></dt>
+<dd><p>List of volume names.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="Mesh.line_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">line_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#Mesh.line_ids" title="Link to this definition">#</a></dt>
+<dd><p>Unique line ids.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">np.ndarray</span></code></dt><dd><p>Array with unique line ids</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="method-detail">
+<h2>Method detail<a class="headerlink" href="#method-detail" title="Link to this heading">#</a></h2>
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.save">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">pathlib.Path</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Mesh.save" title="Link to this definition">#</a></dt>
+<dd><p>Save mesh.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.load_mesh">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">load_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">pathlib.Path</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Mesh.load_mesh" title="Link to this definition">#</a></dt>
+<dd><p>Load an existing mesh.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>filename</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a>]</span></dt><dd><p>Path to filename.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This tries to read a JSON file with the volume/surface id to name map
+with extension .namemap.json in the same directory as the file. Alternatively,
+you can read the name map manually by calling <cite>._load_id_to_name_map(filename)</cite></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.validate_ids_to_name_map">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">validate_ids_to_name_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Mesh.validate_ids_to_name_map" title="Link to this definition">#</a></dt>
+<dd><p>Check whether there are any duplicate or unmapped surfaces/volumes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.clean">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ignore_nans_in_point_average</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Mesh.clean" title="Link to this definition">#</a></dt>
+<dd><p>Merge duplicate points and return cleaned copy.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>ignore_nans_in_point_average</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>Flag indicating whether to ignore nan values when averaging point data, by default False</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mesh</span></code></dt><dd><p>Cleaned copy of self.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.add_volume">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">add_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volume</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pyvista.UnstructuredGrid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Mesh.add_volume" title="Link to this definition">#</a></dt>
+<dd><p>Add a volume.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>volume</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pv.PolyData</span></code></span></dt><dd><p>PolyData representation of the volume to add</p>
+</dd>
+<dt><strong>id</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>ID of the volume to be added. This id will be tracked as “_volume-id”</p>
+</dd>
+<dt><strong>name</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>Name of the added volume, by default None (not tracked)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.add_surface">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">add_surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surface</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pyvista.PolyData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_existing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Mesh.add_surface" title="Link to this definition">#</a></dt>
+<dd><p>Add a surface.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>surface</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pv.PolyData</span></code></span></dt><dd><p>PolyData representation of the surface to add</p>
+</dd>
+<dt><strong>sid</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>ID of the surface to be added. This id will be tracked as “_surface-id”</p>
+</dd>
+<dt><strong>name</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">str</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>Name of the added surface, by default None (not tracked)</p>
+</dd>
+<dt><strong>overwrite_existing</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#bltin-boolean-values" title="(in Python v3.14)"><span class="xref std std-ref">bool</span></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">optional</span></code></span></dt><dd><p>Flag indicating whether to overwrite/append a surface with the same id, by default False</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.add_lines">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">add_lines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pyvista.PolyData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Mesh.add_lines" title="Link to this definition">#</a></dt>
+<dd><p>Add lines.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>lines</strong><span class="classifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pv.PolyData</span></code></span></dt><dd><p>PolyData representation of the lines to add</p>
+</dd>
+<dt><strong>id</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>ID of the surface to be added. This id will be tracked as “_line-id”</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.get_volume">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">get_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pyvista.UnstructuredGrid</span></span></span><a class="headerlink" href="#Mesh.get_volume" title="Link to this definition">#</a></dt>
+<dd><p>Get a volume as a UnstructuredGrids object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.get_volume_by_name">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">get_volume_by_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pyvista.UnstructuredGrid</span></span></span><a class="headerlink" href="#Mesh.get_volume_by_name" title="Link to this definition">#</a></dt>
+<dd><p>Get the surface associated with <cite>name</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.get_surface">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">get_surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pyvista.PolyData</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="SurfaceMesh.html#ansys.heart.core.objects.SurfaceMesh" title="ansys.heart.core.objects.SurfaceMesh"><span class="pre">SurfaceMesh</span></a></span></span><a class="headerlink" href="#Mesh.get_surface" title="Link to this definition">#</a></dt>
+<dd><p>Get a surface as PolyData object.</p>
+<p class="rubric">Notes</p>
+<p>Tries to return a SurfaceMesh object that also contains a name and id.
+and additional convenience properties.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.get_surface_by_name">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">get_surface_by_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pyvista.PolyData</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="SurfaceMesh.html#ansys.heart.core.objects.SurfaceMesh" title="ansys.heart.core.objects.SurfaceMesh"><span class="pre">SurfaceMesh</span></a></span></span><a class="headerlink" href="#Mesh.get_surface_by_name" title="Link to this definition">#</a></dt>
+<dd><p>Get the surface associated with <cite>name</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.get_lines">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">get_lines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pyvista.PolyData</span></span></span><a class="headerlink" href="#Mesh.get_lines" title="Link to this definition">#</a></dt>
+<dd><p>Get lines as a PolyData object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.remove_surface">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">remove_surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Mesh.remove_surface" title="Link to this definition">#</a></dt>
+<dd><p>Remove a surface with id.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>sid</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>Id of surface to remove.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.remove_volume">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">remove_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Mesh.remove_volume" title="Link to this definition">#</a></dt>
+<dd><p>Remove a volume with id.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>vid</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>Id of volume to remove.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Mesh.remove_lines">
+<span class="sig-prename descclassname"><span class="pre">Mesh.</span></span><span class="sig-name descname"><span class="pre">remove_lines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Mesh.remove_lines" title="Link to this definition">#</a></dt>
+<dd><p>Remove a set of lines with id.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>lid</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.14)"><code class="docutils literal notranslate"><span class="pre">int</span></code></a></span></dt><dd><p>Id of lines to remove.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#ansys.heart.core.objects.Mesh"><code class="docutils literal notranslate"><span class="pre">ansys.heart.core.objects.Mesh</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#import-detail">Import detail</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#property-detail">Property detail</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.nodes"><code class="docutils literal notranslate"><span class="pre">nodes</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.tetrahedrons"><code class="docutils literal notranslate"><span class="pre">tetrahedrons</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.triangles"><code class="docutils literal notranslate"><span class="pre">triangles</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.lines"><code class="docutils literal notranslate"><span class="pre">lines</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.part_ids"><code class="docutils literal notranslate"><span class="pre">part_ids</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.surface_ids"><code class="docutils literal notranslate"><span class="pre">surface_ids</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.surface_names"><code class="docutils literal notranslate"><span class="pre">surface_names</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.volume_ids"><code class="docutils literal notranslate"><span class="pre">volume_ids</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.volume_names"><code class="docutils literal notranslate"><span class="pre">volume_names</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.line_ids"><code class="docutils literal notranslate"><span class="pre">line_ids</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#method-detail">Method detail</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.save"><code class="docutils literal notranslate"><span class="pre">save()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.load_mesh"><code class="docutils literal notranslate"><span class="pre">load_mesh()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.validate_ids_to_name_map"><code class="docutils literal notranslate"><span class="pre">validate_ids_to_name_map()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.clean"><code class="docutils literal notranslate"><span class="pre">clean()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.add_volume"><code class="docutils literal notranslate"><span class="pre">add_volume()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.add_surface"><code class="docutils literal notranslate"><span class="pre">add_surface()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.add_lines"><code class="docutils literal notranslate"><span class="pre">add_lines()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.get_volume"><code class="docutils literal notranslate"><span class="pre">get_volume()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.get_volume_by_name"><code class="docutils literal notranslate"><span class="pre">get_volume_by_name()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.get_surface"><code class="docutils literal notranslate"><span class="pre">get_surface()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.get_surface_by_name"><code class="docutils literal notranslate"><span class="pre">get_surface_by_name()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.get_lines"><code class="docutils literal notranslate"><span class="pre">get_lines()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.remove_surface"><code class="docutils literal notranslate"><span class="pre">remove_surface()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.remove_volume"><code class="docutils literal notranslate"><span class="pre">remove_volume()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#Mesh.remove_lines"><code class="docutils literal notranslate"><span class="pre">remove_lines()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+<!-- If there is no fix edit button function, use the PyData edit-this-button-->
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../../../../_sources/api/ansys/heart/core/objects/Mesh.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright (c) 2024 ANSYS, Inc. All rights reserved.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.0.2.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the
+  <a href="https://sphinxdocs.ansys.com/version/stable/index.html"
+    >Ansys Sphinx Theme</a
+  >
+  1.0.7. <br />Last updated on
+  <span id="date"></span>
+</p>
+<script>
+  var options = { day: "numeric", month: "long", year: "numeric" };
+  var lastModifiedDate = new Date(document.lastModified);
+  var date = lastModifiedDate.toLocaleDateString("en-US", options);
+  document.getElementById("date").innerHTML = date;
+</script></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

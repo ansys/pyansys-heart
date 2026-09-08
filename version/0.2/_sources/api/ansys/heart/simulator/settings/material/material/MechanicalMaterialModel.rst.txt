@@ -1,0 +1,161 @@
+
+
+
+
+MechanicalMaterialModel
+=======================
+
+.. py:class:: MechanicalMaterialModel
+   :canonical: ansys.heart.simulator.settings.material.material.MechanicalMaterialModel
+
+
+
+
+
+   Base class for all mechanical material model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+   DummyMaterial
+   =============
+
+   .. py:class:: DummyMaterial
+      :canonical: ansys.heart.simulator.settings.material.material.MechanicalMaterialModel.DummyMaterial
+
+
+
+
+
+      Just for initialization.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+   Overview
+   --------
+   .. py:currentmodule:: DummyMaterial
+   .. tab-set::
+
+
+
+
+
+
+
+       .. tab-item:: Special methods
+
+           .. list-table::
+             :header-rows: 0
+             :widths: auto
+
+             * - :py:attr:`~__repr__`
+               - Print a message.
+
+
+
+   Import detail
+   -------------
+
+   .. code-block:: python
+
+       from ansys.heart.simulator.settings.material.material.MechanicalMaterialModel import DummyMaterial
+
+
+
+
+   Method detail
+   -------------
+   .. py:method:: __repr__()
+
+      
+      Print a message.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.material import MechanicalMaterialModel
+
+
+
+
+

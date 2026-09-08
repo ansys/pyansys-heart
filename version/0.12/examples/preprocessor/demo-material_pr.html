@@ -1,0 +1,896 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Define materials &#8212; PyAnsys Heart</title>
+  
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css\ansys_sphinx_theme.css?v=0909a4fa" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://www.nerdfonts.com/assets/css/webfont.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=7c3339d6" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+
+  <!-- Include desired assets -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  
+
+  
+    <link href="../../_static/css/breadcrumbs.css" rel="stylesheet" />
+  
+    <script src="../../_static/documentation_options.js?v=3e3a806a"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/preprocessor/demo-material_pr';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://heart.health.docs.pyansys.com/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.12';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="icon" href="../../_static/ansys-favicon.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Download a PyAnsys Heart-compatible case from Zenodo" href="download-case_pr.html" />
+    <link rel="prev" title="Generate atrial fibers" href="compute-atrial-fibers_pr.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="release/['0', '12']" />
+  <link rel="canonical" href="https://heart.health.docs.pyansys.com/version/stable/examples/preprocessor/demo-material_pr.html" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="https://docs.pyansys.com/">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/pyansys_logo_transparent_black.png" class="logo__image only-light" alt="PyAnsys Heart - Home"/>
+    <img src="../../_static/pyansys_logo_transparent_white.png" class="logo__image only-dark pst-js-only" alt="PyAnsys Heart - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting-started.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../user-guide.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contribute
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../changelog.html">
+    Release notes
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+</div>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+</div>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+  
+    <div id="announcement_msg"></div>
+<script>
+  fetch("announcement.html")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(
+      (text) => (document.getElementById("announcement_msg").innerHTML = text),
+    )
+    .catch((error) => console.error(`Fetch problem: ${error.message}`));
+</script>
+  
+
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting-started.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../user-guide.html">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Examples
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contribute
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Release notes
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">Preprocessor examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="compute-atrial-fibers_pr.html">Generate atrial fibers</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Define materials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="download-case_pr.html">Download a PyAnsys Heart-compatible case from Zenodo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preprocess-fullheart.html">Create a full-heart model</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../simulator/index.html">Simulator examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../postprocessor/index.html">Postprocessor examples</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+         
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="https://health.docs.pyansys.com/" class="nav-link">PyAnsys Health</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a
+        href="../../index.html"
+        class="nav-link"
+        aria-label="Home"
+      >
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a href="../index.html" class="nav-link">Examples</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a href="index.html" class="nav-link">Preprocessor examples</a>
+    </li>
+      
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Define materials</span></li>
+    
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-examples-preprocessor-demo-material-pr-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code.</p>
+</div>
+<section class="sphx-glr-example-title" id="define-materials">
+<span id="sphx-glr-examples-preprocessor-demo-material-pr-py"></span><h1>Define materials<a class="headerlink" href="#define-materials" title="Link to this heading">#</a></h1>
+<p>This example shows how to create a mechanical material and assign it to a heart part.</p>
+<section id="import-material-module">
+<h2>Import material module<a class="headerlink" href="#import-material-module" title="Link to this heading">#</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">ansys.health.heart.settings.material.curve</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ActiveCurve</span><span class="p">,</span>
+    <span class="n">constant_ca2</span><span class="p">,</span>
+    <span class="n">kumaraswamy_active</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ansys.health.heart.settings.material.ep_material</span><span class="w"> </span><span class="kn">import</span> <span class="n">CellModel</span><span class="p">,</span> <span class="n">EPMaterial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ansys.health.heart.settings.material.material</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ACTIVE</span><span class="p">,</span>
+    <span class="n">ANISO</span><span class="p">,</span>
+    <span class="n">ISO</span><span class="p">,</span>
+    <span class="n">ActiveModel</span><span class="p">,</span>
+    <span class="n">Mat295</span><span class="p">,</span>
+    <span class="n">NeoHookean</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The unit system for heart modeling in LS-DYNA is <code class="docutils literal notranslate"><span class="pre">[&quot;MPa&quot;,</span> <span class="pre">&quot;mm&quot;,</span> <span class="pre">&quot;N&quot;,</span> <span class="pre">&quot;ms&quot;,</span> <span class="pre">&quot;g&quot;]</span></code>.</p>
+</div>
+</section>
+<section id="create-a-material">
+<h2>Create a material<a class="headerlink" href="#create-a-material" title="Link to this heading">#</a></h2>
+<p>Create a Neo-Hookean material as follows.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">neo</span> <span class="o">=</span> <span class="n">NeoHookean</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">c10</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nu</span><span class="o">=</span><span class="mf">0.499</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>C:\Users\ansys\actions-runner\_work\pyansys-heart\pyansys-heart\examples\preprocessor\demo-material_pr.py:61: DeprecationWarning: Call to deprecated class NeoHookean. (Use *MAT_295 with the ISO module instead.)
+  neo = NeoHookean(rho=0.001, c10=1, nu=0.499)
+</pre></div>
+</div>
+<p>The recommended way to create a Neo-Hookean material is by
+activating only the isotropic module in MAT_295.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">neo2</span> <span class="o">=</span> <span class="n">Mat295</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">iso</span><span class="o">=</span><span class="n">ISO</span><span class="p">(</span><span class="n">itype</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">kappa</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mu1</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">alpha1</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For more information on MAT_295, see the <a class="reference external" href="https://lsdyna.ansys.com/manuals/">LS-DYNA manuals</a>.</p>
+</div>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Additional steps follow for creating MAT_295, which is used for myocardium.</span>
+
+<span class="c1"># step 1: create an isotropic module</span>
+<span class="n">iso</span> <span class="o">=</span> <span class="n">ISO</span><span class="p">(</span><span class="n">k1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">kappa</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># step 2: create an anisotropic module</span>
+<span class="n">fiber</span> <span class="o">=</span> <span class="n">ANISO</span><span class="o">.</span><span class="n">HGOFiber</span><span class="p">(</span><span class="n">k1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">aniso1</span> <span class="o">=</span> <span class="n">ANISO</span><span class="p">(</span><span class="n">fibers</span><span class="o">=</span><span class="p">[</span><span class="n">fiber</span><span class="p">])</span>
+
+<span class="c1"># Create fiber with sheet, and their interactions</span>
+<span class="n">sheet</span> <span class="o">=</span> <span class="n">ANISO</span><span class="o">.</span><span class="n">HGOFiber</span><span class="p">(</span><span class="n">k1</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">k2</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">aniso2</span> <span class="o">=</span> <span class="n">ANISO</span><span class="p">(</span><span class="n">fibers</span><span class="o">=</span><span class="p">[</span><span class="n">fiber</span><span class="p">,</span> <span class="n">sheet</span><span class="p">],</span> <span class="n">k1fs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">k2fs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># step3: create the active module</span>
+
+<span class="c1"># example 1:</span>
+<span class="c1"># create active model 1</span>
+<span class="n">ac_model1</span> <span class="o">=</span> <span class="n">ActiveModel</span><span class="o">.</span><span class="n">Model1</span><span class="p">()</span>
+<span class="c1"># create Ca2+ curve</span>
+<span class="n">ac_curve1</span> <span class="o">=</span> <span class="n">ActiveCurve</span><span class="p">(</span><span class="n">constant_ca2</span><span class="p">(</span><span class="n">tb</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">ca2ionm</span><span class="o">=</span><a href="https://docs.python.org/dev/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ac_model1</span><span class="o">.</span><span class="n">ca2ionm</span></a><span class="p">),</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;ca2&quot;</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="c1"># build active module</span>
+<span class="n">active</span> <span class="o">=</span> <span class="n">ACTIVE</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">ac_model1</span><span class="p">,</span> <span class="n">ca2_curve</span><span class="o">=</span><span class="n">ac_curve1</span><span class="p">)</span>
+
+<span class="c1">## Active model 1 must have a constant ca2ion,</span>
+<span class="c1"># but the curve must cross the threshold at every start of the heart beat.</span>
+</pre></div>
+</div>
+</section>
+<section id="plot-ca2-with-threshold">
+<h2>Plot Ca2+ with threshold<a class="headerlink" href="#plot-ca2-with-threshold" title="Link to this heading">#</a></h2>
+<p>Plot Ca2+ with the threshold.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">active</span><span class="o">.</span><span class="n">ca2_curve</span><span class="o">.</span><span class="n">plot_time_vs_ca2</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># example 2</span>
+<span class="c1"># create active model 3</span>
+<span class="n">ac_model3</span> <span class="o">=</span> <span class="n">ActiveModel</span><span class="o">.</span><span class="n">Model3</span><span class="p">()</span>
+<span class="c1"># create a stress curve and show</span>
+<span class="n">ac_curve3</span> <span class="o">=</span> <span class="n">ActiveCurve</span><span class="p">(</span><span class="n">kumaraswamy_active</span><span class="p">(</span><span class="n">t_end</span><span class="o">=</span><span class="mi">800</span><span class="p">),</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;stress&quot;</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">ac_curve3</span><span class="o">.</span><span class="n">plot_time_vs_stress</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="sphx-glr-horizontal">
+<li><img src="../../_images/sphx_glr_demo-material_pr_001.png" srcset="../../_images/sphx_glr_demo-material_pr_001.png" alt="demo material pr" class = "sphx-glr-multi-img"/></li>
+<li><img src="../../_images/sphx_glr_demo-material_pr_002.png" srcset="../../_images/sphx_glr_demo-material_pr_002.png" alt="demo material pr" class = "sphx-glr-multi-img"/></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When eta=0 in model 3, the stress curve is the active stress for all elements.
+If eta!=0, this is the idealized active stress when fiber stretch stays at 1.</p>
+</div>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># PyAnsys Heart converts the stress curve to Ca2+ curve (input of MAT_295)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">ac_curve3</span><span class="o">.</span><span class="n">plot_time_vs_ca2</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># build active module</span>
+<span class="n">active3</span> <span class="o">=</span> <span class="n">ACTIVE</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">ac_model3</span><span class="p">,</span> <span class="n">ca2_curve</span><span class="o">=</span><span class="n">ac_curve3</span><span class="p">)</span>
+</pre></div>
+</div>
+<img src="../../_images/sphx_glr_demo-material_pr_003.png" srcset="../../_images/sphx_glr_demo-material_pr_003.png" alt="demo material pr" class = "sphx-glr-single-img"/></section>
+<section id="create-mat-295-with-modules">
+<h2>Create MAT_295 with modules<a class="headerlink" href="#create-mat-295-with-modules" title="Link to this heading">#</a></h2>
+<p>Create MAT_295 with the preceding modules.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">iso_mat</span> <span class="o">=</span> <span class="n">Mat295</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">iso</span><span class="o">=</span><span class="n">iso</span><span class="p">,</span> <span class="n">aniso</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">active</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">passive_mat</span> <span class="o">=</span> <span class="n">Mat295</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">iso</span><span class="o">=</span><span class="n">iso</span><span class="p">,</span> <span class="n">aniso</span><span class="o">=</span><span class="n">aniso1</span><span class="p">,</span> <span class="n">active</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">active_mat</span> <span class="o">=</span> <span class="n">Mat295</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">iso</span><span class="o">=</span><span class="n">iso</span><span class="p">,</span> <span class="n">aniso</span><span class="o">=</span><span class="n">aniso1</span><span class="p">,</span> <span class="n">active</span><span class="o">=</span><span class="n">active</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="create-ep-materials">
+<h2>Create EP materials<a class="headerlink" href="#create-ep-materials" title="Link to this heading">#</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">ep_mat_active</span> <span class="o">=</span> <span class="n">EPMaterial</span><span class="o">.</span><span class="n">Active</span><span class="p">(</span>
+    <span class="n">sigma_fiber</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sigma_sheet</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mi">140</span><span class="p">,</span> <span class="n">cm</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">cell_model</span><span class="o">=</span><span class="n">CellModel</span><span class="o">.</span><span class="n">Tentusscher</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="n">epinsulator</span> <span class="o">=</span> <span class="n">EPMaterial</span><span class="o">.</span><span class="n">Insulator</span><span class="p">()</span>
+
+<span class="c1"># import pyvista as pv</span>
+
+
+<span class="c1"># ##############################################################################</span>
+<span class="c1"># .. note::</span>
+<span class="c1">#    The Ca2+ curve is ignored if the simulation is coupled with electrophysiology.</span>
+</pre></div>
+</div>
+</section>
+<section id="assign-materials-to-a-part">
+<h2>Assign materials to a part<a class="headerlink" href="#assign-materials-to-a-part" title="Link to this heading">#</a></h2>
+<p>Assign the materials to the heart model.</p>
+</section>
+<section id="load-a-heart-model">
+<h2>Load a heart model<a class="headerlink" href="#load-a-heart-model" title="Link to this heading">#</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You must complete the full heart preprocessing example first.</p>
+</div>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ansys.health.heart.examples</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">examples</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ansys.health.heart.models</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">models</span>
+
+<a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">heart_model_vtu</span></a><span class="p">,</span> <a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">heart_model_partinfo</span></a><span class="p">,</span> <a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">_</span></a> <span class="o">=</span> <span class="n">examples</span><span class="o">.</span><span class="n">get_preprocessed_fullheart</span><span class="p">()</span>
+<a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">workdir</span></a> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><a href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path.home" title="pathlib.Path.home" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-method"><span class="n">Path</span><span class="o">.</span><span class="n">home</span></a><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;pyansys-heart&quot;</span> <span class="o">/</span> <span class="s2">&quot;Rodero2021&quot;</span><span class="p">)</span>
+
+<span class="c1"># Load a full-heart model.</span>
+<span class="n">heartmodel</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">FullHeart</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">FullHeart</span><span class="p">(</span><span class="n">working_directory</span><span class="o">=</span><a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">workdir</span></a><span class="p">)</span>
+<span class="n">heartmodel</span><span class="o">.</span><span class="n">load_model_from_mesh</span><span class="p">(</span><a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">heart_model_vtu</span></a><span class="p">,</span> <a href="https://docs.python.org/dev/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">heart_model_partinfo</span></a><span class="p">)</span>
+
+<span class="n">heartmodel</span><span class="o">.</span><span class="n">plot_mesh</span><span class="p">(</span><span class="n">show_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Print the default material. You should see that the material is empty.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">heartmodel</span><span class="o">.</span><span class="n">left_ventricle</span><span class="o">.</span><span class="n">meca_material</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">heartmodel</span><span class="o">.</span><span class="n">left_ventricle</span><span class="o">.</span><span class="n">ep_material</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../../_images/sphx_glr_demo-material_pr_004.png" srcset="../../_images/sphx_glr_demo-material_pr_004.png" alt="demo material pr" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Interactive Scene</label><div class="sd-tab-content docutils">
+
+    <iframe src='../../_static/static_viewer.html?fileURL=../_images/examples/preprocessor/images/sphx_glr_demo-material_pr_004.vtksz' width='100%%' height='400px' frameborder='0'></iframe>
+</div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Material is empty.
+Material is empty.
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If no material is set before writing k files, the default material
+from the <code class="docutils literal notranslate"><span class="pre">settings</span></code> object is used.</p>
+</div>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Assign the material that you just created.</span>
+<span class="n">heartmodel</span><span class="o">.</span><span class="n">left_ventricle</span><span class="o">.</span><span class="n">meca_material</span> <span class="o">=</span> <span class="n">active_mat</span>
+<span class="n">heartmodel</span><span class="o">.</span><span class="n">left_ventricle</span><span class="o">.</span><span class="n">ep_material</span> <span class="o">=</span> <span class="n">ep_mat_active</span>
+
+<span class="c1"># Print it. You should see the following:</span>
+<span class="c1"># MAT295(rho=1, iso=ISO(itype=-3, beta=0.0, nu=0.499, k1=1, k2=1), aopt=2.0, aniso=ANISO(atype=-1, fibers=[ANISO.HGOFiber(k1=1, k2=1, a=0.0, b=1.0, _theta=0.0, _ftype=1, _fcid=0)], k1fs=None, k2fs=None, vec_a=(1.0, 0.0, 0.0), vec_d=(0.0, 1.0, 0.0), nf=1, intype=0), active=ActiveModel.Model1(t0=None, ca2ion=None, ca2ionm=4.35, n=2, taumax=0.125, stf=0.0, b=4.75, l0=1.58, l=1.85, dtmax=150, mr=1048.9, tr=-1629.0))  # noqa</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">heartmodel</span><span class="o">.</span><span class="n">left_ventricle</span><span class="o">.</span><span class="n">meca_material</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">heartmodel</span><span class="o">.</span><span class="n">left_ventricle</span><span class="o">.</span><span class="n">ep_material</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Mat295(rho=1, iso=ISO(itype=-3, beta=0.0, nu=0.4950166112956811, k1=1, k2=1, mu1=None, alpha1=None, kappa=100), aopt=2.0, aniso=ANISO(atype=-1, fibers=[ANISO.HGOFiber(k1=1, k2=1, a=0.0, b=1.0, _theta=0.0, _ftype=1, _fcid=0)], k1fs=None, k2fs=None, vec_a=(1.0, 0.0, 0.0), vec_d=(0.0, 1.0, 0.0), nf=1, intype=0), active=ACTIVE(acid=None, actype=1, acthr=0.5, acdir=1, sf=1.0, ss=0.0, sn=0.0, model=ActiveModel.Model1(t0=None, ca2ion=None, ca2ionm=4.35, n=2, taumax=0.125, stf=0.0, b=4.75, l0=1.58, l=1.85, dtmax=150, mr=1048.9, tr=-1629.0), ca2_curve=&lt;ansys.health.heart.settings.material.curve.ActiveCurve object at 0x0000020BE1CD62D0&gt;))
+EPMaterial.Active(sigma_fiber=1, sigma_sheet=0.5, sigma_sheet_normal=0.1, beta=140, cm=0.01, lambda_=None, cell_model=CellModel.Tentusscher(gas_constant=8314.472, t=310, faraday_constant=96485.3415, cm=0.185, vc=0.016404, vsr=0.001094, vss=5.468e-05, pkna=0.03, ko=5.4, nao=140.0, cao=2.0, gk1=5.405, gkr=0.153, gna=14.838, gbna=0.0002, gcal=3.98e-05, gbca=0.000592, gpca=0.1238, gpk=0.0146, pnak=2.724, km=1.0, kmna=40.0, knaca=1000.0, ksat=0.1, alpha=2.5, gamma=0.35, kmca=1.38, kmnai=87.5, kpca=0.0005, k1=0.15, k2=0.045, k3=0.06, k4=0.005, ec=1.5, maxsr=2.5, minsr=1.0, vrel=0.102, vleak=0.00036, vxfer=0.0038, vmaxup=0.006375, kup=0.00025, bufc=0.2, kbufc=0.001, bufsr=10.0, kbufsf=0.3, bufss=0.4, kbufss=0.00025, gks=0.392, gto=0.294, v=-85.23, ki=136.89, nai=8.604, cai=0.000126, cass=0.00036, casr=3.64, rpri=0.9073, xr1=0.00621, xr2=0.4712, xs=0.0095, m=0.00172, h=0.7444, j=0.7045, d=3.373e-05, f=0.7888, f2=0.9755, fcass=0.9953, s=0.999998, r=2.42e-08))
+</pre></div>
+</div>
+<p>Create a new part and set material</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># # A new part can be created by elements IDs</span>
+<span class="c1"># ids = np.where(heartmodel.mesh.point_data_to_cell_data()[&quot;uvc_longitudinal&quot;] &gt; 0.9)[0]</span>
+<span class="c1"># new_part: Part = heartmodel.create_part_by_ids(ids, &quot;new_part&quot;)</span>
+
+<span class="c1"># # Show the part</span>
+<span class="c1"># plotter = heartmodel.plot_part(new_part)</span>
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 7.484 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-preprocessor-demo-material-pr-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/df0831b64a01ca5064d7b0a7ace212ea/demo-material_pr.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">demo-material_pr.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/2d3fe4f9e939f42af167b590ed1a98e9/demo-material_pr.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">demo-material_pr.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-zip docutils container">
+<p><a class="reference download internal" download="" href="../../_downloads/bc9be53f2f03ddc517b580cf37a63b9a/demo-material_pr.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">demo-material_pr.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#import-material-module">Import material module</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-material">Create a material</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plot-ca2-with-threshold">Plot Ca2+ with threshold</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-mat-295-with-modules">Create MAT_295 with modules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-ep-materials">Create EP materials</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#assign-materials-to-a-part">Assign materials to a part</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#load-a-heart-model">Load a heart model</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+<!-- If there is no fix edit button function, use the PyData edit-this-button-->
+</div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <ul class="this-page-menu">
+      <li><a href="../../_sources/examples/preprocessor/demo-material_pr.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+
+  <!-- Include desired assets -->
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.min.js"></script>
+
+<script>
+// Passing the search options to the search.js file
+const SEARCH_OPTIONS = JSON.parse('{"keys": ["title", "text"], "limit": 10, "threshold": 0.2}');
+const SEARCH_FILE = "../../_static/search.json";
+</script>
+
+
+<script src="../../_static/js/search.js"></script>
+  
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright (c) 2025 ANSYS, Inc. All rights reserved.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the
+  <a href="https://sphinxdocs.ansys.com/version/stable/index.html"
+    >Ansys Sphinx Theme</a
+  >
+  1.3.3. <br />Last updated on
+  <span id="ast_build_date"></span>
+</p>
+<script>
+  var options = { day: "numeric", month: "long", year: "numeric" };
+  var ast_lastModifiedDate = new Date(document.lastModified);
+  var ast_build_date = ast_lastModifiedDate.toLocaleDateString("en-US", options);
+  document.getElementById("ast_build_date").innerHTML = ast_build_date;
+</script></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

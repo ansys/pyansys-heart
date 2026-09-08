@@ -1,0 +1,403 @@
+
+
+
+
+ModelInfo
+=========
+
+.. py:class:: ModelInfo(input: Union[pathlib.Path, str, pyvista.PolyData, pyvista.UnstructuredGrid] = None, scalar: str = 'part-id', part_definitions: dict = None, work_directory: pathlib.Path = '.', path_to_simulation_mesh: pathlib.Path = None, mesh_size: float = 1.5, add_blood_pool: bool = False)
+   :canonical: ansys.heart.preprocessor.models.ModelInfo
+
+
+
+
+
+   Contains model information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: ModelInfo
+.. tab-set::
+
+
+
+    .. tab-item:: Methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~clean_workdir`
+            - Remove files with extension present in the working directory.
+          * - :py:attr:`~create_workdir`
+            - Create the working directory if it doesn't exist.
+          * - :py:attr:`~dump_info`
+            - Dump model information to file.
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~input`
+            - Input to the workflow.
+          * - :py:attr:`~scalar`
+            - Scalar field name with part/surface ids.
+          * - :py:attr:`~part_definitions`
+            - Part definitions.
+          * - :py:attr:`~workdir`
+            - Path to the working directory.
+          * - :py:attr:`~path_to_simulation_mesh`
+            - Path to simulation(in .vtk format).
+          * - :py:attr:`~path_to_model`
+            - Path to model (in .pickle format).
+          * - :py:attr:`~mesh_size`
+            - Mesh size used for remeshing.
+          * - :py:attr:`~add_blood_pool`
+            - Flag indicating whether to add blood to the cavities.
+          * - :py:attr:`~model_type`
+            - Deprecated dummy value of model type.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.models import ModelInfo
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: input
+
+   
+   Input to the workflow.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: scalar
+
+   
+   Scalar field name with part/surface ids.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: part_definitions
+
+   
+   Part definitions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: workdir
+
+   
+   Path to the working directory.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: path_to_simulation_mesh
+
+   
+   Path to simulation(in .vtk format).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: path_to_model
+   :type: str
+
+   
+   Path to model (in .pickle format).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: mesh_size
+   :type: float
+
+   
+   Mesh size used for remeshing.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: add_blood_pool
+   :type: bool
+
+   
+   Flag indicating whether to add blood to the cavities.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: model_type
+   :type: str
+   :value: ''
+
+   
+   Deprecated dummy value of model type.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+Method detail
+-------------
+.. py:method:: clean_workdir(extensions_to_remove: List[str] = ['.stl', '.vtk', '.msh.h5'], remove_all: bool = False) -> None
+
+   
+   Remove files with extension present in the working directory.
+
+
+   :Parameters:
+
+       **extensions_to_remove** : :obj:`List`\[:class:`python:str`], :obj:`optional`
+           List of extensions to remove, by default [".stl", ".vtk", ".msh.h5"]
+
+       **remove_all: bool, optional**
+           Flag indicating whether to remove files with any extension.
+           Keeps files/folder without extension
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: create_workdir() -> None
+
+   
+   Create the working directory if it doesn't exist.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: dump_info(filename: pathlib.Path = None) -> None
+
+   
+   Dump model information to file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

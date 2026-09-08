@@ -1,0 +1,49 @@
+
+
+
+
+
+
+:class:`D3PlotNotSupportedError`
+================================
+
+
+.. py:exception:: ansys.health.heart.exceptions.D3PlotNotSupportedError
+
+   Bases: :py:obj:`OSError`
+
+
+   
+   Exception raised when the D3plot file is not supported.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.exceptions import D3PlotNotSupportedError
+
+
+
+
+

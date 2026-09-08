@@ -1,0 +1,158 @@
+
+
+
+
+
+
+The ``electrophysiology.py`` module
+===================================
+
+.. py:module:: ansys.health.heart.settings.defaults.electrophysiology
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: electrophysiology
+.. tab-set::
+
+
+
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~heart`
+            - Generic analysis settings.
+
+
+          * - :py:obj:`~analysis`
+            - Material settings.
+
+
+          * - :py:obj:`~material`
+            - Stimulation settings.
+
+
+          * - :py:obj:`~stimulation`
+            - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module contains default values for EP (Electrophysiology) simulations.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: heart
+
+   
+   Generic analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: analysis
+
+   
+   Material settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: material
+
+   
+   Stimulation settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: stimulation
+
+
+

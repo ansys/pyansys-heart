@@ -1,0 +1,208 @@
+
+
+
+
+
+
+The ``ansys.health.heart`` library
+==================================
+
+.. py:module:: ansys.health.heart
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: heart
+.. tab-set::
+
+    .. tab-item:: Subpackages
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.post`
+            - Postprocessing subpackage.
+
+
+          * - :py:obj:`~ansys.health.heart.pre`
+            - Preprocessing subpackage.
+
+
+          * - :py:obj:`~ansys.health.heart.settings`
+            - Settings subpackage.
+
+
+          * - :py:obj:`~ansys.health.heart.utils`
+            - Subpackage containing various utilities.
+
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.examples`
+            - Utility functions to get various examples.
+
+
+          * - :py:obj:`~ansys.health.heart.exceptions`
+            - Custom exceptions for PyAnsys Heart.
+
+
+          * - :py:obj:`~ansys.health.heart.logger`
+            - Logging module.
+
+
+          * - :py:obj:`~ansys.health.heart.models`
+            - Module containing classes for the various heart models.
+
+
+          * - :py:obj:`~ansys.health.heart.models_utils`
+            - Stateless methods for the heart model.
+
+
+          * - :py:obj:`~ansys.health.heart.objects`
+            - Module that defines classes used in the heart model.
+
+
+          * - :py:obj:`~ansys.health.heart.simulator`
+            - Simulator module.
+
+
+
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~__version__`
+            - Version of PyAnsys Heart.
+
+
+
+    .. tab-item:: Constants
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~LOG`
+            - 
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-md-package"></span> post</api/ansys/health/heart/post/index>
+    <span class="nf nf-md-package"></span> pre</api/ansys/health/heart/pre/index>
+    <span class="nf nf-md-package"></span> settings</api/ansys/health/heart/settings/index>
+    <span class="nf nf-md-package"></span> utils</api/ansys/health/heart/utils/index>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-fa-file"></span> examples</api/ansys/health/heart/examples/index>
+    <span class="nf nf-fa-file"></span> exceptions</api/ansys/health/heart/exceptions/index>
+    <span class="nf nf-fa-file"></span> logger</api/ansys/health/heart/logger/index>
+    <span class="nf nf-fa-file"></span> models</api/ansys/health/heart/models/index>
+    <span class="nf nf-fa-file"></span> models_utils</api/ansys/health/heart/models_utils/index>
+    <span class="nf nf-fa-file"></span> objects</api/ansys/health/heart/objects/index>
+    <span class="nf nf-fa-file"></span> simulator</api/ansys/health/heart/simulator/index>
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+
+PyAnsys Heart is a Python framework for heart modeling using Ansys tools.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: LOG
+
+.. py:data:: __version__
+
+   
+   Version of PyAnsys Heart.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

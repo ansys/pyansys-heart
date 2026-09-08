@@ -1,0 +1,140 @@
+
+
+
+
+
+
+The ``material_keywords.py`` module
+===================================
+
+.. py:module:: ansys.health.heart.writer.material_keywords
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: material_keywords
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.writer.material_keywords.MaterialCap`
+            - Material of the closing cap/valves.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.material_keywords.MaterialNeoHook`
+            - Material for the atrium.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.material_keywords.MaterialHGOMyocardium`
+            - HGO material model, which is derived from Mat295.
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~active_curve`
+            - Compute various (normalized) curves used for the active module.
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> MaterialCap</api/ansys/health/heart/writer/material_keywords/MaterialCap>
+    <span class="nf nf-cod-symbol_class"></span> MaterialNeoHook</api/ansys/health/heart/writer/material_keywords/MaterialNeoHook>
+    <span class="nf nf-cod-symbol_class"></span> MaterialHGOMyocardium</api/ansys/health/heart/writer/material_keywords/MaterialHGOMyocardium>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Use PyDYNA keywords module to create commonly used material cards and their default values.
+
+Notes
+-----
+Examples of material cards include Mat295, Mat077, MatNull.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: active_curve(curve_type: str = 'Strocchi2020', endtime: float = 15) -> tuple[numpy.ndarray, numpy.ndarray]
+
+   
+   Compute various (normalized) curves used for the active module.
+
+
+   :Parameters:
+
+       **curve_name** : :class:`python:str`
+           Type of curve to compute.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

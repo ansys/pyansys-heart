@@ -1,0 +1,1345 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>preprocessor.mesh.objects &#8212; pyansys-heart</title>
+
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="../../../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/css/ansys_sphinx_theme.css?v=068850c2" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=7c3339d6" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+ 
+<link href="../../../../_static/css/breadcrumbs.css" rel="stylesheet" />
+
+    <script src="../../../../_static/documentation_options.js?v=38b66d78"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../../_static/js/table.js?v=b64f5182"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'autoapi/preprocessor/mesh/objects/index';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://heart.health.docs.pyansys.com/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '0.1';
+        </script>
+    <link rel="icon" href="../../../../_static/ansys-favicon.png"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="preprocessor.mesh.vtkmethods" href="../vtkmethods/index.html" />
+    <link rel="prev" title="preprocessor.mesh.mesher" href="../mesher/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <link rel="canonical" href="https://heart.health.docs.pyansys.com/version/stable/autoapi/preprocessor/mesh/objects/index.html" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container"><!-- Debugging: html_theme_options =  -->
+
+<!-- If there is no MiliSearch enabled, use the PyData search -->
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+   
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  <div class="navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../_static/pyansys-logo-black-cropped.png" class="logo__image only-light" alt="Logo image"/>
+    <script>document.write(`<img src="../../../../_static/pyansys-logo-black-cropped.png" class="logo__image only-dark" alt="Logo image"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../getting_started/index.html">
+                        Getting started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../user_guide/index.html">
+                        User guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../../../index.html">
+                        API Reference
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../examples/index.html">
+                        Examples
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../contributing.html">
+                        Contribute
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
+      0.1  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
+</div>
+
+    </nav>
+    <div id="announcement_msg"></div>
+<script>
+  fetch("announcement.html")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(
+      (text) => (document.getElementById("announcement_msg").innerHTML = text),
+    )
+    .catch((error) => console.error(`Fetch problem: ${error.message}`));
+</script>   <div class="container-xl">
+  <div class="row">
+    <div class="col-12 col-md-3" id="breadcrumbs-spacer"></div>
+    <div class="col-12 col-md-11 col-xl-9" id="breadcrumbs">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul> 
+<li class="nav-item nav-item-additional-breadcrumb">
+  <a href="https://docs.pyansys.com/">PyAnsys</a> » 
+</li>
+ 
+<li class="nav-item nav-item-0">
+  <a href="../../../../index.html">pyansys-heart</a> » 
+</li>
+ 
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >API Reference</a> » </li>
+          <li class="nav-item nav-item-2"><a href="../../index.html" ><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor</span></code></a> » </li>
+          <li class="nav-item nav-item-3"><a href="../index.html" accesskey="U"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.mesh</span></code></a> » </li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.mesh.objects</span></code></a></li> 
+      </ul>
+    </div></div>
+  </div>
+</div>
+ 
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../getting_started/index.html">
+                        Getting started
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../user_guide/index.html">
+                        User guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="../../../index.html">
+                        API Reference
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../examples/index.html">
+                        Examples
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../../contributing.html">
+                        Contribute
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
+      0.1  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/ansys/pyansys-heart" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fa-brands fa-square-github"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor</span></code></a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="../index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.mesh</span></code></a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../connectivity/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.mesh.connectivity</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../fluenthdf5/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.mesh.fluenthdf5</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../geodisc/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.mesh.geodisc</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../mesher/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.mesh.mesher</span></code></a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.mesh.objects</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../vtkmethods/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.mesh.vtkmethods</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../model_definitions/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.model_definitions</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.models</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../simulator/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">simulator</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../postprocessor/index.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">postprocessor</span></code></a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article"></div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <section id="preprocessor-mesh-objects">
+<h1><a class="reference internal" href="#module-preprocessor.mesh.objects" title="preprocessor.mesh.objects"><code class="xref py py-mod docutils literal notranslate"><span class="pre">preprocessor.mesh.objects</span></code></a><a class="headerlink" href="#preprocessor-mesh-objects" title="Link to this heading">#</a></h1>
+<p id="module-preprocessor.mesh.objects">Module that contains classes relevant for the mesh.</p>
+<p>Such as a Mesh object, Part object, Features, etc.</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h3>
+<table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#preprocessor.mesh.objects.Feature" title="preprocessor.mesh.objects.Feature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Feature</span></code></a></p></td>
+<td><p>Feature class.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#preprocessor.mesh.objects.BoundaryEdges" title="preprocessor.mesh.objects.BoundaryEdges"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BoundaryEdges</span></code></a></p></td>
+<td><p>Edges class.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#preprocessor.mesh.objects.EdgeGroup" title="preprocessor.mesh.objects.EdgeGroup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EdgeGroup</span></code></a></p></td>
+<td><p>Edge group class, contains info on connected edges.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#preprocessor.mesh.objects.SurfaceMesh" title="preprocessor.mesh.objects.SurfaceMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceMesh</span></code></a></p></td>
+<td><p>Surface class.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#preprocessor.mesh.objects.BeamMesh" title="preprocessor.mesh.objects.BeamMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BeamMesh</span></code></a></p></td>
+<td><p>Beam class.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#preprocessor.mesh.objects.Cavity" title="preprocessor.mesh.objects.Cavity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Cavity</span></code></a></p></td>
+<td><p>Cavity class.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#preprocessor.mesh.objects.Cap" title="preprocessor.mesh.objects.Cap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Cap</span></code></a></p></td>
+<td><p>Cap class.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#preprocessor.mesh.objects.Point" title="preprocessor.mesh.objects.Point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Point</span></code></a></p></td>
+<td><p>Point class. Can be used to collect relevant points in the mesh.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#preprocessor.mesh.objects.Mesh" title="preprocessor.mesh.objects.Mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mesh</span></code></a></p></td>
+<td><p>Mesh class: inherits from pyvista UnstructuredGrid.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#preprocessor.mesh.objects.Part" title="preprocessor.mesh.objects.Part"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Part</span></code></a></p></td>
+<td><p>Part class.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h3>
+<table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#preprocessor.mesh.objects.LOGGER" title="preprocessor.mesh.objects.LOGGER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOGGER</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py data">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.LOGGER">
+<span class="sig-prename descclassname"><span class="pre">preprocessor.mesh.objects.</span></span><span class="sig-name descname"><span class="pre">LOGGER</span></span><a class="headerlink" href="#preprocessor.mesh.objects.LOGGER" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Feature">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.mesh.objects.</span></span><span class="sig-name descname"><span class="pre">Feature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.mesh.objects.Feature" title="Link to this definition">#</a></dt>
+<dd><p>Feature class.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Feature.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Feature.name" title="Link to this definition">#</a></dt>
+<dd><p>Name of feature.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Feature.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Feature.type" title="Link to this definition">#</a></dt>
+<dd><p>Type of feature.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Feature.nsid">
+<span class="sig-name descname"><span class="pre">nsid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="headerlink" href="#preprocessor.mesh.objects.Feature.nsid" title="Link to this definition">#</a></dt>
+<dd><p>Node set id associated with feature.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Feature.pid">
+<span class="sig-name descname"><span class="pre">pid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="headerlink" href="#preprocessor.mesh.objects.Feature.pid" title="Link to this definition">#</a></dt>
+<dd><p>Part id associated with the feature.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.BoundaryEdges">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.mesh.objects.</span></span><span class="sig-name descname"><span class="pre">BoundaryEdges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.mesh.objects.BoundaryEdges" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#preprocessor.mesh.objects.Feature" title="preprocessor.mesh.objects.Feature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Feature</span></code></a></p>
+<p>Edges class.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.BoundaryEdges.type">
+<span class="sig-name descname"><span class="pre">type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'edges'</span></em><a class="headerlink" href="#preprocessor.mesh.objects.BoundaryEdges.type" title="Link to this definition">#</a></dt>
+<dd><p>Feature type.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.BoundaryEdges.node_ids">
+<span class="sig-name descname"><span class="pre">node_ids</span></span><a class="headerlink" href="#preprocessor.mesh.objects.BoundaryEdges.node_ids" title="Link to this definition">#</a></dt>
+<dd><p>List of edges.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.BoundaryEdges.groups">
+<span class="sig-name descname"><span class="pre">groups</span></span><a class="headerlink" href="#preprocessor.mesh.objects.BoundaryEdges.groups" title="Link to this definition">#</a></dt>
+<dd><p>Grouped edges based on connectivity.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.EdgeGroup">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.mesh.objects.</span></span><span class="sig-name descname"><span class="pre">EdgeGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.mesh.objects.EdgeGroup" title="Link to this definition">#</a></dt>
+<dd><p>Edge group class, contains info on connected edges.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.EdgeGroup.edges">
+<span class="sig-name descname"><span class="pre">edges</span></span><a class="headerlink" href="#preprocessor.mesh.objects.EdgeGroup.edges" title="Link to this definition">#</a></dt>
+<dd><p>Edges in edge group.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.EdgeGroup.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#preprocessor.mesh.objects.EdgeGroup.type" title="Link to this definition">#</a></dt>
+<dd><p>Type of edge group: ‘open’ or ‘closed’.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.mesh.objects.</span></span><span class="sig-name descname"><span class="pre">SurfaceMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triangles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">pyvista.PolyData</span></code>, <a class="reference internal" href="#preprocessor.mesh.objects.Feature" title="preprocessor.mesh.objects.Feature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Feature</span></code></a></p>
+<p>Surface class.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.nodes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nodes</span></span><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.nodes" title="Link to this definition">#</a></dt>
+<dd><p>Node coordinates.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.triangles">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">triangles</span></span><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.triangles" title="Link to this definition">#</a></dt>
+<dd><p>Triangular faces of the surface num_faces x 3.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.node_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">node_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.node_ids" title="Link to this definition">#</a></dt>
+<dd><p>Global node ids - sorted by earliest occurrence.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.boundary_nodes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">boundary_nodes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.boundary_nodes" title="Link to this definition">#</a></dt>
+<dd><p>Global node ids of nodes on the boundary of the mesh (if any).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.type">
+<span class="sig-name descname"><span class="pre">type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'surface'</span></em><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.type" title="Link to this definition">#</a></dt>
+<dd><p>Surface type.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.boundary_edges">
+<span class="sig-name descname"><span class="pre">boundary_edges</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.boundary_edges" title="Link to this definition">#</a></dt>
+<dd><p>Boundary edges.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.edge_groups">
+<span class="sig-name descname"><span class="pre">edge_groups</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#preprocessor.mesh.objects.EdgeGroup" title="preprocessor.mesh.objects.EdgeGroup"><span class="pre">EdgeGroup</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.edge_groups" title="Link to this definition">#</a></dt>
+<dd><p>Edge groups.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.id">
+<span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.id" title="Link to this definition">#</a></dt>
+<dd><p>ID of surface.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.nsid">
+<span class="sig-name descname"><span class="pre">nsid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.nsid" title="Link to this definition">#</a></dt>
+<dd><p>ID of corresponding set of nodes.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">triangles</span></span><a class="headerlink" href="#id0" title="Link to this definition">#</a></dt>
+<dd><p>Triangular faces of the surface num_faces x 3.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">nodes</span></span><a class="headerlink" href="#id1" title="Link to this definition">#</a></dt>
+<dd><p>Node coordinates.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.compute_centroid">
+<span class="sig-name descname"><span class="pre">compute_centroid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.compute_centroid" title="Link to this definition">#</a></dt>
+<dd><p>Compute the centroid of the surface.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.compute_bounding_box">
+<span class="sig-name descname"><span class="pre">compute_bounding_box</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.compute_bounding_box" title="Link to this definition">#</a></dt>
+<dd><p>Compute the bounding box of the surface.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.get_boundary_edges">
+<span class="sig-name descname"><span class="pre">get_boundary_edges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">append_triangles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#preprocessor.mesh.objects.EdgeGroup" title="preprocessor.mesh.objects.EdgeGroup"><span class="pre">EdgeGroup</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.get_boundary_edges" title="Link to this definition">#</a></dt>
+<dd><p>Get boundary edges (if any) of the surface and groups them by connectivity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>append_triangles: optional</strong></dt><dd><p>special fix for right ventricle endocardium surface since it needs one part
+from spetum.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.separate_connected_regions">
+<span class="sig-name descname"><span class="pre">separate_connected_regions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.separate_connected_regions" title="Link to this definition">#</a></dt>
+<dd><p>Use vtk to get connected regions and separate into different surfaces.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.smooth_boundary_edges">
+<span class="sig-name descname"><span class="pre">smooth_boundary_edges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.smooth_boundary_edges" title="Link to this definition">#</a></dt>
+<dd><p>Smooth the boundary edges if they are closed.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.write_to_stl">
+<span class="sig-name descname"><span class="pre">write_to_stl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.write_to_stl" title="Link to this definition">#</a></dt>
+<dd><p>Write the surface to a vtk file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.SurfaceMesh.write_feature_edges_to_vtk">
+<span class="sig-name descname"><span class="pre">write_feature_edges_to_vtk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_edge_group</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.mesh.objects.SurfaceMesh.write_feature_edges_to_vtk" title="Link to this definition">#</a></dt>
+<dd><p>Write the feature edges to a vtk file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.BeamMesh">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.mesh.objects.</span></span><span class="sig-name descname"><span class="pre">BeamMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beam_nodes_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.mesh.objects.BeamMesh" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">pyvista.UnstructuredGrid</span></code>, <a class="reference internal" href="#preprocessor.mesh.objects.Feature" title="preprocessor.mesh.objects.Feature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Feature</span></code></a></p>
+<p>Beam class.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.BeamMesh.nodes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nodes</span></span><a class="headerlink" href="#preprocessor.mesh.objects.BeamMesh.nodes" title="Link to this definition">#</a></dt>
+<dd><p>Node coordinates.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.BeamMesh.edges">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">edges</span></span><a class="headerlink" href="#preprocessor.mesh.objects.BeamMesh.edges" title="Link to this definition">#</a></dt>
+<dd><p>Tetrahedrons num_tetra x 4.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.BeamMesh.all_beam_nodes">
+<span class="sig-name descname"><span class="pre">all_beam_nodes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#preprocessor.mesh.objects.BeamMesh.all_beam_nodes" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">edges</span></span><a class="headerlink" href="#id2" title="Link to this definition">#</a></dt>
+<dd><p>Beams edges.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">nodes</span></span><a class="headerlink" href="#id3" title="Link to this definition">#</a></dt>
+<dd><p>Node coordinates.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.BeamMesh.beam_nodes_mask">
+<span class="sig-name descname"><span class="pre">beam_nodes_mask</span></span><a class="headerlink" href="#preprocessor.mesh.objects.BeamMesh.beam_nodes_mask" title="Link to this definition">#</a></dt>
+<dd><p>True for beam nodes, False for solid nodes.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.BeamMesh.pid">
+<span class="sig-name descname"><span class="pre">pid</span></span><a class="headerlink" href="#preprocessor.mesh.objects.BeamMesh.pid" title="Link to this definition">#</a></dt>
+<dd><p>Part id associated with the network.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.BeamMesh.nsid">
+<span class="sig-name descname"><span class="pre">nsid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="headerlink" href="#preprocessor.mesh.objects.BeamMesh.nsid" title="Link to this definition">#</a></dt>
+<dd><p>Surface id associated with the network.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cavity">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.mesh.objects.</span></span><span class="sig-name descname"><span class="pre">Cavity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surface</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#preprocessor.mesh.objects.SurfaceMesh" title="preprocessor.mesh.objects.SurfaceMesh"><span class="pre">SurfaceMesh</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centroid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.mesh.objects.Cavity" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#preprocessor.mesh.objects.Feature" title="preprocessor.mesh.objects.Feature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Feature</span></code></a></p>
+<p>Cavity class.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cavity.volume">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">volume</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Cavity.volume" title="Link to this definition">#</a></dt>
+<dd><p>Volume of the cavity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cavity.type">
+<span class="sig-name descname"><span class="pre">type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'cavity'</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Cavity.type" title="Link to this definition">#</a></dt>
+<dd><p>Type.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cavity.surface">
+<span class="sig-name descname"><span class="pre">surface</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#preprocessor.mesh.objects.SurfaceMesh" title="preprocessor.mesh.objects.SurfaceMesh"><span class="pre">SurfaceMesh</span></a></em><a class="headerlink" href="#preprocessor.mesh.objects.Cavity.surface" title="Link to this definition">#</a></dt>
+<dd><p>Surface mesh making up the cavity.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cavity.centroid">
+<span class="sig-name descname"><span class="pre">centroid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Cavity.centroid" title="Link to this definition">#</a></dt>
+<dd><p>Centroid of the cavity.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cavity.compute_volume">
+<span class="sig-name descname"><span class="pre">compute_volume</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="headerlink" href="#preprocessor.mesh.objects.Cavity.compute_volume" title="Link to this definition">#</a></dt>
+<dd><p>Compute the volume of the (enclosed) cavity.</p>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Writes stl and computes volume from stl</p></li>
+<li><p>Assumes normals are pointing inwards</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cavity.compute_centroid">
+<span class="sig-name descname"><span class="pre">compute_centroid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.mesh.objects.Cavity.compute_centroid" title="Link to this definition">#</a></dt>
+<dd><p>Compute the centroid of the cavity.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cap">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.mesh.objects.</span></span><span class="sig-name descname"><span class="pre">Cap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.mesh.objects.Cap" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#preprocessor.mesh.objects.Feature" title="preprocessor.mesh.objects.Feature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Feature</span></code></a></p>
+<p>Cap class.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cap.node_ids">
+<span class="sig-name descname"><span class="pre">node_ids</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Cap.node_ids" title="Link to this definition">#</a></dt>
+<dd><p>(Global) node ids of the cap.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cap.triangles">
+<span class="sig-name descname"><span class="pre">triangles</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Cap.triangles" title="Link to this definition">#</a></dt>
+<dd><p>Triangulation of cap.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cap.normal">
+<span class="sig-name descname"><span class="pre">normal</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Cap.normal" title="Link to this definition">#</a></dt>
+<dd><p>Normal of cap.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cap.centroid">
+<span class="sig-name descname"><span class="pre">centroid</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Cap.centroid" title="Link to this definition">#</a></dt>
+<dd><p>Centroid of cap.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cap.centroid_id">
+<span class="sig-name descname"><span class="pre">centroid_id</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Cap.centroid_id" title="Link to this definition">#</a></dt>
+<dd><p>Centroid of cap ID (in case centroid node is created).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cap.type">
+<span class="sig-name descname"><span class="pre">type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'cap'</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Cap.type" title="Link to this definition">#</a></dt>
+<dd><p>Type.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Cap.tessellate">
+<span class="sig-name descname"><span class="pre">tessellate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">center_point_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="headerlink" href="#preprocessor.mesh.objects.Cap.tessellate" title="Link to this definition">#</a></dt>
+<dd><p>Form triangles with the node ids.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>center_point_id: ID of the center point of cap</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference internal" href="#preprocessor.mesh.objects.Mesh" title="preprocessor.mesh.objects.Mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Mesh</span></code></a> <code class="xref py py-obj docutils literal notranslate"><span class="pre">connectivity</span></code> <code class="xref py py-obj docutils literal notranslate"><span class="pre">of</span></code> <code class="xref py py-obj docutils literal notranslate"><span class="pre">cap</span></code> (<a class="reference internal" href="#preprocessor.mesh.objects.Cap.triangles" title="preprocessor.mesh.objects.Cap.triangles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">triangles</span></code></a>)</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Point">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.mesh.objects.</span></span><span class="sig-name descname"><span class="pre">Point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xyz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.mesh.objects.Point" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#preprocessor.mesh.objects.Feature" title="preprocessor.mesh.objects.Feature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Feature</span></code></a></p>
+<p>Point class. Can be used to collect relevant points in the mesh.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Point.xyz">
+<span class="sig-name descname"><span class="pre">xyz</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Point.xyz" title="Link to this definition">#</a></dt>
+<dd><p>XYZ Coordinates of point.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Point.node_id">
+<span class="sig-name descname"><span class="pre">node_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="headerlink" href="#preprocessor.mesh.objects.Point.node_id" title="Link to this definition">#</a></dt>
+<dd><p>Global node id of point.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.mesh.objects.</span></span><span class="sig-name descname"><span class="pre">Mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">pyvista.UnstructuredGrid</span></code></p>
+<p>Mesh class: inherits from pyvista UnstructuredGrid.</p>
+<p class="rubric">Notes</p>
+<p>Only tetrahedrons are supported.
+Additional attributes are added on top of the pyvista UnstructuredGrid class</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.nodes">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nodes</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.nodes" title="Link to this definition">#</a></dt>
+<dd><p>Node coordinates.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.tetrahedrons">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tetrahedrons</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.tetrahedrons" title="Link to this definition">#</a></dt>
+<dd><p>Tetrahedrons num_tetra x 4.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.part_ids">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">part_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.part_ids" title="Link to this definition">#</a></dt>
+<dd><p>Array of part ids indicating to which part the tetrahedron belongs.</p>
+<p class="rubric">Notes</p>
+<p>This is derived from the “tags” field in cell data</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.boundary_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">boundary_names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.boundary_names" title="Link to this definition">#</a></dt>
+<dd><p>Iterate over boundaries and returns their names.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.triangles">
+<span class="sig-name descname"><span class="pre">triangles</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.triangles" title="Link to this definition">#</a></dt>
+<dd><p>Faces that make up the tetrahedrons.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.face_types">
+<span class="sig-name descname"><span class="pre">face_types</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.face_types" title="Link to this definition">#</a></dt>
+<dd><p>Type of face: 1: interior face, 2: boundary face, 3: interface face.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.conn">
+<span class="sig-name descname"><span class="pre">conn</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.conn" title="Link to this definition">#</a></dt>
+<dd><p>Face-tetra connectivity array.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.interfaces">
+<span class="sig-name descname"><span class="pre">interfaces</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#preprocessor.mesh.objects.SurfaceMesh" title="preprocessor.mesh.objects.SurfaceMesh"><span class="pre">SurfaceMesh</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.interfaces" title="Link to this definition">#</a></dt>
+<dd><p>List of surface meshes that make up the interface between different parts.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.boundaries">
+<span class="sig-name descname"><span class="pre">boundaries</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#preprocessor.mesh.objects.SurfaceMesh" title="preprocessor.mesh.objects.SurfaceMesh"><span class="pre">SurfaceMesh</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.boundaries" title="Link to this definition">#</a></dt>
+<dd><p>List of boundary surface meshes within the part.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.read_mesh_file">
+<span class="sig-name descname"><span class="pre">read_mesh_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.read_mesh_file" title="Link to this definition">#</a></dt>
+<dd><p>Read mesh file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.read_mesh_file_cristobal2021">
+<span class="sig-name descname"><span class="pre">read_mesh_file_cristobal2021</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.read_mesh_file_cristobal2021" title="Link to this definition">#</a></dt>
+<dd><p>Read mesh file - but modifies the fields to match data of Strocchi 2020.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.write_to_vtk">
+<span class="sig-name descname"><span class="pre">write_to_vtk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">pathlib.Path</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.write_to_vtk" title="Link to this definition">#</a></dt>
+<dd><p>Write mesh to VTK file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.keep_elements_with_value">
+<span class="sig-name descname"><span class="pre">keep_elements_with_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.keep_elements_with_value" title="Link to this definition">#</a></dt>
+<dd><p>Remove elements that satisfy a certain cell value of a specific field.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.establish_connectivity">
+<span class="sig-name descname"><span class="pre">establish_connectivity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.establish_connectivity" title="Link to this definition">#</a></dt>
+<dd><p>Establish the connetivity of the tetrahedrons.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.get_mask_interface_faces">
+<span class="sig-name descname"><span class="pre">get_mask_interface_faces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">return_pairs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.get_mask_interface_faces" title="Link to this definition">#</a></dt>
+<dd><p>Get the (interface) faces between two parts.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.add_interfaces">
+<span class="sig-name descname"><span class="pre">add_interfaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pairs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pair_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.add_interfaces" title="Link to this definition">#</a></dt>
+<dd><p>Add the interfaces between the parts to the mesh.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.smooth_interfaces">
+<span class="sig-name descname"><span class="pre">smooth_interfaces</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.smooth_interfaces" title="Link to this definition">#</a></dt>
+<dd><p>Smooth the interfaces between the different parts.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.add_boundaries">
+<span class="sig-name descname"><span class="pre">add_boundaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_part_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/dev/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.add_boundaries" title="Link to this definition">#</a></dt>
+<dd><p>Add boundary surfaces to the mesh object. One surface per part.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Mesh.get_surface_from_name">
+<span class="sig-name descname"><span class="pre">get_surface_from_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.mesh.objects.Mesh.get_surface_from_name" title="Link to this definition">#</a></dt>
+<dd><p>Return a list of surfaces that match the given list of names.</p>
+<p class="rubric">Notes</p>
+<p>Returns single surface. When multiple matches are found returns list of surfaces</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">preprocessor.mesh.objects.</span></span><span class="sig-name descname"><span class="pre">Part</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#preprocessor.mesh.objects.Part" title="Link to this definition">#</a></dt>
+<dd><p>Part class.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.surfaces">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">surfaces</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#preprocessor.mesh.objects.SurfaceMesh" title="preprocessor.mesh.objects.SurfaceMesh"><span class="pre">SurfaceMesh</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#preprocessor.mesh.objects.Part.surfaces" title="Link to this definition">#</a></dt>
+<dd><p>List of surfaces belonging to part.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.surface_names">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">surface_names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#preprocessor.mesh.objects.Part.surface_names" title="Link to this definition">#</a></dt>
+<dd><p>List of surface names belonging to part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Part.name" title="Link to this definition">#</a></dt>
+<dd><p>Name of the part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.pid">
+<span class="sig-name descname"><span class="pre">pid</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Part.pid" title="Link to this definition">#</a></dt>
+<dd><p>Part ID.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.mid">
+<span class="sig-name descname"><span class="pre">mid</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Part.mid" title="Link to this definition">#</a></dt>
+<dd><p>Material id associated with part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.part_type">
+<span class="sig-name descname"><span class="pre">part_type</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Part.part_type" title="Link to this definition">#</a></dt>
+<dd><p>Type of the part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.tag_labels">
+<span class="sig-name descname"><span class="pre">tag_labels</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Part.tag_labels" title="Link to this definition">#</a></dt>
+<dd><p>VTK tag labels used in this part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.tag_ids">
+<span class="sig-name descname"><span class="pre">tag_ids</span></span><a class="headerlink" href="#preprocessor.mesh.objects.Part.tag_ids" title="Link to this definition">#</a></dt>
+<dd><p>VTK tag ids used in this part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.element_ids">
+<span class="sig-name descname"><span class="pre">element_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Part.element_ids" title="Link to this definition">#</a></dt>
+<dd><p>Array holding element ids that make up this part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.points">
+<span class="sig-name descname"><span class="pre">points</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#preprocessor.mesh.objects.Point" title="preprocessor.mesh.objects.Point"><span class="pre">Point</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Part.points" title="Link to this definition">#</a></dt>
+<dd><p>Points of interest belonging to the part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.caps">
+<span class="sig-name descname"><span class="pre">caps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#preprocessor.mesh.objects.Cap" title="preprocessor.mesh.objects.Cap"><span class="pre">Cap</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Part.caps" title="Link to this definition">#</a></dt>
+<dd><p>List of caps belonging to the part.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.has_fiber">
+<span class="sig-name descname"><span class="pre">has_fiber</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Part.has_fiber" title="Link to this definition">#</a></dt>
+<dd><p>If this part has fiber/sheet data.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.is_active">
+<span class="sig-name descname"><span class="pre">is_active</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/dev/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#preprocessor.mesh.objects.Part.is_active" title="Link to this definition">#</a></dt>
+<dd><p>If active stress will be established.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="preprocessor.mesh.objects.Part.get_point">
+<span class="sig-name descname"><span class="pre">get_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pointname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/dev/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#preprocessor.mesh.objects.Point" title="preprocessor.mesh.objects.Point"><span class="pre">Point</span></a></span></span><a class="headerlink" href="#preprocessor.mesh.objects.Part.get_point" title="Link to this definition">#</a></dt>
+<dd><p>Get point from part.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.LOGGER"><code class="docutils literal notranslate"><span class="pre">LOGGER</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Feature"><code class="docutils literal notranslate"><span class="pre">Feature</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Feature.name"><code class="docutils literal notranslate"><span class="pre">Feature.name</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Feature.type"><code class="docutils literal notranslate"><span class="pre">Feature.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Feature.nsid"><code class="docutils literal notranslate"><span class="pre">Feature.nsid</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Feature.pid"><code class="docutils literal notranslate"><span class="pre">Feature.pid</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.BoundaryEdges"><code class="docutils literal notranslate"><span class="pre">BoundaryEdges</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.BoundaryEdges.type"><code class="docutils literal notranslate"><span class="pre">BoundaryEdges.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.BoundaryEdges.node_ids"><code class="docutils literal notranslate"><span class="pre">BoundaryEdges.node_ids</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.BoundaryEdges.groups"><code class="docutils literal notranslate"><span class="pre">BoundaryEdges.groups</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.EdgeGroup"><code class="docutils literal notranslate"><span class="pre">EdgeGroup</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.EdgeGroup.edges"><code class="docutils literal notranslate"><span class="pre">EdgeGroup.edges</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.EdgeGroup.type"><code class="docutils literal notranslate"><span class="pre">EdgeGroup.type</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.nodes"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.nodes</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.triangles"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.triangles</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.node_ids"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.node_ids</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.boundary_nodes"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.boundary_nodes</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.type"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.boundary_edges"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.boundary_edges</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.edge_groups"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.edge_groups</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.id"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.id</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.nsid"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.nsid</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id0"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.triangles</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id1"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.nodes</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.compute_centroid"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.compute_centroid()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.compute_bounding_box"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.compute_bounding_box()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.get_boundary_edges"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.get_boundary_edges()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.separate_connected_regions"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.separate_connected_regions()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.smooth_boundary_edges"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.smooth_boundary_edges()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.write_to_stl"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.write_to_stl()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.SurfaceMesh.write_feature_edges_to_vtk"><code class="docutils literal notranslate"><span class="pre">SurfaceMesh.write_feature_edges_to_vtk()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.BeamMesh"><code class="docutils literal notranslate"><span class="pre">BeamMesh</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.BeamMesh.nodes"><code class="docutils literal notranslate"><span class="pre">BeamMesh.nodes</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.BeamMesh.edges"><code class="docutils literal notranslate"><span class="pre">BeamMesh.edges</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.BeamMesh.all_beam_nodes"><code class="docutils literal notranslate"><span class="pre">BeamMesh.all_beam_nodes</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id2"><code class="docutils literal notranslate"><span class="pre">BeamMesh.edges</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#id3"><code class="docutils literal notranslate"><span class="pre">BeamMesh.nodes</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.BeamMesh.beam_nodes_mask"><code class="docutils literal notranslate"><span class="pre">BeamMesh.beam_nodes_mask</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.BeamMesh.pid"><code class="docutils literal notranslate"><span class="pre">BeamMesh.pid</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.BeamMesh.nsid"><code class="docutils literal notranslate"><span class="pre">BeamMesh.nsid</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cavity"><code class="docutils literal notranslate"><span class="pre">Cavity</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cavity.volume"><code class="docutils literal notranslate"><span class="pre">Cavity.volume</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cavity.type"><code class="docutils literal notranslate"><span class="pre">Cavity.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cavity.surface"><code class="docutils literal notranslate"><span class="pre">Cavity.surface</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cavity.centroid"><code class="docutils literal notranslate"><span class="pre">Cavity.centroid</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cavity.compute_volume"><code class="docutils literal notranslate"><span class="pre">Cavity.compute_volume()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cavity.compute_centroid"><code class="docutils literal notranslate"><span class="pre">Cavity.compute_centroid()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cap"><code class="docutils literal notranslate"><span class="pre">Cap</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cap.node_ids"><code class="docutils literal notranslate"><span class="pre">Cap.node_ids</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cap.triangles"><code class="docutils literal notranslate"><span class="pre">Cap.triangles</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cap.normal"><code class="docutils literal notranslate"><span class="pre">Cap.normal</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cap.centroid"><code class="docutils literal notranslate"><span class="pre">Cap.centroid</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cap.centroid_id"><code class="docutils literal notranslate"><span class="pre">Cap.centroid_id</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cap.type"><code class="docutils literal notranslate"><span class="pre">Cap.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Cap.tessellate"><code class="docutils literal notranslate"><span class="pre">Cap.tessellate()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Point"><code class="docutils literal notranslate"><span class="pre">Point</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Point.xyz"><code class="docutils literal notranslate"><span class="pre">Point.xyz</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Point.node_id"><code class="docutils literal notranslate"><span class="pre">Point.node_id</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh"><code class="docutils literal notranslate"><span class="pre">Mesh</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.nodes"><code class="docutils literal notranslate"><span class="pre">Mesh.nodes</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.tetrahedrons"><code class="docutils literal notranslate"><span class="pre">Mesh.tetrahedrons</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.part_ids"><code class="docutils literal notranslate"><span class="pre">Mesh.part_ids</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.boundary_names"><code class="docutils literal notranslate"><span class="pre">Mesh.boundary_names</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.triangles"><code class="docutils literal notranslate"><span class="pre">Mesh.triangles</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.face_types"><code class="docutils literal notranslate"><span class="pre">Mesh.face_types</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.conn"><code class="docutils literal notranslate"><span class="pre">Mesh.conn</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.interfaces"><code class="docutils literal notranslate"><span class="pre">Mesh.interfaces</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.boundaries"><code class="docutils literal notranslate"><span class="pre">Mesh.boundaries</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.read_mesh_file"><code class="docutils literal notranslate"><span class="pre">Mesh.read_mesh_file()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.read_mesh_file_cristobal2021"><code class="docutils literal notranslate"><span class="pre">Mesh.read_mesh_file_cristobal2021()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.write_to_vtk"><code class="docutils literal notranslate"><span class="pre">Mesh.write_to_vtk()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.keep_elements_with_value"><code class="docutils literal notranslate"><span class="pre">Mesh.keep_elements_with_value()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.establish_connectivity"><code class="docutils literal notranslate"><span class="pre">Mesh.establish_connectivity()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.get_mask_interface_faces"><code class="docutils literal notranslate"><span class="pre">Mesh.get_mask_interface_faces()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.add_interfaces"><code class="docutils literal notranslate"><span class="pre">Mesh.add_interfaces()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.smooth_interfaces"><code class="docutils literal notranslate"><span class="pre">Mesh.smooth_interfaces()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.add_boundaries"><code class="docutils literal notranslate"><span class="pre">Mesh.add_boundaries()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Mesh.get_surface_from_name"><code class="docutils literal notranslate"><span class="pre">Mesh.get_surface_from_name()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part"><code class="docutils literal notranslate"><span class="pre">Part</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.surfaces"><code class="docutils literal notranslate"><span class="pre">Part.surfaces</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.surface_names"><code class="docutils literal notranslate"><span class="pre">Part.surface_names</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.name"><code class="docutils literal notranslate"><span class="pre">Part.name</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.pid"><code class="docutils literal notranslate"><span class="pre">Part.pid</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.mid"><code class="docutils literal notranslate"><span class="pre">Part.mid</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.part_type"><code class="docutils literal notranslate"><span class="pre">Part.part_type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.tag_labels"><code class="docutils literal notranslate"><span class="pre">Part.tag_labels</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.tag_ids"><code class="docutils literal notranslate"><span class="pre">Part.tag_ids</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.element_ids"><code class="docutils literal notranslate"><span class="pre">Part.element_ids</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.points"><code class="docutils literal notranslate"><span class="pre">Part.points</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.caps"><code class="docutils literal notranslate"><span class="pre">Part.caps</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.has_fiber"><code class="docutils literal notranslate"><span class="pre">Part.has_fiber</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.is_active"><code class="docutils literal notranslate"><span class="pre">Part.is_active</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#preprocessor.mesh.objects.Part.get_point"><code class="docutils literal notranslate"><span class="pre">Part.get_point()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+<!-- If there is no fix edit button function, use the PyData edit-this-button--></div>
+
+  <div class="sidebar-secondary-item">
+  <div class="tocsection sourcelink">
+    <a href="../../../../_sources/autoapi/preprocessor/mesh/objects/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+  <p class="copyright">
+    
+      © Copyright (c) 2024 ANSYS, Inc. All rights reserved.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.2.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the
+  <a href="https://sphinxdocs.ansys.com/version/stable/index.html"
+    >Ansys Sphinx Theme</a
+  >
+  0.10.3. <br />Last updated on
+  <span id="date"></span>
+</p>
+<script>
+  var options = { day: "numeric", month: "long", year: "numeric" };
+  var lastModifiedDate = new Date(document.lastModified);
+  var date = lastModifiedDate.toLocaleDateString("en-US", options);
+  document.getElementById("date").innerHTML = date;
+</script></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

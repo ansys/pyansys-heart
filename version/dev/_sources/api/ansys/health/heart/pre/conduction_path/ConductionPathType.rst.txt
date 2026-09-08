@@ -1,0 +1,507 @@
+
+
+
+
+
+
+:class:`ConductionPathType`
+===========================
+
+
+.. py:class:: ansys.health.heart.pre.conduction_path.ConductionPathType(*args, **kwds)
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   
+   Conduction Path types.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: ConductionPathType
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~LEFT_PURKINJE`
+            - Left Purkinje network.
+          * - :py:attr:`~RIGHT_PURKINJE`
+            - Right Purkinje network.
+          * - :py:attr:`~SAN_AVN`
+            - Sino-atrial node to atrio-ventricular node.
+          * - :py:attr:`~MID_SAN_AVN`
+            - Sino-atrial node to atrio-ventricular node.
+          * - :py:attr:`~POST_SAN_AVN`
+            - Sino-atrial node to atrio-ventricular node.
+          * - :py:attr:`~LEFT_BUNDLE_BRANCH`
+            - Left bundle branch.
+          * - :py:attr:`~RIGHT_BUNDLE_BRANCH`
+            - Right bundle branch.
+          * - :py:attr:`~HIS_TOP`
+            - Top part of the His bundle.
+          * - :py:attr:`~HIS_LEFT`
+            - Left part of the His bundle.
+          * - :py:attr:`~HIS_RIGHT`
+            - Right part of the His bundle.
+          * - :py:attr:`~BACHMANN_BUNDLE`
+            - Bachmann bundle.
+          * - :py:attr:`~LEFT_ANTERIOR_FASCILE`
+            - Left anterior fascicle.
+          * - :py:attr:`~LEFT_POSTERIOR_FASCICLE`
+            - Left posterior fascicle.
+          * - :py:attr:`~USER_PAHT_1`
+            - User path 1.
+          * - :py:attr:`~USER_PAHT_2`
+            - User path 2.
+          * - :py:attr:`~USER_PAHT_3`
+            - User path 3.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.pre.conduction_path import ConductionPathType
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: LEFT_PURKINJE
+   :value: 'Left-purkinje'
+
+
+   
+   Left Purkinje network.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: RIGHT_PURKINJE
+   :value: 'Right-purkinje'
+
+
+   
+   Right Purkinje network.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: SAN_AVN
+   :value: 'SAN_to_AVN'
+
+
+   
+   Sino-atrial node to atrio-ventricular node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: MID_SAN_AVN
+   :value: 'MID_SAN_to_AVN'
+
+
+   
+   Sino-atrial node to atrio-ventricular node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: POST_SAN_AVN
+   :value: 'POST_SAN_to_AVN'
+
+
+   
+   Sino-atrial node to atrio-ventricular node.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: LEFT_BUNDLE_BRANCH
+   :value: 'Left bundle branch'
+
+
+   
+   Left bundle branch.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: RIGHT_BUNDLE_BRANCH
+   :value: 'Right bundle branch'
+
+
+   
+   Right bundle branch.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: HIS_TOP
+   :value: 'His_top'
+
+
+   
+   Top part of the His bundle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: HIS_LEFT
+   :value: 'His_left'
+
+
+   
+   Left part of the His bundle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: HIS_RIGHT
+   :value: 'His_right'
+
+
+   
+   Right part of the His bundle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: BACHMANN_BUNDLE
+   :value: 'Bachmann bundle'
+
+
+   
+   Bachmann bundle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: LEFT_ANTERIOR_FASCILE
+   :value: 'Left anterior fascicle'
+
+
+   
+   Left anterior fascicle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: LEFT_POSTERIOR_FASCICLE
+   :value: 'Left posterior fascicle'
+
+
+   
+   Left posterior fascicle.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: USER_PAHT_1
+   :value: 'User path 1'
+
+
+   
+   User path 1.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: USER_PAHT_2
+   :value: 'User path 2'
+
+
+   
+   User path 2.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: USER_PAHT_3
+   :value: 'User path 3'
+
+
+   
+   User path 3.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

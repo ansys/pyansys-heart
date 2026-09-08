@@ -1,0 +1,387 @@
+
+
+
+
+FluentMesh
+==========
+
+.. py:class:: FluentMesh(filename: str = None)
+   :canonical: ansys.heart.preprocessor.mesh.fluenthdf5.FluentMesh
+
+
+
+
+
+   Class that stores the Fluent mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: FluentMesh
+.. tab-set::
+
+
+
+    .. tab-item:: Methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~load_mesh`
+            - Load the mesh from the hdf5 file.
+          * - :py:attr:`~clean`
+            - Remove all unused nodes.
+
+
+    .. tab-item:: Properties
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~cell_zone_names`
+            - List of cell zone names of non-empty cell zones.
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~filename`
+            - Path to file.
+          * - :py:attr:`~fid`
+            - File id to h5py file.
+          * - :py:attr:`~nodes`
+            - All nodes of the mesh.
+          * - :py:attr:`~faces`
+            - All faces.
+          * - :py:attr:`~cells`
+            - All cells.
+          * - :py:attr:`~cell_ids`
+            - Array of cell ids use to define the cell zones.
+          * - :py:attr:`~cell_zones`
+            - List of cell zones.
+          * - :py:attr:`~face_zones`
+            - List of face zones.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.mesh.fluenthdf5 import FluentMesh
+
+
+Property detail
+---------------
+.. py:property:: cell_zone_names
+   :canonical: ansys.heart.preprocessor.mesh.fluenthdf5.FluentMesh.cell_zone_names
+   :type: None
+
+
+   
+   List of cell zone names of non-empty cell zones.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: filename
+   :type: str
+
+   
+   Path to file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: fid
+   :type: h5py.File
+
+   
+   File id to h5py file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: nodes
+   :type: numpy.ndarray
+
+   
+   All nodes of the mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: faces
+   :type: numpy.ndarray
+
+   
+   All faces.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: cells
+   :type: numpy.ndarray
+
+   
+   All cells.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: cell_ids
+   :type: numpy.ndarray
+
+   
+   Array of cell ids use to define the cell zones.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: cell_zones
+   :type: List[FluentCellZone]
+   :value: []
+
+   
+   List of cell zones.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: face_zones
+   :type: List[FluentFaceZone]
+   :value: []
+
+   
+   List of face zones.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+Method detail
+-------------
+.. py:method:: load_mesh(filename: str = None, reconstruct_tetrahedrons: bool = True) -> None
+
+   
+   Load the mesh from the hdf5 file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: clean()
+
+   
+   Remove all unused nodes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

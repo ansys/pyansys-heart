@@ -1,0 +1,47 @@
+
+
+.. _sphx_glr_examples_postprocessor:
+
+.. _examples_postprocessor:
+
+Postprocessor examples
+======================
+These examples show how to use the ``postprocessor`` module
+to postprocess cardiac simulations.
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Postprocess a Reaction-Eikonal model.">
+
+.. only:: html
+
+  .. image:: /examples/postprocessor/images/thumb/sphx_glr_ep-postprocess-reaction-eikonal_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_postprocessor_ep-postprocess-reaction-eikonal.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Postprocess a Reaction-Eikonal model.</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /examples/postprocessor/ep-postprocess-reaction-eikonal
+

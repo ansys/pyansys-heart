@@ -1,0 +1,146 @@
+
+
+
+
+
+
+:class:`FibersBRBM`
+===================
+
+
+.. py:class:: ansys.health.heart.settings.settings.FibersBRBM(/, **data: Any)
+
+   Bases: :py:obj:`BaseFiberSettings`
+
+
+   
+   Class for keeping track of fiber settings for the Bayer et al rule-based method.
+
+   Extends BaseFiberSettings with additional septum-specific fiber orientations
+   required for the LS-DYNA/B-RBM fiber generation method.
+
+   The B-RBM method uses distinct angle specifications for the septum region
+   to account for the unique fiber architecture in the interventricular septum.
+
+   :Parameters:
+
+       **alpha_endo** : :obj:`Quantity`, default: :obj:`Quantity`\(-60, "degree")
+           Helical angle in endocardium (inherited from BaseFiberSettings).
+
+       **alpha_epi** : :obj:`Quantity`, default: :obj:`Quantity`\(60, "degree")
+           Helical angle in epicardium (inherited from BaseFiberSettings).
+
+       **beta_endo** : :obj:`Quantity`, default: :obj:`Quantity`\(-65, "degree")
+           Angle to the outward transmural axis in endocardium (inherited).
+
+       **beta_epi** : :obj:`Quantity`, default: :obj:`Quantity`\(25, "degree")
+           Angle to the outward transmural axis in epicardium (inherited).
+
+       **beta_endo_septum** : :obj:`Quantity`, default: :obj:`Quantity`\(-65, "degree")
+           Angle to the outward transmural axis on the left septum endocardium.
+           Specific to the septal region fiber orientation.
+
+       **beta_epi_septum** : :obj:`Quantity`, :obj:`default` :obj:`Quantity`\(25, "degree")
+           Angle to the outward transmural axis in the septum epicardium.
+           Controls septal fiber inclination at the epicardial surface.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Based on Bayer et al. https://doi.org/10.1007/s10439-012-0593-5.
+
+   The B-RBM method distinguishes between:
+   - Free wall fiber orientations (using base class angles)
+   - Septal fiber orientations (using septum-specific beta angles)
+
+   This allows for realistic modeling of the complex fiber architecture
+   in the interventricular septum. Note that for the Bayer method the transmural
+   direction points inward from epicardium to endocardium, and hence positive rotation
+   has a different meaning that for the D-RBM method.
+
+
+   .. rubric:: Examples
+
+   Create B-RBM fiber settings with default values:
+
+   >>> brbm_fibers = FibersBRBM()
+   >>> print(brbm_fibers.beta_endo_septum)
+   -65 degree
+   >>> print(brbm_fibers.beta_epi_septum)
+   25 degree
+
+   Create custom B-RBM settings:
+
+   >>> from pint import Quantity
+   >>> custom_brbm = FibersBRBM(
+   ...     alpha_endo=Quantity(-50, "degree"),
+   ...     alpha_epi=Quantity(50, "degree"),
+   ...     beta_endo_septum=Quantity(-70, "degree"),
+   ...     beta_epi_septum=Quantity(30, "degree"),
+   ... )
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: FibersBRBM
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~beta_endo_septum`
+            - 
+          * - :py:attr:`~beta_epi_septum`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import FibersBRBM
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: beta_endo_septum
+   :type:  pint.Quantity
+   :value: None
+
+
+.. py:attribute:: beta_epi_septum
+   :type:  pint.Quantity
+   :value: None
+
+
+
+
+
+

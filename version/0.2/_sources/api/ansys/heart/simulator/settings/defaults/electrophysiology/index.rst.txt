@@ -1,0 +1,132 @@
+
+
+
+
+
+The ``electrophysiology.py`` module
+===================================
+
+.. py:module:: ansys.heart.simulator.settings.defaults.electrophysiology
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: electrophysiology
+.. tab-set::
+
+
+
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~heart`
+            - Generic analysis settings.
+
+
+          * - :py:attr:`~analysis`
+            - Material settings.
+
+
+          * - :py:attr:`~material`
+            - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module contains default values for electrophysiology simulations.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: heart
+
+   
+   Generic analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: analysis
+
+   
+   Material settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: material
+
+   
+
+
+

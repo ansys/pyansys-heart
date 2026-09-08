@@ -1,0 +1,185 @@
+
+
+
+
+
+
+The ``mesher.py`` module
+========================
+
+.. py:module:: ansys.health.heart.pre.mesher
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: mesher
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~mesh_from_manifold_input_model`
+            - Create mesh from a good-quality manifold input model.
+
+
+          * - :py:obj:`~mesh_from_non_manifold_input_model`
+            - Generate mesh from a non-manifold poor quality input model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing methods for interaction with Fluent meshing.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: mesh_from_manifold_input_model(model: ansys.health.heart.pre.input._InputModel, workdir: str | pathlib.Path, path_to_output: str | pathlib.Path, mesh_size: float = 2.0, overwrite_existing_mesh: bool = True) -> ansys.health.heart.objects.Mesh
+
+   
+   Create mesh from a good-quality manifold input model.
+
+
+   :Parameters:
+
+       **model** : :obj:`_InputModel`
+           Input model.
+
+       **workdir** : :obj:`Union`\[:class:`python:str`, :obj:`Path`]
+           Working directory.
+
+       **path_to_output** : :obj:`Union`\[:class:`python:str`, :obj:`Path`]
+           Path to the resulting Fluent mesh file.
+
+       **mesh_size** : :class:`python:float`, default: 2.0
+           Uniform mesh size to use for both wrapping and filling the volume.
+
+
+
+   :Returns:
+
+       :obj:`Mesh`
+           VTK mesh with both cell and face zones.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: mesh_from_non_manifold_input_model(model: ansys.health.heart.pre.input._InputModel, workdir: str | pathlib.Path, path_to_output: str | pathlib.Path, global_mesh_size: float = 2.0, _global_wrap_size: float = 1.5, overwrite_existing_mesh: bool = True, mesh_size_per_part: dict = None, _wrap_size_per_part: dict = None) -> ansys.health.heart.objects.Mesh
+
+   
+   Generate mesh from a non-manifold poor quality input model.
+
+
+   :Parameters:
+
+       **model** : :obj:`_InputModel`
+           Input model.
+
+       **workdir** : :obj:`Union`\[:class:`python:str`, :obj:`Path`]
+           Working directory.
+
+       **path_to_output** : :obj:`Union`\[:class:`python:str`, :obj:`Path`]
+           Path to the resulting Fluent mesh file.
+
+       **global_mesh_size** : :class:`python:float`, default: 2.0
+           Uniform mesh size to use for all volumes and surfaces.
+
+       **_global_wrap_size** : :class:`python:float`, default: 1.5
+           Global size used by the wrapper to reconstruct the geometry.
+
+       **overwrite_existing_mesh** : :ref:`bool <python:bltin-boolean-values>`, default: :data:`python:True`
+           Whether to overwrite an existing mesh.
+
+       **mesh_size_per_part** : :class:`python:dict`, default: :data:`python:None`
+           Dictionary specifying the mesh size that should be used for each part.
+
+       **_wrap_size_per_part** : :class:`python:dict`, default: :data:`python:None`
+           Dictionary specifying the wrap size that should be used to wrap each part.
+
+
+
+   :Returns:
+
+       :obj:`Mesh`
+           VTK mesh with both cell and face zones.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   This method uses Fluent wrapping technology to wrap the individual parts. First it
+   creates manifold parts. Then, it consequently wraps the entire model and uses the manifold
+   parts to split the wrapped model into the different cell zones.
+
+   When specifying a mesh size per part, you can do that by either specifying the size for all
+   parts or for specific parts. The default mesh size is used for any part not listed
+   in the dictionary. This also applies to the wrapping step. You can control the wrap size
+   per part or on a global level. By default, a size of 1.5 mm is used, but this value is not
+   guaranteed to give good results.
+
+   Note that a post-wrap remesh is triggered if the wrap size is not equal to the target mesh size.
+   Remeshing might fail if the target mesh size deviates too much from the wrap size.
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

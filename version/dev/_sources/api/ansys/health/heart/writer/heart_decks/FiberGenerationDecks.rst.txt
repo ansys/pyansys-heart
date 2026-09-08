@@ -1,0 +1,85 @@
+
+
+
+
+
+
+:class:`FiberGenerationDecks`
+=============================
+
+
+.. py:class:: ansys.health.heart.writer.heart_decks.FiberGenerationDecks
+
+   Bases: :py:obj:`BaseDecks`
+
+
+   
+   Useful decks for fiber generation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: FiberGenerationDecks
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~ep_settings`
+            - 
+          * - :py:attr:`~create_fiber`
+            - 
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.writer.heart_decks import FiberGenerationDecks
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: ep_settings
+   :type:  ansys.dyna.core.Deck
+
+.. py:attribute:: create_fiber
+   :type:  ansys.dyna.core.Deck
+
+
+
+
+

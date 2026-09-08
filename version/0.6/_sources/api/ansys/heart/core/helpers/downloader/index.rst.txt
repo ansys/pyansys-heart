@@ -1,0 +1,253 @@
+
+
+
+
+
+
+The ``downloader.py`` module
+============================
+
+.. py:module:: ansys.heart.core.helpers.downloader
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: downloader
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~download_case_from_zenodo`
+            - Download a case from the remote repository.
+
+
+          * - :py:obj:`~unpack_case`
+            - Untar the downloaded tar-ball.
+
+
+          * - :py:obj:`~download_all_cases`
+            - Download all supported cases.
+
+
+          * - :py:obj:`~unpack_cases`
+            - Unpack a list of tar files.
+
+
+
+
+    .. tab-item:: Constants
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ALL_DOWNLOAD_URLS`
+            - 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Auto downloads cases.
+
+Auto downloads cases from the remote repositories of Strocchi et al 2020,
+and Rodero et al 2021.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: download_case_from_zenodo(database: str, case_number: int, download_folder: pathlib.Path, overwrite: bool = True, validate_hash: bool = True) -> pathlib.Path
+
+   
+   Download a case from the remote repository.
+
+
+   :Parameters:
+
+       **database** : :class:`python:str`
+           name of the database. Either Strocchi2020 or Rodero2021.
+
+       **case_number** : :class:`python:int`
+           case number to download.
+
+       **download_folder** : :obj:`Path`
+           path to the folder in which to download the case.
+
+
+
+   :Returns:
+
+       :obj:`Path`
+           Path to the tar ball that contains the vtk/case files.
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   Download case 1 from the public repository (Strocchi2020) of pathological hearts.
+
+   >>> path_to_tar_file = download_case_from_zenodo(
+           database="Strocchi2020", case_number=1, download_folder="my/download/folder"
+       )
+
+   Download case 1 from the public repository (Rodero2021) of 'healthy' hearts.
+   >>> path_to_tar_file = download_case_from_zenodo(
+           database="Rodero2021", case_number=1, download_folder="my/download/folder"
+       )
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: unpack_case(tar_path: pathlib.Path)
+
+   
+   Untar the downloaded tar-ball.
+
+
+   :Parameters:
+
+       **tar_path** : :obj:`Path`
+           Path to the tar ball.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> from ansys.heart.misc.downloader import unpack_case
+   >>> unpack_case("Strocchi2020\\01.tar.gz")
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: download_all_cases(download_dir: str = None)
+
+   
+   Download all supported cases.
+
+
+   :Parameters:
+
+       **download_dir** : :class:`python:str`
+           Base directory where to download the cases to.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Note that downloading all cases may - depending on bandwidth - take substantial
+   time.
+
+
+   .. rubric:: Examples
+
+   >>> from ansys.heart.misc.downloader import download_all_cases
+   >>> tar_files = download_call_cases("my-downloads")
+
+   To unpack all cases you can use the unpack_cases method:
+   >>> from ansys.heart.misc.downloader import unpack_cases
+   >>> unpack_cases(tar_files)
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: unpack_cases(list_of_tar_files: List)
+
+   
+   Unpack a list of tar files.
+
+
+   :Parameters:
+
+       **list_of_tar_files** : :obj:`typing.List`
+           List of tar files to unpack.
+
+
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Examples
+
+   >>> from ansys.heart.misc.downloader import unpack_cases
+   >>> unpack_cases(["01.tar.gz", "02.tar.gz"])
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:data:: ALL_DOWNLOAD_URLS
+
+
+

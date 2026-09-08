@@ -1,0 +1,611 @@
+
+
+
+
+Mesh
+====
+
+.. py:class:: Mesh(*args)
+   :canonical: ansys.heart.preprocessor.mesh.objects.Mesh
+
+
+
+Bases: :py:obj:`pyvista.UnstructuredGrid`
+
+
+   Mesh class: inherits from pyvista UnstructuredGrid.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Only tetrahedrons are supported.
+   Additional attributes are added on top of the pyvista UnstructuredGrid class
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Overview
+--------
+.. py:currentmodule:: Mesh
+.. tab-set::
+
+
+
+    .. tab-item:: Methods
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~read_mesh_file`
+            - Read mesh file.
+          * - :py:attr:`~read_mesh_file_rodero2021`
+            - Read mesh file - but modifies the fields to match data of Strocchi 2020.
+          * - :py:attr:`~write_to_vtk`
+            - Write mesh to VTK file.
+          * - :py:attr:`~keep_elements_with_value`
+            - Remove elements that satisfy a certain cell value of a specific field.
+          * - :py:attr:`~establish_connectivity`
+            - Establish the connetivity of the tetrahedrons.
+          * - :py:attr:`~get_mask_interface_faces`
+            - Get the (interface) faces between two parts.
+          * - :py:attr:`~add_interfaces`
+            - Add the interfaces between the parts to the mesh.
+          * - :py:attr:`~smooth_interfaces`
+            - Smooth the interfaces between the different parts.
+          * - :py:attr:`~add_boundaries`
+            - Add boundary surfaces to the mesh object. One surface per part.
+          * - :py:attr:`~get_surface_from_name`
+            - Return a list of surfaces that match the given list of names.
+
+
+    .. tab-item:: Properties
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~nodes`
+            - Node coordinates.
+          * - :py:attr:`~tetrahedrons`
+            - Tetrahedrons num_tetra x 4.
+          * - :py:attr:`~part_ids`
+            - Array of part ids indicating to which part the tetrahedron belongs.
+          * - :py:attr:`~boundary_names`
+            - Iterate over boundaries and returns their names.
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~triangles`
+            - Faces that make up the tetrahedrons.
+          * - :py:attr:`~face_types`
+            - Type of face: 1: interior face, 2: boundary face, 3: interface face.
+          * - :py:attr:`~conn`
+            - Face-tetra connectivity array.
+          * - :py:attr:`~interfaces`
+            - List of surface meshes that make up the interface between different parts.
+          * - :py:attr:`~boundaries`
+            - List of boundary surface meshes within the part.
+      
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.preprocessor.mesh.objects import Mesh
+
+
+Property detail
+---------------
+.. py:property:: nodes
+   :canonical: ansys.heart.preprocessor.mesh.objects.Mesh.nodes
+   :type: None
+
+
+   
+   Node coordinates.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: tetrahedrons
+   :canonical: ansys.heart.preprocessor.mesh.objects.Mesh.tetrahedrons
+   :type: None
+
+
+   
+   Tetrahedrons num_tetra x 4.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: part_ids
+   :canonical: ansys.heart.preprocessor.mesh.objects.Mesh.part_ids
+   :type: numpy.ndarray
+
+
+   
+   Array of part ids indicating to which part the tetrahedron belongs.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   This is derived from the "part-id" field in cell data
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:property:: boundary_names
+   :canonical: ansys.heart.preprocessor.mesh.objects.Mesh.boundary_names
+   :type: List[str]
+
+
+   
+   Iterate over boundaries and returns their names.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: triangles
+   :type: numpy.ndarray
+
+   
+   Faces that make up the tetrahedrons.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: face_types
+   :type: numpy.ndarray
+
+   
+   Type of face: 1: interior face, 2: boundary face, 3: interface face.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: conn
+
+   
+   Face-tetra connectivity array.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: interfaces
+   :type: List[SurfaceMesh]
+   :value: []
+
+   
+   List of surface meshes that make up the interface between different parts.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: boundaries
+   :type: List[SurfaceMesh]
+   :value: []
+
+   
+   List of boundary surface meshes within the part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+Method detail
+-------------
+.. py:method:: read_mesh_file(filename: pathlib.Path) -> None
+
+   
+   Read mesh file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: read_mesh_file_rodero2021(filename: pathlib.Path) -> None
+
+   
+   Read mesh file - but modifies the fields to match data of Strocchi 2020.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: write_to_vtk(filename: pathlib.Path) -> None
+
+   
+   Write mesh to VTK file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: keep_elements_with_value(values: List[int], field_name: str) -> None
+
+   
+   Remove elements that satisfy a certain cell value of a specific field.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: establish_connectivity() -> None
+
+   
+   Establish the connetivity of the tetrahedrons.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_mask_interface_faces(return_pairs: bool = False) -> Tuple[numpy.ndarray, Optional[List[int]]]
+
+   
+   Get the (interface) faces between two parts.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: add_interfaces(pairs: List[List[int]], pair_names: List[str]) -> None
+
+   
+   Add the interfaces between the parts to the mesh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: smooth_interfaces() -> None
+
+   
+   Smooth the interfaces between the different parts.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: add_boundaries(add_part_ids: List[int] = [], boundary_names: List[str] = []) -> None
+
+   
+   Add boundary surfaces to the mesh object. One surface per part.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:method:: get_surface_from_name(name: str = None)
+
+   
+   Return a list of surfaces that match the given list of names.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Returns single surface. When multiple matches are found returns list of surfaces
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

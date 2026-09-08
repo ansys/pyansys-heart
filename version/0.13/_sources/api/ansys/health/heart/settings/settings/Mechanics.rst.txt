@@ -1,0 +1,179 @@
+
+
+
+
+
+
+:class:`Mechanics`
+==================
+
+
+.. py:class:: ansys.health.heart.settings.settings.Mechanics
+
+   Bases: :py:obj:`Settings`
+
+
+   
+   Class for keeping track of settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+.. py:currentmodule:: Mechanics
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~analysis`
+            - Generic analysis settings.
+          * - :py:attr:`~material`
+            - Material settings/configuration.
+          * - :py:attr:`~boundary_conditions`
+            - Boundary condition specifications.
+          * - :py:attr:`~system`
+            - System model settings.
+
+
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.health.heart.settings.settings import Mechanics
+
+
+Attribute detail
+----------------
+
+.. py:attribute:: analysis
+   :type:  Analysis
+
+   
+   Generic analysis settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: material
+   :type:  Material
+
+   
+   Material settings/configuration.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: boundary_conditions
+   :type:  BoundaryConditions
+
+   
+   Boundary condition specifications.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:attribute:: system
+   :type:  SystemModel
+
+   
+   System model settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+
+

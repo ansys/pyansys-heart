@@ -1,0 +1,87 @@
+
+
+
+
+
+
+The ``mechanics_writer.py`` module
+==================================
+
+.. py:module:: ansys.health.heart.writer.mechanics_writer
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+.. py:currentmodule:: mechanics_writer
+.. tab-set::
+
+
+
+
+    .. tab-item:: Classes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.health.heart.writer.mechanics_writer.MechanicsDynaWriter`
+            - Class for preparing the input for a mechanics LS-DYNA simulation.
+
+
+          * - :py:obj:`~ansys.health.heart.writer.mechanics_writer.ZeroPressureMechanicsDynaWriter`
+            - Class for preparing the input for a stress-free LS-DYNA simulation.
+
+
+
+
+
+
+
+
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-cod-symbol_class"></span> MechanicsDynaWriter</api/ansys/health/heart/writer/mechanics_writer/MechanicsDynaWriter>
+    <span class="nf nf-cod-symbol_class"></span> ZeroPressureMechanicsDynaWriter</api/ansys/health/heart/writer/mechanics_writer/ZeroPressureMechanicsDynaWriter>
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing classes for writing LS-DYNA keyword files mechanics simulations.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+

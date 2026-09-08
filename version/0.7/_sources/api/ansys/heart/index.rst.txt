@@ -1,0 +1,160 @@
+
+
+
+
+
+
+The ``heart`` package
+=========================
+
+.. py:module:: ansys.heart
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: heart
+.. tab-set::
+
+    .. tab-item:: Subpackages
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~ansys.heart.core`
+            - Initialise core module.
+
+
+          * - :py:obj:`~ansys.heart.postprocessor`
+            - Initialise postprocess module.
+
+
+          * - :py:obj:`~ansys.heart.preprocessor`
+            - Initialise preprocessor module.
+
+
+          * - :py:obj:`~ansys.heart.simulator`
+            - Initialise heart simulator.
+
+
+
+
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~__version__`
+            - The version of pyansys-heart.
+
+
+
+    .. tab-item:: Constants
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:obj:`~LOG`
+            - 
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    <span class="nf nf-md-package"></span> core</api/ansys/heart/core/index>
+    <span class="nf nf-md-package"></span> postprocessor</api/ansys/heart/postprocessor/index>
+    <span class="nf nf-md-package"></span> preprocessor</api/ansys/heart/preprocessor/index>
+    <span class="nf nf-md-package"></span> simulator</api/ansys/heart/simulator/index>
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+
+PyAnsys Heart is a Python framework for heart modeling using ANSYS tools.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: LOG
+
+.. py:data:: __version__
+
+   
+   The version of pyansys-heart.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

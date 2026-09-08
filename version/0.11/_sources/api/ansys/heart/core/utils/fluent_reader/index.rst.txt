@@ -1,0 +1,46 @@
+
+
+
+
+
+
+The ``fluent_reader.py`` module
+===============================
+
+.. py:module:: ansys.heart.core.utils.fluent_reader
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module containing functions to read/write fluent meshes in HDF5 format.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+

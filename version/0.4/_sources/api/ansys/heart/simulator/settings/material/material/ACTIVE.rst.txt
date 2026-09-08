@@ -1,0 +1,160 @@
+
+
+:class:`ACTIVE`
+===============
+
+.. py:class:: ansys.heart.simulator.settings.material.material.ACTIVE
+
+   
+   Active module of MAT_295.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
+.. py:currentmodule:: ACTIVE
+
+Overview
+--------
+
+.. tab-set::
+
+
+
+
+
+   .. tab-item:: Attributes
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~acid`
+            - 
+          * - :py:attr:`~actype`
+            - 
+          * - :py:attr:`~acthr`
+            - 
+          * - :py:attr:`~acdir`
+            - 
+          * - :py:attr:`~sf`
+            - 
+          * - :py:attr:`~ss`
+            - 
+          * - :py:attr:`~sn`
+            - 
+          * - :py:attr:`~model`
+            - 
+          * - :py:attr:`~ca2_curve`
+            - 
+
+
+
+   .. tab-item:: Special methods
+
+      .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+          * - :py:attr:`~__post_init__`
+            - Deduce actype.
+
+
+
+
+Import detail
+-------------
+
+.. code-block:: python
+
+    from ansys.heart.simulator.settings.material.material import ACTIVE
+
+
+
+Attribute detail
+----------------
+.. py:attribute:: acid
+   :type:  int
+   :value: None
+
+
+.. py:attribute:: actype
+   :type:  int
+   :value: None
+
+
+.. py:attribute:: acthr
+   :type:  float
+   :value: None
+
+
+.. py:attribute:: acdir
+   :type:  int
+   :value: 1
+
+
+.. py:attribute:: sf
+   :type:  float
+   :value: 1.0
+
+
+.. py:attribute:: ss
+   :type:  float
+   :value: 0.0
+
+
+.. py:attribute:: sn
+   :type:  float
+   :value: 0.0
+
+
+.. py:attribute:: model
+   :type:  ActiveModel
+
+.. py:attribute:: ca2_curve
+   :type:  ansys.heart.simulator.settings.material.curve.ActiveCurve
+
+
+
+Method detail
+-------------
+.. py:method:: __post_init__()
+
+   
+   Deduce actype.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+

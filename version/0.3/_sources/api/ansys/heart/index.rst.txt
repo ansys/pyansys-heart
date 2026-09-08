@@ -1,0 +1,179 @@
+
+
+
+
+
+The ``heart`` package 
+=========================
+
+.. py:module:: ansys.heart
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: heart
+.. tab-set::
+
+    .. tab-item:: Subpackages
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~ansys.heart.core`
+            - 
+
+
+          * - :py:attr:`~ansys.heart.postprocessor`
+            - 
+
+
+          * - :py:attr:`~ansys.heart.preprocessor`
+            - 
+
+
+          * - :py:attr:`~ansys.heart.simulator`
+            - 
+
+
+
+    .. tab-item:: Submodules
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~ansys.heart.general`
+            - Module containing some general methods.
+
+
+
+
+
+
+
+
+    .. tab-item:: Attributes
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~__version__`
+            - The version of pyansys-heart.
+
+
+
+    .. tab-item:: Constants
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~LOG`
+            - 
+
+
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🖿 core<core/index.rst>
+    🖿 postprocessor<postprocessor/index.rst>
+    🖿 preprocessor<preprocessor/index.rst>
+    🖿 simulator<simulator/index.rst>
+
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+   :hidden:
+
+    🗎 general<general/index.rst>
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+
+PyAnsys Heart is a Python framework for heart modeling using ANSYS tools.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:data:: LOG
+
+   
+
+.. py:data:: __version__
+
+   
+   The version of pyansys-heart.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+

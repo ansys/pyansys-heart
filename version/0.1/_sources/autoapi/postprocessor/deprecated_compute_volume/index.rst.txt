@@ -1,0 +1,134 @@
+:py:mod:`postprocessor.deprecated_compute_volume`
+=================================================
+
+.. py:module:: postprocessor.deprecated_compute_volume
+
+.. autoapi-nested-parse::
+
+   Module for computing the volume.
+
+   ..
+       !! processed by numpydoc !!
+
+
+Module Contents
+---------------
+
+Classes
+~~~~~~~
+
+.. autoapisummary::
+
+   postprocessor.deprecated_compute_volume.ClosedSurface
+
+
+
+Functions
+~~~~~~~~~
+
+.. autoapisummary::
+
+   postprocessor.deprecated_compute_volume.update_system_json
+
+
+
+.. py:class:: ClosedSurface(coord, surface_mesh)
+
+
+   
+   Closed surface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+   .. py:method:: get_volume()
+
+      
+      Compute volume.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+   .. py:method:: write_stl(name)
+
+      
+      Write closed surface in a stl file.
+
+
+      :Parameters:
+
+          **name: file name**
+              ..
+
+          **-------**
+              ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      ..
+          !! processed by numpydoc !!
+
+
+.. py:function:: update_system_json(nodes_file)
+
+   
+   Update the unstressed cavity volume in the system model settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+

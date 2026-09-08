@@ -1,0 +1,857 @@
+
+
+
+
+
+The ``vtkmethods.py`` module
+============================
+
+.. py:module:: ansys.heart.preprocessor.mesh.vtkmethods
+
+
+Summary
+-------
+
+
+
+
+
+
+
+
+.. py:currentmodule:: vtkmethods
+.. tab-set::
+
+
+
+
+
+
+
+    .. tab-item:: Functions
+
+        .. list-table::
+          :header-rows: 0
+          :widths: auto
+
+
+          * - :py:attr:`~read_vtk_unstructuredgrid_file`
+            - Read vtk unstructured grid file.
+
+
+          * - :py:attr:`~write_vtkdata_to_vtkfile`
+            - Write a vtk unstructured grid object to vtk file.
+
+
+          * - :py:attr:`~vtk_surface_to_stl`
+            - Write stl from vtk surface mesh (polydata).
+
+
+          * - :py:attr:`~get_tetra_info_from_unstructgrid`
+            - Get tetrahedron nodes, connectivity and cell/point data.
+
+
+          * - :py:attr:`~get_tri_info_from_polydata`
+            - Get connectivity, celldata and point data info from polydata object.
+
+
+          * - :py:attr:`~vtk_surface_filter`
+            - Extract surface from a vtk object (polydata or unstructured grid).
+
+
+          * - :py:attr:`~get_info_from_vtk`
+            - Use numpy support to get points, cell connectivity, cell data, point data from vtk object.
+
+
+          * - :py:attr:`~vtk_map_discrete_cell_data`
+            - Map discrete values from a source to a target.
+
+
+          * - :py:attr:`~vtk_map_continuous_data`
+            - Map cell and point data from source to target.
+
+
+          * - :py:attr:`~vtk_remove_arrays`
+            - Remove all or specific data arrays from vtk object.
+
+
+          * - :py:attr:`~add_vtk_array`
+            - Add vtk array to vtk polydata or unstructured grid object.
+
+
+          * - :py:attr:`~create_vtk_polydata_from_points`
+            - Create VTK PolyData object from set of points.
+
+
+          * - :py:attr:`~remove_duplicate_nodes`
+            - Find and removes duplicate nodes and remaps element definitions.
+
+
+          * - :py:attr:`~compute_surface_nodal_area_pyvista`
+            - Compute an average nodal area by summing surface areas of connected elements.
+
+
+          * - :py:attr:`~add_normals_to_polydata`
+            - Add normals to the vtk.vtkPolyData object.
+
+
+          * - :py:attr:`~extrude_polydata`
+            - Extrude a given polydata surface in a given direction.
+
+
+          * - :py:attr:`~create_vtk_surface_triangles`
+            - Create vtkPolyData object from array of points and array of triangles.
+
+
+          * - :py:attr:`~smooth_polydata`
+            - Use Laplacian smoothing to smooth the vtk polydata object.
+
+
+          * - :py:attr:`~cell_ids_inside_enclosed_surface`
+            - Tag any cells that are inside an enclosed surface.
+
+
+          * - :py:attr:`~get_connected_regions`
+            - Find the connected regions.
+
+
+          * - :py:attr:`~vtk_cutter`
+            - Cut a vtk polydata by a plane.
+
+
+          * - :py:attr:`~find_cells_close_to_nodes`
+            - Find cell IDs close to nodes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Description
+-----------
+
+Module contains methods for mesh operations related to the vtk library.
+
+..
+    !! processed by numpydoc !!
+
+
+
+
+
+
+Module detail
+-------------
+
+.. py:function:: read_vtk_unstructuredgrid_file(path_to_vtk: str) -> vtk.vtkUnstructuredGrid
+
+   
+   Read vtk unstructured grid file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: write_vtkdata_to_vtkfile(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], fname: str)
+
+   
+   Write a vtk unstructured grid object to vtk file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: vtk_surface_to_stl(vtk_data: Union[vtk.vtkUnstructuredGrid, vtk.vtkPolyData], filename: str, solid_name: str = None) -> None
+
+   
+   Write stl from vtk surface mesh (polydata).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_tetra_info_from_unstructgrid(vtk_grid: vtk.vtkUnstructuredGrid, get_all_data: bool = True, deep_copy: bool = False) -> Tuple[numpy.ndarray, numpy.ndarray, dict, dict]
+
+   
+   Get tetrahedron nodes, connectivity and cell/point data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_tri_info_from_polydata(vtk_polydata: vtk.vtkPolyData, get_all_data: bool = True, deep_copy: bool = False) -> Tuple[numpy.ndarray, numpy.ndarray, dict, dict]
+
+   
+   Get connectivity, celldata and point data info from polydata object.
+
+
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Assumes triangular elements
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: vtk_surface_filter(vtk_grid: vtk.vtkUnstructuredGrid, keep_global_ids: bool = False) -> vtk.vtkPolyData
+
+   
+   Extract surface from a vtk object (polydata or unstructured grid).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_info_from_vtk(vtk_grid: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]) -> Tuple[numpy.ndarray, numpy.ndarray, dict, dict]
+
+   
+   Use numpy support to get points, cell connectivity, cell data, point data from vtk object.
+
+
+   :Parameters:
+
+       **vtk_grid** : :obj:`Union`\[:obj:`vtk.vtkPolyData`, :obj:`vtk.vtkUnstructuredGrid`]
+           Vtk object from which to extract the information
+
+   :Returns:
+
+       :obj:`List`
+           List of points, elements, cell data, and point data
+
+
+
+
+   :Raises:
+
+       :obj:`ValueError`
+           _description_
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: vtk_map_discrete_cell_data(vtk_object_source: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid], vtk_object_target: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid], data_name: str) -> Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]
+
+   
+   Map discrete values from a source to a target.
+
+
+   :Parameters:
+
+       **vtk_object_source** : :obj:`Union`\[:obj:`vtk.vtkPolyData`, :obj:`vtk.vtkUnstructuredGrid`]
+           Source vtk object
+
+       **vtk_object_target** : :obj:`Union`\[:obj:`vtk.vtkPolyData`, :obj:`vtk.vtkUnstructuredGrid`]
+           Target vtk object
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Uses linear interpolation with
+   1 closest point. Note that this computes the centroids of the cells first, creates
+   a new vtk poly data object as point cloud and uses that for interpolating the target
+   cell data field.
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: vtk_map_continuous_data(source: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid], target: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid], normalize_vectors: bool = True, array_names_to_include: list = []) -> Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]
+
+   
+   Map cell and point data from source to target.
+
+
+   :Parameters:
+
+       **input** : :obj:`Union`\[:obj:`vtk.PolyData`, :obj:`vtk.UnstructuredGrid`]
+           Input which to use as reference
+
+       **source** : :obj:`Union`\[:obj:`vtk.PolyData`, :obj:`vtk.UnstructuredGrid`]
+           Target object onto which to interpolate data
+
+       **array_names_to_include** : :class:`python:list`
+           List of array names to include for interpolation.
+           If empty all cell and point arrays will be interpolated
+
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Makes use of VoronoiKernel and mapping cell to point data
+   consequently point data is mapped back to the cell.
+
+   Modifies the underlying data of the target vtk object and overwrites if
+   a data field with the same name is already present.
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: vtk_remove_arrays(vtk_grid: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid], array_name: str = '', data_type: str = 'cell_data', remove_all: bool = False, except_array_names: List[str] = []) -> Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid]
+
+   
+   Remove all or specific data arrays from vtk object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: add_vtk_array(polydata: Union[vtk.vtkPolyData, vtk.vtkUnstructuredGrid], data: numpy.array, name: str, data_type: str = 'cell', array_type: Union[int, float] = float)
+
+   
+   Add vtk array to vtk polydata or unstructured grid object.
+
+
+   :Parameters:
+
+       **polydata** : :obj:`Union`\[:obj:`vtk.vtkPolyData`, :obj:`vtk.vtkUnstructuredGrid`]
+           vtk object
+
+       **data** : :obj:`np.array`
+           input data. Can be either 1d array or 2d array
+
+       **name** : :class:`python:str`
+           name of data field
+
+       **data_type** : :class:`python:str`, :obj:`optional`
+           Type of data; either "cell" or "point", by default "cell"
+
+       **array_type** : :obj:`Union`\[:class:`python:int`, :class:`python:float`], :obj:`optional`
+           Type of array to add, by default float
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_vtk_polydata_from_points(points: numpy.ndarray) -> vtk.vtkPolyData
+
+   
+   Create VTK PolyData object from set of points.
+
+
+   :Parameters:
+
+       **points** : :obj:`np.array`
+           Point coordinates Nx3
+
+   :Returns:
+
+       :obj:`vtk.vtkPolyData`
+           vtkPolyData object
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   To visualize in ParaView render the points as Gaussian Points
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: remove_duplicate_nodes(nodes: numpy.ndarray, elements: numpy.ndarray, tolerance: float = 1e-07) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   
+   Find and removes duplicate nodes and remaps element definitions.
+
+
+   :Parameters:
+
+       **nodes** : :obj:`np.ndarray <numpy.ndarray>`
+           Array with nodal coordinates
+
+       **elements** : :obj:`np.ndarray <numpy.ndarray>`
+           Array with element definition
+
+       **tolerance: float**
+           Tolerance - the same for each coordinate
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: compute_surface_nodal_area_pyvista(surface: pyvista.PolyData) -> numpy.ndarray
+
+   
+   Compute an average nodal area by summing surface areas of connected elements.
+
+
+   :Parameters:
+
+       **vtk_surface** : :obj:`vtk.vtkPolyData`
+           Vtk object describing the object
+
+   :Returns:
+
+       :obj:`np.array`
+           Numpy array with nodal areas of length number of points
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   Adds the partial areas of connected elements/cells to each node.
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: add_normals_to_polydata(vtk_polydata: vtk.vtkPolyData, return_normals: bool = False) -> Union[vtk.vtkPolyData, Optional[Tuple[numpy.ndarray, numpy.ndarray]]]
+
+   
+   Add normals to the vtk.vtkPolyData object.
+
+
+   :Parameters:
+
+       **vtk_polydata** : :obj:`vtk.vtkPolyData`
+           Input surface.
+
+       **return_normals** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Return the cell and point normals as numpy arrays, by default False.
+
+   :Returns:
+
+       **vtk_polydata** : :obj:`vtk.vtkPolyData`
+           Vtk surface with cell and point normals added.
+
+       **(cell_normals, point_normals)** : (:obj:`np.ndarray <numpy.ndarray>`, :obj:`np.ndarray <numpy.ndarray>`), :obj:`optional`
+           Cell normals and point normals, only provided if return_normals=True
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: extrude_polydata(vtk_surface: vtk.vtkPolyData, extrude_by: float = 1, extrude_direction: numpy.array = np.empty(0)) -> vtk.vtkPolyData
+
+   
+   Extrude a given polydata surface in a given direction.
+
+
+   :Parameters:
+
+       **vtk_surface** : :obj:`vtk.vtkPolyData`
+           Surface to extrude
+
+       **extrude_by** : :class:`python:float`, :obj:`optional`
+           Extrude by this much, by default 1
+
+       **extrude_direction** : :obj:`np.array`, :obj:`optional`
+           Direction of extrusion, should have three components if not specified
+           extrudes in normal direction
+
+   :Returns:
+
+       :obj:`vtk.vtkPolyData`
+           Extruded vtkPolyData object
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: create_vtk_surface_triangles(points: numpy.ndarray, triangles: numpy.ndarray, clean=True) -> vtk.vtkPolyData
+
+   
+   Create vtkPolyData object from array of points and array of triangles.
+
+
+   :Parameters:
+
+       **points** : :obj:`np.array`
+           Nx3 array of point coordinates
+
+       **triangles** : :obj:`np.array`
+           Mx3 array of triangle definitions
+
+       **clean** : :obj:`Boolean`, :data:`python:True` :obj:`by` :obj:`default`
+           use vtkCleanPolyData Filter to remove unused nodes, etc.
+           But may have unexpected behavior...
+
+   :Returns:
+
+       :obj:`vtk.vtkPolyData`
+           VTK Object PolyData object describing the surface
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: smooth_polydata(vtk_polydata: vtk.vtkPolyData) -> vtk.vtkPolyData
+
+   
+   Use Laplacian smoothing to smooth the vtk polydata object.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: cell_ids_inside_enclosed_surface(vtk_source: vtk.vtkUnstructuredGrid, vtk_surface: vtk.vtkPolyData) -> numpy.ndarray
+
+   
+   Tag any cells that are inside an enclosed surface.
+
+
+   :Parameters:
+
+       **vtk_source** : :obj:`vtk.vtkUnstructuredGrid`
+           Source VTK object of which to check the whether the cells are inside/outside
+           the specified surface
+
+       **vtk_surface** : :obj:`vtk.vtkPolyData`
+           Enclosed surface
+
+   :Returns:
+
+       :obj:`vtk.vtkUnstructuredGrid`
+           VTK object with additional cell data indicating whether
+           the cell is in/outside the provided surface
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: get_connected_regions(nodes: numpy.ndarray, triangles: numpy.ndarray, return_vtk_object: bool = False) -> numpy.ndarray
+
+   
+   Find the connected regions.
+
+
+   :Parameters:
+
+       **nodes** : :obj:`np.ndarray <numpy.ndarray>`
+           NumNodes x 3 array with point coordinates
+
+       **triangles** : :obj:`np.ndarray <numpy.ndarray>`
+           NumTriangles x 3 array with triangle definitions
+
+       **return_vtk_object** : :ref:`bool <python:bltin-boolean-values>`, :obj:`optional`
+           Flag indicating whether to return the vtk (surface) object, by default False
+
+   :Returns:
+
+       :obj:`np.array`
+           Array with region ids
+
+       :obj:`vtk.vtkPolyData`
+           VTK Object with region ids
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: vtk_cutter(vtk_polydata: vtk.vtkPolyData, cut_plane) -> vtk.vtkPolyData
+
+   
+   Cut a vtk polydata by a plane.
+
+
+   :Parameters:
+
+       **vtk_polydata: vtk polydata**
+           ..
+
+       **cut_plane: dictionary contains key: 'center' and 'normal'**
+           ..
+
+   :Returns:
+
+       :obj:`vtkpolydata`
+           ..
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: find_cells_close_to_nodes(mesh: pyvista.UnstructuredGrid, node_ids: list[int], radius: float = 2) -> numpy.ndarray
+
+   
+   Find cell IDs close to nodes.
+
+
+   :Parameters:
+
+       **mesh** : :obj:`pv.UnstructuredGrid`
+           target mesh
+
+       **node_ids** : :class:`python:list`\[:class:`python:int`]
+           node IDs
+
+       **radius** : :class:`python:float`, :obj:`optional`
+           influence radius, by default 2
+
+   :Returns:
+
+       :obj:`np.ndarray <numpy.ndarray>`
+           cell IDs
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+
+
